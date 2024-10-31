@@ -1,0 +1,43 @@
+@import '../../abstracts/mixins/mixins';
+
+.bsc__header--desktop{
+    display: block;
+}
+.bsc__header--mobile{
+    display: none;
+}
+
+
+.bsc.bsc__header{
+        display: block;
+        width: 100%;
+
+        background-color: var(--color--main);
+}
+
+.header__container {
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    max-width: var(--size--pager-container-w);
+
+    margin: 0 auto;
+}
+
+.header__image{
+
+    display: block;
+    width: var(--size--header-logo-w);
+    padding-top: 1em;
+    padding-bottom: 1em;
+
+    @include button-hover;
+
+    img{
+        width: 100%;
+    }
+}
