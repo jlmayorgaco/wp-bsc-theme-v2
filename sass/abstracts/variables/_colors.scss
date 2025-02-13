@@ -18,3 +18,26 @@ $color__border-button-hover: #ccc #bbb #aaa;
 $color__border-button-focus: #aaa #bbb #bbb;
 $color__border-input: #ccc;
 $color__border-abbr: #666;
+
+
+
+
+// ---------------------------------------- //
+// -- BSC THEME --------------------------- //
+// ---------------------------------------- //
+
+$color__pink:#F7C0CD;
+$color__black: #333333;
+
+.bsc{
+
+    // Color
+    --color--main: #{$color__pink};
+    --color--text: #{$color__black};
+
+    //P age
+    --size--pager-container-w: 1000px;
+
+    // Header
+    --size--header-logo-w: 150px;
+}
