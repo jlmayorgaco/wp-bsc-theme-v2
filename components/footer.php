@@ -95,9 +95,10 @@
       </div>
       </div>
 
-    <a href="#" class="footer__shopping-cart" aria-label="Shopping Cart with 10 items">
-      <i aria-hidden="true" class="dlicon shopping_bag-20"></i> <span class="footer__cart-count">10</span>
-    </a>
+<a href="<?php echo wc_get_cart_url(); ?>" class="footer__shopping-cart" aria-label="Shopping Cart with <?php echo WC()->cart->get_cart_contents_count(); ?> items">
+  <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
+  <span class="footer__cart-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
+</a>
 
       <div class="footer__developer-section">
       <h2 class="footer__developer-heading">
