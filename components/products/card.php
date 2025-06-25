@@ -20,7 +20,10 @@ class BSC_Products_Card {
         $this->regular_price = wc_price($product->get_regular_price());
         $this->sale_price    = wc_price($product->get_sale_price());
         $this->stock_status  = $product->get_stock_status();
-        $this->image = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single')[0];
+        
+        $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single');
+        $this->image = is_array($image_data) ? $image_data[0] : 'http://bsc.local/wp-content/plugins/wp-bsc-plugin-v1/assets/images/bsc__product_placeholder.jpeg?query_photo_index=0';
+
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();
 
@@ -37,8 +40,19 @@ class BSC_Products_Card {
     }
 
     private function getProductBrand($product) {
-        $brand = get_the_terms($product->get_id(), 'product_brand');
-        return ($brand && !is_wp_error($brand)) ? $brand[0]->name : '_';
+        $categories = get_the_terms($product->get_id(), 'product_cat');
+        $brand_term = null;
+
+        if (!is_wp_error($categories) && !empty($categories)) {
+            foreach ($categories as $category) {
+                if (strpos($category->slug, '-marca') !== false) {
+                    $brand_term = $category;
+                    break;
+                }
+            }
+        }
+
+        return $brand_term ? $brand_term->name : 'Sin marca';
     }
 
     public function render_images(): void {
@@ -82,26 +96,51 @@ class BSC_Products_Card {
         echo $this->price;
     }
 
-    public function render_button(): void {
-        echo '<a 
-            href="?add-to-cart=' . esc_attr($this->id) . '" 
-            class="bsc__button-add-to-cart ajax_add_to_cart" 
-            data-quantity="1" 
-            data-product_id="' . esc_attr($this->id) . '" 
-            data-product_sku="" 
-            aria-label="Agregar este producto al carrito"
-            rel="nofollow"
-        >';
-        echo '<span>Agregar</span>';
-        echo '</a>';
+    public function render_button(string $label = 'Agregar'): void {
+        $product_id = $this->id;
+        $in_cart = false;
+        $quantity = 0;
+
+        // Check if product is in the cart
+        foreach (WC()->cart->get_cart() as $cart_item) {
+            if ((int)$cart_item['product_id'] === (int)$product_id) {
+                $in_cart = true;
+                $quantity = $cart_item['quantity'];
+                break;
+            }
+        }
+
+        if ($in_cart) {
+            // Render quantity controls
+            echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr($product_id) . '">';
+            echo '<button class="bsc__qty-minus">−</button>';
+            echo '<span class="bsc__qty-value">' . esc_html($quantity) . '</span>';
+            echo '<button class="bsc__qty-plus">+</button>';
+            echo '</div>';
+        } else {
+            // Render add-to-cart button
+            echo '<a 
+                href="?add-to-cart=' . esc_attr($product_id) . '" 
+                class="bsc__button-add-to-cart ajax_add_to_cart" 
+                data-quantity="1" 
+                data-product_id="' . esc_attr($product_id) . '" 
+                data-product_sku="" 
+                aria-label="Agregar este producto al carrito"
+                rel="nofollow"
+            >';
+            echo '<span>' . esc_html($label) . '</span>';
+            echo '</a>';
+        }
     }
+
+
 
     public function render(): void {
         echo '<div class="bsc__product-card">';
 
-            echo '<div class="card__images">';
+            echo '<a class="card__images" href="'.$this->link.'">';
                 $this->render_images();
-            echo '</div>';
+            echo '</a>';
 
             echo '<div class="card__rating">';
                 $this->render_rating();
