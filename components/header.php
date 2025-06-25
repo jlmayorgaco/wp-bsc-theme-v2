@@ -377,7 +377,7 @@
                         </ul>
                     </div>
                 </li>
-                <li class="menu__icon icon--shop">
+                <li class="menu__icon icon--shop" style="display:none">
                     <a href="/shop/" aria-label="View your shopping cart" title="View your shopping cart">
                         <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
                         <span></span>
