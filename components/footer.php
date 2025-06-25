@@ -95,15 +95,21 @@
       </div>
       </div>
 
-<a href="<?php echo wc_get_cart_url(); ?>" class="footer__shopping-cart" aria-label="Shopping Cart with <?php echo WC()->cart->get_cart_contents_count(); ?> items">
-  <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
-  <span class="footer__cart-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
-</a>
+      <a href="<?php echo wc_get_checkout_url(); ?>" class="footer__shopping-cart" aria-label="Shopping Cart with <?php echo WC()->cart->get_cart_contents_count(); ?> items">
+        <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
+        <span class="footer__cart-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
+      </a>
+
+      <a target="_blank" rel="noopener noreferrer" href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20tener%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20productos%20que%20tienen%20en%20la%20tienda.%20%E2%98%BA%EF%B8%8F" class="footer__whatsapp" aria-label="Whatsapp Link">
+        <i class="premium-svg-nodraw premium-drawable-icon fab fa-whatsapp" aria-hidden="true"></i>
+        <span class="footer__wa">Whatsapp</span>
+      </a>
 
       <div class="footer__developer-section">
       <h2 class="footer__developer-heading">
-        <a href="http://www.wappy.com.co" target="_blank">Desarrollado con amor por Wappy</a>
+        <a href="http://www.wappy.com.co" target="_blank">Desarrollado con amor por BSC</a>
       </h2>
+
   </div>
 
   </div>
