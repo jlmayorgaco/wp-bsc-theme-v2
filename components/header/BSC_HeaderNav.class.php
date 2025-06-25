@@ -43,11 +43,11 @@ class BSC_HeaderNav {
 		ob_start();
 		echo '<nav id="' . esc_attr($this->id) . '" class="' . esc_attr($this->class) . '">';
 
-		foreach ($this->menus as $menu) {
-			if ($menu instanceof BSC_MenuNav) {
-				echo $menu->renderContent();
+			foreach ($this->menus as $menu) {
+				if ($menu instanceof BSC_MenuNav) {
+					echo $menu->renderContent();
+				}
 			}
-		}
 
 		echo '</nav>';
 		return ob_get_clean();
