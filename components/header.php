@@ -362,21 +362,36 @@
                         <ul class="search-results"></ul>
                     </div>
                 </li>
-                <li class="menu__icon icon--profile">
-                    <button id="profile-button">
+                <?php if (is_user_logged_in()) : ?>
+                    <li class="menu__icon icon--profile">
+                        <button id="profile-button" aria-haspopup="true" aria-expanded="false">
                         <i aria-hidden="true" class="dlicon users_single-03"></i>
-                    </button>
-                    <div id="profile-dropdown" class="bsc__profile-dropdown">
+                        </button>
+                        <div id="profile-dropdown" class="bsc__profile-dropdown">
                         <ul>
-                            <li><a href="/mi-cuenta-bubbles/">Mi Perfil</a></li>
-                            <li><hr><a href="/mi-cuenta-bubbles/orders/">Mis Pedidos</a></li>
-                            <li><hr><a href="/mi-cuenta-bubbles/points/">Mis Puntos</a></li>
-                            <li><hr><a href="/mi-cuenta-bubbles/edit-account/">Mis Datos</a></li>
-                            <li><hr><a href="/mi-cuenta-bubbles/edit-address/">Mis Direcciones</a></li>
-                            <li><hr><a href="/mi-cuenta-bubbles/customer-logout/">Cerrar sesión</a></li>
+                            <li><a href="/mi-cuenta/">Mi Perfil</a></li>
+                            <li><hr><a href="/mi-cuenta/orders/">Mis Pedidos</a></li>
+                            <li><hr><a href="/mi-cuenta/points/">Mis Puntos</a></li>
+                            <li><hr><a href="/mi-cuenta/edit-account/">Mis Datos</a></li>
+                            <li><hr><a href="/mi-cuenta/edit-address/">Mis Direcciones</a></li>
+                            <li><hr><a href="/mi-cuenta/customer-logout/">Cerrar sesión</a></li>
                         </ul>
-                    </div>
-                </li>
+                        </div>
+                    </li>
+                    <?php else : ?>
+                    <li class="menu__icon icon--profile">
+                        <button id="profile-button" aria-haspopup="true" aria-expanded="false">
+                        <i aria-hidden="true" class="dlicon users_single-03"></i>
+                        </button>
+                        <div id="profile-dropdown" class="bsc__profile-dropdown">
+                        <ul>
+                            <li><a href="/login/">Iniciar sesión</a></li>
+                            <li><hr><a href="/register/">Crear cuenta</a></li>
+                        </ul>
+                        </div>
+                    </li>
+                    <?php endif; ?>
+
                 <li class="menu__icon icon--shop" style="display:none">
                     <a href="/shop/" aria-label="View your shopping cart" title="View your shopping cart">
                         <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
