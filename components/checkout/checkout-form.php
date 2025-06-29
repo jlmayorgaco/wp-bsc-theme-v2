@@ -4,7 +4,6 @@ defined('ABSPATH') || exit;
 $checkout = WC()->checkout();
 $fields   = $checkout->get_checkout_fields();
 
-// Mapa de placeholders personalizados
 $placeholder_map = [
   'billing_first_name'    => 'Nombres',
   'billing_last_name'     => 'Apellidos',
@@ -34,7 +33,6 @@ foreach (['billing', 'shipping'] as $group) {
       } elseif (!isset($field['placeholder']) && isset($field['label'])) {
         $field['placeholder'] = $field['label'];
       }
-
       $field['class'][] = 'bsc__field';
     }
   }
@@ -46,8 +44,7 @@ if (isset($fields['order']['order_comments'])) {
   $fields['order']['order_comments']['class'][] = 'bsc__field';
 }
 ?>
-
-<form id="checkout" name="checkout" method="post" class="checkout bsc__checkout-form" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
+<div class="checkout bsc__checkout-form">
   <div class="bsc__checkout-section">
     <h2 class="bsc__section-title">Datos de Entrega</h2>
 
@@ -60,16 +57,22 @@ if (isset($fields['order']['order_comments'])) {
 
     <?php
       woocommerce_form_field('billing_cedula', $fields['billing']['billing_cedula'], $checkout->get_value('billing_cedula'));
-
       woocommerce_form_field('billing_email', $fields['billing']['billing_email'], $checkout->get_value('billing_email'));
       woocommerce_form_field('billing_phone', $fields['billing']['billing_phone'], $checkout->get_value('billing_phone'));
 
-      // País (lectura/disabled)
+      // Set default value to Colombia
+      $fields['billing']['billing_country']['default'] = 'CO';
       $fields['billing']['billing_country']['custom_attributes'] = [
-        'readonly' => 'readonly', 'disabled' => 'disabled'
+        'readonly' => 'readonly'
       ];
-      woocommerce_form_field('billing_country', $fields['billing']['billing_country'], $checkout->get_value('billing_country'));
 
+      // Output the country field
+      woocommerce_form_field(
+        'billing_country',
+        $fields['billing']['billing_country'],
+        $checkout->get_value('billing_country') ?: 'CO'
+      );
+      
       echo '<div class="bsc__grid-3">';
         woocommerce_form_field('billing_state', $fields['billing']['billing_state'], $checkout->get_value('billing_state'));
         woocommerce_form_field('billing_city', $fields['billing']['billing_city'], $checkout->get_value('billing_city'));
@@ -93,10 +96,7 @@ if (isset($fields['order']['order_comments'])) {
       <h3 class="bsc__section-title">Dirección de envío</h3>
 
       <?php
-        // País (lectura/disabled)
-        $fields['shipping']['shipping_country']['custom_attributes'] = [
-          'readonly' => 'readonly', 'disabled' => 'disabled'
-        ];
+        $fields['shipping']['shipping_country']['custom_attributes'] = ['readonly' => 'readonly'];
         woocommerce_form_field('shipping_country', $fields['shipping']['shipping_country'], $checkout->get_value('shipping_country'));
 
         echo '<div class="bsc__grid-3">';
@@ -114,18 +114,19 @@ if (isset($fields['order']['order_comments'])) {
     <h2 class="bsc__section-title">Notas del pedido (opcional)</h2>
     <?php woocommerce_form_field('order_comments', $fields['order']['order_comments'], $checkout->get_value('order_comments')); ?>
   </div>
-</form>
+
+</div>
+
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const toggle = document.querySelector('input[name="ship_to_different_address"]');
     const shippingSection = document.querySelector('.bsc__shipping-fields');
-
     if (toggle && shippingSection) {
       toggle.addEventListener('change', () => {
         shippingSection.style.display = toggle.checked ? 'block' : 'none';
       });
-      shippingSection.style.display = toggle.checked ? 'block' : 'none'; // Trigger inicial
+      shippingSection.style.display = toggle.checked ? 'block' : 'none';
     }
   });
 </script>
