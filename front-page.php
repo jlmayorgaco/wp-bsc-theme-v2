@@ -204,60 +204,121 @@
       </div>
     </section>
 
+    <section class="section home__featured-products">
+      <div class="section__container">
+              <h1 class="bsc__title">
+                <strong>Productos</strong> Destacados
+              </h1>
+              <?php 
+                $slider = new BSC_Products_Sliders();
+                $slider->render();
+              ?>
+      </div>
+    </section>
+
     <section class="section home__about--section">
       <div class="section__back">
-        <img class="brands__bg" src="" alt="">
+        <img class="about__bg" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_bg.jpg" alt="">
       </div>
       <div class="section__front">
         <div class="front__container">
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
+
+          <div class="about__title">
+            <strong>Bubble</strong> Lover ! Conoce más de nosotros
           </div>
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
+
+          <div class="about__cols">
+
+            <div class="about__col">
+              <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon1.png" alt="">
+              <h1 class="about__title">Envíos a toda Colombia</h1>
+              <h2 class="about__subtitle">Por compras mayores a $300.000</h2>
+            </div>
+
+            <div class="about__col-separator"></div>
+
+            <div class="about__col">
+              <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon2.png" alt="">
+              <h1 class="about__title">Sumas puntos en BSC</h1>
+              <h2 class="about__subtitle">con cada compra que hagas</h2>
+            </div>
+
+            <div class="about__col-separator"></div>
+
+            <div class="about__col">
+              <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon3.png" alt="">
+              <h1 class="about__title">Regalito sorpresa</h1>
+              <h2 class="about__subtitle">con el programa de fidelización</h2>
+            </div>
+
           </div>
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
-          </div>
-        </div>
+         
       </div>
     </section>
 
     <section class="section home__contact--section">
-      <div class="section__back">
-        <img class="brands__bg" src="" alt="">
-      </div>
-      <div class="section__front">
-        <div class="front__container">
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
+      <div class="home__contact__container">
+        <div class="home__contact__cols">
+
+          <!-- Left Column -->
+          <div class="home__contact__col home__contact__col--left">
+            <div class="home__contact__title-row">
+              <h1 class="home__contact__headline">But first skincare</h1>
+              <img 
+                class="home__contact__wave" 
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_wave.png" 
+                alt="Wave"
+              >
+            </div>
+
+            <div class="home__contact__blog-row">
+              <img 
+                class="home__contact__blog-card" 
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image1.png" 
+                alt="Bubble Blog Card"
+              >
+              <img 
+                class="home__contact__blog-photo" 
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image2.png" 
+                alt="Bubble Blog Photo"
+              >
+              <img 
+                class="home__contact__blog-sticker" 
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image3.png" 
+                alt="Sticker"
+              >
+            </div>
           </div>
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
+
+          <!-- Right Column -->
+          <div class="home__contact__col home__contact__col--right">
+            <div class="home__contact__hearts">
+              <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_icon_white_heart.png" alt="">
+              <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_icon_white_heart.png" alt="">
+              <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_icon_white_heart.png" alt="">
+            </div>
+
+            <p class="home__contact__description">
+              <strong>Únete a la comunidad de BSC</strong> y entérate antes que nadie de promociones, noticias y lanzamientos exclusivos
+            </p>
+
+            <form class="home__contact__form" action="#">
+              <input type="email" placeholder="Tu e-mail" class="home__contact__input" required>
+              <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit">
+            </form>
+
+            <img 
+              class="home__contact__final-image" 
+              src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_final_image.png" 
+              alt="BSC Skin Care First"
+            >
           </div>
-          <div class="about__col">
-            <img class="about__icon" src="" alt="">
-            <h1 class="about__title"></h1>
-            <h2 class="about__subtitle"></h2>
-          </div>
+
         </div>
       </div>
     </section>
 
-    <section class="section home__featured-products">
-      <h2>Productos destacados</h2>
-      <?php echo do_shortcode('[products limit="4" columns="4" visibility="featured"]'); ?>
-    </section>
+
 
 </main>
 
