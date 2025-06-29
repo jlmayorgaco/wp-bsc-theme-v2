@@ -27,31 +27,34 @@ $repeated_slides = $slides;
 
 if (count($repeated_slides) > 0) : ?>
     <div class="bsc bsc__home-swiper">
-
+  
         <div class="swiper-wrapper">
-            <?php foreach ($repeated_slides as $slide): ?>
-
-                <div class="swiper-slide bsc-swiper__slide">
-                    <div class="slide__image">
-                        <img src="<?php echo esc_url($slide['image']); ?>" alt="<?php echo esc_html($slide['title']); ?>">
-                    </div>
-                    <div class="slide__content">
-                        <div class="slide__container">
-                            <div class="slide__hero">
-                                <h1 class="hero__title"><?php echo esc_html($slide['title']); ?></h1>
-                                <p class="hero__text"><?php echo esc_html($slide['subtitle']); ?></p>
-                                <a class="hero__button" href="<?php echo esc_url($slide['button_link']); ?>">
-                                    <?php echo esc_html($slide['button_text']); ?>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+          <?php foreach ($repeated_slides as $slide): ?>
+            <div class="swiper-slide bsc-swiper__slide">
+              <div class="slide__image">
+                <img src="<?php echo esc_url($slide['image']); ?>" alt="<?php echo esc_html($slide['title']); ?>">
+              </div>
+              <div class="slide__content">
+                <div class="slide__container">
+                  <div class="slide__hero">
+                    <h1 class="hero__title"><?php echo esc_html($slide['title']); ?></h1>
+                    <p class="hero__text"><?php echo esc_html($slide['subtitle']); ?></p>
+                    <a class="hero__button" href="<?php echo esc_url($slide['button_link']); ?>">
+                      <?php echo esc_html($slide['button_text']); ?>
+                    </a>
+                  </div>
                 </div>
-
-            <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endforeach; ?>
         </div>
 
-    </div>
+        <!-- Navigation Arrows -->
+        <div class="swiper-button-prev bsc-swiper__nav bsc-swiper__nav--prev"></div>
+        <div class="swiper-button-next bsc-swiper__nav bsc-swiper__nav--next"></div>
+
+      </div>
+
 <?php endif; ?>
 
 
@@ -63,6 +66,10 @@ if (count($repeated_slides) > 0) : ?>
         delay: 4000,
         disableOnInteraction: true
       },
+  navigation: {
+    nextEl: ".bsc-swiper__nav--next",
+    prevEl: ".bsc-swiper__nav--prev"
+  },
       on: {
         init: () => {
         const initialHero = document.querySelector('.swiper-slide-active .slide__hero');
@@ -86,3 +93,5 @@ if (count($repeated_slides) > 0) : ?>
     });
   });
 </script>
+
+
