@@ -7,6 +7,43 @@ function my_custom_menu() {
         )
     );
 }
+
+function enqueue_fontawesome() {
+	wp_enqueue_style( 'fontawesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css', [], '6.5.0' );
+}
+add_action( 'wp_enqueue_scripts', 'enqueue_fontawesome' );
+
+function bsc_enqueue_swiper_assets() {
+  wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css');
+  wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', [], null, true);
+}
+add_action('wp_enqueue_scripts', 'bsc_enqueue_swiper_assets');
+
+
+
+
+
+
+
+
+add_action('wp_ajax_woocommerce_ajax_add_to_cart', 'bsc_ajax_add_to_cart');
+add_action('wp_ajax_nopriv_woocommerce_ajax_add_to_cart', 'bsc_ajax_add_to_cart');
+
+function bsc_ajax_add_to_cart() {
+    $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['product_id']));
+    $quantity   = empty($_POST['quantity']) ? 1 : wc_stock_amount($_POST['quantity']);
+
+    $added = WC()->cart->add_to_cart($product_id, $quantity);
+
+    if ($added) {
+        // trigger cart update fragments
+        WC_AJAX::get_refreshed_fragments();
+    } else {
+        wp_send_json_error(['error' => 'Could not add to cart.']);
+    }
+}
+
+
 //add_action( 'init', 'my_custom_menu' );
 
 /*
