@@ -28,9 +28,17 @@
                         $review_summary_renderer->render();
                     ?>
 
-                    <div id="order_review" class="woocommerce-checkout-review-order">
-                        <?php do_action('woocommerce_checkout_order_review'); ?>
+                    <div class="bsc bsc__review-order">
+                        <div class="review-order_container">
+                        <div id="order_review" class="woocommerce-checkout-review-order">
+                            BLA BLA BLA BLA BAL
+                            ASDFASDFAS
+                            ASDFASDFASASF
+                            <?php do_action('woocommerce_checkout_order_review'); ?>
+                        </div>
+                        </div>
                     </div>
+
                     
                     <?php //require_once get_template_directory() . '/components/checkout/checkout-payment.php'; ?>
 
