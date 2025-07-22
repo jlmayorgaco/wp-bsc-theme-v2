@@ -51,9 +51,6 @@ require_once get_template_directory() . '/inc/ajax/review-summary-actions.php';
 
 
 
-
-
-
 function bsc_redirect_my_account_guests() {
   if (is_account_page() && !is_user_logged_in()) {
     wp_redirect(home_url('/login/'));
@@ -61,5 +58,6 @@ function bsc_redirect_my_account_guests() {
   }
 }
 add_action('template_redirect', 'bsc_redirect_my_account_guests');
+
 
 
