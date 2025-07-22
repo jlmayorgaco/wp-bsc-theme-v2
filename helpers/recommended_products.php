@@ -47,10 +47,29 @@ function get_related_product_skus(int $product_id, int $limit = 8): array {
 
 function get_cart_recommendation_skus(int $limit = 8): array {
     $cart = WC()->cart;
+
+    // If cart is empty, return $limit random product SKUs
     if (!$cart || $cart->is_empty()) {
-        return [];
+        $args = [
+            'status' => 'publish',
+            'limit' => $limit,
+            'orderby' => 'rand',
+            'return' => 'ids',
+        ];
+        $random_products = wc_get_products($args);
+
+        $skus = [];
+        foreach ($random_products as $id) {
+            $product = wc_get_product($id);
+            if ($product && $product->get_sku()) {
+                $skus[] = $product->get_sku();
+            }
+        }
+
+        return $skus;
     }
 
+    // Otherwise, get related product SKUs based on cart items
     $cart_product_ids = array_map(function($item) {
         return $item['product_id'];
     }, $cart->get_cart());
@@ -75,5 +94,6 @@ function get_cart_recommendation_skus(int $limit = 8): array {
 
     return $skus;
 }
+
 
 ?>
