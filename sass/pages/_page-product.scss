@@ -1,0 +1,156 @@
+@use "../tokens/typography" as tokensTypography;
+
+.bsc__product--page {
+  display: block;
+  width: 100%;
+
+  padding: 2rem;
+  background-color: #eff2f1;
+
+  .bsc__container {
+    display: block;
+    margin: 0 auto;
+    max-width: var(--size--page-container-w);
+  }
+
+  .bsc__title--product {
+    text-align: left;
+    padding-top: 0px;
+    margin-left: 0px;
+    padding-bottom: 0px;
+    font-size: tokensTypography.$font-size__lg;
+    &:after {
+      margin: 10px auto;
+      margin-left: 0;
+      position: relative;
+      left: -18px;
+    }
+  }
+
+  .bsc__breadcrumbs {
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #777;
+
+    .woocommerce-breadcrumb a {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-decoration: none;
+
+
+    font-weight: 100;
+
+      // Remove all default color states
+      color: inherit;
+      &:visited,
+      &:active,
+      &:focus {
+        color: inherit;
+      }
+
+      // Only apply color on hover
+      &:hover {
+        color: var(--color--main, #000); // Replace with your desired hover color or CSS variable
+      }
+    }
+  }
+
+  .bsc__product-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .bsc__product-gallery img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .bsc__product-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .bsc__product-brand-logo {
+    margin-bottom: 1rem;
+    img {
+      width: 100px;
+      height: auto;
+    }
+  }
+
+  .bsc__product-price {
+    font-size: 1.5rem;
+    color: #111;
+    margin-bottom: 1rem;
+  }
+
+  .bsc__product-shortdesc p {
+    text-size-adjust: 100%;
+    font-family: Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: 100;
+    letter-spacing: 2px;
+    line-height: 22.75px;
+    line-height: 1.625;
+    text-rendering: optimizeLegibility;
+
+    &:first-child {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .bsc__product-shortdesc br {
+    display: block;
+    margin-bottom: 2em;
+  }
+
+  .bsc__product-cart {
+    width: fit-content;
+    margin-bottom: 2rem;
+    .quantity{
+      display: none;
+    }
+  }
+
+  .bsc__product-cart--add-to-cart-button{
+
+  }
+
+  .bsc__product-detail {
+    margin-bottom: 1rem;
+
+    summary {
+      font-weight: bold;
+      cursor: pointer;
+      border-bottom: 1px solid #ddd;
+      padding: 0.5rem 0;
+    }
+
+    p {
+      padding-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+  }
+
+  .bsc__product-recommendations {
+    margin-top: 3rem;
+
+    .bsc__section-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+

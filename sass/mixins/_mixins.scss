@@ -1,0 +1,101 @@
+@use '../tokens/colors';
+@use '../tokens/columns';
+@use '../tokens/structure';
+@use '../tokens/typography';
+@use '../tokens/widths';
+
+// --------------------------------------------------
+// VARIABLES
+// --------------------------------------------------
+$swiper-height-lg: 500px;
+$swiper-height-sm: 350px;
+$container-max-width: var(--size--page-container-w);
+
+$font-primary: 'Helvetica', sans-serif;
+
+$button-radius: 30px;
+$button-padding: 12px 24px;
+$button-font-size: 17px;
+$button-font-weight: 700;
+$button-letter-spacing: 1.5px;
+
+@mixin flex-center($justify: center, $align: center) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+@mixin fluid-image($height: 100%) {
+  width: 100vw;
+  height: $height;
+  display: block;
+  object-fit: cover;
+}
+
+@mixin bsc-button(
+  $bg: #333,
+  $color: #fff,
+  $hover-bg: #fff,
+  $hover-color: #333,
+  $padding: $button-padding,
+  $radius: $button-radius,
+  $outline: false
+) {
+  display: inline-block;
+  font-family: $font-primary;
+  font-size: $button-font-size;
+  font-weight: $button-font-weight;
+  letter-spacing: $button-letter-spacing;
+  text-align: center;
+  text-decoration: none;
+  padding: $padding;
+  border-radius: $radius;
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+
+  background-color: if($outline, transparent, $bg);
+  color: $color;
+
+  @if $outline {
+    border: 1px solid $color;
+  }
+
+  &:hover {
+    background-color: $hover-bg;
+    color: $hover-color;
+  }
+}
+
+.bsc__button {
+  @include bsc-button();
+}
+
+.bsc__button--outline {
+  @include bsc-button(
+    $bg: transparent,
+    $color: #333,
+    $hover-bg: #333,
+    $hover-color: #fff,
+    $outline: true
+  );
+}
+
+.bsc__button--floating{
+      margin: 1em auto;
+    display: block;
+    width: fit-content;
+}
+
+
+
+@mixin button {
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1;
+}
+
+@mixin clickable {
+  cursor: pointer;
+  user-select: none;
+}

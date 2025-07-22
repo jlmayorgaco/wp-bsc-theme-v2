@@ -1,0 +1,12 @@
+
+@mixin hover-opacity{
+    cursor: pointer;
+
+    transition: opacity 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover{
+        opacity: 0.5;
+    }
+}

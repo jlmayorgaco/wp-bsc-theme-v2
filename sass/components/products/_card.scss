@@ -1,0 +1,233 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__product-card {
+  display: flex;
+  flex-direction: column;
+
+  justify-content: flex-start;
+  align-items: center;
+
+  padding: 1rem;
+  transition: transform 0.3s ease;
+  text-align: center;
+  position: relative;
+
+    --bsc--product-w: 200px;
+    --bsc--product-h: 225px;
+
+    cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  .card__images {
+    margin-bottom: 0rem;
+
+    display: block;
+    position: relative;
+    width: var(--bsc--product-w);
+    height: var(--bsc--product-h);
+    
+
+
+    img {
+        display: block;
+        object-fit: cover;
+        width: var(--bsc--product-w);
+        
+        width: 100%;
+        height: var(--bsc--product-h);
+    }
+
+    .card__image {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        
+        width: var(--bsc--product-w);
+         width: 100%;
+        height: var(--bsc--product-h);
+
+    }
+  }
+
+  .card__rating {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 0rem;
+
+    padding: 12px 0px;
+
+    .star {
+      width: 16px;
+      height: 16px;
+
+      .bsc__heart-icon-rating {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+  }
+
+  .card__title {
+
+        width: var(--bsc--product-w);
+
+
+    margin: 0 auto;
+
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 16px;
+    font-family: "Helvetica", sans-serif;
+padding-left: 1px;
+    padding-right: 1px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+        font-weight: 300;
+    letter-spacing: 1px;
+    line-height: 100%;
+    color: #333333;
+
+        overflow: hidden;
+    a {
+      text-decoration: none;
+      color: var(--color--text);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .card__brand {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: #999;
+    margin-bottom: 0.75rem;
+
+    .card__brand-name {
+      font-style: italic;
+    }
+  }
+
+  .card__price {
+   display: block;
+    margin: 0px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    padding: 12px 0px;
+    font-family: 'Helvetica';
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 100%;
+    color: #333333;
+    text-align: center;
+
+    del {
+      font-weight: 400;
+      color: #bbb;
+      margin-left: 0.5rem;
+    }
+  }
+
+  .card__button {
+    display: flex;
+    justify-content: center;
+
+    
+  }
+}
+.bsc__button-add-to-cart {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--color--primary);
+        color: #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: background-color 0.3s ease;
+
+        @include mixins.flex-center(center, center);
+        @include mixins.bsc-button();
+
+        height: 45px;
+         overflow: hidden;
+
+      &:hover {
+        background-color: var(--color--primary);
+      }
+  }
+
+  .bsc__signin_btn, .bsc__signup_btn{
+            display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--color--primary);
+        color: #fff;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: background-color 0.3s ease;
+
+        @include mixins.flex-center(center, center);
+        @include mixins.bsc-button();
+
+        height: 45px;
+         overflow: hidden;
+
+      &:hover {
+        background-color: var(--color--primary);
+      }
+  }
+
+
+.bsc__quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+
+          height: 45px;
+          overflow: hidden;
+  button {
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #e0e0e0;
+      border-color: #999;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .bsc__qty-value {
+    display: inline-block;
+    min-width: 1.5rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 2rem;
+    user-select: none;
+  }
+}
+

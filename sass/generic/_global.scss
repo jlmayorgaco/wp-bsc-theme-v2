@@ -1,0 +1,30 @@
+html,body{
+    font-family: Helvetica, sans-serif;
+}
+main{
+      margin-top: 70px;
+}
+ul{
+  padding: 0px;
+  margin: 0px;
+  list-style-type: none;
+}
+
+button{
+  padding: auto;
+  margin: auto;
+
+  outline: none;
+  border: none;
+  background-color: transparent;
+}
+
+.added_to_cart.wc-forward{
+  display: none !important;
+}
+
+@media (max-width: 1000px) {
+  main{
+      margin-top: 0px;
+}
+}

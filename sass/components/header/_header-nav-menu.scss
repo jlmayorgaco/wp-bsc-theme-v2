@@ -1,0 +1,65 @@
+@use '../../tokens/typography' as typography;
+@use '../../generic/animations' as animations;
+
+/* ========================================
+   Variables (defined here for local scope)
+======================================== */
+$spacing-md: 1em;
+$container-max-width: var(--size--page-container-w);
+$border-color: gray;
+$image-width: 300px;
+$text-color: var(--color--text);
+$hover-color: var(--color--main);
+$menu-title-font: 'Helvetica', sans-serif;
+
+/* ========================================
+   Button Modifier
+======================================== */
+.bsc__menu-nav--button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: auto;
+  height: 70px;
+  cursor: pointer;
+
+  @include typography.font-nav;
+  @include animations.hover-opacity;
+
+  .menu-nav__icon {
+    position: relative;
+    display: block;
+    margin-left: $spacing-md;
+
+    .icon-up,
+    .icon-down {
+      font-size: 1.25em;
+      transition: opacity 0.1s ease;
+    }
+
+    .icon-up {
+      position: absolute;
+      opacity: 0;
+      top: 0;
+      left: 0;
+    }
+
+    .icon-down {
+      position: relative;
+      top: 2px;
+      opacity: 1;
+    }
+  }
+
+  &:hover,
+  &:focus {
+    .icon-up {
+      opacity: 1;
+    }
+
+    .icon-down {
+      opacity: 0;
+    }
+  }
+}

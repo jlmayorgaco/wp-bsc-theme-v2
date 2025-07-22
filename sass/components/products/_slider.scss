@@ -1,0 +1,19 @@
+//.bsc__products.bsc__products--latest{
+.bsc__slider{
+
+    display:flex;
+    width: 100%;
+
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    overflow-x: auto;
+    padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+
+    // Remove default gap
+    gap: 0;
+
+}

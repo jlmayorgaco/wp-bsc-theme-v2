@@ -1,0 +1,13 @@
+@use '../../tokens/colors' as colors;
+@use '../../tokens/typography' as typography;
+
+.bsc__header-nav {
+
+  display: flex;
+  flex-direction: row;
+
+  gap: 20px;
+
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}

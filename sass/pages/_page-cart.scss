@@ -1,0 +1,273 @@
+// ------------------------------------------------------------
+// VARIABLES (assume these are already in your global setup)
+// ------------------------------------------------------------
+
+.bsc {
+  --bsc-spacing-sm: 0.75rem;
+  --bsc-spacing-md: 1.5rem;
+  --bsc-spacing-lg: 2rem;
+  --bsc-radius: 8px;
+  --bsc-color-text: #333;
+  --bsc-color-accent: var(--color--main);
+  --bsc-color-border: #eee;
+  --bsc-color-bg-light: #f9f9f9;
+  --bsc-color-bg: #fff;
+  --bsc-color-gray: #ccc;
+}
+
+// ------------------------------------------------------------
+// CART PAGE STYLES
+// ------------------------------------------------------------
+
+.bsc__cart-page {
+  background-color: var(--bsc-color-bg-light);
+  padding: var(--bsc-spacing-lg) 0;
+
+  .bsc__container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--bsc-spacing-md);
+  }
+
+  .container__empty{
+    display: none;
+    &.is-visible{
+        display: block;
+    }
+  }
+  .container__cols{
+    display: none;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    &.is-visible{
+        display: flex;
+    }
+  }
+
+  .col-1{
+    width: calc(100% - 250px - 20px);
+  }
+  .col-2{
+    width: calc(250px);
+  }
+
+
+  .bsc__title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: var(--bsc-spacing-lg);
+
+    strong {
+      //color: var(--bsc-color-accent);
+    }
+  }
+
+  .bsc__cart-empty {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: var(--bsc-spacing-md);
+
+  }
+
+  .bsc__cart-form {
+    width: 100%;
+    margin-bottom: var(--bsc-spacing-lg);
+  }
+
+  .bsc__cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bsc-color-bg);
+    border-radius: var(--bsc-radius);
+    overflow: hidden;
+
+    th, td {
+      padding: var(--bsc-spacing-sm);
+      text-align: center;
+      border-bottom: 1px solid var(--bsc-color-border);
+    }
+
+    th {
+      background-color: var(--bsc-color-bg-light);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .bsc__cart-row {
+      td {
+        vertical-align: middle;
+      }
+
+      .bsc__cart-product {
+        display: flex;
+        align-items: center;
+        gap: var(--bsc-spacing-sm);
+
+        a {
+          display: flex;
+          align-items: center;
+          color: inherit;
+          text-decoration: none;
+        }
+
+        img {
+          max-width: 60px;
+          height: auto;
+          border-radius: 2px;
+        }
+
+        .bsc__cart-name {
+          font-weight: 500;
+          font-size: 1rem;
+          padding-left: 1em;
+        }
+      }
+
+      .bsc__cart-price,
+      .bsc__cart-subtotal {
+        font-weight: 500;
+      }
+
+      .bsc__cart-remove {
+        a {
+          color: var(--bsc-color-accent);
+          font-size: 1.5rem;
+          text-decoration: none;
+          display: inline-block;
+          line-height: 1;
+          transition: color 0.2s;
+
+          &:hover {
+            color: #000;
+          }
+        }
+      }
+    }
+  }
+
+  .bsc__cart-actions {
+    margin-top: var(--bsc-spacing-md);
+    text-align: right;
+
+    .bsc__button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: var(--bsc-radius);
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+
+      &--outline {
+        background: transparent;
+        border: 1px solid var(--bsc-color-accent);
+        color: var(--bsc-color-accent);
+
+        &:hover {
+          background: var(--bsc-color-accent);
+          color: #fff;
+        }
+      }
+    }
+  }
+  
+
+  .bsc__cart-summary {
+    margin-top: 42px;
+    background: var(--bsc-color-bg);
+    padding: var(--bsc-spacing-md);
+    
+    border: 1px solid #eeeeee;
+    border-radius: 2px;
+    
+
+    .bsc__subtitle {
+      font-size: 1.25rem;
+      margin: 0px;
+      letter-spacing: 2px;
+      font-weight: 400;
+      margin-bottom: var(--bsc-spacing-sm);
+    }
+
+    .cart_totals{
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-end;
+    }
+
+    .woocommerce-cart-totals {
+      table {
+        width: 100%;
+
+        td, th {
+          text-align: left;
+          padding: var(--bsc-spacing-sm);
+          border: none;
+        }
+
+        .order-total {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .bsc__cart-cross-sells {
+    margin-top: var(--bsc-spacing-lg);
+
+    .bsc__subtitle {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: var(--bsc-spacing-sm);
+    }
+
+    ul.products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--bsc-spacing-md);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  }
+
+  // Quantity control with +/- buttons
+  .bsc__qty-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--bsc-spacing-sm);
+
+    .bsc__qty-btn {
+      background-color: #fff;
+      border: 1px solid var(--bsc-color-gray);
+      padding: 0.3rem 0.75rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: var(--bsc-radius);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: var(--bsc-color-bg-light);
+      }
+    }
+
+    .bsc__qty-input {
+      width: 40px;
+      text-align: center;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+    }
+  }
+}
+
+
+
+.container__empty .bsc__button{
+      margin: 0 auto;
+      display: block;
+      width: fit-content;
+}

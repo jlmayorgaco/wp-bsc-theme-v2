@@ -1,0 +1,129 @@
+.bsc__tabs {
+  margin-top: 2rem;
+
+  .tabs__header {
+    width: fit-content;
+    margin: 0 auto;
+
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tab__header {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: border-color 0.2s ease;
+
+    width: 130px;
+    height: 130px;
+
+    &.active {
+      border-color: var(--color--main);
+    }
+
+    .tab__icon {
+      width: 90px;
+      height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tab__title {
+      font-size: 0.9rem;
+      color: var(--color--text);
+
+      cursor: pointer;
+      display: block;
+      font-family: Helvetica, sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      list-style-position: outside;
+      list-style-type: none;
+      margin: 0;
+      overflow-wrap: break-word;
+      text-align: center;
+      text-size-adjust: 100%;
+      -webkit-box-flex: 1;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+  }
+
+  .tabs__content {
+    position: relative;
+
+    .tab__content {
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+
+      &.active {
+        opacity: 1;
+        transform: translateY(0);
+        position: relative;
+        pointer-events: auto;
+        z-index: 1;
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Tab SVG Icon Coloring States
+// -----------------------------------------------------------------------------
+
+.tab__header[data-tab-name="piel-normal"] .cls-1,
+.tab__header[data-tab-name="piel-seca"] .cls-1,
+.tab__header[data-tab-name="piel-mixta"] .cls-1,
+.tab__header[data-tab-name="piel-grasa"] .cls-1,
+.tab__header[data-tab-name="hair-care"] .cls-1,
+.tab__header[data-tab-name="maquillaje"] .cls-1 {
+  fill: white;
+}
+
+.tab__header[data-tab-name="piel-seca"].active .cls-1,
+.tab__header[data-tab-name="piel-seca"]:hover .cls-1 {
+  fill: #BAE5F1;
+}
+.tab__header[data-tab-name="piel-normal"].active .cls-1,
+.tab__header[data-tab-name="piel-normal"]:hover .cls-1 {
+  fill: #F7C0CD;
+}
+.tab__header[data-tab-name="piel-mixta"].active .cls-1,
+.tab__header[data-tab-name="piel-mixta"]:hover .cls-1 {
+  fill: #FFF3C2;
+}
+.tab__header[data-tab-name="piel-grasa"].active .cls-1,
+.tab__header[data-tab-name="piel-grasa"]:hover .cls-1 {
+  fill: #BAE5F1;
+}
+.tab__header[data-tab-name="hair-care"].active .cls-1,
+.tab__header[data-tab-name="hair-care"]:hover .cls-1 {
+  fill: #FFCA96;
+}
+.tab__header[data-tab-name="maquillaje"].active .cls-1,
+.tab__header[data-tab-name="maquillaje"]:hover .cls-1 {
+  fill: #F7C0CD;
+}
+
+// Optional override (redundant but kept in case of specificity issues)
+.bsc__tab [data-tab-name="piel-normal"].tab__header:hover .tab__icon .cls-1,
+.bsc__tab [data-tab-name="piel-normal"].tab__header.active .tab__icon .cls-1 {
+  fill: #BAE5F1;
+}

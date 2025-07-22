@@ -1,0 +1,220 @@
+@use "../../pages/page-checkout" as checkout;
+
+// -------------------------------------------
+// Form Base Styles
+// -------------------------------------------
+.bsc__form-group {
+  margin-bottom: var(--bsc-spacing-md);
+}
+
+.bsc__form-input,
+.bsc__form-textarea,
+.bsc__form-select,
+#billing_city.city_select,
+#billing_country,
+#shipping_city,
+#shipping_state,
+#shipping_postcode,
+#shipping_country,
+#order_comments {
+  @include checkout.bsc__form-control;
+}
+
+// Optional overrides (specific case: order comments)
+#order_comments {
+  border-color: var(--bsc-color-input-border);
+  border-radius: var(--bsc-radius-md);
+}
+
+// -------------------------------------------
+// Select2 Styling
+// -------------------------------------------
+.bsc__form-select.select2-hidden-accessible + .select2,
+.woocommerce-input-wrapper .select2-container .select2-selection--single {
+  height: var(--bsc-input-height);
+  border: 1px solid var(--bsc-color-input-border);
+  border-radius: var(--bsc-radius-sm);
+  background-color: #fff;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.select2-selection__rendered {
+  padding: 0 var(--bsc-spacing-sm);
+  line-height: var(--bsc-input-height);
+  letter-spacing: 1px;
+  color: var(--bsc-color-text);
+  top: 6px;
+  position: relative;
+}
+
+// -------------------------------------------
+// WooCommerce Form Overrides
+// -------------------------------------------
+.woocommerce-input-wrapper {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"] {
+    @include checkout.bsc__form-control;
+  }
+}
+
+// Remove Woo labels (handled with placeholders)
+.form-row label {
+  display: none;
+}
+
+.form-row {
+  margin-top: 0;
+}
+
+// -------------------------------------------
+// Section-level Layout Tweaks
+// -------------------------------------------
+.bsc__checkout-section:has(#order_comments) {
+  margin-top: 5em;
+}
+
+// Checkbox: ¿Enviar a otra dirección?
+#ship_to_different_address_field label {
+  display: block;
+}
+
+.bsc__checkout-section .bsc__section-title {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.bsc__shipping-fields {
+  margin-top: 2em;
+  .bsc__grid-3 {
+    padding-top: 0px;
+  }
+}
+
+#billing_country_field,
+#shipping_country_field,
+#shipping_state_field,
+#billing_city_field,
+#billing_state_field {
+  color: #a8a8a8 !important;
+  .select2-selection__rendered {
+    color: #333 !important;
+  }
+  .select2-selection__arrow {
+    height: 26px;
+    position: absolute;
+    top: 8px !important;
+    right: 5px !important;
+    width: 20px;
+  }
+}
+
+#billing_first_name_field,
+#billing_last_name_field,
+#billing_cedula_field,
+#billing_email_field,
+#billing_phone_field,
+#billing_country_field,
+#billing_state_field,
+#billing_city_field,
+#billing_postcode_field,
+#billing_address_1_field,
+#billing_address_2_field,
+#shipping_country_field,
+#shipping_state_field,
+#shipping_city_field,
+#shipping_postcode_field,
+#order_comments_field {
+  .bsc__field--error {
+    border-bottom: 2px solid red;
+  }
+  .bsc__field--green {
+    border-bottom: 2px solid rgb(0, 255, 13);
+  }
+
+  input,
+  select {
+  }
+}
+
+// Error and success styles for WooCommerce checkout fields
+.bsc__field {
+  &--error input,
+  &--error select {
+    border: 2px solid red !important;
+    border-radius: var(--bsc-radius-sm);
+  }
+
+  &--valid input,
+  &--valid select {
+    border: 2px solid rgb(0, 255, 13) !important;
+    border-radius: var(--bsc-radius-sm);
+  }
+
+  input,
+  select {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
+
+.bsc__field.has-error input {
+  border: 1px solid red;
+  color: red;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  &::placeholder {
+    color: red;
+  }
+}
+.bsc__field.has-error .select2-selection {
+  border: 1px solid red;
+  color: red;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+.bsc__field.has-error #billing_state.state_select {
+  border: 1px solid red;
+  color: red;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+.bsc__field.has-error #billing_city.city_select {
+  border: 1px solid red;
+  color: red;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+@keyframes wiggle {
+  0%   { transform: translate(0px, 0px) rotate(0deg); }
+  10%  { transform: translate(-2px, 2px) rotate(-1deg); }
+  20%  { transform: translate(2px, -2px) rotate(1deg); }
+  30%  { transform: translate(-2px, 2px) rotate(-1deg); }
+  40%  { transform: translate(2px, -2px) rotate(1deg); }
+  50%  { transform: translate(-1px, 1px) rotate(-0.5deg); }
+  60%  { transform: translate(1px, -1px) rotate(0.5deg); }
+  70%  { transform: translate(-1px, 1px) rotate(-0.5deg); }
+  80%  { transform: translate(1px, -1px) rotate(0.5deg); }
+  90%  { transform: translate(-1px, 1px) rotate(-0.5deg); }
+  100% { transform: translate(0px, 0px) rotate(0deg); }
+}
+
+.bsc__field.wiggle-animation {
+  animation: wiggle 1s ease-in-out;
+}
+
+.bsc__field.has-error input,
+.bsc__field.has-error .select2-selection,
+.bsc__field.has-error #billing_state.state_select,
+.bsc__field.has-error #billing_city.city_select {
+  border: 1px solid red;
+  color: red;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  animation: wiggle 0.4s ease-in-out;
+
+  &::placeholder {
+    color: red;
+  }
+}

@@ -1,0 +1,85 @@
+.checkout__payments {
+
+  --bsc-spacing-lg: 2rem;
+  --bsc-spacing-md: 1rem;
+  --bsc-font-xl: 1.75rem;
+  --bsc-color-white: transparent;
+  --bsc-color-gray-200: #e5e7eb;
+  --bsc-color-primary-dark: #1f2937;
+  --bsc-radius: 0.5rem;
+  --bsc-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  .bsc-checkout__review {
+    border-top: 1px solid var(--bsc-color-gray-200);
+    padding-top: var(--bsc-spacing-md);
+  }
+
+  &-container {
+    display: block;
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: transparent;
+  }
+
+
+}
+
+  .wc_payment_method{
+    padding-top: 1em;
+    
+    label{
+            margin-left: 16px;
+    padding-left: 0 !important;
+    display: inline !important;
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+    font-weight: 100;
+    color: #333;
+    }
+
+      // Style the label if its radio input is checked
+    .input-radio:checked + label {
+        font-weight: 500;
+    }
+  }
+
+.woocommerce-privacy-policy-text{
+    display: block;
+    width: 100%;
+    padding-top: 1em;
+
+    color: var(--bsc-color-text, #333);
+    font-weight: 100;    
+}
+
+#place_order{
+    font-family: "Helvetica", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 30px;
+  cursor: pointer;
+  display: inline-block;
+  padding: 10px 30px;
+  transition: all 0.3s ease-in-out;
+  box-sizing: border-box;
+  border: 2px solid transparent; 
+
+  background-color: var(--color--text);
+  color: white;
+
+  display: block;
+
+  margin-top: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+
+  &:hover{
+      background-color: white;
+  color:  var(--color--text);
+
+  }
+}

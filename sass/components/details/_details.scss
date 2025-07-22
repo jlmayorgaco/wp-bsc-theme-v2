@@ -1,0 +1,85 @@
+// ------------------------------------------- //
+// -- Category Detail Accordion -------------- //
+// ------------------------------------------- //
+
+// == Variables ==
+$accordion-padding-top: 12px;
+$accordion-padding-bottom: 12px;
+
+$accordion-margin-top: 12px;
+$accordion-margin-bottom: 12px;
+
+$accordion-transition-speed: 400ms;
+
+$summary-height: 32px;
+$summary-font-weight: 600;
+$summary-letter-spacing: 2px;
+$summary-border-color: black;
+$summary-icon-size: 24px;
+$summary-icon-right: 12px;
+$summary-icon-top: -7px;
+
+$summary-font-family: 'Helvetica', sans-serif;
+$summary-font-weight-icon: 100;
+
+$paragraph-font-size: 14px;
+$paragraph-font-weight: 100;
+$paragraph-letter-spacing: 2px;
+
+// == Styles ==
+.bsc__product-details-categories {
+  display: flex;
+  flex-direction: column;
+}
+
+.bsc__product-detail-category {
+  padding-top: $accordion-padding-top;
+  padding-bottom: $accordion-padding-bottom;
+  transition: max-height $accordion-transition-speed ease-out;
+
+  summary {
+    position: relative;
+    height: $summary-height;
+    width: 100%;
+    cursor: pointer;
+    font-weight: $summary-font-weight;
+    letter-spacing: $summary-letter-spacing;
+    border-bottom: 1px solid $summary-border-color;
+
+    &::marker {
+      content: "";
+    }
+
+    &::after {
+      content: "+";
+      position: absolute;
+      right: $summary-icon-right;
+      top: $summary-icon-top;
+      font-size: $summary-icon-size;
+      font-weight: $summary-font-weight-icon;
+      font-family: $summary-font-family;
+      border: none;
+      background: none;
+      box-shadow: none;
+      cursor: pointer;
+    }
+  }
+
+  p {
+    padding-top: $accordion-padding-top;
+    padding-bottom: $accordion-padding-bottom;
+
+    margin-top: $accordion-margin-top;
+    margin-bottom: $accordion-margin-bottom;
+
+    font-family: $summary-font-family;
+    font-size: $paragraph-font-size;
+    font-weight: $paragraph-font-weight;
+    letter-spacing: $paragraph-letter-spacing;
+  }
+
+  // Toggle icon on open
+  details[open] & > summary::after {
+    content: "-";
+  }
+}

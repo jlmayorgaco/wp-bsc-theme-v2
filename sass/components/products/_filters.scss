@@ -1,0 +1,282 @@
+@use '../../tokens/colors' as tokensColors;
+@use '../../tokens/columns' as tokensColumns;
+@use '../../tokens/typography' as tokensTypography;
+@use '../../mixins/mixins' as mixins;
+
+
+// colors.scss
+$color-primary: var(--color--main);
+$color-primary-dark: var(--color--main);
+$color-surface: #ffffff;
+$color-text-primary: #333333;
+$color-text-secondary: rgba(101, 101, 101, 0.864);
+$color-border: #333;
+$color-border-muted: #cececec2;
+
+// spacing.scss
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 2rem;
+
+// typography.scss
+$font-family-base: 'Helvetica';
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+
+
+// ========================================================================
+// Filters Sidebar Component
+// ========================================================================
+.bsc__filters {
+  display: block;
+  width: 100%;
+
+  // ===================================================
+  // Accordion-style Filter Group
+  // ===================================================
+  &-group {
+    display: block;
+    width: 100%;
+    margin-bottom: 0;
+    transition: all 0.3s ease;
+
+    // ---- Accordion Header (summary)
+    summary {
+      display: block;
+      width: 100%;
+      padding: $spacing-md 0;
+      font-family: $font-family-base;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-bold;
+      letter-spacing: 2px;
+      color: $color-text-primary;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      list-style: none;
+
+
+    border-bottom: 1px solid $color-border;
+
+      &::marker {
+        display: none;
+      }
+
+      &::after {
+        content: '+';
+        position: absolute;
+        right: $spacing-md;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    &[open] summary::after {
+      transform: translateY(-50%) rotate(180deg);
+    }
+  }
+
+  // ===================================================
+  // Filter Option List
+  // ===================================================
+  &-options {
+
+    display: flex;
+
+    flex-direction: column;
+    gap: $spacing-xs;
+    padding: $spacing-lg $spacing-md;
+
+    
+
+    @media screen and (max-width: 37.5em) {
+      & {
+        max-height: 300px;
+        overflow-y: scroll;
+      }
+    }
+
+    .bsc__filters-option {
+      @include mixins.clickable;
+      display: flex;
+      align-items: center;
+      font-family: $font-family-base;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      letter-spacing: 1px;
+      color: $color-text-secondary;
+
+      margin-bottom: $spacing-sm;
+      
+      letter-spacing: 2px;
+
+      input[type='checkbox'],
+      input[type='radio'] {
+        //appearance: none;
+        width: 20px;
+        height: 20px;
+        margin-right: $spacing-sm;
+        border: 1px solid $color-border-muted;
+        background-color: $color-surface;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: border-color 0.2s ease-in-out;
+        accent-color: $color-primary;
+
+        &:checked {
+          border-color: $color-primary-dark;
+          background-color: $color-primary;
+        }
+      }
+
+      input[type='checkbox'] {
+        border-radius: 2px;
+      }
+    }
+  }
+
+
+  // ===================================================
+  // Price Filter Wrapper
+  // ===================================================
+  &-group--price {
+    .bsc__filters-price-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-sm;
+      padding: $spacing-lg $spacing-md;
+      padding: $spacing-lg 0px;
+
+      .bsc__filters-range {
+        width: 100%;
+        max-width: 250px;
+      }
+
+      .bsc__filters-range--min{
+        z-index: 1;
+      }
+      .bsc__filters-range--max{
+         z-index: 1;
+      }
+
+      .bsc__filters-price-values {
+        display: flex;
+        justify-content: space-between;
+        font-size: $font-size-xs;
+
+         z-index: 0;
+
+        position: relative;
+        font-size: 14px;
+        top: 12px;
+
+        .bsc__filters-price-label {
+          font-weight: $font-weight-medium;
+          color: $color-text-secondary;
+        }
+
+        .bsc__filters-price-output {
+          margin-left: $spacing-xs;
+        }
+      }
+    }
+
+    input[type='range'] {
+      width: 100%;
+      max-width: 250px;
+      cursor: pointer;
+
+      background-color:  transparent;
+      background-color:  pink;
+    }
+  }
+
+  // ===================================================
+  // Button Footer
+  // ===================================================
+  &-actions {
+    padding: $spacing-md $spacing-md 0;
+    text-align: right;
+
+    .bsc__filters-button {
+      @include mixins.button;
+      background-color: $color-primary;
+      color: $color-surface;
+      font-size: $font-size-sm;
+      padding: $spacing-sm $spacing-md;
+      font-weight: $font-weight-bold;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: $color-primary-dark;
+      }
+    }
+  }
+}
+
+.bsc__filters-group{
+  
+  // Animated open/close behavior
+  .bsc__filters-options {
+    //max-height: 0;
+    overflow: hidden;
+    //opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+  }
+
+  &.is-open {
+    .bsc__filters-options {
+      max-height: 800px; // Arbitrary large value; adjust if needed
+      opacity: 1;
+    }
+  }
+
+}
+
+
+
+
+
+
+.bsc__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f9f9f900;
+  border-radius: 12px;
+  text-align: center;
+
+  .bsc__spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--color--main);
+    border-top: 4px solid var(--color--text); // Primary color
+    border-radius: 50%;
+    animation: bsc-spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  .bsc__loading-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    letter-spacing: 2px;
+  }
+}
+
+@keyframes bsc-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

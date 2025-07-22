@@ -1,0 +1,154 @@
+// --------------------------------------------
+// Design Tokens (you can later externalize these)
+// --------------------------------------------
+$color-text: #222;
+$color-primary: var(--color--main);
+$color-surface-subtle: #eef1f0;
+
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+
+$font-size-base: 14px;
+$font-size-sm: 12px;
+$font-size-lg: 18px;
+
+$container-width: 1240px;
+
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+
+// --------------------------------------------
+// BSC Shop Layout
+// --------------------------------------------
+.bsc__shop {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: $spacing-xl;
+  background-color: $color-surface-subtle;
+
+  // Container
+  .bsc__container {
+    width: 100%;
+    max-width: $container-width;
+    margin: 0 auto;
+    padding-inline: $spacing-md;
+  }
+
+  // Top Navigation (e.g., breadcrumbs or tabbed filters)
+  .bsc__shop-nav {
+    padding-block: $spacing-md;
+
+    a {
+      color: $color-text;
+      text-decoration: none;
+      letter-spacing: 2px;
+      font-weight: 500;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $color-primary;
+      }
+
+      &.active {
+        font-weight: bold;
+        border-bottom: 2px solid $color-primary;
+      }
+    }
+  }
+
+  // Main layout: Sidebar and Products
+  .shop__main {
+      
+      display: block;
+
+    grid-template-columns: 250px 1fr;
+    gap: $spacing-xl;
+
+    &:has(.shop__sidebar){
+      display: grid;
+      width: 100%;
+    }
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  // Sidebar (Filters)
+  .shop__sidebar {
+    display: block;
+
+    @media (max-width: $breakpoint-md) {
+      order: 2;
+    }
+  }
+
+  // Product Grid
+  .shop__products {
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: $spacing-lg;
+
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+    }
+    &:has(.bsc__loading){
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      width: 100%;
+      height: 300px;
+    }
+  }
+
+  // Pagination
+  .shop__pagination {
+    margin-top: $spacing-xl;
+    text-align: center;
+  }
+}
+
+
+.bsc__category-grid{
+   display: grid;
+  grid-template-columns: repeat(4, 1fr); // 4 columns by default
+  gap: 2rem;
+  margin-top: 2rem;
+}
+.bsc__category-card {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  transition: transform 0.2s ease;
+  background-color: #fff;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .category-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .category-card__image {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .category-card__title {
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+}

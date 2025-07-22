@@ -1,0 +1,75 @@
+.bsc__review-summary {
+
+    // Colors
+    $bsc-color-border: #e0e0e0;
+    $bsc-color-divider: #eeeeee;
+    $bsc-color-text: #333333;
+    $bsc-color-price: #000000;
+
+    // Font
+    $bsc-font-body: 'Inter', sans-serif;
+
+
+    .review-summary__container{
+            display: block;
+      width: 100%;
+      max-width: 450px;
+      margin: 0 auto;
+      padding: 1rem;
+      background-color: transparent;
+
+      color: var(--color--black);
+    font-family: "Helvetica", sans-serif;
+    }
+
+  .review-summary__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0px;
+
+    font-size: 14px;
+    letter-spacing: 1px;
+      font-weight: 300;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &--total {
+      font-size: 20px;
+      font-weight: 600;
+      margin-top: 0.5rem;
+
+      .review-summary__label,
+      .review-summary__value {
+        font-weight: 600 !important;
+      }
+
+      .woocommerce-Price-amount.amount{
+        font-weight: 600 !important;
+      }
+    }
+  }
+
+  .review-summary__label {
+    color: var(--bsc-color-text, #333);
+    flex: 1;
+      font-weight: 300;
+  }
+
+  .review-summary__value {
+    color: var(--bsc-color-price, #000);
+    text-align: right;
+    white-space: nowrap;
+      font-weight: 300;
+
+    .woocommerce-Price-amount {
+      font-weight: 300;
+
+      bdi {
+        font-style: normal;
+      }
+    }
+  }
+}

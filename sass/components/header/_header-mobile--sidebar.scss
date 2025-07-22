@@ -1,0 +1,232 @@
+// -------------------------------------------
+// Mobile Sidebar Container
+// -------------------------------------------
+.bsc__sidebar--mobile {
+  display: block;
+  width: calc(100% - 10px);
+  height: 100vh;
+  margin-top: 0px;
+  overflow-y: scroll;
+  box-sizing: border-box;
+  padding: 1em;
+
+  background-color: #fff;
+  box-shadow: 2px 8px 23px 3px rgba(0, 0, 0, 0.2);
+
+  font-family: 'Helvetica', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+
+  // -------------------------------------------
+  // Container
+  // -------------------------------------------
+
+  .sidebar-mobile__container {
+    // Placeholder for layout grouping if needed
+  }
+
+  // -------------------------------------------
+  // Logo
+  // -------------------------------------------
+
+  .sidebar-mobile__logo {
+    display: block;
+    width: 150px;
+    margin: 2em auto 1em;
+  }
+
+  // -------------------------------------------
+  // Navigation
+  // -------------------------------------------
+
+  .sidebar-mobile__nav {}
+
+  .mobile-nav {
+    // Wrapper for each expandable section
+  }
+
+  .mobile-nav__title {
+    display: block;
+    position: relative;
+    padding: 10px 0;
+    border-bottom: 1px solid #d5d8dc;
+    font-size: 14px;
+
+    &::marker {
+      content: '';
+    }
+
+    &::after {
+      // Add arrow icon if needed
+    }
+  }
+
+  a.mobile-nav__title {
+    color: #292929;
+    font-weight: 300;
+    text-decoration: none;
+  }
+
+  .mobile-nav__title-text {
+    display: block;
+    width: 100%;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .mobile-nav__title-icon {}
+
+  .mobile-nav__items {
+    display: block;
+    padding: 1em;
+  }
+
+  .mobile-nav__item {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .mobile-nav__item-link {
+    color: #292929;
+    font-weight: 300;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .mobile-nav__item-text {}
+
+  // -------------------------------------------
+  // CTA Button
+  // -------------------------------------------
+
+  .sidebar-mobile__button {
+    display: block;
+    width: fit-content;
+    margin: 2em auto;
+    padding: 1em 2em;
+
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #fff;
+    text-decoration: none;
+
+    background-color: #69727d;
+    border-radius: 5em;
+  }
+
+  // -------------------------------------------
+  // Social Media Icons
+  // -------------------------------------------
+
+  .sidebar-mobile__socials {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+    width: 100%;
+  }
+
+  .sidebar-mobile__social {
+    --icon-size: 20px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 2em;
+    height: 2em;
+    padding: 0.5em;
+
+    font-size: var(--icon-size, 25px);
+    line-height: var(--icon-size, 25px);
+
+    background-color: #69727d;
+    border-radius: 100%;
+
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+
+    a {
+      color: inherit;
+      font-weight: inherit;
+      text-decoration: none;
+    }
+
+    i,
+    svg {
+      width: 1em;
+      height: 1em;
+    }
+  }
+
+  // -------------------------------------------
+  // Footer
+  // -------------------------------------------
+
+  .sidebar-mobile__copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 2em 0;
+
+    h5,
+    h4 {
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 0;
+      padding: 0;
+    }
+
+    h5 {
+      font-weight: bold;
+    }
+
+    h4 {
+      font-weight: normal;
+    }
+  }
+
+  .sidebar-mobile__close {
+    position: absolute;
+    top: 12px;
+    right: 24px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  .sidebar-mobile__brand {
+    display: block;
+    width: fit-content;
+    margin: 1em auto;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+  }
+}
+
+
+
+#mobileSidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #fff;
+  transform: translateX(-100%);
+  transition: transform 0.4s ease-in-out;
+  z-index: 999;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+}
