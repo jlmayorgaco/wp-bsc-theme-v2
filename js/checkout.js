@@ -1,0 +1,221 @@
+
+
+
+
+jQuery(function($) {
+  // === SETTINGS ===
+  const requiredFieldLabels = {
+    billing_first_name: 'Nombres',
+    billing_last_name: 'Apellidos',
+    billing_cedula: 'Número de cédula',
+    billing_email: 'Correo electrónico',
+    billing_phone: 'Número de teléfono',
+    billing_country: 'Selecciona un país',
+    billing_state: 'Selecciona un departamento',
+    billing_city: 'Selecciona una ciudad',
+    billing_postcode: 'Código postal',
+    billing_address_1: 'Dirección de entrega',
+    billing_address_2: 'Complemento de dirección',
+  };
+
+  const shippingToggleSelector = '#ship_to_different_address';
+
+  const requiredFieldLabelsIfShippingEnabled = {
+    shipping_country: 'Selecciona un país',
+    shipping_state: 'Selecciona un departamento',
+    shipping_postcode: 'Código postal',
+    shipping_address_1: 'Código postal',
+  }
+
+  // === HELPERS ===
+  function triggerWiggle($el) {
+    $el.removeClass('wiggle-animation');
+    void $el[0].offsetWidth;
+    $el.addClass('wiggle-animation');
+  }
+
+  function markError($input) {
+    const $wrapper = $input.closest('.bsc__field').length ? $input.closest('.bsc__field') : $input.closest('p');
+    $wrapper.addClass('has-error');
+    triggerWiggle($wrapper);
+    $input.on('input change', () => $wrapper.removeClass('has-error'));
+  }
+
+  function scrollToFirstError($form) {
+    const $firstError = $form.find('.has-error').first();
+    if ($firstError.length) {
+      $firstError[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function isFieldEmpty($input) {
+    return $input.is('select')
+      ? !$input.val() || $input.prop('selectedIndex') === 0
+      : !$input.val().trim();
+  }
+
+  // === Validation ===
+  function validateRequiredFields($form) {
+    let hasError = false;
+
+    // Always validate billing fields
+    $.each(requiredFieldLabels, function (fieldName, label) {
+      const $input = $form.find(`[name="${fieldName}"]`);
+      if ($input.length && isFieldEmpty($input)) {
+        markError($input);
+        hasError = true;
+      }
+    });
+
+    // Conditionally validate shipping fields
+    if ($(shippingToggleSelector).is(':checked')) {
+      $.each(requiredFieldLabelsIfShippingEnabled, function (fieldName, label) {
+        const $input = $form.find(`[name="${fieldName}"]`);
+        if ($input.length && isFieldEmpty($input)) {
+          markError($input);
+          hasError = true;
+        }
+      });
+    }
+
+    return hasError;
+  }
+
+  // === AJAX: LOAD CITY FIELD ===
+  function setupCityLoader() {
+    $('#billing_state').on('change', function () {
+      const state = $(this).val();
+      $.ajax({
+        url: bsc_ajax.ajax_url,
+        method: 'POST',
+        data: { action: 'bsc_reload_city_fields', billing_state: state },
+        beforeSend: () => $('#billing_city_field').html('<p>Cargando ciudad…</p>'),
+        success: function (response) {
+          if (response.success) {
+            console.log('✅ AJAX city field loaded');
+            setTimeout(() => {
+              $('#billing_city_field').replaceWith(response.data.html);
+              updateCityPlaceholder();
+              $(document.body).trigger('update_checkout');
+            }, 300);
+          } else {
+            alert('Error al cargar las ciudades.');
+          }
+        },
+        error: () => alert('Hubo un problema con la petición AJAX.')
+      });
+    });
+
+    $(document.body).on('change', '#billing_city, #billing_state', function () {
+      console.log(`📍 ${this.id} changed —> update_checkout`);
+      $(document.body).trigger('update_checkout');
+    });
+  }
+
+  function updateCityPlaceholder() {
+    $('#billing_city option:first-child').text('Selecciona una ciudad');
+  }
+
+  // === SHIPPING FIELDS TOGGLE ===
+  function setupShippingToggle() {
+    const $toggle = $('input[name="ship_to_different_address"]');
+    const $shippingFields = $('.bsc__shipping-fields');
+
+    $toggle.on('change', () =>
+      $toggle.is(':checked') ? $shippingFields.slideDown() : $shippingFields.slideUp()
+    );
+    $toggle.trigger('change');
+  }
+
+  // === REVIEW SUMMARY AJAX REFRESH ===
+  function refreshReviewSummary() {
+    console.log('🔁 Refreshing Review Summary...');
+    $.ajax({
+      url: bsc_ajax.ajax_url,
+      method: 'POST',
+      data: { action: 'bsc_get_review_summary' },
+      success: function (response) {
+        if (response.success && response.data.html) {
+          $('#bsc-review-summary').html(response.data.html);
+        } else {
+          console.warn('⚠️ Invalid review summary response');
+        }
+      },
+      error: function () {
+        console.error('❌ Error al refrescar el resumen del pedido.');
+      }
+    });
+  }
+
+ 
+
+  // === INIT ALL ===
+  function init() {
+    console.log('🚀 Init BSC Checkout');
+    setupCityLoader();
+    setupShippingToggle();
+    updateCityPlaceholder();
+  }
+
+  init();
+
+  // === WooCommerce Trigger Hook ===
+  $(document.body).on('updated_checkout', function () {
+
+    console.log('📦 WC Checkout event');
+
+    //setupOrderButtonValidation();
+    refreshReviewSummary();
+
+  });
+
+  $('form[name="checkout"]').on('submit', function (e) {
+
+    e.preventDefault(); // Evita el envío para validar primero
+
+    const $form = $(this);
+    console.log('🧪 Validando antes de enviar...');
+
+    const hasError = validateRequiredFields($form);
+    refreshReviewSummary();
+
+    if (hasError) {
+      console.log('❌ Validación falló. Previniendo envío.');
+      scrollToFirstError($form);
+    } else {
+      console.log('✅ Validación correcta. Campos enviados:');
+
+      const formData = new FormData($form.get(0));
+      for (let [key, value] of formData.entries()) {
+        console.log(`📦 ${key}: ${value}`);
+      }
+
+      // 👉 IMPORTANTE: Aquí deberías permitir el envío normal si WooCommerce JS está presente
+      // Para eso, remueve preventDefault o usa trigger:
+      // $form.get(0).submit(); ← a veces WooCommerce no lo capta bien así
+      // Mejor:
+      $.ajax({
+  url: '/?wc-ajax=checkout', // Este es el endpoint real de WooCommerce
+  method: 'POST',
+  data: $form.serialize(),   // Aquí ya va todo lo que necesita
+  success: function (response) {
+    console.log('✅ Pedido procesado', response);
+    if (response.result === 'success') {
+      window.location.href = response.redirect;
+    } else {
+      alert('Error: ' + response.messages);
+    }
+  },
+  error: function (err) {
+    console.error('❌ Error en AJAX Woo Checkout', err);
+  }
+});
+
+    }
+  });
+
+
+
+
+});
+
