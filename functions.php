@@ -61,3 +61,6 @@ add_action('template_redirect', 'bsc_redirect_my_account_guests');
 
 
 
+add_filter('woocommerce_coming_soon_template', function($template) {
+    return get_stylesheet_directory() . '/woocommerce/coming-soon.php';
+});
