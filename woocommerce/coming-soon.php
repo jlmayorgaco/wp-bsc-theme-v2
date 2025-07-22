@@ -127,6 +127,9 @@
     </style>
 </head>
 <body>
+
+<h2 style="color: red;">🔥 CUSTOM TEMPLATE LOADED</h2>
+
     <div class="coming-soon-container">
         <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_FACE.png" alt="Bubbles Skin Care">
         
