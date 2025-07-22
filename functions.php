@@ -61,6 +61,19 @@ add_action('template_redirect', 'bsc_redirect_my_account_guests');
 
 
 
-add_filter('woocommerce_coming_soon_template', function($template) {
-    return get_stylesheet_directory() . '/woocommerce/coming-soon.php';
+add_action('template_redirect', function () {
+    // Only act on the frontend
+    if (is_admin() || is_user_logged_in()) {
+        return;
+    }
+
+    // Check if WooCommerce Coming Soon mode is active
+    if (function_exists('wc_admin_get_feature_config')) {
+        $visibility = get_option('woocommerce_coming_soon_visibility', 'coming-soon');
+
+        if ($visibility === 'coming-soon') {
+            include get_stylesheet_directory() . '/woocommerce/coming-soon.php';
+            exit;
+        }
+    }
 });
