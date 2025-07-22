@@ -225,3 +225,80 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		<?php
 	}
 }
+
+
+
+    add_action('after_setup_theme', function () {
+    add_theme_support('wc-product-gallery-zoom');
+    add_theme_support('wc-product-gallery-lightbox');
+    add_theme_support('wc-product-gallery-slider');
+    });
+
+
+  add_filter('woocommerce_checkout_fields', 'bsc_add_billing_cedula_field');
+function bsc_add_billing_cedula_field($fields) {
+  $fields['billing']['billing_cedula'] = [
+    'type'        => 'text',
+    'label'       => 'Cédula',
+    'required'    => true,
+    'class'       => ['form-row-wide'],
+    'priority'    => 21,
+    'placeholder' => 'Cédula',
+  ];
+
+  return $fields;
+}
+
+
+add_action('after_setup_theme', function () {
+  load_textdomain('woocommerce', WP_LANG_DIR . '/woocommerce/woocommerce-es_ES.mo');
+});
+
+
+
+
+
+add_filter('woocommerce_checkout_fields', 'bsc_translate_placeholders');
+function bsc_translate_placeholders($fields) {
+  // País, Departamento, Ciudad, etc.
+  $fields['billing']['billing_state']['placeholder'] = 'Selecciona un departamento…';
+  $fields['billing']['billing_city']['placeholder'] = 'Selecciona una ciudad…';
+  $fields['billing']['billing_country']['placeholder'] = 'Selecciona un país…';
+
+  return $fields;
+}
+
+add_filter('woocommerce_order_button_text', 'bsc_custom_order_button_text');
+function bsc_custom_order_button_text($button_text) {
+    return '¡Hacer Compra!'; // Replace with your custom text
+}
+
+
+add_filter('woocommerce_package_rates', 'bsc_force_hide_free_shipping_if_under_discount_threshold', 10, 2);
+
+function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $package) {
+    $subtotal = WC()->cart->get_subtotal();
+    $discount = WC()->cart->get_discount_total();
+    $subtotal_after_discount = $subtotal - $discount;
+    $min_amount = 300000;
+    // Si no alcanza el mínimo, eliminamos el envío gratuito
+    foreach ($rates as $rate_id => $rate) {
+        if ($rate->method_id === 'free_shipping' && $subtotal_after_discount < $min_amount) {
+            unset($rates[$rate_id]);
+        }
+    }
+
+
+    return $rates;
+}
+
+add_action('woocommerce_before_calculate_totals', function() {
+    WC()->cart->calculate_shipping();
+}, 5);
+
+add_filter('default_checkout_billing_country', function() {
+  return 'CO';
+});
+add_filter('default_checkout_shipping_country', function() {
+  return 'CO';
+});
