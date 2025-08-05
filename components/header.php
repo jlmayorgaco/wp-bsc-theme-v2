@@ -371,7 +371,7 @@
                         <ul>
                             <li><a href="/mi-cuenta/">Mi Perfil</a></li>
                             <li><hr><a href="/mi-cuenta/orders/">Mis Pedidos</a></li>
-                            <li><hr><a href="/mi-cuenta/points/">Mis Puntos</a></li>
+                            <li><hr><a href="/mi-cuenta/bubble-points/">Mis Puntos</a></li>
                             <li><hr><a href="/mi-cuenta/edit-account/">Mis Datos</a></li>
                             <li><hr><a href="/mi-cuenta/edit-address/">Mis Direcciones</a></li>
                             <li><hr><a href="/mi-cuenta/customer-logout/">Cerrar sesión</a></li>
