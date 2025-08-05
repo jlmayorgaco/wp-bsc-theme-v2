@@ -1,6 +1,8 @@
 <?php
 defined('ABSPATH') || exit;
 
+require_once get_template_directory() . '/components/orders/order-progress-bar.php';
+
 // Order validation
 $order_id = apply_filters('woocommerce_thankyou_order_id', absint(get_query_var('order-received')));
 $order_key = isset($_GET['key']) ? sanitize_text_field($_GET['key']) : '';
@@ -59,83 +61,173 @@ function get_brand_data($product): array {
         <div class="bsc__order-overview__content"><?php echo wc_format_datetime($order->get_date_created()); ?></div>
       </li>
 
-      <li class="bsc__order-overview__item bsc__order-overview__item--payment">
-        <div class="bsc__order-overview__title">Método de Pago:</div>
-        <div class="bsc__order-overview__content"><?php echo esc_html($order->get_payment_method_title()); ?></div>
-      </li>
+      <li class="bsc__order-overview__item bsc__order-overview__item--progress" style="width: 325px">
+        <div class="bsc__order-overview__title">Estado:</div>
+        <div class="bsc__order-overview__content">
+          <?php 
 
-      <li class="bsc__order-overview__item bsc__order-overview__item--total">
-        <div class="bsc__order-overview__title">Total:</div>
-        <div class="bsc__order-overview__content"><?php echo $order->get_formatted_order_total(); ?></div>
+            $status = $order->get_status(); // e.g., 'pending', 'processing', 'completed', etc.
+            $status_map = [
+                'pending'    => BSC_Order_Progress_Bar::PENDING,
+                'processing' => BSC_Order_Progress_Bar::RECEIVED,
+                'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+                'completed'  => BSC_Order_Progress_Bar::DELIVERED,
+                'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
+                'failed'     => BSC_Order_Progress_Bar::CANCELLED,
+                'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
+                'shipping'   => BSC_Order_Progress_Bar::SHIPPED,
+            ];
+            $mapped_status = $status_map[$status] ?? BSC_Order_Progress_Bar::PENDING;
+            // Render the progress bar
+            $bar = new BSC_Order_Progress_Bar();
+            $bar->setStatus($mapped_status);
+            $bar->render();
+          ?>
+        </div>
       </li>
     </ul>
 
-    <!-- Product List -->
-    <div class="bsc__order-review product-details">
+    <div class="bsc__order-review product-details-and-shipping">
 
-      <?php foreach ( $order->get_items() as $item_id => $item ) :
+      <!-- Product List -->
+      <div class="bsc__order-review product-details">
 
-        $product        = $item->get_product();
-        $product_name   = $item->get_name();
-        $product_qty    = $item->get_quantity();
-        $product_total  = $item->get_total();
-        $product_price  = wc_price($product_total);
-        $product_id     = $product->get_id();
-        $product_link   = get_permalink($product_id);
-        [$brand_name, $brand_link] = get_brand_data($product);
+        <?php foreach ( $order->get_items() as $item_id => $item ) :
 
-        $thumbnail_url  = get_template_directory_uri() . '/images/bsc__product_placeholder.webp';
-        if ( $product && $product->get_image_id() ) {
-            $image_src = wp_get_attachment_image_src( $product->get_image_id(), 'woocommerce_thumbnail' );
-            if ( $image_src ) {
-                $thumbnail_url = $image_src[0];
+          $product        = $item->get_product();
+          $product_name   = $item->get_name();
+          $product_qty    = $item->get_quantity();
+          $product_total  = $item->get_total();
+          $product_price  = wc_price($product_total);
+          $product_id     = $product->get_id();
+          $product_link   = get_permalink($product_id);
+          [$brand_name, $brand_link] = get_brand_data($product);
+
+          $thumbnail_url  = get_template_directory_uri() . '/images/product-placeholder-wp.jpg';
+          if ( $product && $product->get_image_id() ) {
+              $image_src = wp_get_attachment_image_src( $product->get_image_id(), 'woocommerce_thumbnail' );
+              if ( $image_src ) {
+                  $thumbnail_url = $image_src[0];
+              }
+          }
+        ?>
+
+          <div class="bsc__order-review__item">
+
+            <a href="<?php echo esc_url($product_link); ?>" class="bsc__order-review__image-link">
+              <img 
+                src="<?php echo esc_url($thumbnail_url); ?>" 
+                alt="<?php echo esc_attr($product_name); ?>" 
+                class="bsc__order-review__image" 
+                loading="lazy" 
+                decoding="async"
+              />
+              <div class="bsc__order-review__badge"> <span> <?php echo $product_qty; ?> </span> </div>
+            </a>
+
+            <div class="bsc__order-review__info">
+              <div class="bsc__order-review__name">
+                <p>
+                  <a href="<?php echo esc_url($product_link); ?>">
+                    <?php echo esc_html($product_name); ?>
+                  </a> 
+                  <strong>x<?php echo esc_html($product_qty); ?></strong>
+                </p>
+
+                <?php if ( $brand_name ) : ?>
+                  <p class="bsc__order-review__brand">
+                    <a href="<?php echo esc_url($brand_link); ?>"><?php echo esc_html($brand_name); ?></a>
+                  </p>
+                <?php endif; ?>
+              </div>
+
+              <div class="bsc__order-review__price">
+                <?php echo $product_price; ?>
+              </div>
+            </div>
+
+          </div>
+
+        <?php endforeach; ?>
+
+
+        <?php
+            $summary_nquantity         = $order->get_item_count();
+            $summary_total_amount      = $order->get_subtotal(); // before discounts & taxes
+            $summary_discounts_amount  = $order->get_discount_total();
+            $summary_shipping_amount   = $order->get_shipping_total();
+
+            // Optional helper to format currency
+            function price($amount) {
+                return wc_price($amount);
             }
-        }
-      ?>
 
+        ?>
 
-      <div class="bsc__order-review__item">
-
-        <a href="<?php echo esc_url($product_link); ?>" class="bsc__order-review__image-link">
-          <img 
-            src="<?php echo esc_url($thumbnail_url); ?>" 
-            alt="<?php echo esc_attr($product_name); ?>" 
-            class="bsc__order-review__image" 
-            loading="lazy" 
-            decoding="async"
-          />
-        </a>
-
-        <div class="bsc__order-review__info">
-          <div class="bsc__order-review__name">
-            <p>
-              <a href="<?php echo esc_url($product_link); ?>">
-                <?php echo esc_html($product_name); ?>
-              </a> 
-              <strong>x<?php echo esc_html($product_qty); ?></strong>
-            </p>
-
-            <?php if ( $brand_name ) : ?>
-              <p class="bsc__order-review__brand">
-                <a href="<?php echo esc_url($brand_link); ?>"><?php echo esc_html($brand_name); ?></a>
-              </p>
-            <?php endif; ?>
+        <div class="bsc__order-summary">
+          <div class="summary__row summary__quantity-items">
+            <div class="summary__title"><?php echo $summary_nquantity; ?> productos</div>
+            <div class="summary__content"><?php echo price($summary_total_amount); ?></div>
           </div>
 
-          <div class="bsc__order-review__price">
-            <?php echo $product_price; ?>
+          <div class="summary__row summary__total-discounts">
+            <div class="summary__title">descuento adicional</div>
+            <div class="summary__content"><?php echo price($summary_discounts_amount); ?></div>
           </div>
+
+          <div class="summary__row summary__shipping-cost">
+            <div class="summary__title">envío</div>
+            <div class="summary__content"><?php echo price($summary_shipping_amount); ?></div>
+          </div>
+
+          <div class="summary__divider"></div>
+
+          <h1 class="bsc__order-summary__total">
+            Total <strong><?php echo price($summary_total_amount + $summary_shipping_amount - $summary_discounts_amount); ?></strong>
+          </h1>
         </div>
 
+
+        <br><br><br><br>
       </div>
 
-      <?php endforeach; ?>
-
-      <br><br><br><br>
 
 
 
+      <div class="bsc__order-review shipping-details">
+      <h2 class="shipping-details__title">
+        Datos de <strong>entrega</strong>
+      </h2>
+
+      <?php
+          $nombre    = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
+          $documento = $order->get_meta('_billing_cedula'); // assuming you store the document number in a custom field
+          $ciudad    = $order->get_shipping_city();
+          $direccion = $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2();
+          $telefono  = $order->get_billing_phone(); // or use get_shipping_phone() if custom
+          $bubble_points = 356;
+      ?>
+
+      <ul class="shipping-details__list">
+        <li class="shipping-details__item"><strong>Nombre:</strong> <?php echo $nombre; ?></li>
+        <li class="shipping-details__item"><strong>Documento:</strong> <?php echo $documento; ?></li>
+        <li class="shipping-details__item"><strong>Ciudad:</strong> <?php echo $ciudad; ?></li>
+        <li class="shipping-details__item"><strong>Dirección:</strong> <?php echo $direccion; ?></li>
+        <li class="shipping-details__item"><strong>Teléfono:</strong> <?php echo $telefono; ?></li>
+      </ul>
+
+      <hr class="shipping-details__divider">
+
+      <p class="shipping-details__subtitle">Puntos acumulados</p>
+
+      <div class="bsc__points">
+        <img class="bsc__points__icon" src="<?php echo get_template_directory_uri(); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
+        <h3 class="bsc__points__text">¡ <strong><?php echo $bubble_points; ?></strong> Bubble Points !</h3>
+      </div>
     </div>
+
+    
+    </div> 
 
     <!-- Action Buttons -->
     <div class="bsc__thankyou-actions">
