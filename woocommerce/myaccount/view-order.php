@@ -1,56 +1,156 @@
 <?php
 /**
- * View Order
- *
- * Shows the details of a particular order on the account page.
- *
- * This template can be overridden by copying it to yourtheme/woocommerce/myaccount/view-order.php.
- *
- * HOWEVER, on occasion WooCommerce will need to update template files and you
- * (the theme developer) will need to copy the new files to your theme to
- * maintain compatibility. We try to do this as little as possible, but it does
- * happen. When this occurs the version of the template file will be bumped and
- * the readme will list any important changes.
- *
- * @see     https://woocommerce.com/document/template-structure/
- * @package WooCommerce\Templates
- * @version 3.0.0
+ * Template: Custom View Order Page for WooCommerce
  */
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
-$notes = $order->get_customer_order_notes();
+$order = wc_get_order($order_id);
+if (!$order) return;
+
+do_action('woocommerce_before_view_order', $order);
+
+require_once get_template_directory() . '/components/orders/order-progress-bar.php';
+
+function get_brand_data($product): array {
+    $brand = $product->get_attribute('brand') ?: 'Sin marca';
+    $categories = get_the_terms($product->get_id(), 'product_cat');
+
+    if (!is_wp_error($categories) && !empty($categories)) {
+        foreach ($categories as $cat) {
+            if (strpos($cat->slug, '-marca') !== false) {
+                return [$cat->name, get_term_link($cat)];
+            }
+        }
+    }
+
+    return [$brand, '#'];
+}
 ?>
-<p>
-<?php
-printf(
-	/* translators: 1: order number 2: order date 3: order status */
-	esc_html__( 'Order #%1$s was placed on %2$s and is currently %3$s.', 'woocommerce' ),
-	'<mark class="order-number">' . $order->get_order_number() . '</mark>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	'<mark class="order-date">' . wc_format_datetime( $order->get_date_created() ) . '</mark>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	'<mark class="order-status">' . wc_get_order_status_name( $order->get_status() ) . '</mark>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-);
-?>
-</p>
 
-<?php if ( $notes ) : ?>
-	<h2><?php esc_html_e( 'Order updates', 'woocommerce' ); ?></h2>
-	<ol class="woocommerce-OrderUpdates commentlist notes">
-		<?php foreach ( $notes as $note ) : ?>
-		<li class="woocommerce-OrderUpdate comment note">
-			<div class="woocommerce-OrderUpdate-inner comment_container">
-				<div class="woocommerce-OrderUpdate-text comment-text">
-					<p class="woocommerce-OrderUpdate-meta meta"><?php echo date_i18n( esc_html__( 'l jS \o\f F Y, h:ia', 'woocommerce' ), strtotime( $note->comment_date ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
-					<div class="woocommerce-OrderUpdate-description description">
-						<?php echo wpautop( wptexturize( $note->comment_content ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</div>
-					<div class="clear"></div>
-				</div>
-				<div class="clear"></div>
-			</div>
-		</li>
-		<?php endforeach; ?>
-	</ol>
-<?php endif; ?>
+<main class="bsc bsc__page bsc__page--thankyou">
+  <div class="bsc__container bsc__thankyou-container">
 
-<?php do_action( 'woocommerce_view_order', $order_id ); ?>
+    <ul class="bsc__order-overview">
+      <li class="bsc__order-overview__item">
+        <div class="bsc__order-overview__title">Número de orden:</div>
+        <div class="bsc__order-overview__content">#<?php echo esc_html($order->get_order_number()); ?></div>
+      </li>
+      <li class="bsc__order-overview__item">
+        <div class="bsc__order-overview__title">Fecha:</div>
+        <div class="bsc__order-overview__content"><?php echo wc_format_datetime($order->get_date_created()); ?></div>
+      </li>
+      <li class="bsc__order-overview__item" style="width: 325px">
+        <div class="bsc__order-overview__title">Estado:</div>
+        <div class="bsc__order-overview__content">
+          <?php
+          $status_map = [
+            'pending'    => BSC_Order_Progress_Bar::PENDING,
+            'processing' => BSC_Order_Progress_Bar::RECEIVED,
+            'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+            'completed'  => BSC_Order_Progress_Bar::DELIVERED,
+            'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
+            'failed'     => BSC_Order_Progress_Bar::CANCELLED,
+            'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
+            'shipping'   => BSC_Order_Progress_Bar::SHIPPED,
+          ];
+          $mapped_status = $status_map[$order->get_status()] ?? BSC_Order_Progress_Bar::PENDING;
+          $mapped_status = BSC_Order_Progress_Bar::DELIVERED;
+          $bar = new BSC_Order_Progress_Bar();
+          $bar->setStatus($mapped_status);
+          $bar->render();
+          ?>
+        </div>
+      </li>
+    </ul>
+
+    <div class="bsc__order-review product-details-and-shipping">
+
+      <div class="bsc__order-review product-details">
+        <?php foreach ($order->get_items() as $item_id => $item):
+          $product = $item->get_product();
+          $product_name = $item->get_name();
+          $product_qty = $item->get_quantity();
+          $product_price = wc_price($item->get_total());
+          $product_id = $product->get_id();
+          $product_link = get_permalink($product_id);
+          [$brand_name, $brand_link] = get_brand_data($product);
+          $thumbnail_url = $product->get_image_id()
+            ? wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_thumbnail')[0]
+            : get_template_directory_uri() . '/images/product-placeholder-wp.jpg';
+        ?>
+          <div class="bsc__order-review__item">
+            <a href="<?php echo esc_url($product_link); ?>" class="bsc__order-review__image-link">
+              <img src="<?php echo esc_url($thumbnail_url); ?>" alt="<?php echo esc_attr($product_name); ?>" class="bsc__order-review__image" loading="lazy" decoding="async" />
+              <div class="bsc__order-review__badge"><span><?php echo $product_qty; ?></span></div>
+            </a>
+            <div class="bsc__order-review__info">
+              <div class="bsc__order-review__name">
+                <p><a href="<?php echo esc_url($product_link); ?>"><?php echo esc_html($product_name); ?></a> <strong>x<?php echo esc_html($product_qty); ?></strong></p>
+                <?php if ($brand_name): ?><p class="bsc__order-review__brand"><a href="<?php echo esc_url($brand_link); ?>"><?php echo esc_html($brand_name); ?></a></p><?php endif; ?>
+              </div>
+              <div class="bsc__order-review__price"><?php echo $product_price; ?></div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+
+        <?php
+        $summary_nquantity = $order->get_item_count();
+        $summary_total = $order->get_subtotal();
+        $summary_discount = $order->get_discount_total();
+        $summary_shipping = $order->get_shipping_total();
+        ?>
+
+        <div class="bsc__order-summary">
+          <div class="summary__row summary__quantity-items">
+            <div class="summary__title"><?php echo $summary_nquantity; ?> productos</div>
+            <div class="summary__content"><?php echo wc_price($summary_total); ?></div>
+          </div>
+          <div class="summary__row summary__total-discounts">
+            <div class="summary__title">descuento adicional</div>
+            <div class="summary__content"><?php echo wc_price($summary_discount); ?></div>
+          </div>
+          <div class="summary__row summary__shipping-cost">
+            <div class="summary__title">envío</div>
+            <div class="summary__content"><?php echo wc_price($summary_shipping); ?></div>
+          </div>
+          <div class="summary__divider"></div>
+          <h1 class="bsc__order-summary__total">Total <strong><?php echo wc_price($summary_total + $summary_shipping - $summary_discount); ?></strong></h1>
+        </div>
+        <br><br><br><br>
+      </div>
+
+      <div class="bsc__order-review shipping-details">
+        <h2 class="shipping-details__title">Datos de <strong>entrega</strong></h2>
+        <?php
+        $nombre = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
+        $documento = $order->get_meta('_billing_cedula');
+        $ciudad = $order->get_shipping_city();
+        $direccion = $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2();
+        $telefono = $order->get_billing_phone();
+        $bubble_points = 356;
+        ?>
+        <ul class="shipping-details__list">
+          <li><strong>Nombre:</strong> <?php echo $nombre; ?></li>
+          <li><strong>Documento:</strong> <?php echo $documento; ?></li>
+          <li><strong>Ciudad:</strong> <?php echo $ciudad; ?></li>
+          <li><strong>Dirección:</strong> <?php echo $direccion; ?></li>
+          <li><strong>Teléfono:</strong> <?php echo $telefono; ?></li>
+        </ul>
+        <hr class="shipping-details__divider">
+        <p class="shipping-details__subtitle">Puntos acumulados</p>
+        <div class="bsc__points">
+          <img class="bsc__points__icon" src="<?php echo get_template_directory_uri(); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
+          <h3 class="bsc__points__text">¡ <strong><?php echo $bubble_points; ?></strong> Bubble Points !</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="bsc__thankyou-actions">
+      <a class="bsc__button" href="<?php echo esc_url(home_url()); ?>">Volver al inicio</a>
+      <a class="bsc__button bsc__button--secondary" href="<?php echo esc_url(wc_get_endpoint_url('orders', '', wc_get_page_permalink('myaccount'))); ?>">Ver mis pedidos</a>
+    </div>
+  </div>
+</main>
+
+<?php do_action('woocommerce_after_view_order', $order); ?>
