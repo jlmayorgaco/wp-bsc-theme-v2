@@ -1,0 +1,51 @@
+.bsc__orders {
+  overflow-x: auto;
+  padding: 2rem 0;
+
+  &-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    a {
+      color: var(--color-primary);
+      font-weight: bold;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &-pagination {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+
+    a {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      background: var(--color-pink-light);
+      color: var(--color-black);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        background: var(--color-pink-dark);
+      }
+    }
+  }
+
+  &-empty {
+    font-style: italic;
+    text-align: center;
+    padding: 2rem 0;
+  }
+}
