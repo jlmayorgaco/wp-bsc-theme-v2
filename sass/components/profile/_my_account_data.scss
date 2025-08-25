@@ -1,0 +1,139 @@
+.bsc__account-section {
+  padding: 3rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bsc__account-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+.bsc__account-form {
+  padding: 3rem 1rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.bsc__account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.bsc__account-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bsc__field {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px dashed #333;
+    background-color: #fff;
+  }
+
+  input[disabled] {
+    background-color: #eee;
+    color: #999;
+    cursor: not-allowed;
+  }
+
+  input[type="date"] {
+    font-family: inherit;
+  }
+}
+
+.bsc__account-needs h3 {
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.bsc__account-submit {
+  margin-top: 2rem;
+  text-align: left;
+}
+.bsc__field--need {
+  position: relative;
+
+  .bsc__need-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+      width: 100%;
+      padding-right: 2.5rem; // espacio para el ícono
+      border: 1px dashed #333;
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .bsc__check-icon {
+      position: absolute;
+      left: -0.75rem;
+      width: 20px;
+      height: 20px;
+      pointer-events: none;
+    }
+  }
+}
+.bsc__account-needs {
+  h3 {
+    font-weight: bold;
+    padding: 0px;
+    margin: 0px;
+  }
+}
+
+.bsc__need {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+
+  .bsc__need-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .bsc__need-input {
+    flex: 1;
+    border: 1px dashed #333;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    font-family: inherit;
+    background-color: #fff;
+  }
+}
+.bsc__need-input::placeholder {
+  color: #888;
+  font-style: italic;
+}
+
+.bsc__vl {
+  width: 1px;
+  background-color: #999;
+  height: auto;
+  margin: 0px;
+  opacity: 0.5;
+      width: 2px;
+    height: 100%;
+    display: block;
+}
