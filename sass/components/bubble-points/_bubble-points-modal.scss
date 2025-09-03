@@ -1,0 +1,47 @@
+.bsc__modal {
+  position: fixed;
+  inset: 0;
+  display: none; // hidden by default
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+
+  &.is-open {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+  }
+
+  &__dialog {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  &__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  &__text {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
