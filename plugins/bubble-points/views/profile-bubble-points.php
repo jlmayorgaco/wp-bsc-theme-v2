@@ -33,7 +33,7 @@ $points_by_user =  BSC_Bubble_Points::get($user_id);
         </div>
         <div class="profile-points__footer">
             
-            <?php require get_template_directory() . '/plugins/bubble-points/views/modal-bubble-points.php'; ?>
+            <?php require get_template_directory() . '/plugins/bubble-points/views/coupons-bubble-points.php'; ?>
 
         </div>
         <div class="profile-points__footer">
@@ -45,3 +45,5 @@ $points_by_user =  BSC_Bubble_Points::get($user_id);
         </div>
     </div>
 </div>
+
+<?php require get_template_directory() . '/plugins/bubble-points/views/modal-bubble-points.php'; ?>
