@@ -1,0 +1,134 @@
+.bsc-coupon-wallet {
+  margin-top: 1.25rem;
+  &__title { text-align: center; font-weight: 800; }
+  &__grid { list-style: none; margin: 1rem auto 0; padding: 0; display: grid; gap: 1rem; max-width: 760px; }
+}
+
+.bsc-ticket {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto; /* body + actions */
+  gap: .75rem;
+  padding: 1rem 1.1rem;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+
+  &__row { display: flex; align-items: center; gap: .5rem; font-size: .92rem; color: #333; }
+  &__value { margin-top: .25rem; font-weight: 800; font-size: 1.35rem; line-height: 1.1; border-bottom: 3px dotted #111; display: inline-block; }
+  &__code { margin-top: .55rem; }
+  &__actions { display: grid; align-content: start; gap: .4rem; justify-items: end; }
+  &__hint { color: #777; }
+
+  // side notches (perforation look)
+  &__notch {
+    position: absolute; top: 50%; width: 18px; height: 18px; background: #fff;
+    border: 2px solid #000; border-radius: 50%; transform: translateY(-50%);
+    &--left { left: -9px; } &--right { right: -9px; }
+  }
+
+  &--usado   { opacity: .65; }
+  &--vencido { opacity: .5;  filter: grayscale(.2); }
+}
+
+.bsc-chip { display: inline-block; padding: .12rem .55rem; border-radius: 999px; font-weight: 800; font-size: .78rem;
+  &--outline { border: 2px solid #000; background: #fff; }
+}
+.bsc-dot { opacity: .5; }
+
+.bsc-code-badge {
+  display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+  border: 2px solid #000; border-radius: 999px; padding: .35rem .7rem;
+  background: #fff; box-shadow: 3px 3px 0 #000;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+
+  code { font-weight: 900; letter-spacing: .5px; font-size: 1rem; }
+  &:hover { transform: translateY(-1px); box-shadow: 4px 4px 0 #000; }
+  &:active { transform: translateY(0); box-shadow: 2px 2px 0 #000; }
+  &:focus { outline: none; box-shadow: 0 0 0 3px #111 inset; }
+}
+
+.bsc-btn {
+  border: 2px solid #000; border-radius: 999px; font-weight: 800; padding: .45rem 1rem;
+  background: #000; color: #fff; cursor: pointer; transition: transform .12s ease, background .12s ease;
+  &--copy { }
+  &:hover { transform: translateY(-1px); }
+  &:disabled { background: #eee; color: #777; cursor: not-allowed; }
+}
+
+.bsc-empty { text-align: center; border: 2px dashed #000; border-radius: 16px; padding: 1.25rem; background: #fff; }
+
+
+/* --- LEFT-ALIGN THE BODY, CODE, AND VALUE --- */
+.bsc-ticket {
+  grid-template-columns: 1fr auto;   /* body | actions */
+  align-items: start;                 /* keep top-aligned */
+}
+
+.bsc-ticket__body {
+  display: flex;                      /* stack in your custom order */
+  flex-direction: column;
+  align-items: flex-start;            /* <— LEFT anchor everything inside */
+  gap: .5rem;
+  text-align: left;                   /* guard against inherited center text */
+}
+
+.bsc-ticket__code {
+  width: 100%;
+  text-align: left;                   /* ensure the pill starts at the left */
+}
+
+.bsc-code-badge {
+  margin-left: 0;                     /* no accidental centering */
+}
+
+.bsc-ticket__value {
+  display: block;                     /* not inline-block to avoid centering quirks */
+  text-align: left;
+  margin-top: .15rem;
+}
+
+/* actions stay on the right column */
+.bsc-ticket__actions {
+  justify-items: end;
+  align-content: start;
+}
+
+/* optional: tighten spacing a bit for this order */
+.bsc-ticket__row { margin-top: .25rem; }
+/* Wallet grid: 4 columns on large screens */
+.bsc-coupon-wallet__grid {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+
+  display: grid;
+  gap: 1rem;
+
+  /* 4 columns desktop */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  /* remove previous width cap so 4 cols can fit */
+  max-width: none;
+  width: 100%;
+}
+
+/* Responsive fallbacks (optional but recommended) */
+@media (max-width: 1200px) {
+  .bsc-coupon-wallet__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .bsc-coupon-wallet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .bsc-coupon-wallet__grid { grid-template-columns: 1fr; }
+}
+
+.bsc-code-badge.is-copied {
+  box-shadow: 4px 4px 0 #000, 0 0 0 3px #c9f7d6 inset;
+  transform: translateY(-1px);
+}
