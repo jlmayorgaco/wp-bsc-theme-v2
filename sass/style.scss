@@ -79,7 +79,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 // Bubble Points :: Coupons
 @use "components/bubble-points/bubble-points-profile";
 @use "components/bubble-points/bubble-points-coupon";
-@use "components/bubble-points/_bubble-points-modal";
+@use "components/bubble-points/bubble-points-modal";
+@use "components/bubble-points/bubble-points-coupons-list";
 
 .woocommerce-account .widget-area,
 .woocommerce-account .site-footer {
