@@ -47,12 +47,23 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 @use "components/header/header";
 @use "components/footer/footer";
+@use "components/forms/forms";
 @use "components/swiper/swiper_home";
+
 
 @use "components/products/card";
 @use "components/products/slider";
 @use "components/products/filters";
 @use "components/products/woocommerce_gallery";
+
+@use "components/orders/progress_bar";
+@use "components/orders/orders_table";
+@use "components/orders/zero_state";
+@use "components/orders/view_order";
+
+@use "components/profile/my_account_header";
+@use "components/profile/my_address";
+@use "components/profile/my_account_data";
 
 @use "components/details/details";
 
@@ -64,3 +75,13 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "components/checkout/checkout-summary";
 @use "components/checkout/checkout-payment";
 
+
+// Bubble Points :: Coupons
+@use "components/bubble-points/bubble-points-profile";
+@use "components/bubble-points/bubble-points-coupon";
+@use "components/bubble-points/_bubble-points-modal";
+
+.woocommerce-account .widget-area,
+.woocommerce-account .site-footer {
+  display: none;
+}
