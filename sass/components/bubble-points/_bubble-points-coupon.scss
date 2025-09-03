@@ -253,33 +253,7 @@
         height: 95px;
       filter: blur(0px);
       opacity: 0.65;
-      &--yellow {
-        background: #fff6c9;
-      }
-      &--blue {
-        background: #dff0ff;
-      }
-      &--pink {
-        background: #ffe3ef;
-      }
-      &--lilac {
-        background: #f1e4ff;
-      }
-      &--orange {
-        background: #ffedd6;
-      }
-      &--green {
-        background: #e6ffe9;
-      }
-      &--gold {
-        background: #fff4d1;
-      }
-      &--aqua {
-        background: #e3ffff;
-      }
-      &--rose {
-        background: #ffe4ea;
-      }
+      
     }
     .image__front {
       position: relative;
@@ -348,3 +322,38 @@
 }
 
 
+
+
+
+/* Stack normal/hover images and cross-fade on card hover */
+.bsc__coupon-card .image__front {
+  position: relative;
+  width: 50px; /* keep your current size system */
+  height: 116px;
+}
+
+.bsc__coupon-card .image__front img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity .18s ease-in-out, transform .18s ease-in-out;
+}
+
+.bsc__coupon-card .image__front img.hover {
+  opacity: 0;
+}
+
+.bsc__coupon-card.is-normal:hover .image__front img.normal {
+  opacity: 0;
+  transform: translateY(-1px);
+}
+.bsc__coupon-card.is-normal:hover .image__front img.hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Optional: prevent pointer on disabled cards */
+.bsc__coupon-card.is-disabled { cursor: not-allowed; }
+.bsc__coupon-card.is-normal   { cursor: pointer; }

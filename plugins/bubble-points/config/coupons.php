@@ -16,7 +16,7 @@ return [
         'color'  => 'blue',
         'price'  => 110000,
         'points' => 1470,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c2__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_1470'
     ],
@@ -24,7 +24,7 @@ return [
         'color'  => 'pink',
         'price'  => 160000,
         'points' => 2130,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c3__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_2130'
     ],
@@ -32,7 +32,7 @@ return [
         'color'  => 'lilac',
         'price'  => 220000,
         'points' => 2930,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c4__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_2930'
     ],
@@ -40,7 +40,7 @@ return [
         'color'  => 'orange',
         'price'  => 290000,
         'points' => 3870,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c5__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_3870'
     ],
@@ -48,7 +48,7 @@ return [
         'color'  => 'green',
         'price'  => 360000,
         'points' => 4800,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c6__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_4800'
     ],
@@ -56,7 +56,7 @@ return [
         'color'  => 'gold',
         'price'  => 430000,
         'points' => 5730,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c7__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_5730'
     ],
@@ -64,7 +64,7 @@ return [
         'color'  => 'aqua',
         'price'  => 500000,
         'points' => 6660,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c8__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_6660'
     ],
@@ -72,7 +72,7 @@ return [
         'color'  => 'rose',
         'price'  => 680000,
         'points' => 9060,
-        'image'  => 'coupon_c1__figure',
+        'image'  => 'coupon_c9__figure',
         'text'   => 'en skin care, hair care, maquillaje, inner beauty y dispositivos coreanos en BSC',
         'tag'    => 'BSC_COUPON_9060'
     ],

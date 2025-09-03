@@ -13351,33 +13351,6 @@ details[open] .bsc__product-detail-category > summary::after {
   filter: blur(0px);
   opacity: 0.65;
 }
-.bsc__coupon-card .card__image .image__back--yellow {
-  background: #fff6c9;
-}
-.bsc__coupon-card .card__image .image__back--blue {
-  background: #dff0ff;
-}
-.bsc__coupon-card .card__image .image__back--pink {
-  background: #ffe3ef;
-}
-.bsc__coupon-card .card__image .image__back--lilac {
-  background: #f1e4ff;
-}
-.bsc__coupon-card .card__image .image__back--orange {
-  background: #ffedd6;
-}
-.bsc__coupon-card .card__image .image__back--green {
-  background: #e6ffe9;
-}
-.bsc__coupon-card .card__image .image__back--gold {
-  background: #fff4d1;
-}
-.bsc__coupon-card .card__image .image__back--aqua {
-  background: #e3ffff;
-}
-.bsc__coupon-card .card__image .image__back--rose {
-  background: #ffe4ea;
-}
 .bsc__coupon-card .card__image .image__front {
   position: relative;
   z-index: 0;
@@ -13431,6 +13404,45 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-card.is-error .bsc__coupon-button {
   display: none;
+}
+
+/* Stack normal/hover images and cross-fade on card hover */
+.bsc__coupon-card .image__front {
+  position: relative;
+  width: 50px; /* keep your current size system */
+  height: 116px;
+}
+
+.bsc__coupon-card .image__front img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.18s ease-in-out, transform 0.18s ease-in-out;
+}
+
+.bsc__coupon-card .image__front img.hover {
+  opacity: 0;
+}
+
+.bsc__coupon-card.is-normal:hover .image__front img.normal {
+  opacity: 0;
+  transform: translateY(-1px);
+}
+
+.bsc__coupon-card.is-normal:hover .image__front img.hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Optional: prevent pointer on disabled cards */
+.bsc__coupon-card.is-disabled {
+  cursor: not-allowed;
+}
+
+.bsc__coupon-card.is-normal {
+  cursor: pointer;
 }
 
 .bsc__modal {

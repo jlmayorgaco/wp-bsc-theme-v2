@@ -5,14 +5,11 @@ if (!class_exists('BSC_Bubble_Point_Coupon')) {
         protected $points;
         protected $value;
         protected $text;
-        protected $image;     // path or URL
+        protected $image;     // path or URL (normal state)
         protected $alt;
         protected $state;     // 'normal', 'disabled', 'error'
         protected $color_mod; // e.g. 'yellow', 'blue' for CSS modifiers
 
-        /**
-         * Constructor
-         */
         public function __construct(array $config) {
             $this->points    = $config['points'] ?? 0;
             $this->value     = $config['value'] ?? 0;
@@ -23,87 +20,82 @@ if (!class_exists('BSC_Bubble_Point_Coupon')) {
             $this->color_mod = $config['color_mod'] ?? '';
         }
 
-        /**
-         * Resolve image path
-         */
         protected function img_src(string $path): string {
-            if (!$path) {
-                return '';
-            }
-            if (strpos($path, 'http') === 0 || strpos($path, '//') === 0) {
-                return $path;
-            }
-            // Treat as theme-relative
+            if (!$path) return '';
+            if (strpos($path, 'http') === 0 || strpos($path, '//') === 0) return $path;
+            // theme-relative
             return trailingslashit(get_stylesheet_directory_uri()) . ltrim($path, '/');
         }
 
         /**
-         * Generate HTML for the coupon card
+         * Build the hover variant by inserting '_colored' before the file extension.
+         * Works with .png, .jpg, .jpeg, .webp and keeps query strings intact.
+         * e.g. coupon_c1__figure.png -> coupon_c1__figure_colored.png
          */
+        protected function hover_variant(string $url): string {
+            if (!$url) return '';
+            return preg_replace('/(\.[a-zA-Z0-9]{2,4})(\?.*)?$/', '_colored$1$2', $url);
+        }
+
         public function get_html(): string {
-            $classes = [
-                'bsc__coupon-card',
-                'is-' . esc_attr($this->state),
-            ];
-            if ($this->color_mod) {
-                $classes[] = 'bsc__coupon-card--' . sanitize_html_class($this->color_mod);
-            }
+            $classes = ['bsc__coupon-card', 'is-' . esc_attr($this->state)];
+            if ($this->color_mod) $classes[] = 'bsc__coupon-card--' . sanitize_html_class($this->color_mod);
             $class_str = implode(' ', $classes);
 
-            $price      = number_format((int)$this->value);
-            $points     = number_format((int)$this->points);
-            $text       = esc_html($this->text);
-            $img        = esc_url($this->img_src($this->image));
-            $alt        = esc_attr($this->alt);
-            $check_img  = esc_url($this->img_src('plugins/bubble-points/images/coupon__check.png'));
+            // RAW numbers for data attributes
+            $price_raw  = (int) $this->value;
+            $points_raw = (int) $this->points;
 
-            // Action area
-            if ($this->state === 'normal') {
-                $action = '<button class="bsc__coupon-button" type="button">Redimir</button>';
-            } elseif ($this->state === 'error') {
-                $action = '<div class="bsc__coupon-error-msg">Error al redimir</div>';
-            } else {
-                $action = '<div class="bsc__coupon-locked">No tienes suficientes puntos</div>';
-            }
+            // Formatted for display
+            $price_fmt  = number_format($price_raw);
+            $points_fmt = number_format($points_raw);
 
+            $text      = esc_html($this->text);
+            $img_normal = esc_url($this->img_src($this->image));
+            $img_hover  = esc_url($this->hover_variant($img_normal));
+            $alt       = esc_attr($this->alt);
+            $check_img = esc_url($this->img_src('plugins/bubble-points/images/coupon__check.png'));
+
+            // Entire card is the trigger (no internal button)
             return <<<HTML
-                <div class="{$class_str} js-bsc-coupon" data-points="{$points}" data-value="{$price}" data-state="{$this->state}">
-                <div class="bsc__coupon-card__container">
+                <div class="{$class_str} js-bsc-coupon"
+                     data-points="{$points_raw}"
+                     data-value="{$price_raw}"
+                     data-state="{$this->state}">
+                  <div class="bsc__coupon-card__container">
                     <div class="bsc__coupon-card__col">
-                    <div class="row">
-                        <div class="price border_bottom_dotted">\${$price}</div>
+                      <div class="row">
+                        <div class="price border_bottom_dotted">\${$price_fmt}</div>
                         <div class="check">
-                        <div class="check__back check__back--{$this->color_mod}"></div>
-                        <div class="check__front">
+                          <div class="check__back check__back--{$this->color_mod}"></div>
+                          <div class="check__front">
                             <img src="{$check_img}" alt="check">
+                          </div>
                         </div>
-                        </div>
-                    </div>
-                    <div class="row">
+                      </div>
+                      <div class="row">
                         <p>{$text}</p>
-                    </div>
+                      </div>
                     </div>
 
                     <div class="bsc__coupon-card__col">
-                    <div class="card__image">
+                      <div class="card__image">
                         <div class="image__back image__back--{$this->color_mod}"></div>
                         <div class="image__front">
-                        <img src="{$img}" alt="{$alt}">
+                          <img class="normal" src="{$img_normal}" alt="{$alt}">
+                          <img class="hover"  src="{$img_hover}"  alt="{$alt}">
                         </div>
+                      </div>
                     </div>
-                    </div>
-                </div>
+                  </div>
 
-                <div class="bsc__coupon-card__label">
-                    Redimir x {$points} Bubble Points
-                </div>
+                  <div class="bsc__coupon-card__label">
+                    Redimir x {$points_fmt} Bubble Points
+                  </div>
                 </div>
             HTML;
         }
 
-        /**
-         * Echo the HTML
-         */
         public function render(): void {
             echo $this->get_html();
         }
