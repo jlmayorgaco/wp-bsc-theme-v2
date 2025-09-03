@@ -2,9 +2,6 @@
 
 
 ?>
-
-OLISS!!
-
 <div id="bscCouponModal" class="bsc__modal">
   <div class="bsc__modal__dialog">
     <h2 class="bsc__modal__title">Confirmar Redención</h2>
