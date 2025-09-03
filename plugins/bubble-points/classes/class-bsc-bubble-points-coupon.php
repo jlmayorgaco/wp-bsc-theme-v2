@@ -67,7 +67,7 @@ if (!class_exists('BSC_Bubble_Point_Coupon')) {
             }
 
             return <<<HTML
-                <div class="{$class_str}" data-points="{$points}" data-value="{$price}" data-state="{$this->state}">
+                <div class="{$class_str} js-bsc-coupon" data-points="{$points}" data-value="{$price}" data-state="{$this->state}">
                 <div class="bsc__coupon-card__container">
                     <div class="bsc__coupon-card__col">
                     <div class="row">
