@@ -75,6 +75,12 @@
   &.is-normal:hover {
     transform: scale(1.03);
     border: 2px solid #000;
+    cursor: pointer;
+
+    bsc__coupon-card__label{
+      background-color: #ffe6f1;
+      border:1px solid #333;
+    }
   }
 
   &.is-disabled {
@@ -287,6 +293,8 @@
     }
   }
 
+  
+
   &__label {
     margin-top: 0.9rem;
     display: inline-block;
@@ -300,6 +308,7 @@
     top: -32px;
   }
 
+  
   .bsc__coupon-button {
     background: #000;
     color: #fff;
@@ -316,6 +325,12 @@
     transform: scale(1.02);
     border-color: #000;
   }
+  
+  &.is-normal:hover  &__label {
+    background-color: #ffe4ea;
+  }
+
+  
   &.is-disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -331,3 +346,5 @@
     }
   }
 }
+
+
