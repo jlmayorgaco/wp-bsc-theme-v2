@@ -30,18 +30,9 @@ jQuery(function($){
       nonce: bsc_points.nonce
     }, function(resp){
       $("#bscCouponModal").removeClass("is-open");
-
-      console.log(' ====>. resp')
-      console.log({ payload: {
-      action: "bsc_redeem_points",
-  points: parseInt(String(selected.points).replace(/,/g, ""), 10),
-  value: parseInt(String(selected.value).replace(/,/g, ""), 10),
-      nonce: bsc_points.nonce
-    }, resp: resp})
-
       if(resp.success){
         alert("¡Cupón creado! Revisa tus cupones disponibles.");
-        //location.reload();
+        location.reload();
       } else {
         alert(resp.data.message || "Error al redimir puntos.");
       }
