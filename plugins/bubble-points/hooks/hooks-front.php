@@ -18,4 +18,16 @@ function bsc_bp_enqueue_scripts() {
             'nonce'    => wp_create_nonce('bsc_redeem_points')
         ]);
 
-}
+
+
+        wp_enqueue_script(
+            'bsc-bubble-points-copy',
+            get_stylesheet_directory_uri() . '/plugins/bubble-points/scripts/bubble-points-copy.js',
+            ['jquery'],
+            '1.0.0',
+            true
+        );
+
+
+
+    }
