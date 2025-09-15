@@ -22,7 +22,7 @@ class BSC_Products_Card {
         $this->stock_status  = $product->get_stock_status();
         
         $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single');
-        $this->image = is_array($image_data) ? $image_data[0] : 'http://bsc.local/wp-content/plugins/wp-bsc-plugin-v1/assets/images/bsc__product_placeholder.jpeg?query_photo_index=0';
+        $this->image = is_array($image_data) ? $image_data[0] : 'https://bubblesskincare.com/plugins/wp-bsc-plugin-v1/assets/images/bsc__product_placeholder.jpeg?query_photo_index=0';
 
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();
@@ -66,8 +66,8 @@ class BSC_Products_Card {
         
         $full = floor($rating);
         $empty = 5 - $full;
-        $img_heart_full = 'http://bsc.local/wp-content/plugins/wp-bsc-plugin-v1/assets/images/2.png';
-        $img_heart_empty = 'http://bsc.local/wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
+        $img_heart_full = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/2.png';
+        $img_heart_empty = 'https://bubblesskincare.com//wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
 
         echo '';
         for ($i = 0; $i < $full; $i++) {
