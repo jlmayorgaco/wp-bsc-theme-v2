@@ -159,3 +159,11 @@ $button-padding: 12px 24px;
     right: var(--swiper-navigation-sides-offset, 150px)  !important;
     left: auto;
 }
+
+.bsc-swiper__nav{
+  opacity: 1;
+  &:hover {
+    opacity: 0.5;
+    transition: opacity 0.25s ease-in-out;
+  }
+}
