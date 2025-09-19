@@ -129,7 +129,9 @@
                 </div>
               </div>
 
-            <a class="bsc__button bsc__button--outline bsc__button--floating" href="/shop">¡Ver todos!</a>
+              <!--
+              <a class="bsc__button bsc__button--outline bsc__button--floating" href="/shop">¡Ver todos!</a>
+              -->
 
             <br>
 
