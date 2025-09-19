@@ -7,6 +7,8 @@
   max-width: $max-width;
   margin: 0 auto;
   padding: $padding;
+  
+   padding-bottom: 3rem;
 }
 
 @mixin flex-center($direction: row, $gap: 1rem) {
@@ -73,6 +75,7 @@
 
   .home__products--section {
     background-color: var(--color-bg-light);
+    background-color: white;
   }
 }
 
@@ -146,7 +149,7 @@
 
 .home__about--section {
   position: relative;
-  padding: 4rem 0;
+  padding: 1rem 0;
   background: #fff;
   z-index: 0;
 
@@ -196,7 +199,7 @@
   }
 
   .about__col {
-    flex: 0 1 300px;
+    flex: 0 1 200px;
     text-align: center;
     padding: 0.5rem;
     transition: transform 0.3s ease;
@@ -206,8 +209,8 @@
     }
 
     .about__icon {
-      width: 150px;
-      margin-bottom: 1rem;
+      width: 185px;
+      margin-bottom: 0rem;
     }
 
     .about__title {
@@ -231,8 +234,8 @@
 
 .home__contact--section {
   background-color: var(--color-bg-contact);
-  border-radius: 16px;
-  padding: 5rem;
+  border-radius: 0px;
+  padding: 3rem;
   margin: 5rem auto;
   max-width: 1200px;
 
@@ -279,6 +282,7 @@
       letter-spacing: 2px;
       width: 260px;
       margin: 0px;
+      color: var(--color--text);
     }
   }
 
@@ -303,16 +307,16 @@
     }
 
     .home__contact__blog-photo {
-      width: 130px;
-      bottom: 0;
-      right: -64px;
-      border-radius: 12px;
+  width: 150px;
+    bottom: -50px;
+    right: -65px;
+    border-radius: 12px;
     }
 
     .home__contact__blog-sticker {
-      width: 50px;
-      bottom: 21px;
-      right: 38px;
+    width: 50px;
+    bottom: 21px;
+    right: 60px;
     }
   }
 
@@ -320,9 +324,9 @@
     @include flex-left(row, 0.5rem);
 
     img {
-      width: 20px;
-      height: 20px;
-      object-fit: cover;
+width: 29px;
+    height: 28px;
+    object-fit: cover;
     }
   }
 
@@ -333,6 +337,9 @@
     line-height: 1.4;
     letter-spacing: 2px;
     color: var(--color-text);
+
+    margin-top: 5px;
+    margin-bottom: 5px;
 
     strong {
       font-weight: 700;
@@ -348,21 +355,24 @@
       padding: 0.75rem 1rem;
       border-radius: 20px;
       border: 1px solid #222;
-      font-size: 1rem;
+       font-size: 17px;
     }
 
     .home__contact__submit {
+      margin-top: 10px;;
       padding: 0.75rem 1rem;
       border-radius: 20px;
-      background-color: #222;
+      background-color: var(--color-text);
       color: #fff;
       font-weight: 700;
       border: none;
-      font-size: 1rem;
+          font-size: 17px;
+          letter-spacing: 1px;
       cursor: pointer;
 
       &:hover {
-        background-color: #444;
+        background-color: white;
+        color: var(--color--text);
       }
     }
   }
@@ -370,7 +380,7 @@
   .home__contact__final-image {
     width: 325px;
     align-self: center;
-    margin-top: 5rem;
+    margin-top: 3rem;
   }
 }
 
