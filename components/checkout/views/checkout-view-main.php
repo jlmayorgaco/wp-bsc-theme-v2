@@ -29,10 +29,10 @@
                     ?>
 
                     <div class="bsc bsc__review-order">
-                        <div class="review-order_container">
-                        <div id="order_review" class="woocommerce-checkout-review-order">
-                            <?php do_action('woocommerce_checkout_order_review'); ?>
-                        </div>
+                        <div class="review-order__container">
+                            <div id="order_review" class="woocommerce-checkout-review-order">
+                                <?php do_action('woocommerce_checkout_order_review'); ?>
+                            </div>
                         </div>
                     </div>
 
