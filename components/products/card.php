@@ -60,9 +60,9 @@ class BSC_Products_Card {
     }
 
     public function render_rating(): void {
-        
-        $rating = 3;
-        //$rating = $this->rating;
+    
+        $rating = $this->rating;
+        $rating = 5;
         
         $full = floor($rating);
         $empty = 5 - $full;
