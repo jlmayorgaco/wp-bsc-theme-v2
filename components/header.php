@@ -323,7 +323,8 @@
         ]
     ]);
 
-   
+ 
+
     $menuContact = new BSC_MenuNav();
     $menuContact->setName('CONTACTO');
     $menuContact->setSlug('BSC_MENU_NAV_CONTACT');
@@ -337,8 +338,8 @@
     $headerNav->addMenu($menuSkinCare);
     $headerNav->addMenu($menuHairCare);
     $headerNav->addMenu($menuMakeUp);
-    $headerNav->addMenu($menuCoreanRutine);
-    $headerNav->addMenu($menuBlog);
+    //$headerNav->addMenu($menuCoreanRutine);
+    //$headerNav->addMenu($menuBlog);
     $headerNav->addMenu($menuContact);
 
 
@@ -356,7 +357,13 @@
         <div class="header__menu">
             <ul class="menu__icons">
                 <li class="menu__icon icon--search">
-                    <button class="btn-search-toggle"><i aria-hidden="true" class="dlicon ui-1_zoom"></i></button>
+                    <button class="btn-search-toggle">
+                          <div class="image__icon-hoverable">
+                                <img class="image__icon icon--normal" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png">
+                                <img class="image__icon icon--hover" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png">
+                          </div>
+                    </button>
+                    
                     <div class="bsc header__search hidden">
                         <input type="text" class="header-search-input" placeholder="Buscar productos...">
                         <ul class="search-results"></ul>
@@ -365,7 +372,10 @@
                 <?php if (is_user_logged_in()) : ?>
                     <li class="menu__icon icon--profile">
                         <button id="profile-button" aria-haspopup="true" aria-expanded="false">
-                        <i aria-hidden="true" class="dlicon users_single-03"></i>
+                            <div class="image__icon-hoverable">
+                                <img class="image__icon icon--normal" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png">
+                                <img class="image__icon icon--hover" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png">
+                            </div>
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">
                         <ul>
