@@ -6,6 +6,7 @@
 ======================================== */
 $spacing-md: 1em;
 $container-max-width: var(--size--page-container-w);
+$container-max-width: 950px;
 $border-color: gray;
 $image-width: 300px;
 $text-color: var(--color--text);
@@ -62,7 +63,10 @@ $menu-title-font: 'Helvetica', sans-serif;
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+
+  // ESTILOS 
   gap: $spacing-md;
+  gap: 20px;
 
   width: 100%;
   max-width: $container-max-width;
@@ -81,7 +85,7 @@ $menu-title-font: 'Helvetica', sans-serif;
    Image Block
 ======================================== */
 .bsc__menu-nav-image {
-  flex: 1 0 auto;
+  //flex: 1 0 auto;
   display: flex;
   justify-content: flex-end;
 
@@ -89,6 +93,15 @@ $menu-title-font: 'Helvetica', sans-serif;
     display: block;
     width: $image-width;
     height: auto;
+    filter: brightness(100%);
+    transition: filter 0.25s ease-in;
+  }
+
+  &:hover{
+    img{ 
+      filter: brightness(80%);
+      transition: filter 0.25s ease-in;
+    }
   }
 }
 
@@ -134,5 +147,5 @@ $menu-title-font: 'Helvetica', sans-serif;
 }
 
 .bsc__custom-menu-section{
-      max-width: 300px;
+      max-width: 400px;
 }
