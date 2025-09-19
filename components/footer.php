@@ -90,7 +90,7 @@
       </div>
       <div class="footer__copyright">
         <p class="footer__copyright-text">
-          <strong>© 2024 BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
+          <strong>© 2020 - 2025 BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
         </p>
       </div>
       </div>
@@ -106,10 +106,12 @@
       </a>
 
       <div class="footer__developer-section">
+
+    <!--
       <h2 class="footer__developer-heading">
         <a href="http://www.wappy.com.co" target="_blank">Desarrollado con amor por BSC</a>
       </h2>
-
+-->
   </div>
 
   </div>
