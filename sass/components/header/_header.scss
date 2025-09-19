@@ -26,6 +26,7 @@ $menu-title-font: 'Helvetica', sans-serif;
 
 :root {
   --header-search-right: 0px;
+  --header-icons-w: 32px;
 }
 
 
@@ -66,7 +67,13 @@ $menu-title-font: 'Helvetica', sans-serif;
   padding-bottom: 1em;
 
   img {
+    opacity: 1;
     width: 100%;
+  }
+
+  &:hover img{
+    opacity: 0.75;
+    transition: opacity 0.25s ease-in-out;
   }
 }
 
@@ -74,24 +81,65 @@ $menu-title-font: 'Helvetica', sans-serif;
 // ------------------------------------------- //
 // -- Menu Icons ----------------------------- //
 // ------------------------------------------- //
-
+// Icon row
 .menu__icons {
   display: flex;
   flex-direction: row;
-  justify-items: flex-end;
-  gap: 1em;
+  justify-content: flex-end; // 'justify-items' doesn't affect flex containers
+  align-items: center;
+  gap: 0rem;
 }
 
+// Each icon container anchors its dropdowns
 .menu__icon {
-  button {
-    opacity: 1;
+
+  width: var(--header-icons-w);
+  height: var(--header-icons-w);
+
+  > button {
     cursor: pointer;
+    position: relative;
+    width: var(--header-icons-w);
+    height: var(--header-icons-w);
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    line-height: 0; // kill baseline gaps when using <img>
+    opacity: 1;
+    transition: opacity .15s ease;
   }
 
-  &:hover button {
-    opacity: 0.5;
+  &:hover > button {
+    opacity: .6;
   }
+
+  // Hoverable image swap
+  .image__icon-hoverable {
+    position: relative;
+    width: var(--header-icons-w);
+    height:  var(--header-icons-w);
+
+    .image__icon {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;    // prevents inline baseline gap
+      object-fit: contain;
+      transition: opacity .15s ease;
+    }
+
+    .icon--hover { opacity: 0; }
+  }
+
+  > button:hover .icon--hover   { opacity: 1; }
+  > button:hover .icon--normal  { opacity: 0; }
 }
+
+
+
 
 
 // ------------------------------------------- //
