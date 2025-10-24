@@ -26,9 +26,11 @@ class BSC_Checkout_Cart {
         if (!$_product) return '';
 
         $name = $_product->get_name();
-        $price = wc_price($_product->get_price());
-        $image = $_product->get_image('woocommerce_thumbnail');
         $quantity = $item['quantity'];
+        $price = wc_price($_product->get_price());
+        $price_total = wc_price($quantity * $_product->get_price());
+        $image = $_product->get_image('woocommerce_thumbnail');
+
         $link = get_permalink($_product->get_id());
 
         [$brand_name, $brand_link] = $this->get_brand_data($_product);
@@ -42,7 +44,7 @@ class BSC_Checkout_Cart {
                     <label><span><?= $quantity; ?></span></label>
                 </div>
             </div>
-            <div class="item__col col2">
+            <div class="item__col col2" style="position: relative;">
                 <div class="row">
                     <div class="col_name_brand">
                         <h5 class="item__name">
@@ -53,7 +55,7 @@ class BSC_Checkout_Cart {
                         </h5>
                     </div>
                     <div class="col_total">
-                        <h5 class="item__total"><?= $price; ?></h5>
+                        <h5 class="item__total"><?= $price_total; ?></h5>
                     </div>
                 </div>
                 <div class="row row_action_buttons bsc-checkout-cart--controls" data-product_id="<?= $_product->get_id(); ?>">
