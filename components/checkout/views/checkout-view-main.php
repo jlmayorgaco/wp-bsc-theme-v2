@@ -4,7 +4,7 @@
         <main class="bsc bsc__page bsc__page--dual bsc__page--checkout <?php if (!WC()->cart->is_empty()) { echo 'is-visible'; }?>">
             <div class="bsc__page-1 bg-white">
                     <div class="bsc__container bsc__container--to-right">
-                        <img class="bsc__checkout-logo" src="<?php echo get_template_directory_uri();?>/images/bsc_logo_checkout.png" alt="Bubble Skin Care Checkout">
+                        <img class="bsc__checkout-logo" src="<?php echo get_template_directory_uri();?>/images/bsc_checkout_logo.svg" alt="Bubble Skin Care Checkout">
                         <?php //do_action('woocommerce_before_checkout_form', $checkout); ?>
                         <?php require_once get_template_directory() . '/components/checkout/checkout-form.php'; ?>
                     </div>
