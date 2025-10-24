@@ -46,7 +46,6 @@ if (isset($fields['order']['order_comments'])) {
 ?>
 <div class="checkout bsc__checkout-form">
   <div class="bsc__checkout-section">
-    <h2 class="bsc__section-title">Datos de Entrega</h2>
 
     <div class="bsc__grid-2">
       <?php
@@ -82,7 +81,7 @@ if (isset($fields['order']['order_comments'])) {
       woocommerce_form_field('billing_address_1', $fields['billing']['billing_address_1'], $checkout->get_value('billing_address_1'));
     ?>
 
-    <div class="bsc__shipping-toggle">
+    <div class="bsc__shipping-toggle" style="display:none">
       <?php
         woocommerce_form_field('ship_to_different_address', [
           'type'  => 'checkbox',
