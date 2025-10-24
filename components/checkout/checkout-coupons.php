@@ -46,7 +46,7 @@ class BSC_Checkout_Coupon {
                 </p>
             </div>
             <div class="bsc__coupon-action">
-                <button type="button" id="apply_coupon" class="bsc__button">¡Aplicar!</button>
+                <button type="button" id="apply_coupon" class="bsc__button">¡ Aplicar !</button>
             </div>
         </div>
         <?php
