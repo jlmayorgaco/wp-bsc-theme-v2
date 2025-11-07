@@ -55,6 +55,12 @@ jQuery(function ($) {
     if (!code) return alert('Por favor, ingresa un código de cupón.');
 
     ajaxPost('apply_coupon', { coupon_code: code }, (res) => {
+      console.log(' ')
+      console.log(' ')
+      console.log(' ajaxPost(apply_coupon) ')
+      console.log(res)
+      console.log(' ')
+      console.log(' ')
       if (!alertIfError(res, 'Error al aplicar el cupón.')) return;
       alert('¡Cupón aplicado exitosamente!');
       updateTotals(res.data);
