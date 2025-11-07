@@ -1,177 +1,490 @@
-
 <?php
-$current_path = $_SERVER['REQUEST_URI']; // e.g. /product-category/group-skin-care/sk-rutina/sk-rutina-s1-limpiadores-aceitosos/
+/**
+ * Clean OOP refactor of product category template
+ * Following SOLID, DRY, and KISS principles — single file version
+ */
 
-// Eliminar posibles parámetros y slashes finales
-$clean_path = parse_url($current_path, PHP_URL_PATH);
-$trimmed_path = trim($clean_path, '/');
-
-// Separar segmentos
-$segments = explode('/', $trimmed_path);
-
-// Comprobar si estamos dentro de /product-category/
-$category_index = array_search('product-category', $segments);
-
-// Verificar cuántos niveles de categoría hay después de 'product-category'
-$category_depth = 0;
-if ($category_index !== false) {
-  $category_depth = count($segments) - $category_index - 1;
-}
-
-// Mostrar filtros solo si hay 3 niveles de categorías
-$showFilters = ($category_depth >= 3);
-?>
-
-<?php
 require_once get_template_directory() . '/components/products/card.php';
 require_once get_template_directory() . '/components/products/filters.php';
 
-// Obtener la categoría actual
-$product_cat = get_queried_object(); // WP_Term o null
+class BSCShopPage
+{
+    private ?WP_Term $category;
+    private ?WP_Term $parent;
+    private ?WP_Term $grandparent;
+    private bool $showFilters;
 
-// Obtener jerarquía de categorías
-$parent = $product_cat && $product_cat->parent ? get_term($product_cat->parent, 'product_cat') : null;
-$grandparent = $parent && $parent->parent ? get_term($parent->parent, 'product_cat') : null;
+    // ------------------------------
+    // CONSTRUCTOR & CONTEXT
+    // ------------------------------
+    public function __construct()
+    {
+        $this->category = get_queried_object();
+        $this->parent = ($this->category && $this->category->parent)
+            ? get_term($this->category->parent, 'product_cat')
+            : null;
+        $this->grandparent = ($this->parent && $this->parent->parent)
+            ? get_term($this->parent->parent, 'product_cat')
+            : null;
+
+        $this->showFilters = $this->computeShowFilters();
+    }
+
+    private function computeShowFilters(): bool
+    {
+        $path = $_SERVER['REQUEST_URI'] ?? '/';
+        $segments = explode('/', trim(parse_url($path, PHP_URL_PATH) ?? '', '/'));
+        $index = array_search('product-category', $segments, true);
+        $depth = ($index !== false) ? count($segments) - $index - 1 : 0;
+        return $depth >= 3;
+    }
+
+    // ------------------------------
+    // HELPERS
+    // ------------------------------
+    private function getImageUrl(WP_Term $term): string
+    {
+        $thumb = get_term_meta($term->term_id, 'thumbnail_id', true);
+        $fallback = get_template_directory_uri() . '/images/bsc_default_category.jpeg';
+        return $thumb ? wp_get_attachment_url($thumb) : $fallback;
+    }
+
+    private function renderBreadcrumbs(?WP_Term $grandparent, ?WP_Term $parent, ?WP_Term $current): void
+    {
+        echo '<nav class="bsc__shop-nav">';
+        if ($grandparent) {
+            printf('<a href="%s">%s</a> → ', esc_url(get_term_link($grandparent)), esc_html($grandparent->name));
+        }
+        if ($parent) {
+            printf('<a href="%s">%s</a> → ', esc_url(get_term_link($parent)), esc_html($parent->name));
+        }
+        if ($current) {
+            printf('<a class="active">%s</a>', esc_html($current->name));
+        }
+        echo '</nav>';
+    }
+
+    private function renderCategoryGrid(array $terms): void
+    {
+        echo '<div class="bsc__category-grid">';
+        foreach ($terms as $term) {
+            $image = $this->getImageUrl($term);
+            printf(
+                '<div class="bsc__category-card">
+                    <a class="category-card__link" href="%s">
+                        <img class="category-card__image" src="%s" alt="%s">
+                        <h2 class="category-card__title">%s</h2>
+                    </a>
+                </div>',
+                esc_url(get_term_link($term)),
+                esc_url($image),
+                esc_attr($term->name),
+                esc_html($term->name)
+            );
+        }
+        echo '</div>';
+    }
+
+    // ------------------------------
+    // RENDER METHODS
+    // ------------------------------
+    private function renderLevel1(): void
+{
+    $cat = $this->category;
+    $this->renderBreadcrumbs(null, null, $cat);
+
+    // 🌈 Header block
+    ?>
+    <section class="bsc-hero">
+      <div class="bsc-hero__icon">
+        <img src="<?= get_template_directory_uri(); ?>/images/bsc_kbeauty_rainbow.svg"
+             alt="K-Beauty rainbow icon" loading="lazy">
+      </div>
+      <h2 class="bsc-hero__title">Paraíso de <strong>K-Beauty</strong></h2>
+
+      <p class="bsc-hero__quote">
+        “Hace más de 15 años probé mi primer producto coreano y desde entonces quedé completamente enamorada del K-Beauty.
+        Con los años seguí explorando este universo: probando nuevas fórmulas, aprendiendo de las tendencias y viajando a Corea
+        para conocer de cerca su increíble tecnología. Así nació <strong>BSC</strong>: escuchando a nuestra comunidad,
+        soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <br><br>
+        <strong>Bubbles</strong> es literalmente un paraíso K-Beauty:
+        aquí no solo encuentras marcas cuidadosamente seleccionadas con los más altos estándares coreanos,
+        también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)”
+      </p>
+      <p class="bsc-hero__author">Male ♡♡♡</p>
+
+      <div class="bsc-hero__divider"></div>
+      <h3 class="bsc-hero__subtitle">
+        Bienvenido al paraíso del <strong>K-Beauty</strong> Bubble lover !
+      </h3>
+    </section>
+
+    <?php
+    // 🌸 Category showcase (6 blocks)
+    $groups = [
+        [
+            'slug'  => 'skin-care',
+            'title' => 'SKIN CARE',
+            'image' => get_template_directory_uri() . '/images/kb_skin.jpg',
+        ],
+        [
+            'slug'  => 'hair-care',
+            'title' => 'HAIR CARE',
+            'image' => get_template_directory_uri() . '/images/kb_hair.jpg',
+        ],
+        [
+            'slug'  => 'make-up',
+            'title' => 'MAKE UP',
+            'image' => get_template_directory_uri() . '/images/kb_makeup.jpg',
+        ],
+        [
+            'slug'  => 'dispositivos',
+            'title' => 'DISPOSITIVOS',
+            'image' => get_template_directory_uri() . '/images/kb_devices.jpg',
+        ],
+        [
+            'slug'  => 'inner-beauty',
+            'title' => 'INNER BEAUTY',
+            'image' => get_template_directory_uri() . '/images/kb_inner.jpg',
+        ],
+        [
+            'slug'  => 'spa-kbeauty',
+            'title' => 'SPA KBEAUTY',
+            'image' => get_template_directory_uri() . '/images/kb_spa.jpg',
+        ],
+    ];
+
+    echo '<section class="bsc-kb-grid">';
+    foreach ($groups as $g) {
+        $term = get_term_by('slug', $g['slug'], 'product_cat');
+        if (!$term) continue;
+        printf(
+            '<article class="bsc-kb-card">
+                <a href="%s" class="bsc-kb-card__link">
+                    <div class="bsc-kb-card__imgwrap">
+                        <img src="%s" alt="%s" loading="lazy">
+                    </div>
+                    <div class="bsc-kb-card__label">%s</div>
+                </a>
+            </article>',
+            esc_url(get_term_link($term)),
+            esc_url($g['image']),
+            esc_attr($g['title']),
+            esc_html($g['title'])
+        );
+    }
+    echo '</section>';
+}
+
+
+    private function renderLevel2(): void
+    {
+        $cat = $this->category;
+        $this->renderBreadcrumbs(null, $this->parent, $cat);
+
+        echo "<h2 class='bsc__title'>Subcategorías de " . esc_html($cat->name) . "</h2>";
+        if ($cat->description) {
+            echo "<p class='bsc__description'>" . esc_html($cat->description) . "</p>";
+        }
+
+        $subcats = get_terms([
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'parent'     => $cat->term_id,
+        ]);
+        $this->renderCategoryGrid($subcats);
+    }
+
+    private function renderLevel3(): void
+    {
+        $cat = $this->category;
+        $this->renderBreadcrumbs($this->grandparent, $this->parent, $cat);
+
+        echo "<div class='shop__header'>";
+        echo "<h1 class='bsc__title'><strong>" . esc_html($cat->name) . "</strong></h1>";
+        if ($cat->description) {
+            echo "<p class='bsc__description'>" . esc_html($cat->description) . "</p>";
+        }
+        echo "</div>";
+
+        echo "<div class='shop__main'>";
+        if ($this->showFilters && function_exists('bsc_render_custom_filters_sidebar')) {
+            echo "<aside class='shop__sidebar'>";
+            bsc_render_custom_filters_sidebar();
+            echo "</aside>";
+        }
+
+        echo "<section class='shop__content'><div id='bscProductsContainer' class='shop__products'>";
+        $this->renderProducts($cat);
+        echo "</div><div class='shop__pagination'>";
+        echo paginate_links();
+        echo "</div></section></div>";
+    }
+
+    private function renderProducts(WP_Term $category): void
+    {
+        $query = new WP_Query([
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'tax_query'      => [[
+                'taxonomy' => 'product_cat',
+                'field'    => 'slug',
+                'terms'    => $category->slug,
+            ]],
+        ]);
+
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                global $product;
+                if ($product instanceof WC_Product) {
+                    $card = new BSC_Products_Card();
+                    $card->setProduct($product);
+                    $card->render();
+                }
+            }
+            wp_reset_postdata();
+        } else {
+            echo '<p>No products found in this category.</p>';
+        }
+    }
+
+    // ------------------------------
+    // MAIN ENTRY POINT
+    // ------------------------------
+    public function render(): void
+    {
+        echo '<div class="bsc bsc__shop"><div class="bsc__container">';
+
+        if (!$this->category) {
+            echo '<p>Error: categoría no encontrada o inválida.</p>';
+        } elseif ($this->category && $this->parent && $this->grandparent) {
+            $this->renderLevel3();
+        } elseif ($this->category && $this->parent && !$this->grandparent) {
+            $this->renderLevel2();
+        } elseif ($this->category && !$this->parent) {
+            $this->renderLevel1();
+        } else {
+            echo '<p>Error: estructura de categoría no válida.</p>';
+        }
+
+        echo '</div></div>';
+    }
+}
+
+// --------------------------------------------------
+// 🏁 ENTRY POINT
+// --------------------------------------------------
+$page = new BSCShopPage();
+$page->render();
+
+
 
 ?>
 
-<div class="bsc bsc__shop">
-  <div class="bsc__container">
 
-    <?php if ($product_cat && $parent && $grandparent): ?>
-      <!-- 🌿 VISTA FINAL DEL PRODUCTO (tercer nivel de jerarquía) -->
+<style>
+/* =========================================
+   K-Beauty Level 1 Landing Styles
+   (BubbleSkinCare)
+   ========================================= */
 
-      <!-- 🔗 Breadcrumbs -->
-      <nav class="bsc__shop-nav">
-        <a href="<?= get_term_link($grandparent); ?>"><?= esc_html($grandparent->name); ?></a> →
-        <a href="<?= get_term_link($parent); ?>"><?= esc_html($parent->name); ?></a> →
-        <a class="active"><?= esc_html($product_cat->name); ?></a>
-      </nav>
+/* ---- Global container ---- */
+.bsc__shop {
+  background-color: #fff;
+  color: #1a1a1a;
+  font-family: "Poppins", "Noto Sans KR", sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
 
-      <!-- 📝 Título y Descripción -->
-      <div class="shop__header">
-        <h1 class="bsc__title"><strong><?= esc_html($product_cat->name); ?></strong></h1>
-        <p class="bsc__description"><?= esc_html($product_cat->description); ?></p>
-      </div>
+.bsc__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
 
-      <!-- 🧩 Layout principal -->
-      <div class="shop__main">
+/* =========================================
+   🌈 HERO SECTION
+   ========================================= */
+.bsc-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #222;
+}
 
-      <?php if ($showFilters): ?>
-        <aside class="shop__sidebar">
-          <?php bsc_render_custom_filters_sidebar(); ?>
-        </aside>
-      <?php endif; ?>
+.bsc-hero__icon img {
+  width: 90px;
+  height: auto;
+  margin: 0 auto 1rem;
+}
 
-        <section class="shop__content">
-          <div id="bscProductsContainer" class="shop__products">
-            <?php
-            $query = new WP_Query([
-              'post_type'      => 'product',
-              'post_status'    => 'publish',
-              'posts_per_page' => -1,
-              'tax_query'      => [[
-                'taxonomy' => 'product_cat',
-                'field'    => 'slug',
-                'terms'    => $product_cat->slug,
-              ]],
-            ]);
+.bsc-hero__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+}
 
-            if ($query->have_posts()):
-              while ($query->have_posts()): $query->the_post();
-                global $product;
-                if ($product instanceof WC_Product) {
-                  $card = new BSC_Products_Card();
-                  $card->setProduct($product);
-                  $card->render();
-                }
-              endwhile;
-              wp_reset_postdata();
-            else:
-              echo '<p>No products found in this category.</p>';
-            endif;
-            ?>
-          </div>
+.bsc-hero__quote {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.7;
+  color: #444;
+}
 
-          <div class="shop__pagination">
-            <?= paginate_links(['total' => $query->max_num_pages]); ?>
-          </div>
-        </section>
-      </div>
+.bsc-hero__quote strong {
+  color: #000;
+}
 
-    <?php elseif ($product_cat && $parent && !$grandparent): ?>
-      <!-- 🧭 SEGUNDO NIVEL (subgrupos de una categoría principal) -->
-    
-      <!-- 🔗 Breadcrumbs -->
-      <nav class="bsc__shop-nav">
-        <a href="<?= get_term_link($parent); ?>"><?= esc_html($parent->name); ?></a> →
-        <a class="active"><?= esc_html($product_cat->name); ?></a>
-      </nav>
+.bsc-hero__author {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
 
-      <h2 class="bsc__title">Subcategorías de <?= esc_html($product_cat->name); ?></h2>
-      <p class="bsc__description">  <?= esc_html($product_cat->description); ?></p>
+.bsc-hero__divider {
+  width: 80%;
+  max-width: 600px;
+  height: 1px;
+  background-color: #e0e0e0;
+  margin: 2rem auto;
+}
 
-      <div class="bsc__category-grid">
-        <?php
-        $subcats = get_terms([
-          'taxonomy'   => 'product_cat',
-          'hide_empty' => false,
-          'parent'     => $product_cat->term_id,
-        ]);
+.bsc-hero__subtitle {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #000;
+  text-align: center;
+  margin-bottom: 3rem;
+}
 
-        foreach ($subcats as $cat) {
-            $thumbnail_id = get_term_meta($cat->term_id, 'thumbnail_id', true);
-            $image_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : get_template_directory_uri() . '/images/bsc_default_category.jpeg';
+/* =========================================
+   🌸 CATEGORY GRID
+   ========================================= */
+.bsc-kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  justify-content: center;
+  align-items: start;
+}
 
-            echo '<div class="bsc__category-card">';
-                echo '<a class="category-card__link" href="' . esc_url(get_term_link($cat)) . '">';
-                    echo '<img class="category-card__image" src="' . esc_url($image_url) . '" alt="' . esc_attr($cat->name) . '">';
-                    echo '<h2 class="category-card__title">' . esc_html($cat->name) . '</h2>';
-                echo '</a>';
-            echo '</div>';
-        }
+.bsc-kb-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fafafa;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-        ?>
-      </div>
+.bsc-kb-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
 
-    <?php elseif ($product_cat && !$parent): ?>
+.bsc-kb-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
 
-        <!-- 🔗 Breadcrumbs -->
-        <nav class="bsc__shop-nav">
-            <a class="active"><?= esc_html($product_cat->name); ?></a>
-        </nav>
+.bsc-kb-card__imgwrap {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
 
-        <!-- 🧱 PRIMER NIVEL (categorías principales: Skin Care, Hair Care, etc.) -->
-        <h1 class="bsc__title"><strong><?= esc_html($product_cat->name); ?></strong></h1>
-        <p class="bsc__description">  <?= esc_html($product_cat->description); ?></p>
+.bsc-kb-card__imgwrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
 
-        <div class="bsc__category-grid">
-        <?php
-        $groups = get_terms([
-            'taxonomy'   => 'product_cat',
-            'hide_empty' => false,
-            'parent'     => $product_cat->term_id,
-        ]);
+.bsc-kb-card:hover .bsc-kb-card__imgwrap img {
+  transform: scale(1.04);
+}
 
-        foreach ($groups as $group) {
-            // Get thumbnail ID and image URL
-            $thumbnail_id = get_term_meta($group->term_id, 'thumbnail_id', true);
-            $image_url = $thumbnail_id ? wp_get_attachment_url($thumbnail_id) : get_template_directory_uri() . '/images/bsc_default_category.jpeg';
+/* ---- Category label ---- */
+.bsc-kb-card__label {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  color: #000;
+}
 
-            echo '<div class="bsc__category-card">';
-            echo '<a class="category-card__link" href="' . esc_url(get_term_link($group)) . '">';
-                echo '<img class="category-card__image" src="' . esc_url($image_url) . '" alt="' . esc_attr($group->name) . '">';
-                echo '<h2 class="category-card__title">' . esc_html($group->name) . '</h2>';
-            echo '</a>';
-            echo '</div>';
-        }
-        ?>
-        </div>
+/* Optional pastel color accents (category tags) */
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #fdecec; } /* Skin */
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #e9f3ff; } /* Hair */
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #f5ecff; } /* Make Up */
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #fff7e3; } /* Devices */
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #eafff4; } /* Inner */
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #f1ecff; } /* Spa */
 
-      
-    <?php else: ?>
-      <p>Error: categoría no encontrada o inválida.</p>
-    <?php endif; ?>
+/* =========================================
+   🧩 RESPONSIVE
+   ========================================= */
+@media (max-width: 992px) {
+  .bsc-hero__title {
+    font-size: 1.3rem;
+  }
+  .bsc-hero__quote {
+    font-size: 0.9rem;
+  }
+}
 
-  </div>
-</div>
+@media (max-width: 600px) {
+  .bsc-hero__icon img {
+    width: 70px;
+  }
+  .bsc-hero__title {
+    font-size: 1.2rem;
+  }
+  .bsc-hero__subtitle {
+    font-size: 1.1rem;
+  }
+  .bsc-kb-grid {
+    gap: 1.25rem;
+  }
+  .bsc-kb-card__label {
+    bottom: 0.7rem;
+    left: 0.7rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* =========================================
+   🌿 Optional soft fade-in animation
+   ========================================= */
+.bsc-kb-card {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.6s ease forwards;
+}
+.bsc-kb-card:nth-child(2) { animation-delay: 0.1s; }
+.bsc-kb-card:nth-child(3) { animation-delay: 0.2s; }
+.bsc-kb-card:nth-child(4) { animation-delay: 0.3s; }
+.bsc-kb-card:nth-child(5) { animation-delay: 0.4s; }
+.bsc-kb-card:nth-child(6) { animation-delay: 0.5s; }
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+  </style>
