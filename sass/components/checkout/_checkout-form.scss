@@ -72,7 +72,7 @@
 // Section-level Layout Tweaks
 // -------------------------------------------
 .bsc__checkout-section:has(#order_comments) {
-  margin-top: 5em;
+  margin-top: 1em;
 }
 
 // Checkbox: ¿Enviar a otra dirección?
@@ -83,6 +83,7 @@
 .bsc__checkout-section .bsc__section-title {
   font-size: 14px;
   letter-spacing: 1px;
+  font-weight: 100;
 }
 
 .bsc__shipping-fields {
