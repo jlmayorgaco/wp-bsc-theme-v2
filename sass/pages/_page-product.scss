@@ -5,7 +5,7 @@
   width: 100%;
 
   padding: 2rem;
-  background-color: #eff2f1;
+  background-color: #ffffff;
 
   .bsc__container {
     display: block;
@@ -18,7 +18,8 @@
     padding-top: 0px;
     margin-left: 0px;
     padding-bottom: 0px;
-    font-size: tokensTypography.$font-size__lg;
+    font-size: tokensTypography.$font-size__l;
+    color: #333;
     &:after {
       margin: 10px auto;
       margin-left: 0;
@@ -89,7 +90,7 @@
 
   .bsc__product-price {
     font-size: 1.5rem;
-    color: #111;
+    color: #333;
     margin-bottom: 1rem;
   }
 
@@ -143,12 +144,13 @@
   }
 
   .bsc__product-recommendations {
-    margin-top: 3rem;
+    margin-top: 0rem;
 
     .bsc__section-title {
       font-size: 1.5rem;
       font-weight: bold;
       margin-bottom: 1.5rem;
+      color:#333;
     }
   }
 }
