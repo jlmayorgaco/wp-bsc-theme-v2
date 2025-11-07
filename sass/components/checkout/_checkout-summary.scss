@@ -43,7 +43,9 @@
 
       .review-summary__label,
       .review-summary__value {
+        font-size: 20px;
         font-weight: 600 !important;
+        color: #333;
       }
 
       .woocommerce-Price-amount.amount{
@@ -55,7 +57,8 @@
   .review-summary__label {
     color: var(--bsc-color-text, #333);
     flex: 1;
-      font-weight: 300;
+    font-weight: 300;
+    font-size: 12px;
   }
 
   .review-summary__value {
@@ -63,6 +66,7 @@
     text-align: right;
     white-space: nowrap;
       font-weight: 300;
+      font-size: 12px;
 
     .woocommerce-Price-amount {
       font-weight: 300;
@@ -72,4 +76,11 @@
       }
     }
   }
+}
+
+.payment_method_wompi_wwp{
+  font-size: 12px;
+}
+.wc_payment_method.payment_method_cod label{
+  font-size: 12px;
 }
