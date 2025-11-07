@@ -8,8 +8,8 @@
     $menuSkinCare->setName('SKIN CARE');
     $menuSkinCare->setSlug('BSC_MENU_NAV_SKIN_CARE');
     $menuSkinCare->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-01-F-100.jpg',
-        'link' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-01-F-100.jpg',
+        'image' => get_theme_file_uri('images/header_menus/Menu-01-F-100.jpg'),
+        'link' => get_theme_file_uri('images/header_menus/Menu-01-F-100.jpg'),
     ]);
     $menuSkinCare->setMenus([]);
     $menuSkinCare->appendMenu([
@@ -160,8 +160,8 @@
     $menuHairCare->setName('HAIR CARE');
     $menuHairCare->setSlug('BSC_MENU_NAV_HAIR_CARE');
     $menuHairCare->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-02-F-100.jpg',
-        'link' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-02-F-100.jpg',
+        'image' => get_theme_file_uri('images/header_menus/Menu-02-F-100.jpg'),
+        'link' => get_theme_file_uri('images/header_menus/Menu-02-F-100.jpg'),
     ]);
     $menuHairCare->setMenus([]);
     $menuHairCare->appendMenu([
@@ -221,8 +221,8 @@
     $menuMakeUp->setName('MAKE UP');
     $menuMakeUp->setSlug('BSC_MENU_NAV_MAKE_UP');
     $menuMakeUp->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-05-F-100.jpg',
-        'link' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-05-F-100.jpg',
+        'image' => get_theme_file_uri('images/header_menus/Menu-05-F-100.jpg'),
+        'link' => get_theme_file_uri('images/header_menus/Menu-05-F-100.jpg'),
     ]);
 
     // Rutina Maquillaje
