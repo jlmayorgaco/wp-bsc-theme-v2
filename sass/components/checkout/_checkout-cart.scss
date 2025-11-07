@@ -55,7 +55,7 @@
             top: -13px;
             right: -3px;
             background: #fff;
-            border: 2px solid #000;
+            border: 1px solid #333;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -64,6 +64,10 @@
             justify-content: center;
             font-weight: bold;
             font-size: 14px;
+            span{
+              font-weight: 100;
+              color:#333;
+            }
           }
         }
       }
@@ -72,7 +76,7 @@
         height: var(--checkout--review--img-h);
         flex: 1;
 
-        border-bottom: 1px solid black;
+        border-bottom: 1px solid #333;
 
         .row {
           display: flex;
@@ -88,7 +92,7 @@
             .item__name {
               margin: 0;
               font-weight: 100;
-              font-size: 14px;
+              font-size: 12px;
               letter-spacing: 1px;
               a{
                 text-decoration: none;
@@ -107,6 +111,7 @@
               padding-top: 6px;
               text-transform: uppercase;
               a{
+                font-weight: 900;
                 text-decoration: none;
                 color: #333;
                 &:visited{
@@ -122,6 +127,7 @@
               font-weight: bold;
               font-size: 15px;
               margin: 0;
+              color: #333;
             }
           }
         }
@@ -139,6 +145,7 @@
 
           .quantity-btn,
           .delete-btn {
+            color: #333;
             background: white;
             border: 1px solid white;
             border-radius: 10%;
@@ -167,6 +174,7 @@
                 height: 12px;
                 text-align: center;
                 padding-left: 2px;
+                color: #333;
             }
 
             &:hover {
