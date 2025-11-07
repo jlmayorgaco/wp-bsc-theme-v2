@@ -9,6 +9,7 @@ $font__line-height-pre: 1.6;
 $font-size__xs: 12px;
 $font-size__sm: 14px;
 $font-size__md: 16px;
+$font-size__l: 28px;
 $font-size__lg: 32px;
 $font-size__xl: 40px; // Example value, adjust as needed
 
@@ -100,7 +101,7 @@ $font-size__xl: 40px; // Example value, adjust as needed
       display: block;
       width: 120px;
       height: 20px; 
-      margin: 10px auto 0;
+      margin: 30px auto 0;
       background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
       background-repeat: no-repeat;
       background-position: center;
