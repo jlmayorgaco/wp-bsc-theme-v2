@@ -136,6 +136,14 @@ jQuery(function($) {
       data: { action: 'bsc_get_review_summary' },
       success: function (response) {
         if (response.success && response.data.html) {
+          console.log(' ')
+          console.log(' ')
+          console.log(' ')
+          console.log(' // === REVIEW SUMMARY AJAX REFRESH === ')
+          console.log(' response.data ')
+          console.log(response.data)
+          console.log(' ')
+          console.log(' ')
           $('#bsc-review-summary').html(response.data.html);
         } else {
           console.warn('⚠️ Invalid review summary response');
