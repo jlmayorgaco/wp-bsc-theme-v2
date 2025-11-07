@@ -3,11 +3,26 @@
 
 add_action('wp_ajax_apply_coupon', 'bsc_apply_coupon');
 add_action('wp_ajax_nopriv_apply_coupon', 'bsc_apply_coupon');
+ 
+function bsc_is_valid_coupon( $code ) {
+  $coupon = new WC_Coupon( sanitize_text_field( $code ) );
+  return ( $coupon && $coupon->get_id() );
+}
 
 function bsc_apply_coupon() {
+
   if ( ! isset($_POST['coupon_code']) ) {
     wp_send_json_error(['message' => 'Código de cupón no recibido.']);
   }
+
+  // TODO: VERFIY IF COUPON CODE EXIST, IF NOT SEND ERROR:
+  $coupon_code = sanitize_text_field($_POST['coupon_code']);
+
+  // ✅ One-line validation
+  if ( ! bsc_is_valid_coupon( $coupon_code ) ) {
+    wp_send_json_error(['message' => 'El cupón no existe o no es válido.']);
+  }
+
 
   $coupon_code = sanitize_text_field($_POST['coupon_code']);
 
