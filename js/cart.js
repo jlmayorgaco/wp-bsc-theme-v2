@@ -91,6 +91,7 @@ jQuery(function ($) {
             $(`${SELECTORS.checkoutItem}[data-item-key="${key}"]`).find('label span').text(quantity);
           });
         }
+
       });
     });
   };
@@ -165,6 +166,27 @@ jQuery(function ($) {
 });
 
 
-jQuery(document.body).on('update_checkout', () => {
+// keep these OUTSIDE the wrapper if you want, but use jQuery not $
+jQuery(document.body).on('update_checkout.bsc', () => {
   console.log('🔥 update_checkout triggered');
+  refreshReviewSummary();
 });
+
+function refreshReviewSummary() {
+  console.log('🔁 Refreshing Review Summary...');
+  if (!window.bsc_ajax || !bsc_ajax.ajax_url) return;   // guard
+
+  jQuery.ajax({
+    url: bsc_ajax.ajax_url,
+    method: 'POST',
+    data: { action: 'bsc_get_review_summary' },
+  })
+  .done(res => {
+    if (res?.success && res?.data?.html) {
+      jQuery('#bsc-review-summary').html(res.data.html);
+    } else {
+      console.warn('⚠️ Invalid review summary response', res);
+    }
+  })
+  .fail(xhr => console.error('❌ Error al refrescar el resumen del pedido.', xhr?.responseText));
+}
