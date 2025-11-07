@@ -97,7 +97,7 @@ class BSCShopPage
     ?>
     <section class="bsc-hero">
       <div class="bsc-hero__icon">
-        <img src="<?= get_template_directory_uri(); ?>/images/bsc_kbeauty_rainbow.svg"
+        <img src="<?= get_template_directory_uri(); ?>/images/bsc_rainbow.png"
              alt="K-Beauty rainbow icon" loading="lazy">
       </div>
       <h2 class="bsc-hero__title">Paraíso de <strong>K-Beauty</strong></h2>
@@ -114,7 +114,7 @@ class BSCShopPage
       <p class="bsc-hero__author">Male ♡♡♡</p>
 
       <div class="bsc-hero__divider"></div>
-      <h3 class="bsc-hero__subtitle">
+      <h3 class="bsc-hero__subtitle bsc__title">
         Bienvenido al paraíso del <strong>K-Beauty</strong> Bubble lover !
       </h3>
     </section>
@@ -153,27 +153,31 @@ class BSCShopPage
             'image' => get_template_directory_uri() . '/images/kb_spa.jpg',
         ],
     ];
-
-    echo '<section class="bsc-kb-grid">';
-    foreach ($groups as $g) {
-        $term = get_term_by('slug', $g['slug'], 'product_cat');
-        if (!$term) continue;
-        printf(
-            '<article class="bsc-kb-card">
-                <a href="%s" class="bsc-kb-card__link">
-                    <div class="bsc-kb-card__imgwrap">
-                        <img src="%s" alt="%s" loading="lazy">
-                    </div>
-                    <div class="bsc-kb-card__label">%s</div>
-                </a>
-            </article>',
-            esc_url(get_term_link($term)),
-            esc_url($g['image']),
-            esc_attr($g['title']),
-            esc_html($g['title'])
-        );
+ 
+echo '<section class="bsc-kb-grid">';
+foreach ($groups as $g) {
+    $term_link = '#'; // fallback if category not found
+    $term = get_term_by('slug', $g['slug'], 'product_cat');
+    if ($term) {
+        $term_link = get_term_link($term);
     }
-    echo '</section>';
+
+    printf(
+        '<article class="bsc-kb-card">
+            <a href="%s" class="bsc-kb-card__link">
+                <div class="bsc-kb-card__imgwrap">
+                    <img src="%s" alt="%s" loading="lazy">
+                </div>
+                <div class="bsc-kb-card__label">%s</div>
+            </a>
+        </article>',
+        esc_url($term_link),
+        esc_url($g['image']),
+        esc_attr($g['title']),
+        esc_html($g['title'])
+    );
+}
+echo '</section>';
 }
 
 
@@ -315,15 +319,26 @@ $page->render();
 }
 
 .bsc-hero__icon img {
-  width: 90px;
+  width: 160px;
   height: auto;
   margin: 0 auto 1rem;
 }
 
 .bsc-hero__title {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 200;
   margin-bottom: 1.2rem;
+}
+.bsc-hero__title::after {
+      content: '';
+      display: block;
+      width: 120px;
+      height: 20px; 
+      margin: 30px auto 0;
+      background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
 }
 
 .bsc-hero__quote {
@@ -371,15 +386,19 @@ $page->render();
   gap: 2rem;
   justify-content: center;
   align-items: start;
+      max-width: 800px;
+    margin: 0 auto 1.5rem;
 }
 
 .bsc-kb-card {
   position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-  background-color: #fafafa;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 0px;
+  border: 1px solid #333333;
+  background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
+  height: 340px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.35s ease;
+  cursor: pointer;
 }
 
 .bsc-kb-card:hover {
@@ -413,26 +432,39 @@ $page->render();
 /* ---- Category label ---- */
 .bsc-kb-card__label {
   position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  background-color: rgba(255, 255, 255, 0.85);
-  padding: 0.4rem 0.9rem;
-  border-radius: 4px;
+  top: -20px;
+  right: -0px;
+  background-color: #d8e4ea;
+  color: #1b1b1b;
+  font-family: "Poppins", sans-serif;
   font-size: 0.9rem;
+  letter-spacing: 1px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  color: #000;
+  padding: 6px 14px;
+  border-radius: 0px;
+  border: 1px solid #333333;
 }
-
+.bsc-kb-card__label::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    #efefef,
+    #efefef 20px,
+    #f9f9f9 20px,
+    #f9f9f9 40px
+  );
+  opacity: 0.3;
+}
 /* Optional pastel color accents (category tags) */
-.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #fdecec; } /* Skin */
-.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #e9f3ff; } /* Hair */
-.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #f5ecff; } /* Make Up */
-.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #fff7e3; } /* Devices */
-.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #eafff4; } /* Inner */
-.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #f1ecff; } /* Spa */
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; } /* Skin Care */
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #F8EEC0; } /* Hair Care */
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #C9DCE6; } /* Make Up */
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #E7A99A; } /* Dispositivos */
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #CDE0D4; } /* Inner Beauty */
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #D6C4E0; } /* Spa KBeauty */
+
 
 /* =========================================
    🧩 RESPONSIVE
