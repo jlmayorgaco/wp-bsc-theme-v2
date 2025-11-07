@@ -42,7 +42,9 @@ $meta_renderer = new BSC_Product_Category_Meta($product);
       </div>
 
       <div class="bsc__product-info">
-        <h1 class="bsc__title bsc__title--product"><strong><?php the_title(); ?></strong></h1>
+        <h1 class="bsc__title bsc__title--product">
+          <strong><?php the_title(); ?></strong>
+        </h1>
         <div class="bsc__product-price bsc__price"><?php woocommerce_template_single_price(); ?></div>
 
         <div class="bsc__product-shortdesc">
