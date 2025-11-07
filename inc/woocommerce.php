@@ -270,7 +270,7 @@ function bsc_translate_placeholders($fields) {
 
 add_filter('woocommerce_order_button_text', 'bsc_custom_order_button_text');
 function bsc_custom_order_button_text($button_text) {
-    return '¡Hacer Compra!'; // Replace with your custom text
+    return '¡ Hacer Compra !';
 }
 
 
