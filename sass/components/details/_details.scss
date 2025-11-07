@@ -14,7 +14,7 @@ $accordion-transition-speed: 400ms;
 $summary-height: 32px;
 $summary-font-weight: 600;
 $summary-letter-spacing: 2px;
-$summary-border-color: black;
+$summary-border-color: #333;
 $summary-icon-size: 24px;
 $summary-icon-right: 12px;
 $summary-icon-top: -7px;
@@ -42,6 +42,7 @@ $paragraph-letter-spacing: 2px;
     height: $summary-height;
     width: 100%;
     cursor: pointer;
+    color: $summary-border-color;
     font-weight: $summary-font-weight;
     letter-spacing: $summary-letter-spacing;
     border-bottom: 1px solid $summary-border-color;
@@ -52,6 +53,7 @@ $paragraph-letter-spacing: 2px;
 
     &::after {
       content: "+";
+      color: $summary-border-color;
       position: absolute;
       right: $summary-icon-right;
       top: $summary-icon-top;
