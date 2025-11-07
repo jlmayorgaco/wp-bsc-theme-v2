@@ -78,6 +78,8 @@ $button-padding: 12px 24px;
     .hero__title {
       font-size: 35px;
       letter-spacing: 1px;
+      color: #977272 !important;
+      color: var(--color--text);
     }
 
     .hero__text {
