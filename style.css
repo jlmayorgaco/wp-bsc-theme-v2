@@ -9366,6 +9366,263 @@ button {
   font-weight: 600;
 }
 
+/* =========================================
+   K-Beauty Level 1 Landing Styles
+   (BubbleSkinCare)
+   ========================================= */
+/* ---- Global container ---- */
+.bsc__shop {
+  background-color: #fff;
+  color: #1a1a1a;
+  font-family: "Poppins", "Noto Sans KR", sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.bsc__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* =========================================
+   🌈 HERO SECTION
+   ========================================= */
+.bsc-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #222;
+}
+
+.bsc-hero__icon img {
+  width: 250px;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.bsc-hero__title {
+  font-size: 1.25rem;
+  font-weight: 200;
+  margin-top: 0rem;
+  margin-bottom: 0rem;
+  letter-spacing: 1px;
+}
+
+.bsc-hero__title::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 20px;
+  margin: 10px auto 0;
+  background-image: url("/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.bsc-hero__quote {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  margin-top: 20px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.27;
+  letter-spacing: 1px;
+  color: #333;
+  font-style: italic;
+}
+
+.bsc-hero__quote strong {
+  color: #000;
+  font-weight: 900;
+}
+
+.bsc-hero__author {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+
+.bsc-hero__divider {
+  width: 80%;
+  max-width: 800px;
+  height: 1px;
+  background-color: white;
+  margin: 2rem auto;
+  border-bottom: 2px dashed #333;
+}
+
+.bsc-hero__subtitle {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-top: 1em;
+}
+
+/* =========================================
+   🌸 CATEGORY GRID
+   ========================================= */
+.bsc-kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  justify-content: center;
+  align-items: start;
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+}
+
+.bsc-kb-card {
+  position: relative;
+  border-radius: 0px;
+  border: 2px solid #333333;
+  background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
+  height: 326px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.35s ease;
+  cursor: pointer;
+}
+
+.bsc-kb-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.bsc-kb-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bsc-kb-card__imgwrap {
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+}
+
+.bsc-kb-card__imgwrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.bsc-kb-card:hover .bsc-kb-card__imgwrap img {
+  transform: scale(1.04);
+}
+
+/* ---- Category label ---- */
+.bsc-kb-card__label {
+  position: absolute;
+  top: -20px;
+  right: -2px;
+  background-color: #d8e4ea;
+  color: #333;
+  font-family: "Poppins", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 0px;
+  border: 2px solid #333333;
+}
+
+.bsc-kb-card__label::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, #efefef, #efefef 20px, #f9f9f9 20px, #f9f9f9 40px);
+  opacity: 0;
+}
+
+/* Optional pastel color accents (category tags) */
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label {
+  background-color: #F4C8CF;
+} /* Skin Care */
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label {
+  background-color: #FFF3C2;
+} /* Hair Care */
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label {
+  background-color: #BAE5F1;
+} /* Make Up */
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label {
+  background-color: #FFD3A4;
+} /* Dispositivos */
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label {
+  background-color: #DCFFFD;
+} /* Inner Beauty */
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label {
+  background-color: #ECDBFC;
+} /* Spa KBeauty */
+/* =========================================
+   🧩 RESPONSIVE
+   ========================================= */
+@media (max-width: 992px) {
+  .bsc-hero__title {
+    font-size: 1.3rem;
+  }
+  .bsc-hero__quote {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 600px) {
+  .bsc-hero__icon img {
+    width: 70px;
+  }
+  .bsc-hero__title {
+    font-size: 1.2rem;
+  }
+  .bsc-hero__subtitle {
+    font-size: 1.1rem;
+  }
+  .bsc-kb-grid {
+    gap: 1.25rem;
+  }
+  .bsc-kb-card__label {
+    bottom: 0.7rem;
+    left: 0.7rem;
+    font-size: 0.8rem;
+  }
+}
+/* =========================================
+   🌿 Optional soft fade-in animation
+   ========================================= */
+.bsc-kb-card {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.6s ease forwards;
+}
+
+.bsc-kb-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.bsc-kb-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.bsc-kb-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.bsc-kb-card:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.bsc-kb-card:nth-child(6) {
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .bsc {
   --bsc-spacing-sm: 0.75rem;
   --bsc-spacing-md: 1.5rem;
