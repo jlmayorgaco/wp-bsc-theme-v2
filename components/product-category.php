@@ -105,17 +105,21 @@ class BSCShopPage
       <p class="bsc-hero__quote">
         “Hace más de 15 años probé mi primer producto coreano y desde entonces quedé completamente enamorada del K-Beauty.
         Con los años seguí explorando este universo: probando nuevas fórmulas, aprendiendo de las tendencias y viajando a Corea
-        para conocer de cerca su increíble tecnología. Así nació <strong>BSC</strong>: escuchando a nuestra comunidad,
-        soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <br><br>
-        <strong>Bubbles</strong> es literalmente un paraíso K-Beauty:
+        para conocer de cerca su increíble tecnología. Así nació BSC: escuchando a nuestra comunidad,
+        soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <strong>Bubbles es literalmente un paraíso K-Beauty:
         aquí no solo encuentras marcas cuidadosamente seleccionadas con los más altos estándares coreanos,
-        también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)”
+        también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)</strong> ”
       </p>
-      <p class="bsc-hero__author">Male ♡♡♡</p>
+      <p class="bsc-hero__author">Male  <img 
+                        src="<?php echo esc_url(get_stylesheet_directory_uri()); ?>/images/bsc_icon_white_heart.png" 
+                        alt="Corazones BSC" 
+                        width="50" 
+                        decoding="async"
+                    /></p>
 
       <div class="bsc-hero__divider"></div>
       <h3 class="bsc-hero__subtitle bsc__title">
-        Bienvenido al paraíso del <strong>K-Beauty</strong> Bubble lover !
+       <strong>Bienvenido</strong> al paraíso del K-Beauty <strong style="">Bubble lover</strong> !
       </h3>
     </section>
 
@@ -125,32 +129,32 @@ class BSCShopPage
         [
             'slug'  => 'skin-care',
             'title' => 'SKIN CARE',
-            'image' => get_template_directory_uri() . '/images/kb_skin.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
         [
             'slug'  => 'hair-care',
             'title' => 'HAIR CARE',
-            'image' => get_template_directory_uri() . '/images/kb_hair.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
         [
             'slug'  => 'make-up',
             'title' => 'MAKE UP',
-            'image' => get_template_directory_uri() . '/images/kb_makeup.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
         [
             'slug'  => 'dispositivos',
             'title' => 'DISPOSITIVOS',
-            'image' => get_template_directory_uri() . '/images/kb_devices.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
         [
             'slug'  => 'inner-beauty',
             'title' => 'INNER BEAUTY',
-            'image' => get_template_directory_uri() . '/images/kb_inner.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
         [
             'slug'  => 'spa-kbeauty',
             'title' => 'SPA KBEAUTY',
-            'image' => get_template_directory_uri() . '/images/kb_spa.jpg',
+            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
         ],
     ];
  
@@ -289,234 +293,6 @@ $page->render();
 
 
 <style>
-/* =========================================
-   K-Beauty Level 1 Landing Styles
-   (BubbleSkinCare)
-   ========================================= */
 
-/* ---- Global container ---- */
-.bsc__shop {
-  background-color: #fff;
-  color: #1a1a1a;
-  font-family: "Poppins", "Noto Sans KR", sans-serif;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-
-.bsc__container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 5rem;
-}
-
-/* =========================================
-   🌈 HERO SECTION
-   ========================================= */
-.bsc-hero {
-  text-align: center;
-  margin-bottom: 3rem;
-  color: #222;
-}
-
-.bsc-hero__icon img {
-  width: 160px;
-  height: auto;
-  margin: 0 auto 1rem;
-}
-
-.bsc-hero__title {
-  font-size: 1.5rem;
-  font-weight: 200;
-  margin-bottom: 1.2rem;
-}
-.bsc-hero__title::after {
-      content: '';
-      display: block;
-      width: 120px;
-      height: 20px; 
-      margin: 30px auto 0;
-      background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-}
-
-.bsc-hero__quote {
-  max-width: 800px;
-  margin: 0 auto 1.5rem;
-  font-size: 0.95rem;
-  font-weight: 400;
-  line-height: 1.7;
-  color: #444;
-}
-
-.bsc-hero__quote strong {
-  color: #000;
-}
-
-.bsc-hero__author {
-  font-weight: 600;
-  color: #555;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
-}
-
-.bsc-hero__divider {
-  width: 80%;
-  max-width: 600px;
-  height: 1px;
-  background-color: #e0e0e0;
-  margin: 2rem auto;
-}
-
-.bsc-hero__subtitle {
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: #000;
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-/* =========================================
-   🌸 CATEGORY GRID
-   ========================================= */
-.bsc-kb-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 2rem;
-  justify-content: center;
-  align-items: start;
-      max-width: 800px;
-    margin: 0 auto 1.5rem;
-}
-
-.bsc-kb-card {
-  position: relative;
-  border-radius: 0px;
-  border: 1px solid #333333;
-  background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
-  height: 340px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.35s ease;
-  cursor: pointer;
-}
-
-.bsc-kb-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.bsc-kb-card__link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.bsc-kb-card__imgwrap {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-}
-
-.bsc-kb-card__imgwrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.bsc-kb-card:hover .bsc-kb-card__imgwrap img {
-  transform: scale(1.04);
-}
-
-/* ---- Category label ---- */
-.bsc-kb-card__label {
-  position: absolute;
-  top: -20px;
-  right: -0px;
-  background-color: #d8e4ea;
-  color: #1b1b1b;
-  font-family: "Poppins", sans-serif;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 0px;
-  border: 1px solid #333333;
-}
-.bsc-kb-card__label::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    #efefef,
-    #efefef 20px,
-    #f9f9f9 20px,
-    #f9f9f9 40px
-  );
-  opacity: 0.3;
-}
-/* Optional pastel color accents (category tags) */
-.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; } /* Skin Care */
-.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #F8EEC0; } /* Hair Care */
-.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #C9DCE6; } /* Make Up */
-.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #E7A99A; } /* Dispositivos */
-.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #CDE0D4; } /* Inner Beauty */
-.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #D6C4E0; } /* Spa KBeauty */
-
-
-/* =========================================
-   🧩 RESPONSIVE
-   ========================================= */
-@media (max-width: 992px) {
-  .bsc-hero__title {
-    font-size: 1.3rem;
-  }
-  .bsc-hero__quote {
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .bsc-hero__icon img {
-    width: 70px;
-  }
-  .bsc-hero__title {
-    font-size: 1.2rem;
-  }
-  .bsc-hero__subtitle {
-    font-size: 1.1rem;
-  }
-  .bsc-kb-grid {
-    gap: 1.25rem;
-  }
-  .bsc-kb-card__label {
-    bottom: 0.7rem;
-    left: 0.7rem;
-    font-size: 0.8rem;
-  }
-}
-
-/* =========================================
-   🌿 Optional soft fade-in animation
-   ========================================= */
-.bsc-kb-card {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: fadeUp 0.6s ease forwards;
-}
-.bsc-kb-card:nth-child(2) { animation-delay: 0.1s; }
-.bsc-kb-card:nth-child(3) { animation-delay: 0.2s; }
-.bsc-kb-card:nth-child(4) { animation-delay: 0.3s; }
-.bsc-kb-card:nth-child(5) { animation-delay: 0.4s; }
-.bsc-kb-card:nth-child(6) { animation-delay: 0.5s; }
-
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
   </style>
