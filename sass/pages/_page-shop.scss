@@ -309,8 +309,41 @@ $breakpoint-md: 768px;
 
 .bsc-kb-card__imgwrap {
   width: 100%;
+  position: relative;
   aspect-ratio: 3 / 4;
   overflow: hidden;
+}
+.bsc-kb-card__front{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  opacity: 0;
+
+  background-color: rgba(0,0,0,0.75);
+  .bsc-kb-card__icon{
+    width: 25px !important;
+    height: 25px !important;
+  }
+  p{
+    color: white;
+  }
+  .bsc-kb-text{
+    width: 80%;
+    color: white;
+    letter-spacing: 1px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1;
+  }
+}
+.bsc-kb-card__front, .bsc-kb-card__back {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 241.328px;
+  height: 322px;
 }
 
 .bsc-kb-card__imgwrap img {
@@ -322,6 +355,15 @@ $breakpoint-md: 768px;
 
 .bsc-kb-card:hover .bsc-kb-card__imgwrap img {
   transform: scale(1.04);
+}
+
+.bsc-kb-card:hover{
+  .bsc-kb-card__front{
+    opacity: 1;
+      transition:
+        opacity 1s,
+        display 1s allow-discrete;
+  }
 }
 
 /* ---- Category label ---- */
@@ -412,4 +454,61 @@ $breakpoint-md: 768px;
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.bsc__title--subcategory{
+    font-size: 1.3rem;
+    font-weight:800;
+    color: #333;
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-top: 1em;
+    text-transform: lower;
+
+}
+
+.bsc__description--description-category{
+    font-size: 16px;
+    letter-spacing: 1px;
+    line-height: 25.25px;
+}
+
+
+.bsc__subsubcategory-links{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;   /* left aligned */
+  gap: 1rem 1.25rem;           /* vertical / horizontal spacing */
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.bsc__subsubcategory-link{
+  cursor: pointer;
+  display: block;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  margin-left: 0px;
+  margin-right: 0px;
+  border: 1px solid #bfbfbf;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #333;
+  text-decoration: none;
+  background-color: #fff;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+              color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bsc__subsubcategory-link:hover {
+ background-color: #c3dde8;    /* light blue */
+  border-color: #8ab3c7;
+}
+
+/* Active/selected one (the blue one in your design) */
+.bsc__subsubcategory-link--active {
+  background-color: #c3dde8;    /* light blue */
+  border-color: #8ab3c7;
+  color: #173642;
 }

@@ -9500,8 +9500,41 @@ button {
 
 .bsc-kb-card__imgwrap {
   width: 100%;
+  position: relative;
   aspect-ratio: 3/4;
   overflow: hidden;
+}
+
+.bsc-kb-card__front {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+.bsc-kb-card__front .bsc-kb-card__icon {
+  width: 25px !important;
+  height: 25px !important;
+}
+.bsc-kb-card__front p {
+  color: white;
+}
+.bsc-kb-card__front .bsc-kb-text {
+  width: 80%;
+  color: white;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bsc-kb-card__front, .bsc-kb-card__back {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 241.328px;
+  height: 322px;
 }
 
 .bsc-kb-card__imgwrap img {
@@ -9513,6 +9546,11 @@ button {
 
 .bsc-kb-card:hover .bsc-kb-card__imgwrap img {
   transform: scale(1.04);
+}
+
+.bsc-kb-card:hover .bsc-kb-card__front {
+  opacity: 1;
+  transition: opacity 1s, display 1s allow-discrete;
 }
 
 /* ---- Category label ---- */
@@ -9623,6 +9661,61 @@ button {
     transform: translateY(0);
   }
 }
+.bsc__title--subcategory {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-top: 1em;
+  text-transform: lower;
+}
+
+.bsc__description--description-category {
+  font-size: 16px;
+  letter-spacing: 1px;
+  line-height: 25.25px;
+}
+
+.bsc__subsubcategory-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* left aligned */
+  gap: 1rem 1.25rem; /* vertical / horizontal spacing */
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.bsc__subsubcategory-link {
+  cursor: pointer;
+  display: block;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  margin-left: 0px;
+  margin-right: 0px;
+  border: 1px solid #bfbfbf;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #333;
+  text-decoration: none;
+  background-color: #fff;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bsc__subsubcategory-link:hover {
+  background-color: #c3dde8; /* light blue */
+  border-color: #8ab3c7;
+}
+
+/* Active/selected one (the blue one in your design) */
+.bsc__subsubcategory-link--active {
+  background-color: #c3dde8; /* light blue */
+  border-color: #8ab3c7;
+  color: #173642;
+}
+
 .bsc {
   --bsc-spacing-sm: 0.75rem;
   --bsc-spacing-md: 1.5rem;
@@ -12062,6 +12155,7 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__progress-bar .labels .label__text {
   font-size: 12px;
+  letter-spacing: 1px;
 }
 .bsc__progress-bar .labels .label--focus {
   color: #333;
@@ -12077,7 +12171,10 @@ body.admin-bar .bsc__header--desktop {
 
 .bsc__orders {
   overflow-x: auto;
-  padding: 2rem 0;
+  padding: 1rem 0 !important;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 .bsc__orders-table {
   width: 100%;
@@ -12117,6 +12214,18 @@ body.admin-bar .bsc__header--desktop {
   font-style: italic;
   text-align: center;
   padding: 2rem 0;
+}
+
+.bsc__orders-header-order-number,
+.bsc__orders-header-order-date,
+.bsc__orders-header-status {
+  color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
+}
+
+.bsc__orders-cell-order-number {
+  color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
 }
 
 .bsc__orders {
@@ -12273,6 +12382,10 @@ body.admin-bar .bsc__header--desktop {
   letter-spacing: 1px;
   background-color: white;
   transition: all 0.2s ease;
+}
+.bsc__my-account-header .menu__item:hover {
+  background-color: #c7e7f1;
+  background-color: #fdf4c6;
 }
 .bsc__my-account-header .menu__item a {
   text-decoration: none;
@@ -13455,6 +13568,8 @@ details[open] .bsc__product-detail-category > summary::after {
 
 .profile-points {
   padding: 2rem;
+  padding-top: 0px;
+  color: #333333;
 }
 .profile-points__container {
   max-width: 1280px;
@@ -13463,10 +13578,9 @@ details[open] .bsc__product-detail-category > summary::after {
   padding-top: 0px;
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 .profile-points__title {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: 700;
   padding-top: 0rem;
   padding-bottom: 4rem;
@@ -13474,6 +13588,7 @@ details[open] .bsc__product-detail-category > summary::after {
   text-align: center;
   font-weight: 100;
   letter-spacing: 1px;
+  color: #333333;
 }
 .profile-points__title strong {
   font-weight: 900;
@@ -13499,11 +13614,16 @@ details[open] .bsc__product-detail-category > summary::after {
   line-height: 1.6;
 }
 
+.coupon--text {
+  font-size: 14px;
+  color: #333;
+}
+
 .bsc__coupon-card {
   position: relative;
   padding: 1.5rem;
   border-radius: 1rem;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   background-color: #fff;
   display: flex;
@@ -13511,7 +13631,7 @@ details[open] .bsc__product-detail-category > summary::after {
   gap: 1rem;
   text-align: left;
   transition: transform 0.2s ease, border 0.2s ease;
-  border: 2px solid #000;
+  border: 1px solid #333;
 }
 .bsc__coupon-card .bsc__coupon-ribbon {
   font-weight: 600;
@@ -13520,7 +13640,7 @@ details[open] .bsc__product-detail-category > summary::after {
   background: white;
   display: inline-block;
   padding: 0.3rem 1rem;
-  border: 2px solid black;
+  border: 1px solid #333;
 }
 .bsc__coupon-card .bsc__coupon-value {
   font-size: 1.8rem;
@@ -13544,7 +13664,7 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-card .bsc__coupon-button {
   margin-top: auto;
-  background-color: #000;
+  background-color: #333;
   color: #fff;
   font-weight: 600;
   padding: 0.6rem 1.2rem;
@@ -13554,7 +13674,7 @@ details[open] .bsc__product-detail-category > summary::after {
   transition: background 0.2s ease;
 }
 .bsc__coupon-card .bsc__coupon-button:hover {
-  background-color: #111;
+  background-color: #333;
 }
 .bsc__coupon-card .bsc__coupon-locked,
 .bsc__coupon-card .bsc__coupon-error-msg {
@@ -13564,7 +13684,7 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-card.is-normal:hover {
   transform: scale(1.03);
-  border: 2px solid #000;
+  border: 1px solid #333;
   cursor: pointer;
 }
 .bsc__coupon-card.is-normal:hover bsc__coupon-card__label {
@@ -13627,7 +13747,7 @@ details[open] .bsc__product-detail-category > summary::after {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   transition: transform 0.2s, border 0.2s;
-  border: 2px solid #000;
+  border: 1px solid #333;
 }
 .bsc__coupon-card__container {
   display: grid;
@@ -13743,10 +13863,12 @@ details[open] .bsc__product-detail-category > summary::after {
   padding: 0.35rem 0.9rem;
   border-radius: 20px;
   background: #fff;
-  border: 2px solid #111;
+  border: 1px solid #333;
   font-weight: 700;
   font-size: 0.95rem;
   position: absolute;
+  letter-spacing: 1px;
+  color: #333;
   top: -32px;
 }
 .bsc__coupon-card .bsc__coupon-button {
@@ -14101,6 +14223,10 @@ details[open] .bsc__product-detail-category > summary::after {
 .woocommerce-account .widget-area,
 .woocommerce-account .site-footer {
   display: none;
+}
+
+.bsc__my-account-header .header__name.bsc__title.bsc__title--centered {
+  padding-top: 0px !important;
 }
 
 /*# sourceMappingURL=style.css.map */

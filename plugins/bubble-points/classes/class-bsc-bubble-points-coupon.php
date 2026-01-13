@@ -74,7 +74,7 @@ if (!class_exists('BSC_Bubble_Point_Coupon')) {
                         </div>
                       </div>
                       <div class="row">
-                        <p>{$text}</p>
+                        <p class="coupon--text">{$text}</p>
                       </div>
                     </div>
 

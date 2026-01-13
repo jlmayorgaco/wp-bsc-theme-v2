@@ -32,6 +32,11 @@
     letter-spacing: 1px;
     background-color: white;
     transition: all 0.2s ease;
+    
+    &:hover{
+      background-color: #c7e7f1;
+      background-color: #fdf4c6;
+    }
 
     a {
       text-decoration: none;

@@ -2,7 +2,7 @@
   position: relative;
   padding: 1.5rem;
   border-radius: 1rem;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   background-color: #fff;
   display: flex;
@@ -13,7 +13,7 @@
     transform 0.2s ease,
     border 0.2s ease;
 
-    border: 2px solid #000;
+    border: 1px solid #333;
 
   .bsc__coupon-ribbon {
     font-weight: 600;
@@ -22,7 +22,7 @@
     background: white;
     display: inline-block;
     padding: 0.3rem 1rem;
-    border: 2px solid black;
+    border: 1px solid #333;
   }
 
   .bsc__coupon-value {
@@ -51,7 +51,7 @@
 
   .bsc__coupon-button {
     margin-top: auto;
-    background-color: #000;
+    background-color: #333;
     color: #fff;
     font-weight: 600;
     padding: 0.6rem 1.2rem;
@@ -61,7 +61,7 @@
     transition: background 0.2s ease;
 
     &:hover {
-      background-color: #111;
+      background-color: #333;
     }
   }
 
@@ -74,7 +74,7 @@
 
   &.is-normal:hover {
     transform: scale(1.03);
-    border: 2px solid #000;
+    border: 1px solid #333;
     cursor: pointer;
 
     bsc__coupon-card__label{
@@ -149,7 +149,7 @@
   transition:
     transform 0.2s,
     border 0.2s;
-    border: 2px solid #000;
+    border: 1px solid #333;
 
   &__container {
     display: grid;
@@ -275,10 +275,12 @@
     padding: 0.35rem 0.9rem;
     border-radius: 20px;
     background: #fff;
-    border: 2px solid #111;
+    border: 1px solid #333;
     font-weight: 700;
     font-size: 0.95rem;
     position: absolute;
+    letter-spacing: 1px;
+    color: #333;
     top: -32px;
   }
 

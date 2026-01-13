@@ -7,12 +7,16 @@
 require_once get_template_directory() . '/components/products/card.php';
 require_once get_template_directory() . '/components/products/filters.php';
 
+
+
+
 class BSCShopPage
 {
     private ?WP_Term $category;
     private ?WP_Term $parent;
     private ?WP_Term $grandparent;
     private bool $showFilters;
+    private int $urlDepth; // NEW: depth after "product-category" in the URL
 
     // ------------------------------
     // CONSTRUCTOR & CONTEXT
@@ -27,16 +31,61 @@ class BSCShopPage
             ? get_term($this->parent->parent, 'product_cat')
             : null;
 
+        $this->urlDepth    = $this->computeUrlDepth();
         $this->showFilters = $this->computeShowFilters();
+    }
+
+
+    /**
+     * Map "group-*" slugs to their default child slug.
+     * Example: group-skin-care → skin-care-rutina
+     */
+    private function getDefaultChildTermForGroup(WP_Term $cat): ?WP_Term
+    {
+ 
+        // Dictionary: parent group slug → child slug
+        $map = [
+            'group-skin-care' => 'sk-rutina',
+            'group-hair-care' => 'hc-rutina',
+            'group-make-up'   => 'mk-productos',
+        ];
+
+        if (!isset($map[$cat->slug])) {
+            return null;
+        }
+
+        $childSlug = $map[$cat->slug];
+        $childTerm = get_term_by('slug', $childSlug, 'product_cat');
+
+        return ($childTerm instanceof WP_Term) ? $childTerm : null;
+    }
+
+    /**
+     * Depth from URL: number of segments after "product-category"
+     * /product-category/                      → depth 0
+     * /product-category/group-skin-care/      → depth 1
+     * /product-category/group-skin-care/foo/  → depth 2
+     */
+    private function computeUrlDepth(): int
+    {
+        $path = $_SERVER['REQUEST_URI'] ?? '/';
+        $cleanPath = trim(parse_url($path, PHP_URL_PATH) ?? '', '/');
+        $segments = explode('/', $cleanPath);
+
+        $index = array_search('product-category', $segments, true);
+        if ($index === false) {
+            return 0;
+        }
+
+        // number of segments after "product-category"
+        return count($segments) - $index - 1;
     }
 
     private function computeShowFilters(): bool
     {
-        $path = $_SERVER['REQUEST_URI'] ?? '/';
-        $segments = explode('/', trim(parse_url($path, PHP_URL_PATH) ?? '', '/'));
-        $index = array_search('product-category', $segments, true);
-        $depth = ($index !== false) ? count($segments) - $index - 1 : 0;
-        return $depth >= 3;
+        // Show filters only from depth >= 2:
+        // /product-category/.../... → Level3 (products with filters)
+        return $this->urlDepth >= 2;
     }
 
     // ------------------------------
@@ -53,10 +102,18 @@ class BSCShopPage
     {
         echo '<nav class="bsc__shop-nav">';
         if ($grandparent) {
-            printf('<a href="%s">%s</a> → ', esc_url(get_term_link($grandparent)), esc_html($grandparent->name));
+            printf(
+                '<a href="%s">%s</a> → ',
+                esc_url(get_term_link($grandparent)),
+                esc_html($grandparent->name)
+            );
         }
         if ($parent) {
-            printf('<a href="%s">%s</a> → ', esc_url(get_term_link($parent)), esc_html($parent->name));
+            printf(
+                '<a href="%s">%s</a> → ',
+                esc_url(get_term_link($parent)),
+                esc_html($parent->name)
+            );
         }
         if ($current) {
             printf('<a class="active">%s</a>', esc_html($current->name));
@@ -68,6 +125,10 @@ class BSCShopPage
     {
         echo '<div class="bsc__category-grid">';
         foreach ($terms as $term) {
+            if (!$term instanceof WP_Term) {
+                continue;
+            }
+
             $image = $this->getImageUrl($term);
             printf(
                 '<div class="bsc__category-card">
@@ -89,128 +150,271 @@ class BSCShopPage
     // RENDER METHODS
     // ------------------------------
     private function renderLevel1(): void
-{
-    $cat = $this->category;
-    $this->renderBreadcrumbs(null, null, $cat);
+    {
+        $cat = $this->category;
+        // En /product-category/ normalmente no hay término, pero por si acaso:
+        $this->renderBreadcrumbs(null, null, $cat);
 
-    // 🌈 Header block
-    ?>
-    <section class="bsc-hero">
-      <div class="bsc-hero__icon">
-        <img src="<?= get_template_directory_uri(); ?>/images/bsc_rainbow.png"
-             alt="K-Beauty rainbow icon" loading="lazy">
-      </div>
-      <h2 class="bsc-hero__title">Paraíso de <strong>K-Beauty</strong></h2>
+        // 🌈 Header block
+        ?>
+        <section class="bsc-hero">
+          <div class="bsc-hero__icon">
+            <img src="<?= get_template_directory_uri(); ?>/images/bsc_rainbow.png"
+                 alt="K-Beauty rainbow icon" loading="lazy">
+          </div>
+          <h2 class="bsc-hero__title">Paraíso de <strong>K-Beauty</strong></h2>
 
-      <p class="bsc-hero__quote">
-        “Hace más de 15 años probé mi primer producto coreano y desde entonces quedé completamente enamorada del K-Beauty.
-        Con los años seguí explorando este universo: probando nuevas fórmulas, aprendiendo de las tendencias y viajando a Corea
-        para conocer de cerca su increíble tecnología. Así nació BSC: escuchando a nuestra comunidad,
-        soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <strong>Bubbles es literalmente un paraíso K-Beauty:
-        aquí no solo encuentras marcas cuidadosamente seleccionadas con los más altos estándares coreanos,
-        también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)</strong> ”
-      </p>
-      <p class="bsc-hero__author">Male  <img 
-                        src="<?php echo esc_url(get_stylesheet_directory_uri()); ?>/images/bsc_icon_white_heart.png" 
-                        alt="Corazones BSC" 
-                        width="50" 
-                        decoding="async"
-                    /></p>
+          <p class="bsc-hero__quote">
+            “Hace más de 15 años probé mi primer producto coreano y desde entonces quedé completamente enamorada del K-Beauty.
+            Con los años seguí explorando este universo: probando nuevas fórmulas, aprendiendo de las tendencias y viajando a Corea
+            para conocer de cerca su increíble tecnología. Así nació BSC: escuchando a nuestra comunidad,
+            soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <strong>Bubbles es literalmente un paraíso K-Beauty:
+            aquí no solo encuentras marcas cuidadosamente seleccionadas con los más altos estándares coreanos,
+            también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)</strong> ”
+          </p>
+          <p class="bsc-hero__author">
+            Male
+            <img 
+                src="<?php echo esc_url(get_stylesheet_directory_uri()); ?>/images/bsc_icon_white_heart.png" 
+                alt="Corazones BSC" 
+                width="50" 
+                decoding="async"
+            />
+          </p>
 
-      <div class="bsc-hero__divider"></div>
-      <h3 class="bsc-hero__subtitle bsc__title">
-       <strong>Bienvenido</strong> al paraíso del K-Beauty <strong style="">Bubble lover</strong> !
-      </h3>
-    </section>
+          <div class="bsc-hero__divider"></div>
+          <h3 class="bsc-hero__subtitle bsc__title">
+           <strong>Bienvenido</strong> al paraíso del K-Beauty <strong>Bubble lover</strong> !
+          </h3>
+        </section>
 
-    <?php
-    // 🌸 Category showcase (6 blocks)
-    $groups = [
-        [
-            'slug'  => 'skin-care',
-            'title' => 'SKIN CARE',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-        [
-            'slug'  => 'hair-care',
-            'title' => 'HAIR CARE',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-        [
-            'slug'  => 'make-up',
-            'title' => 'MAKE UP',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-        [
-            'slug'  => 'dispositivos',
-            'title' => 'DISPOSITIVOS',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-        [
-            'slug'  => 'inner-beauty',
-            'title' => 'INNER BEAUTY',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-        [
-            'slug'  => 'spa-kbeauty',
-            'title' => 'SPA KBEAUTY',
-            'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
-        ],
-    ];
- 
-echo '<section class="bsc-kb-grid">';
-foreach ($groups as $g) {
-    $term_link = '#'; // fallback if category not found
-    $term = get_term_by('slug', $g['slug'], 'product_cat');
-    if ($term) {
-        $term_link = get_term_link($term);
+        <?php
+        // 🌸 Category showcase (6 blocks)
+        $groups = [
+            [
+                'slug'  => 'skin-care',
+                'title' => 'SKIN CARE',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+            [
+                'slug'  => 'hair-care',
+                'title' => 'HAIR CARE',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+            [
+                'slug'  => 'make-up',
+                'title' => 'MAKE UP',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+            [
+                'slug'  => 'dispositivos',
+                'title' => 'DISPOSITIVOS',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+            [
+                'slug'  => 'inner-beauty',
+                'title' => 'INNER BEAUTY',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+            [
+                'slug'  => 'spa-kbeauty',
+                'title' => 'SPA KBEAUTY',
+                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
+            ],
+        ];
+     
+        echo '<section class="bsc-kb-grid">';
+        foreach ($groups as $g) {
+            $term_link = '#'; // fallback if category not found
+            $term = get_term_by('slug', $g['slug'], 'product_cat');
+            if ($term) {
+                $term_link = get_term_link($term);
+            }
+
+            printf(
+                '<article class="bsc-kb-card">
+                    <a href="%s" class="bsc-kb-card__link">
+                        <div class="bsc-kb-card__imgwrap">
+                            <img src="%s" alt="%s" loading="lazy">
+                        </div>
+                        <div class="bsc-kb-card__label">%s</div>
+                    </a>
+                </article>',
+                esc_url($term_link),
+                esc_url($g['image']),
+                esc_attr($g['title']),
+                esc_html($g['title'])
+            );
+        }
+        echo '</section>';
     }
-
-    printf(
-        '<article class="bsc-kb-card">
-            <a href="%s" class="bsc-kb-card__link">
-                <div class="bsc-kb-card__imgwrap">
-                    <img src="%s" alt="%s" loading="lazy">
-                </div>
-                <div class="bsc-kb-card__label">%s</div>
-            </a>
-        </article>',
-        esc_url($term_link),
-        esc_url($g['image']),
-        esc_attr($g['title']),
-        esc_html($g['title'])
-    );
-}
-echo '</section>';
-}
-
 
     private function renderLevel2(): void
     {
         $cat = $this->category;
-        $this->renderBreadcrumbs(null, $this->parent, $cat);
-
-        echo "<h2 class='bsc__title'>Subcategorías de " . esc_html($cat->name) . "</h2>";
-        if ($cat->description) {
-            echo "<p class='bsc__description'>" . esc_html($cat->description) . "</p>";
+        if (!$cat instanceof WP_Term) {
+            echo '<p>Error: categoría no válida.</p>';
+            return;
         }
 
+        $this->renderBreadcrumbs(null, null, $cat);
+
+        echo "<h2 class='bsc__title bsc-hero__subtitle bsc__title--subcategory'>" . esc_html($cat->name) . "</h2>";
+
+        if (!empty($cat->description)) {
+            echo "<p class='bsc__description bsc__description--description-category'>" . wp_kses_post($cat->description) . "</p>";
+        }
+
+        // 1) Subcats directas del grupo (si las quieres usar luego)
         $subcats = get_terms([
             'taxonomy'   => 'product_cat',
             'hide_empty' => false,
             'parent'     => $cat->term_id,
         ]);
-        $this->renderCategoryGrid($subcats);
+        // $this->renderCategoryGrid($subcats); // si quieres el grid normal
+
+        // 2) Default child según diccionario (skin-care-rutina, etc.)
+        $defaultChild = $this->getDefaultChildTermForGroup($cat);
+
+        if (!($defaultChild instanceof WP_Term)) {
+            echo '<p>No hay categoría por defecto configurada para este grupo.</p>';
+            return;
+        }
+
+        // --- sub-subcategorías (botones) ---
+        $subsubcats = get_terms([
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'parent'     => $defaultChild->term_id,
+        ]);
+
+        // Para la lógica de filtrado, queremos todos los descendientes
+        $descendants = get_terms([
+            'taxonomy'   => 'product_cat',
+            'hide_empty' => false,
+            'child_of'   => $defaultChild->term_id,
+        ]);
+
+        $descendant_slugs = [];
+        if (!is_wp_error($descendants)) {
+            foreach ($descendants as $t) {
+                if ($t instanceof WP_Term) {
+                    $descendant_slugs[] = $t->slug;
+                }
+            }
+        }
+
+        echo "<section class='bsc__default-subsubcategory'>";
+
+        if (is_array($subsubcats) && !empty($subsubcats)) {
+            echo "<div class='bsc__subsubcategory-links'>";
+
+            // Botón "Todos"
+            echo '<button type="button" class="bsc__subsubcategory-link bsc__subsubcategory-link--active" data-filter="all">Todos</button>';
+
+            // Sort subsubcats by slug
+            usort($subsubcats, function ($a, $b) {
+                return strnatcmp($a->slug, $b->slug);
+            });
+
+            foreach ($subsubcats as $term) {
+                if (!$term instanceof WP_Term) {
+                    continue;
+                }
+
+                printf(
+                    '<button type="button" class="bsc__subsubcategory-link" data-filter="%s">%s</button>',
+                    esc_attr($term->slug),
+                    esc_html($term->name)
+                );
+            }
+
+            echo "</div>"; // .bsc__subsubcategory-links
+        }
+
+        // --- productos del defaultChild + todos sus descendientes ---
+        $products_query = new WP_Query([
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'tax_query'      => [[
+                'taxonomy'         => 'product_cat',
+                'field'            => 'term_id',
+                'terms'            => [$defaultChild->term_id],
+                'include_children' => true, // muy importante
+            ]],
+        ]);
+
+        echo "<div id='bscProductsContainer' class='shop__products'>";
+
+        if ($products_query->have_posts()) {
+
+            while ($products_query->have_posts()) {
+                $products_query->the_post();
+                global $product;
+
+                if (!$product instanceof WC_Product) {
+                    continue;
+                }
+
+                // Categorías del producto para usar en data-subcat
+                $prod_terms = get_the_terms($product->get_id(), 'product_cat');
+                $slugs_for_data = [];
+
+                if (!is_wp_error($prod_terms) && !empty($prod_terms)) {
+                    foreach ($prod_terms as $pt) {
+                        if (!$pt instanceof WP_Term) {
+                            continue;
+                        }
+                        // Sólo nos interesan los descendientes de $defaultChild
+                        if (in_array($pt->slug, $descendant_slugs, true)) {
+                            $slugs_for_data[] = $pt->slug;
+                        }
+                    }
+                }
+
+                // Si no encontramos descendiente, al menos marca la categoría default
+                if (empty($slugs_for_data)) {
+                    $slugs_for_data[] = $defaultChild->slug;
+                }
+
+                $data_subcat = implode(' ', $slugs_for_data);
+
+                echo '<div class="bsc-product-card" data-subcat="' . esc_attr($data_subcat) . '">';
+
+                // Render card normal
+                $card = new BSC_Products_Card();
+                $card->setProduct($product);
+                $card->render();
+
+                echo '</div>';
+            }
+
+            wp_reset_postdata();
+
+        } else {
+            echo '<p>No hay productos en esta categoría.</p>';
+        }
+
+        echo "</div>"; // #bscProductsContainer
+        echo "</section>";
     }
+
 
     private function renderLevel3(): void
     {
         $cat = $this->category;
+        if (!$cat instanceof WP_Term) {
+            echo '<p>Error: categoría no válida.</p>';
+            return;
+        }
+
+        // Aquí sí usamos parent y grandparent si existen
         $this->renderBreadcrumbs($this->grandparent, $this->parent, $cat);
 
         echo "<div class='shop__header'>";
         echo "<h1 class='bsc__title'><strong>" . esc_html($cat->name) . "</strong></h1>";
-        if ($cat->description) {
+        if (!empty($cat->description)) {
             echo "<p class='bsc__description'>" . esc_html($cat->description) . "</p>";
         }
         echo "</div>";
@@ -265,16 +469,17 @@ echo '</section>';
     {
         echo '<div class="bsc bsc__shop"><div class="bsc__container">';
 
-        if (!$this->category) {
-            echo '<p>Error: categoría no encontrada o inválida.</p>';
-        } elseif ($this->category && $this->parent && $this->grandparent) {
-            $this->renderLevel3();
-        } elseif ($this->category && $this->parent && !$this->grandparent) {
-            $this->renderLevel2();
-        } elseif ($this->category && !$this->parent) {
+        // Mapeo por profundidad de URL:
+        // depth 0: /product-category/                 → Level1
+        // depth 1: /product-category/group-skin-care/ → Level2
+        // depth 2+: /product-category/.../...         → Level3
+        if ($this->urlDepth === 0) {
+            // En /product-category/ a veces no hay término; igual renderizamos Level1
             $this->renderLevel1();
+        } elseif ($this->urlDepth === 1) {
+            $this->renderLevel2();
         } else {
-            echo '<p>Error: estructura de categoría no válida.</p>';
+            $this->renderLevel3();
         }
 
         echo '</div></div>';
@@ -287,12 +492,43 @@ echo '</section>';
 $page = new BSCShopPage();
 $page->render();
 
-
-
 ?>
 
-
 <style>
+/* Your CSS here */
+</style>
 
 
-  </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const linksContainer = document.querySelector(".bsc__subsubcategory-links");
+    const cards = document.querySelectorAll(".bsc-product-card");
+
+    if (!linksContainer || !cards.length) return;
+
+    linksContainer.addEventListener("click", function (event) {
+        const btn = event.target.closest(".bsc__subsubcategory-link");
+        if (!btn) return;
+
+        // Active state
+        linksContainer.querySelectorAll(".bsc__subsubcategory-link--active")
+            .forEach(el => el.classList.remove("bsc__subsubcategory-link--active"));
+        btn.classList.add("bsc__subsubcategory-link--active");
+
+        const filter = btn.dataset.filter; // slug o 'all'
+
+        cards.forEach(card => {
+            const subcats = (card.dataset.subcat || "").split(" ").filter(Boolean);
+
+            if (filter === "all" || !filter) {
+                card.style.display = "";
+            } else if (subcats.includes(filter)) {
+                card.style.display = "";
+            } else {
+                card.style.display = "none";
+            }
+        });
+    });
+});
+</script>
