@@ -58,7 +58,7 @@ get_header(); ?>
             'slug'  => 'group-hair-care',
             'title' => 'HAIR CARE',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-              'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-make-up',

@@ -13702,6 +13702,11 @@ details[open] .bsc__product-detail-category > summary::after {
   color: #333;
 }
 
+.coupon--text {
+  font-size: 14px;
+  color: #333;
+}
+
 .bsc__coupon-card {
   position: relative;
   padding: 1.5rem;
