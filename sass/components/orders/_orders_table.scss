@@ -1,6 +1,10 @@
 .bsc__orders {
   overflow-x: auto;
-  padding: 2rem 0;
+  padding: 1rem 0 !important;
+
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 
   &-table {
     width: 100%;
@@ -48,4 +52,20 @@
     text-align: center;
     padding: 2rem 0;
   }
+}
+
+
+
+
+.bsc__orders-header-order-number,
+.bsc__orders-header-order-date,
+.bsc__orders-header-status
+{
+  color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
+}
+
+.bsc__orders-cell-order-number{
+    color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
 }

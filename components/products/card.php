@@ -22,7 +22,8 @@ class BSC_Products_Card {
         $this->stock_status  = $product->get_stock_status();
         
         $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single');
-        $this->image = is_array($image_data) ? $image_data[0] : 'https://bubblesskincare.com/plugins/wp-bsc-plugin-v1/assets/images/bsc__product_placeholder.jpeg?query_photo_index=0';
+        $img_placeholder = esc_url(get_stylesheet_directory_uri()) . '/images/bsc__placeholder_product.jpg';
+        $this->image = is_array($image_data) ? $image_data[0] : $img_placeholder . '?query_photo_index=0';
 
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();

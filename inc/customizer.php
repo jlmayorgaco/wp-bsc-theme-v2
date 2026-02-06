@@ -59,3 +59,29 @@ function bsc_2_0_customize_preview_js() {
 	wp_enqueue_script( 'bsc-2-0-customizer', get_template_directory_uri() . '/js/customizer.js', array( 'customize-preview' ), _S_VERSION, true );
 }
 add_action( 'customize_preview_init', 'bsc_2_0_customize_preview_js' );
+
+
+add_action( 'template_redirect', function() {
+
+    // No hacer nada en admin
+    if ( is_admin() ) {
+        return;
+    }
+
+    // Ruta actual sin parámetros (?foo=bar)
+    $current_path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( $_SERVER['REQUEST_URI'], '?' ) : '';
+
+    // Normalizamos quitando slash final: /mi-cuenta/ → /mi-cuenta
+    $current_path = rtrim( $current_path, '/' );
+
+    // Solo si la ruta es EXACTAMENTE /mi-cuenta
+    if ( $current_path === '/mi-cuenta' ) {
+
+        // URL del endpoint "orders" dentro de Mi Cuenta
+        $orders_url = wc_get_account_endpoint_url( 'orders' );
+
+        // Redirigimos de forma segura
+        wp_safe_redirect( $orders_url );
+        exit;
+    }
+});

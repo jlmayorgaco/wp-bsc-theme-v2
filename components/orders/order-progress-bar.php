@@ -42,7 +42,6 @@ class BSC_Order_Progress_Bar {
     public function render(): void {
         $status_order = [
             self::RECEIVED  => 1,
-            self::SHIPPED   => 2,
             self::DELIVERED => 3,
         ];
 
@@ -69,7 +68,6 @@ class BSC_Order_Progress_Bar {
         // Map status to width percentage
         $progress_percent = match ($this->status) {
             self::RECEIVED  => '33%',
-            self::SHIPPED   => '66%',
             self::DELIVERED => '100%',
             default         => '0%',
         };
@@ -83,7 +81,6 @@ class BSC_Order_Progress_Bar {
 
         $labels = [
             1 => ['text' => '¡Recibido!',  'is_active' => $active_index >= 1],
-            2 => ['text' => '¡Enviado!',   'is_active' => $active_index >= 2],
             3 => ['text' => '¡Entregado!', 'is_active' => $active_index >= 3],
         ];
         ?>

@@ -1,18 +1,21 @@
 .profile-points {
   padding: 2rem;
+  padding-top: 0px;
+
+  color: #333333;
 
   &__container {
-    max-width: 1280px;
+    max-width: 1100px;
     margin: 0 auto;
     padding: 2rem;
     padding-top: 0px;
     background: #fff;
     border-radius: 1rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    //box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
   }
 
   &__title {
-    font-size: 2rem;
+    font-size: 24px;
     font-weight: 700;
     padding-top: 0rem;
     padding-bottom: 4rem;
@@ -20,24 +23,30 @@
     text-align: center;
     font-weight: 100;
     letter-spacing: 1px;
-    
+
+      color: #333333;
+
     strong{
       font-weight: 900;
      
     }
 
+
   }
 
   &__coupons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 2rem;
+    row-gap: 3rem;
     margin-bottom: 2rem;
   }
 
   &__footer {
-    background: #f7f7f7;
     padding: 2rem;
+    padding-top: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
     border-radius: 1rem;
     text-align: center;
 
@@ -51,4 +60,35 @@
       line-height: 1.6;
     }
   }
+
+  &__text{
+    h2{
+      font-weight: bold;
+      font-size: 18px;
+      padding-top: 0rem;
+      padding-bottom: 0rem;
+      margin: 0px;
+      text-align: center;
+      letter-spacing: 1px;
+      color: #333333;
+    }
+    p{
+         font-size: 14px;
+      font-weight: normal;
+            text-align: center;
+      letter-spacing: 1px;
+      color: #333333;
+            padding-bottom: 2rem;
+      strong{
+        font-weight: bold;
+      }
+    }
+  }
 }
+
+    .coupon--text{
+      font-size: 14px;
+      color: #333;
+    }
+
+

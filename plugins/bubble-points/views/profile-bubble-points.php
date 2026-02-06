@@ -31,18 +31,21 @@ $points_by_user =  BSC_Bubble_Points::get($user_id);
                 $coupon->render();
             endforeach; ?>
         </div>
-        <div class="profile-points__footer">
-            
-            <?php require get_template_directory() . '/plugins/bubble-points/views/coupons-bubble-points.php'; ?>
 
-        </div>
-        <div class="profile-points__footer">
+        <div class="profile-points__text">
             <h2>¡En BSC todas tus compras suman Bubble Points que se convierten en K-Beauty GRATISSS!</h2>
             <p>Entre más compras, ¡más ahorras! Cada $1.000 COP en productos coreanos equivale a 1 Bubble Point.
                 Tus puntos tienen una vigencia aproximada de 2 años, ya que el programa se actualiza cada enero.
                 <strong>Próxima actualización: Enero 2027 :)</strong>
             </p>
         </div>
+        
+        <div class="profile-points__footer">
+            
+            <?php require get_template_directory() . '/plugins/bubble-points/views/coupons-bubble-points.php'; ?>
+
+        </div>
+        
     </div>
 </div>
 

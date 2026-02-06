@@ -2,7 +2,7 @@
   position: relative;
   padding: 1.5rem;
   border-radius: 1rem;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   background-color: #fff;
   display: flex;
@@ -13,7 +13,10 @@
     transform 0.2s ease,
     border 0.2s ease;
 
-    border: 2px solid #000;
+    border: 1px solid #333;
+
+    --coupon-image-w: 50px;
+    --coupon-image-h: calc(2.1*var(--coupon-image-w));
 
   .bsc__coupon-ribbon {
     font-weight: 600;
@@ -22,7 +25,7 @@
     background: white;
     display: inline-block;
     padding: 0.3rem 1rem;
-    border: 2px solid black;
+    border: 1px solid #333;
   }
 
   .bsc__coupon-value {
@@ -51,7 +54,7 @@
 
   .bsc__coupon-button {
     margin-top: auto;
-    background-color: #000;
+    background-color: #333;
     color: #fff;
     font-weight: 600;
     padding: 0.6rem 1.2rem;
@@ -61,7 +64,7 @@
     transition: background 0.2s ease;
 
     &:hover {
-      background-color: #111;
+      background-color: #333;
     }
   }
 
@@ -74,12 +77,13 @@
 
   &.is-normal:hover {
     transform: scale(1.03);
-    border: 2px solid #000;
+    border: 1px solid #333;
     cursor: pointer;
 
     bsc__coupon-card__label{
-      background-color: #ffe6f1;
+      
       border:1px solid #333;
+      font-size: 13px !important;
     }
   }
 
@@ -109,33 +113,68 @@
     }
   }
 
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; } /* Skin Care */
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #FFF3C2; }/* Hair Care */
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #BAE5F1; } /* Make Up */
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #FFD3A4; } /* Dispositivos */
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #DCFFFD; } /* Inner Beauty */
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #ECDBFC; } /* Spa KBeauty */
+
+
   // Optional color modifiers (add via PHP if needed)
   &--yellow {
-    background-color: #fffbe6;
+    background-color: #fdf3c9  !important;
+    &:hover{
+      background-color: #fff !important;
+    }
   }
   &--blue {
-    background-color: #e6f1ff;
+    background-color: #BAE5F1 !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--pink {
-    background-color: #ffe6f1;
+    background-color: #F4C8CF !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--lilac {
-    background-color: #f5e6ff;
+    background-color: #ECDBFC  !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--orange {
-    background-color: #fff2df;
+    background-color: #FFD3A4 !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--green {
-    background-color: #e4ffe4;
+    background-color: #D7F4ee  !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--gold {
-    background-color: #fff6db;
+    background-color: #fdf3c9 !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--aqua {
-    background-color: #e6ffff;
+    background-color: #BAE5F1  !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
   &--rose {
-    background-color: #ffe6eb;
+    background-color: #F4C8CF !important;
+     &:hover{
+      background-color: #fff !important;
+    }
   }
 }
 
@@ -143,18 +182,20 @@
   position: relative;
   border-radius: 12px;
   padding: 1.2rem;
+  padding-right: 0.8rem;
+  padding-bottom: 0px;
   background: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   transition:
     transform 0.2s,
     border 0.2s;
-    border: 2px solid #000;
+    border: 1px solid #333;
 
   &__container {
     display: grid;
     grid-template-columns: 1.2fr 0.8fr;
-    gap: 1rem;
+    gap: 0rem;
 
     display: flex;
 
@@ -181,52 +222,29 @@
     p {
       margin: 0px;
       padding: 0px;
+          letter-spacing: 1px;
+    font-size: 12px;
     }
   }
   .price {
     font-size: 1.8rem;
     font-weight: 800;
     letter-spacing: 0.3px;
+    color: #333 !important;
     &.border_bottom_dotted {
-      border-bottom: 3px dotted #111;
+      border-bottom: 1px dotted #333;
       line-height: 1.2;
     }
   }
 
   .check {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     .check__back {
       position: absolute;
       inset: 0;
-      &--yellow {
-        background: #ffe89b;
-      }
-      &--blue {
-        background: #a8d2ff;
-      }
-      &--pink {
-        background: #ffc0d8;
-      }
-      &--lilac {
-        background: #e6ccff;
-      }
-      &--orange {
-        background: #ffd39a;
-      }
-      &--green {
-        background: #b9f3c6;
-      }
-      &--gold {
-        background: #ffebb0;
-      }
-      &--aqua {
-        background: #bff7f7;
-      }
-      &--rose {
-        background: #ffbfd0;
-      }
+      
     }
     .check__front {
       position: absolute;
@@ -241,26 +259,30 @@
   }
 
   .card__image {
+
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 120px;
+
+    top: -10px;
+
     .image__back {
       z-index: 0;
       position: absolute;
-        width: 50px;
-        height: 95px;
+      width: var(--coupon-image-w);
+      height: var(--coupon-image-h);
       filter: blur(0px);
       opacity: 0.65;
-      
     }
+
     .image__front {
       position: relative;
        z-index: 0;
       img {
-        width: 50px;
-        height: 116px;
+        width: var(--coupon-image-w);
+        height: var(--coupon-image-h);
         object-fit: cover;
         display: block;
       }
@@ -275,10 +297,12 @@
     padding: 0.35rem 0.9rem;
     border-radius: 20px;
     background: #fff;
-    border: 2px solid #111;
+    border: 1px solid #333;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 13px !important;
     position: absolute;
+    letter-spacing: 1px;
+    color: #333;
     top: -32px;
   }
 
@@ -301,7 +325,7 @@
   }
   
   &.is-normal:hover  &__label {
-    background-color: #ffe4ea;
+    // background-color: #ffe4ea;
   }
 
   
@@ -328,8 +352,8 @@
 /* Stack normal/hover images and cross-fade on card hover */
 .bsc__coupon-card .image__front {
   position: relative;
-  width: 50px; /* keep your current size system */
-  height: 116px;
+  width: var(--coupon-image-w);
+  height: var(--coupon-image-h);
 }
 
 .bsc__coupon-card .image__front img {
@@ -346,11 +370,11 @@
 }
 
 .bsc__coupon-card.is-normal:hover .image__front img.normal {
-  opacity: 0;
+  opacity: 1;
   transform: translateY(-1px);
 }
 .bsc__coupon-card.is-normal:hover .image__front img.hover {
-  opacity: 1;
+  opacity: 0;
   transform: translateY(0);
 }
 

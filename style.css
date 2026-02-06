@@ -9500,8 +9500,41 @@ button {
 
 .bsc-kb-card__imgwrap {
   width: 100%;
+  position: relative;
   aspect-ratio: 3/4;
   overflow: hidden;
+}
+
+.bsc-kb-card__front {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+.bsc-kb-card__front .bsc-kb-card__icon {
+  width: 25px !important;
+  height: 25px !important;
+}
+.bsc-kb-card__front p {
+  color: white;
+}
+.bsc-kb-card__front .bsc-kb-text {
+  width: 80%;
+  color: white;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bsc-kb-card__front, .bsc-kb-card__back {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 241.328px;
+  height: 322px;
 }
 
 .bsc-kb-card__imgwrap img {
@@ -9513,6 +9546,11 @@ button {
 
 .bsc-kb-card:hover .bsc-kb-card__imgwrap img {
   transform: scale(1.04);
+}
+
+.bsc-kb-card:hover .bsc-kb-card__front {
+  opacity: 1;
+  transition: opacity 1s, display 1s allow-discrete;
 }
 
 /* ---- Category label ---- */
@@ -9623,6 +9661,63 @@ button {
     transform: translateY(0);
   }
 }
+.bsc__title--subcategory {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-top: 1em;
+  text-transform: lower;
+}
+
+.bsc__description--description-category {
+  font-size: 16px;
+  letter-spacing: 1px;
+  line-height: 25.25px;
+}
+
+.bsc__subsubcategory-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* left aligned */
+  gap: 1rem 1.25rem; /* vertical / horizontal spacing */
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.bsc__subsubcategory-link {
+  cursor: pointer;
+  display: block;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  margin-left: 0px;
+  margin-right: 0px;
+  border: 1px solid #333;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #333;
+  text-decoration: none;
+  font-weight: 400;
+  letter-spacing: 1px;
+  background-color: #fff;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bsc__subsubcategory-link:hover {
+  background-color: #c3dde8; /* light blue */
+  border-color: #8ab3c7;
+}
+
+/* Active/selected one (the blue one in your design) */
+.bsc__subsubcategory-link--active {
+  background-color: #c3dde8; /* light blue */
+  border-color: #8ab3c7;
+  color: #173642;
+}
+
 .bsc {
   --bsc-spacing-sm: 0.75rem;
   --bsc-spacing-md: 1.5rem;
@@ -10371,7 +10466,7 @@ button {
   background: white;
   z-index: 1000;
   width: 400px;
-  border: 2px solid #333333;
+  border: 1px solid #333333;
   border-radius: 0px;
   padding: 0.5em;
   display: none;
@@ -12062,6 +12157,7 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__progress-bar .labels .label__text {
   font-size: 12px;
+  letter-spacing: 1px;
 }
 .bsc__progress-bar .labels .label--focus {
   color: #333;
@@ -12077,7 +12173,10 @@ body.admin-bar .bsc__header--desktop {
 
 .bsc__orders {
   overflow-x: auto;
-  padding: 2rem 0;
+  padding: 1rem 0 !important;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 .bsc__orders-table {
   width: 100%;
@@ -12117,6 +12216,18 @@ body.admin-bar .bsc__header--desktop {
   font-style: italic;
   text-align: center;
   padding: 2rem 0;
+}
+
+.bsc__orders-header-order-number,
+.bsc__orders-header-order-date,
+.bsc__orders-header-status {
+  color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
+}
+
+.bsc__orders-cell-order-number {
+  color: var(--bsc-color-text) !important;
+  letter-spacing: 1px;
 }
 
 .bsc__orders {
@@ -12274,6 +12385,10 @@ body.admin-bar .bsc__header--desktop {
   background-color: white;
   transition: all 0.2s ease;
 }
+.bsc__my-account-header .menu__item:hover {
+  background-color: #c7e7f1;
+  background-color: #fdf4c6;
+}
 .bsc__my-account-header .menu__item a {
   text-decoration: none;
   color: #333;
@@ -12311,23 +12426,31 @@ body.admin-bar .bsc__header--desktop {
 .bsc__address-card {
   border-left: 1px dashed #999;
   padding-left: 2rem;
+  color: #333;
 }
 
 .bsc__address-card h3 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  color: #333;
+  letter-spacing: 1px;
 }
 
 .bsc__address-subtitle {
-  font-size: 0.95rem;
-  color: #555;
-  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: #333;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  margin-bottom: 0.25rem;
 }
 
 .bsc__address-content {
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.8rem;
+  color: #333;
+  letter-spacing: 1px;
+  margin-top: 25px;
+  margin-bottom: 1rem;
 }
 .bsc__address-content strong {
   display: block;
@@ -12336,17 +12459,51 @@ body.admin-bar .bsc__header--desktop {
 
 .bsc__address-button {
   display: inline-block;
-  margin-top: 1.5rem;
+  margin-top: 0px;
   background: #333;
   color: #fff;
+  border: 1px solid #333;
   border-radius: 2rem;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1.5rem;
   text-decoration: none;
   font-weight: bold;
   transition: background 0.3s;
 }
 .bsc__address-button:hover {
-  background: #000;
+  border-color: #333;
+  background-color: white;
+  color: #333;
+}
+
+.bsc__shipping-address {
+  display: block;
+  width: 740px;
+  margin: 0 auto;
+}
+.bsc__shipping-address h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+  padding-bottom: 22px;
+  color: #333;
+  letter-spacing: 1px;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+.bsc__shipping-address .input-text {
+  color: #333;
+}
+.bsc__shipping-address .button--save-profile {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-top: 20px;
+}
+.bsc__shipping-address .button--save-profile button {
+  margin: 10px 0px;
 }
 
 .bsc__account-section {
@@ -12383,9 +12540,12 @@ body.admin-bar .bsc__header--desktop {
 .bsc__field {
   display: flex;
   flex-direction: column;
+  margin-bottom: 20px;
 }
 .bsc__field label {
   font-weight: bold;
+  color: #333;
+  letter-spacing: 1px;
   margin-bottom: 0.5rem;
 }
 .bsc__field input,
@@ -12396,6 +12556,8 @@ body.admin-bar .bsc__header--desktop {
   border-radius: 8px;
   border: 1px dashed #333;
   background-color: #fff;
+  color: #333;
+  letter-spacing: 1px;
 }
 .bsc__field input[disabled] {
   background-color: #eee;
@@ -12409,11 +12571,21 @@ body.admin-bar .bsc__header--desktop {
 .bsc__account-needs h3 {
   font-weight: bold;
   margin-bottom: 1rem;
+  color: #333;
+  font-size: 16px;
+  letter-spacing: 1px;
 }
 
 .bsc__account-submit {
   margin-top: 2rem;
   text-align: left;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.bsc__account-submit button {
+  margin: 0px 0px;
 }
 
 .bsc__field--need {
@@ -13455,18 +13627,19 @@ details[open] .bsc__product-detail-category > summary::after {
 
 .profile-points {
   padding: 2rem;
+  padding-top: 0px;
+  color: #333333;
 }
 .profile-points__container {
-  max-width: 1280px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem;
   padding-top: 0px;
   background: #fff;
   border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 .profile-points__title {
-  font-size: 2rem;
+  font-size: 24px;
   font-weight: 700;
   padding-top: 0rem;
   padding-bottom: 4rem;
@@ -13474,19 +13647,23 @@ details[open] .bsc__product-detail-category > summary::after {
   text-align: center;
   font-weight: 100;
   letter-spacing: 1px;
+  color: #333333;
 }
 .profile-points__title strong {
   font-weight: 900;
 }
 .profile-points__coupons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
+  row-gap: 3rem;
   margin-bottom: 2rem;
 }
 .profile-points__footer {
-  background: #f7f7f7;
   padding: 2rem;
+  padding-top: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
   border-radius: 1rem;
   text-align: center;
 }
@@ -13498,12 +13675,38 @@ details[open] .bsc__product-detail-category > summary::after {
   font-size: 0.95rem;
   line-height: 1.6;
 }
+.profile-points__text h2 {
+  font-weight: bold;
+  font-size: 18px;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  margin: 0px;
+  text-align: center;
+  letter-spacing: 1px;
+  color: #333333;
+}
+.profile-points__text p {
+  font-size: 14px;
+  font-weight: normal;
+  text-align: center;
+  letter-spacing: 1px;
+  color: #333333;
+  padding-bottom: 2rem;
+}
+.profile-points__text p strong {
+  font-weight: bold;
+}
+
+.coupon--text {
+  font-size: 14px;
+  color: #333;
+}
 
 .bsc__coupon-card {
   position: relative;
   padding: 1.5rem;
   border-radius: 1rem;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   background-color: #fff;
   display: flex;
@@ -13511,7 +13714,15 @@ details[open] .bsc__product-detail-category > summary::after {
   gap: 1rem;
   text-align: left;
   transition: transform 0.2s ease, border 0.2s ease;
-  border: 2px solid #000;
+  border: 1px solid #333;
+  --coupon-image-w: 50px;
+  --coupon-image-h: calc(2.1*var(--coupon-image-w));
+  /* Skin Care */
+  /* Hair Care */
+  /* Make Up */
+  /* Dispositivos */
+  /* Inner Beauty */
+  /* Spa KBeauty */
 }
 .bsc__coupon-card .bsc__coupon-ribbon {
   font-weight: 600;
@@ -13520,7 +13731,7 @@ details[open] .bsc__product-detail-category > summary::after {
   background: white;
   display: inline-block;
   padding: 0.3rem 1rem;
-  border: 2px solid black;
+  border: 1px solid #333;
 }
 .bsc__coupon-card .bsc__coupon-value {
   font-size: 1.8rem;
@@ -13544,7 +13755,7 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-card .bsc__coupon-button {
   margin-top: auto;
-  background-color: #000;
+  background-color: #333;
   color: #fff;
   font-weight: 600;
   padding: 0.6rem 1.2rem;
@@ -13554,7 +13765,7 @@ details[open] .bsc__product-detail-category > summary::after {
   transition: background 0.2s ease;
 }
 .bsc__coupon-card .bsc__coupon-button:hover {
-  background-color: #111;
+  background-color: #333;
 }
 .bsc__coupon-card .bsc__coupon-locked,
 .bsc__coupon-card .bsc__coupon-error-msg {
@@ -13564,12 +13775,12 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-card.is-normal:hover {
   transform: scale(1.03);
-  border: 2px solid #000;
+  border: 1px solid #333;
   cursor: pointer;
 }
 .bsc__coupon-card.is-normal:hover bsc__coupon-card__label {
-  background-color: #ffe6f1;
   border: 1px solid #333;
+  font-size: 13px !important;
 }
 .bsc__coupon-card.is-disabled {
   opacity: 0.5;
@@ -13591,48 +13802,95 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__coupon-card.is-error .bsc__coupon-button {
   display: none;
 }
+.bsc__coupon-card .bsc-kb-card:nth-child(1) .bsc-kb-card__label {
+  background-color: #F4C8CF;
+}
+.bsc__coupon-card .bsc-kb-card:nth-child(2) .bsc-kb-card__label {
+  background-color: #FFF3C2;
+}
+.bsc__coupon-card .bsc-kb-card:nth-child(3) .bsc-kb-card__label {
+  background-color: #BAE5F1;
+}
+.bsc__coupon-card .bsc-kb-card:nth-child(4) .bsc-kb-card__label {
+  background-color: #FFD3A4;
+}
+.bsc__coupon-card .bsc-kb-card:nth-child(5) .bsc-kb-card__label {
+  background-color: #DCFFFD;
+}
+.bsc__coupon-card .bsc-kb-card:nth-child(6) .bsc-kb-card__label {
+  background-color: #ECDBFC;
+}
 .bsc__coupon-card--yellow {
-  background-color: #fffbe6;
+  background-color: #fdf3c9 !important;
+}
+.bsc__coupon-card--yellow:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--blue {
-  background-color: #e6f1ff;
+  background-color: #BAE5F1 !important;
+}
+.bsc__coupon-card--blue:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--pink {
-  background-color: #ffe6f1;
+  background-color: #F4C8CF !important;
+}
+.bsc__coupon-card--pink:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--lilac {
-  background-color: #f5e6ff;
+  background-color: #ECDBFC !important;
+}
+.bsc__coupon-card--lilac:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--orange {
-  background-color: #fff2df;
+  background-color: #FFD3A4 !important;
+}
+.bsc__coupon-card--orange:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--green {
-  background-color: #e4ffe4;
+  background-color: #D7F4ee !important;
+}
+.bsc__coupon-card--green:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--gold {
-  background-color: #fff6db;
+  background-color: #fdf3c9 !important;
+}
+.bsc__coupon-card--gold:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--aqua {
-  background-color: #e6ffff;
+  background-color: #BAE5F1 !important;
+}
+.bsc__coupon-card--aqua:hover {
+  background-color: #fff !important;
 }
 .bsc__coupon-card--rose {
-  background-color: #ffe6eb;
+  background-color: #F4C8CF !important;
+}
+.bsc__coupon-card--rose:hover {
+  background-color: #fff !important;
 }
 
 .bsc__coupon-card {
   position: relative;
   border-radius: 12px;
   padding: 1.2rem;
+  padding-right: 0.8rem;
+  padding-bottom: 0px;
   background: #fff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   transition: transform 0.2s, border 0.2s;
-  border: 2px solid #000;
+  border: 1px solid #333;
 }
 .bsc__coupon-card__container {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
-  gap: 1rem;
+  gap: 0rem;
   display: flex;
 }
 @media (max-width: 720px) {
@@ -13656,51 +13914,27 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__coupon-card .row p {
   margin: 0px;
   padding: 0px;
+  letter-spacing: 1px;
+  font-size: 12px;
 }
 .bsc__coupon-card .price {
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: 0.3px;
+  color: #333 !important;
 }
 .bsc__coupon-card .price.border_bottom_dotted {
-  border-bottom: 3px dotted #111;
+  border-bottom: 1px dotted #333;
   line-height: 1.2;
 }
 .bsc__coupon-card .check {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
 }
 .bsc__coupon-card .check .check__back {
   position: absolute;
   inset: 0;
-}
-.bsc__coupon-card .check .check__back--yellow {
-  background: #ffe89b;
-}
-.bsc__coupon-card .check .check__back--blue {
-  background: #a8d2ff;
-}
-.bsc__coupon-card .check .check__back--pink {
-  background: #ffc0d8;
-}
-.bsc__coupon-card .check .check__back--lilac {
-  background: #e6ccff;
-}
-.bsc__coupon-card .check .check__back--orange {
-  background: #ffd39a;
-}
-.bsc__coupon-card .check .check__back--green {
-  background: #b9f3c6;
-}
-.bsc__coupon-card .check .check__back--gold {
-  background: #ffebb0;
-}
-.bsc__coupon-card .check .check__back--aqua {
-  background: #bff7f7;
-}
-.bsc__coupon-card .check .check__back--rose {
-  background: #ffbfd0;
 }
 .bsc__coupon-card .check .check__front {
   position: absolute;
@@ -13718,12 +13952,13 @@ details[open] .bsc__product-detail-category > summary::after {
   align-items: center;
   justify-content: center;
   min-height: 120px;
+  top: -10px;
 }
 .bsc__coupon-card .card__image .image__back {
   z-index: 0;
   position: absolute;
-  width: 50px;
-  height: 95px;
+  width: var(--coupon-image-w);
+  height: var(--coupon-image-h);
   filter: blur(0px);
   opacity: 0.65;
 }
@@ -13732,8 +13967,8 @@ details[open] .bsc__product-detail-category > summary::after {
   z-index: 0;
 }
 .bsc__coupon-card .card__image .image__front img {
-  width: 50px;
-  height: 116px;
+  width: var(--coupon-image-w);
+  height: var(--coupon-image-h);
   object-fit: cover;
   display: block;
 }
@@ -13743,10 +13978,12 @@ details[open] .bsc__product-detail-category > summary::after {
   padding: 0.35rem 0.9rem;
   border-radius: 20px;
   background: #fff;
-  border: 2px solid #111;
+  border: 1px solid #333;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 13px !important;
   position: absolute;
+  letter-spacing: 1px;
+  color: #333;
   top: -32px;
 }
 .bsc__coupon-card .bsc__coupon-button {
@@ -13763,9 +14000,6 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__coupon-card.is-normal:hover {
   transform: scale(1.02);
   border-color: #000;
-}
-.bsc__coupon-card.is-normal:hover .bsc__coupon-card__label {
-  background-color: #ffe4ea;
 }
 .bsc__coupon-card.is-disabled {
   opacity: 0.5;
@@ -13785,8 +14019,8 @@ details[open] .bsc__product-detail-category > summary::after {
 /* Stack normal/hover images and cross-fade on card hover */
 .bsc__coupon-card .image__front {
   position: relative;
-  width: 50px; /* keep your current size system */
-  height: 116px;
+  width: var(--coupon-image-w);
+  height: var(--coupon-image-h);
 }
 
 .bsc__coupon-card .image__front img {
@@ -13803,12 +14037,12 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 
 .bsc__coupon-card.is-normal:hover .image__front img.normal {
-  opacity: 0;
+  opacity: 1;
   transform: translateY(-1px);
 }
 
 .bsc__coupon-card.is-normal:hover .image__front img.hover {
-  opacity: 1;
+  opacity: 0;
   transform: translateY(0);
 }
 
@@ -13873,6 +14107,19 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc-coupon-wallet__title {
   text-align: center;
   font-weight: 800;
+  font-weight: normal;
+  font-size: 24px !important;
+  padding-bottom: 1rem;
+  margin-top: 1em;
+  margin-bottom: 3rem !important;
+  padding-bottom: 0rem;
+  margin: 0px;
+  text-align: center;
+  letter-spacing: 1px;
+  color: #333333;
+}
+.bsc-coupon-wallet__title strong {
+  font-weight: bold;
 }
 .bsc-coupon-wallet__grid {
   list-style: none;
@@ -13887,17 +14134,13 @@ details[open] .bsc__product-detail-category > summary::after {
   position: relative;
   display: grid;
   grid-template-columns: 1fr auto; /* body + actions */
-  gap: 0.75rem;
-  padding: 1rem 1.1rem;
+  gap: 2rem;
+  padding: 12px 10px;
   background: #fff;
-  border: 2px solid #000;
+  border: 1px solid #000;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.bsc-ticket:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 .bsc-ticket__row {
   display: flex;
@@ -13907,11 +14150,11 @@ details[open] .bsc__product-detail-category > summary::after {
   color: #333;
 }
 .bsc-ticket__value {
-  margin-top: 0.25rem;
+  margin-top: 0.05rem;
   font-weight: 800;
-  font-size: 1.35rem;
+  font-size: 1.75rem;
   line-height: 1.1;
-  border-bottom: 3px dotted #111;
+  border-bottom: 0px dotted #111;
   display: inline-block;
 }
 .bsc-ticket__code {
@@ -13932,7 +14175,7 @@ details[open] .bsc__product-detail-category > summary::after {
   width: 18px;
   height: 18px;
   background: #fff;
-  border: 2px solid #000;
+  border: 1px solid #000;
   border-radius: 50%;
   transform: translateY(-50%);
 }
@@ -13958,8 +14201,7 @@ details[open] .bsc__product-detail-category > summary::after {
   font-size: 0.78rem;
 }
 .bsc-chip--outline {
-  border: 2px solid #000;
-  background: #fff;
+  border: 1px solid #000;
 }
 
 .bsc-dot {
@@ -13971,33 +14213,15 @@ details[open] .bsc__product-detail-category > summary::after {
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  border: 2px solid #000;
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  background: #fff;
-  box-shadow: 3px 3px 0 #000;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
 }
 .bsc-code-badge code {
   font-weight: 900;
   letter-spacing: 0.5px;
   font-size: 1rem;
 }
-.bsc-code-badge:hover {
-  transform: translateY(-1px);
-  box-shadow: 4px 4px 0 #000;
-}
-.bsc-code-badge:active {
-  transform: translateY(0);
-  box-shadow: 2px 2px 0 #000;
-}
-.bsc-code-badge:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px #111 inset;
-}
 
 .bsc-btn {
-  border: 2px solid #000;
+  border: 1px solid #000;
   border-radius: 999px;
   font-weight: 800;
   padding: 0.45rem 1rem;
@@ -14017,7 +14241,7 @@ details[open] .bsc__product-detail-category > summary::after {
 
 .bsc-empty {
   text-align: center;
-  border: 2px dashed #000;
+  border: 1px dashed #000;
   border-radius: 16px;
   padding: 1.25rem;
   background: #fff;
@@ -14033,13 +14257,15 @@ details[open] .bsc__product-detail-category > summary::after {
   display: flex; /* stack in your custom order */
   flex-direction: column;
   align-items: flex-start; /* <— LEFT anchor everything inside */
-  gap: 0.5rem;
+  gap: 0rem;
   text-align: left; /* guard against inherited center text */
+  position: relative;
 }
 
 .bsc-ticket__code {
   width: 100%;
   text-align: left; /* ensure the pill starts at the left */
+  display: flex;
 }
 
 .bsc-code-badge {
@@ -14050,6 +14276,8 @@ details[open] .bsc__product-detail-category > summary::after {
   display: block; /* not inline-block to avoid centering quirks */
   text-align: left;
   margin-top: 0.15rem;
+  position: relative;
+  top: -5px;
 }
 
 /* actions stay on the right column */
@@ -14069,7 +14297,7 @@ details[open] .bsc__product-detail-category > summary::after {
   margin: 1rem 0 0;
   padding: 0;
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
   /* 4 columns desktop */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   /* remove previous width cap so 4 cols can fit */
@@ -14077,30 +14305,128 @@ details[open] .bsc__product-detail-category > summary::after {
   width: 100%;
 }
 
-/* Responsive fallbacks (optional but recommended) */
-@media (max-width: 1200px) {
-  .bsc-coupon-wallet__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (max-width: 900px) {
-  .bsc-coupon-wallet__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@media (max-width: 560px) {
-  .bsc-coupon-wallet__grid {
-    grid-template-columns: 1fr;
-  }
-}
 .bsc-code-badge.is-copied {
   box-shadow: 4px 4px 0 #000, 0 0 0 3px #c9f7d6 inset;
   transform: translateY(-1px);
 }
 
+.bsc-ticket {
+  --bg-color--normal: white;
+  --bg-color--hover: #fdf3c9;
+  cursor: pointer;
+}
+.bsc-ticket:hover {
+  --bg-color--normal: #fdf3c9;
+  --bg-color--hover: white;
+}
+.bsc-ticket:nth-child(1) {
+  --bg-color--normal: white;
+  --bg-color--hover: #fdf3c9;
+  background-color: var(--bg-color--normal);
+}
+.bsc-ticket:nth-child(1):hover {
+  --bg-color--normal: #fdf3c9;
+  --bg-color--hover: white;
+}
+.bsc-ticket:nth-child(2) {
+  --bg-color--normal: white;
+  --bg-color--hover: #BAE5F1;
+  background-color: var(--bg-color--normal);
+}
+.bsc-ticket:nth-child(2):hover {
+  --bg-color--normal: #BAE5F1;
+  --bg-color--hover: white;
+}
+.bsc-ticket:nth-child(3) {
+  --bg-color--normal: white;
+  --bg-color--hover: #F4C8CF;
+  background-color: var(--bg-color--normal);
+}
+.bsc-ticket:nth-child(3):hover {
+  --bg-color--normal: #F4C8CF;
+  --bg-color--hover: white;
+}
+.bsc-ticket .ticket_check {
+  --coupon-ticket--check-w: 25px;
+  --coupon-ticket--check-h: 25px;
+  display: block;
+  width: var(--coupon-ticket--check-w);
+  height: var(--coupon-ticket--check-h);
+  background-color: var(--bg-color--normal);
+  position: relative;
+}
+.bsc-ticket .ticket_check .ticket_check__back {
+  display: block;
+  width: calc(var(--coupon-ticket--check-w) - 5px);
+  height: calc(var(--coupon-ticket--check-h) - 5px);
+  position: absolute;
+  top: 5px;
+  left: 0px;
+  background-color: var(--bg-color--hover);
+  border-radius: 100%;
+}
+.bsc-ticket .ticket_check .ticket_check__front {
+  display: block;
+  width: var(--coupon-ticket--check-w);
+  height: var(--coupon-ticket--check-h);
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.bsc-ticket .ticket_check .ticket_check__front img {
+  display: block;
+  width: var(--coupon-ticket--check-w);
+  height: var(--coupon-ticket--check-h);
+}
+.bsc-ticket .bsc-ticket__carita {
+  --coupon-ticket--carita-w: 100px;
+  --coupon-ticket--carita-h: calc(0.62796504369* var(--coupon-ticket--carita-w));
+  display: block;
+  width: var(--coupon-ticket--carita-w);
+  height: var(--coupon-ticket--carita-h);
+  position: absolute;
+  top: 0px;
+  right: -36px;
+}
+.bsc-ticket .bsc-ticket__carita .bsc-ticket__carita__bg {
+  display: block;
+  width: calc(var(--coupon-ticket--carita-w) - 40px);
+  height: calc(var(--coupon-ticket--carita-h) - 3px);
+  position: absolute;
+  top: 2px;
+  left: 20px;
+  background-color: var(--bg-color--hover);
+  border-radius: 100%;
+}
+.bsc-ticket .bsc-ticket__carita .bsc-ticket__carita__img {
+  display: block;
+  width: var(--coupon-ticket--carita-w);
+  height: var(--coupon-ticket--carita-h);
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.bsc-ticket .bsc-ticket__carita .bsc-ticket__carita__img img {
+  display: block;
+  object-fit: cover;
+  padding: 1px;
+  width: var(--coupon-ticket--carita-w);
+  height: var(--coupon-ticket--carita-h);
+}
+.bsc-ticket .bsc-chip--outline {
+  background-color: var(--bg-color--hover) !important;
+}
+.bsc-ticket .bsc-ticket__exp, .bsc-ticket .bsc-ticket__uses {
+  font-size: 10px;
+}
+
 .woocommerce-account .widget-area,
 .woocommerce-account .site-footer {
   display: none;
+}
+
+.bsc__my-account-header .header__name.bsc__title.bsc__title--centered {
+  padding-top: 0px !important;
 }
 
 /*# sourceMappingURL=style.css.map */

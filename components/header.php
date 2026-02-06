@@ -171,22 +171,22 @@
             [
                 'slug' => 'hc-shampoo',
                 'title' => '1. Shampoo',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-shampoo'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s1-shampoo'
             ],
             [
                 'slug' => 'hc-acondicionador',
                 'title' => '2. Acondicionador',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-acondicionador'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s4-acondicionadores'
             ],
             [
                 'slug' => 'hc-mascarillas',
                 'title' => '3. Mascarillas',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-mascarillas'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s3-mascarillas'
             ],
             [
                 'slug' => 'hc-tratamientos-leave-in',
                 'title' => '4. Tratamientos sin enjuague',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-tratamientos-leave-in'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s7-esencias-leave-in'
             ],
         ]
     ]);
@@ -197,7 +197,7 @@
             [
                 'slug' => 'hc-exfoliantes',
                 'title' => '5. Exfoliantes',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-exfoliantes'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s2-exfoliantes'
             ],
             [
                 'slug' => 'hc-ampollas',
@@ -207,12 +207,12 @@
             [
                 'slug' => 'hc-aceites',
                 'title' => '7. Aceites',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-aceites'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-rutina-s9-aceites'
             ],
             [
                 'slug' => 'hc-cuero-cabelludo',
                 'title' => '8. Cuero cabelludo',
-                'link' => '/product-category/group-hair-care/hc-rutina/hc-cuero-cabelludo'
+                'link' => '/product-category/group-hair-care/hc-rutina/hc-necesidad-cuero-cabelludo'
             ],
         ]
     ]);
@@ -379,7 +379,7 @@
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">
                         <ul>
-                            <li><a href="/mi-cuenta/">Mi Perfil</a></li>
+                            <li style="display:none"><a href="/mi-cuenta/">Mi Perfil</a></li>
                             <li><hr><a href="/mi-cuenta/orders/">Mis Pedidos</a></li>
                             <li><hr><a href="/mi-cuenta/bubble-points/">Mis Puntos</a></li>
                             <li><hr><a href="/mi-cuenta/edit-account/">Mis Datos</a></li>

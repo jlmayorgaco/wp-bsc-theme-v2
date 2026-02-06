@@ -12,7 +12,7 @@ $codes = get_posts([
 ]);
 ?>
 <div class="bsc-coupon-wallet">
-  <h2 class="bsc-coupon-wallet__title">Mis Cupones Disponibles</h2>
+  <h2 class="bsc-coupon-wallet__title">¡Mis cupones <strong>disponibles</strong>!</h2>
 
   <?php if ($codes): ?>
   <ul class="bsc-coupon-wallet__grid" aria-live="polite">
@@ -44,6 +44,12 @@ $codes = get_posts([
 
               <!-- CODE = HERO -->
           <div class="bsc-ticket__code">
+            <div class="ticket_check">
+              <div class="ticket_check__back"></div>
+              <div class="ticket_check__front">
+                <img src="<?php echo trailingslashit(get_stylesheet_directory_uri()) . ltrim('plugins/bubble-points/images/coupon_check.png', '/');  ?>">
+              </div>
+            </div>
             <span class="bsc-code-badge js-copy-coupon" data-code="<?=esc_attr($code);?>" role="button" tabindex="0" aria-label="Copiar código <?=$code;?>">
               <code><?=$code;?></code>
             </span>
@@ -51,13 +57,19 @@ $codes = get_posts([
 
 
           <div class="bsc-ticket__value"><?=$value_str;?></div>
+          <div class="bsc-ticket__carita">                
+            <div class="bsc-ticket__carita__bg"></div>              
+            <div class="bsc-ticket__carita__img">                
+              <img src="<?php echo trailingslashit(get_stylesheet_directory_uri()) . ltrim('plugins/bubble-points/images/coupon_carita.png', '/');  ?>">
+            </div>
+          </div>
 
 
                 <div class="bsc-ticket__row">
             <span class="bsc-chip bsc-chip--outline"><?=esc_html($status);?></span>
-            <span class="bsc-dot">•</span>
+            <span class="bsc-dot">|</span>
             <span class="bsc-ticket__exp"><?=esc_html($exp_str);?></span>
-            <span class="bsc-dot">•</span>
+            <span class="bsc-dot">|</span>
             <span class="bsc-ticket__uses">Usos restantes: <?=esc_html($left_str);?></span>
           </div>
 
@@ -70,9 +82,6 @@ $codes = get_posts([
           <?php endif; ?>
         </div>
 
-        <!-- perforaciones laterales -->
-        <span class="bsc-ticket__notch bsc-ticket__notch--left"></span>
-        <span class="bsc-ticket__notch bsc-ticket__notch--right"></span>
       </li>
     <?php endforeach; ?>
   </ul>

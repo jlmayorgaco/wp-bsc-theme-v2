@@ -25,7 +25,7 @@ class BSC_Orders_Table {
             return;
         }
         ?>
-        <div class="bsc__orders">
+        <div class="bsc bsc__orders">
             <table class="bsc__orders-table woocommerce-orders-table shop_table responsive">
                 <thead>
                     <tr>
@@ -48,9 +48,31 @@ class BSC_Orders_Table {
 
                         <!-- Fecha -->
                         <td class="bsc__orders-cell-order-date" data-title="Fecha">
-                            <time datetime="<?php echo esc_attr($order->get_date_created()->date('c')); ?>">
-                                <?php echo esc_html(wc_format_datetime($order->get_date_created())); ?>
-                            </time>
+                            <?php
+                                $timestamp = $order->get_date_created()->getTimestamp();
+
+                                $meses = array(
+                                    'January'   => 'enero',
+                                    'February'  => 'febrero',
+                                    'March'     => 'marzo',
+                                    'April'     => 'abril',
+                                    'May'       => 'mayo',
+                                    'June'      => 'junio',
+                                    'July'      => 'julio',
+                                    'August'    => 'agosto',
+                                    'September' => 'septiembre',
+                                    'October'   => 'octubre',
+                                    'November'  => 'noviembre',
+                                    'December'  => 'diciembre',
+                                );
+
+                                $fecha_en = date('j F Y', $timestamp);
+                                $fecha_es = strtr($fecha_en, $meses);
+                                ?>
+
+                                <time datetime="<?php echo esc_attr( $order->get_date_created()->date('c') ); ?>">
+                                    <?php echo esc_html( $fecha_es ); ?>
+                                </time>
                         </td>
 
                         <!-- Estado (barra de progreso) -->
