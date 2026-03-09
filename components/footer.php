@@ -42,9 +42,6 @@
           <li class="footer__list-item">
             <a href="/my-account/orders/" class="footer__link">Pedidos</a>
           </li>
-          <li class="footer__list-item">
-            <a href="/my-account/data/" class="footer__link">Datos</a>
-          </li>
         </ul>
       </div>
       <div class="footer__column">
@@ -52,7 +49,7 @@
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="#bubble-creators-popup" class="footer__link">Bubble Creators</a>
+            <a href="/bubble-creators/" class="footer__link">Bubble Creators</a>
           </li>
         </ul>
       </div>

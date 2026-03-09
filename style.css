@@ -8901,6 +8901,308 @@ button {
   background-color: white;
   color: var(--color--text);
 }
+/* BSC-019: newsletter feedback states */
+.home__contact--section .home__contact__feedback--error {
+  color: #c0392b;
+  font-size: 14px;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+.home__contact--section .home__contact__success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.home__contact--section .home__contact__success-msg {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  color: var(--color--text);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BSC-018: Bubble Creators Page
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── HERO ──────────────────────────────────────────────────────── */
+.page-bubble-creators .bc__hero {
+  background-color: var(--color--main);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  padding: 4rem 2rem;
+  flex-wrap: wrap;
+}
+.page-bubble-creators .bc__hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 480px;
+}
+.page-bubble-creators .bc__hero-hearts {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+.page-bubble-creators .bc__hero-hearts img {
+  width: 26px;
+  height: 25px;
+  object-fit: cover;
+}
+.page-bubble-creators .bc__hero-title {
+  font-family: Helvetica, sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--color--text);
+  line-height: 1.1;
+  margin: 0;
+}
+.page-bubble-creators .bc__hero-subtitle {
+  font-size: 17px;
+  font-weight: 300;
+  color: var(--color--text);
+  line-height: 1.6;
+  margin: 0;
+}
+.page-bubble-creators .bc__cta-btn {
+  display: inline-block;
+  background-color: var(--color--text);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0.85rem 2rem;
+  border-radius: 30px;
+  text-decoration: none;
+  align-self: flex-start;
+  transition: opacity 0.2s ease;
+}
+.page-bubble-creators .bc__cta-btn:hover {
+  opacity: 0.8;
+}
+.page-bubble-creators .bc__hero-image img {
+  width: 260px;
+  max-width: 100%;
+  border-radius: 16px;
+}
+
+/* ── ABOUT CARDS ───────────────────────────────────────────────── */
+.page-bubble-creators .bc__about {
+  background-color: #fff;
+  padding: 4rem 2rem;
+}
+.page-bubble-creators .bc__about-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.page-bubble-creators .bc__about-cards {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.page-bubble-creators .bc__about-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  max-width: 300px;
+  padding: 2rem 1.5rem;
+  background-color: #fafafa;
+  border-radius: 16px;
+  flex: 1 1 220px;
+}
+.page-bubble-creators .bc__about-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+.page-bubble-creators .bc__about-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color--text);
+  margin: 0;
+}
+.page-bubble-creators .bc__about-card-text {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── PITCH ─────────────────────────────────────────────────────── */
+.page-bubble-creators .bc__pitch {
+  background-color: var(--color-bg-contact, #C1DFE9);
+  padding: 4rem 2rem;
+}
+.page-bubble-creators .bc__pitch-container {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+.page-bubble-creators .bc__pitch-text {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color--text);
+  margin: 0;
+}
+.page-bubble-creators .bc__pitch-rainbow {
+  display: block;
+  width: 80px;
+  margin: 2rem auto 0;
+}
+
+/* ── FORM ──────────────────────────────────────────────────────── */
+.page-bubble-creators .bc__form-section {
+  background-color: #fff;
+  padding: 4rem 2rem 6rem;
+}
+.page-bubble-creators .bc__form-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.page-bubble-creators .bc__form-description {
+  text-align: center;
+  font-size: 15px;
+  color: #666;
+  margin: -1rem 0 2rem;
+}
+.page-bubble-creators .bc__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.page-bubble-creators .bc__form-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+.page-bubble-creators .bc__form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1 1 220px;
+}
+.page-bubble-creators .bc__form-field--full {
+  flex: 1 1 100%;
+}
+.page-bubble-creators .bc__form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color--text);
+  letter-spacing: 0.5px;
+}
+.page-bubble-creators .bc__form-field input,
+.page-bubble-creators .bc__form-field textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--color--text);
+  background-color: #fafafa;
+  outline: none;
+  transition: border-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.page-bubble-creators .bc__form-field input:focus,
+.page-bubble-creators .bc__form-field textarea:focus {
+  border-color: var(--color--main);
+  background-color: #fff;
+}
+.page-bubble-creators .bc__form-submit {
+  align-self: center;
+  background-color: var(--color--main);
+  color: var(--color--text);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0.9rem 3rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-top: 0.5rem;
+}
+.page-bubble-creators .bc__form-submit:hover {
+  opacity: 0.85;
+}
+.page-bubble-creators .bc__form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-bubble-creators .bc__form-feedback--error {
+  color: #c0392b;
+  font-size: 14px;
+  text-align: center;
+  margin: 0;
+}
+.page-bubble-creators .bc__form-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: var(--color--main);
+  border-radius: 16px;
+  margin-top: 2rem;
+}
+.page-bubble-creators .bc__form-success-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+.page-bubble-creators .bc__form-success-inner img {
+  width: 36px;
+}
+.page-bubble-creators .bc__form-success-inner p {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color--text);
+  margin: 0;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-bubble-creators .bc__hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+    padding: 3rem 1.5rem;
+  }
+  .page-bubble-creators .bc__hero-title {
+    font-size: 40px;
+  }
+  .page-bubble-creators .bc__cta-btn {
+    align-self: center;
+  }
+  .page-bubble-creators .bc__hero-image {
+    display: none;
+  }
+  .page-bubble-creators .bc__hero-hearts {
+    justify-content: center;
+  }
+  .page-bubble-creators .bc__about-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+  .page-bubble-creators .bc__form-row {
+    flex-direction: column;
+  }
+}
+
 .home__contact--section .home__contact__final-image {
   width: 325px;
   align-self: center;
@@ -11689,6 +11991,11 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__button-add-to-cart:hover {
   background-color: var(--color--primary);
+}
+/* BSC-005: ensure iOS Safari treats the inner span as tappable */
+.bsc__button-add-to-cart span {
+  cursor: pointer;
+  pointer-events: none;
 }
 
 .bsc__signin_btn, .bsc__signup_btn {

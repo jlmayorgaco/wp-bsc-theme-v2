@@ -49,6 +49,8 @@ require_once get_template_directory() . '/inc/ajax/checkout-actions.php';
 require_once get_template_directory() . '/inc/ajax/coupons-actions.php';
 require_once get_template_directory() . '/inc/ajax/filters-actions.php';
 require_once get_template_directory() . '/inc/ajax/review-summary-actions.php';
+require_once get_template_directory() . '/inc/ajax/newsletter-actions.php';
+require_once get_template_directory() . '/inc/ajax/creator-actions.php';
 
 
 
