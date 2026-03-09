@@ -26,21 +26,21 @@
             <a href="/shop/" class="footer__link">Entrega inmediata</a>
           </li>
           <li class="footer__list-item">
-            <a href="#encargos-popup" class="footer__link">Encargos</a>
+            <a href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20hacer%20un%20encargo%20especial.%20%F0%9F%8C%B8" target="_blank" rel="noopener noreferrer" class="footer__link">Encargos</a>
           </li>
         </ul>
       </div>
       <div class="footer__column">
-        <h2 class="footer__heading"><a href="http://yourwebsite.com/my-account/">Mi cuenta</a></h2>
+        <h2 class="footer__heading"><a href="/mi-cuenta/">Mi cuenta</a></h2>
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="/my-account/bubble-points/" class="footer__link"
+            <a href="/mi-cuenta/bubble-points/" class="footer__link"
               >Bubble Points</a
             >
           </li>
           <li class="footer__list-item">
-            <a href="/my-account/orders/" class="footer__link">Pedidos</a>
+            <a href="/mi-cuenta/orders/" class="footer__link">Pedidos</a>
           </li>
         </ul>
       </div>
@@ -87,7 +87,7 @@
       </div>
       <div class="footer__copyright">
         <p class="footer__copyright-text">
-          <strong>© 2020 - 2025 BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
+          <strong>© 2020 - 2026 BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
         </p>
       </div>
       </div>

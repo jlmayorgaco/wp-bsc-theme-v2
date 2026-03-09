@@ -63,9 +63,6 @@ jQuery(function ($) {
 
     $(SELECTORS.footerCount).text(count);
     $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
-
-
-        jQuery(document.body).trigger('update_checkout');
   });
 
   /**
@@ -74,16 +71,18 @@ jQuery(function ($) {
   const refreshCartFragments = () => {
     $.get('?wc-ajax=get_refreshed_fragments', function (cart) {
       const rawHtml = cart?.fragments?.['a.cart-contents'];
-      if (!rawHtml) return console.error('No cart contents fragment');
+      if (!rawHtml) {
+        // BSC-004: si WC no devuelve el fragmento (carrito vacío), poner badge en 0
+        $(SELECTORS.footerCount).text('0');
+        $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
+        return;
+      }
 
       const $cartContents = $('<div>').append(rawHtml);
       const cleanCount = $cartContents.find('.count').text().replace(/\D/g, '') || '0';
 
       $(SELECTORS.footerCount).text(cleanCount);
       $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cleanCount} items`);
-
-
-        jQuery(document.body).trigger('update_checkout');
 
       $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities' }, function (res) {
         if (res.success && Array.isArray(res.data)) {
@@ -124,7 +123,14 @@ jQuery(function ($) {
       action: 'update_cart_quantity',
       product_id: productId,
       quantity: isPlus ? 1 : -1,
-    }).done(() => {
+    }).done((response) => {
+      // BSC-004: actualizar badge inmediatamente desde la respuesta del servidor (fuente de verdad)
+      // evita depender del fragmento WC que puede no devolver el conteo cuando el carrito queda vacío
+      const cartCount = response?.data?.cart_count;
+      if (cartCount !== undefined) {
+        $(SELECTORS.footerCount).text(cartCount);
+        $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cartCount} items`);
+      }
       refreshCartFragments();
       if (newQty === 0) {
         $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
@@ -166,15 +172,10 @@ jQuery(function ($) {
 });
 
 
-// keep these OUTSIDE the wrapper if you want, but use jQuery not $
-jQuery(document.body).on('update_checkout.bsc', () => {
-  console.log('🔥 update_checkout triggered');
-  refreshReviewSummary();
-});
-
+// refreshReviewSummary — called directly after cart item removal.
+// On checkout pages, checkout.js handles this via WC's 'updated_checkout' event.
 function refreshReviewSummary() {
-  console.log('🔁 Refreshing Review Summary...');
-  if (!window.bsc_ajax || !bsc_ajax.ajax_url) return;   // guard
+  if (!window.bsc_ajax || !bsc_ajax.ajax_url) return;
 
   jQuery.ajax({
     url: bsc_ajax.ajax_url,
@@ -184,8 +185,6 @@ function refreshReviewSummary() {
   .done(res => {
     if (res?.success && res?.data?.html) {
       jQuery('#bsc-review-summary').html(res.data.html);
-    } else {
-      console.warn('⚠️ Invalid review summary response', res);
     }
   })
   .fail(xhr => console.error('❌ Error al refrescar el resumen del pedido.', xhr?.responseText));

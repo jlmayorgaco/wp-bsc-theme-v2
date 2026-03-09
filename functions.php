@@ -51,6 +51,7 @@ require_once get_template_directory() . '/inc/ajax/filters-actions.php';
 require_once get_template_directory() . '/inc/ajax/review-summary-actions.php';
 require_once get_template_directory() . '/inc/ajax/newsletter-actions.php';
 require_once get_template_directory() . '/inc/ajax/creator-actions.php';
+require_once get_template_directory() . '/inc/ajax/search-actions.php';
 
 
 

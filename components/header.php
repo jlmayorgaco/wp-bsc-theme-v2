@@ -433,6 +433,11 @@
                 <img class="header-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
             </a>
         </li>
+        <li class="header-mobile__nav-item item--mobile-search">
+            <button id="mobile-search-btn" aria-label="Buscar productos">
+                <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_header__search-icon--hover.png" alt="Buscar" style="width:22px;height:22px;object-fit:contain;">
+            </button>
+        </li>
         <li class="header-mobile__nav-item item--shop">
             <a href="/shop">
                 <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
@@ -441,11 +446,22 @@
     </ul>
 </header>
 
+<!-- Mobile search panel (standalone — not inside any display:none header) -->
+<div class="bsc-mobile-search-panel" role="search" aria-label="Buscar productos">
+    <input type="text" class="header-search-input" placeholder="Buscar productos…" autocomplete="off">
+    <ul class="search-results"></ul>
+</div>
+
 <sidebar class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar">
   <div class="sidebar-mobile__container">
 
     <!-- Logo -->
     <img class="sidebar-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
+
+    <!-- Search (sidebar) -->
+    <form class="sidebar-mobile__search" action="/shop/" method="get" role="search">
+        <input type="search" name="s" placeholder="Buscar productos…" autocomplete="off" aria-label="Buscar">
+    </form>
 
     <!-- Navigation -->
     <nav class="sidebar-mobile__nav">

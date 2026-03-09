@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(() => {
         targetContent.classList.add('fade-in');
       });
+
+      // BSC-012: smooth scroll to products area with sticky header offset
+      const tabsContent = document.querySelector('.tabs__content');
+      if (tabsContent) {
+        const mobileHeader = document.getElementById('mobileHeader');
+        const desktopHeader = document.querySelector('.bsc__header--desktop');
+        const headerHeight = (mobileHeader && mobileHeader.offsetHeight > 0)
+          ? mobileHeader.offsetHeight
+          : (desktopHeader ? desktopHeader.offsetHeight : 0);
+        const targetY = tabsContent.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      }
     });
   });
 

@@ -14,6 +14,10 @@ function enqueue_fontawesome() {
 add_action( 'wp_enqueue_scripts', 'enqueue_fontawesome' );
 
 function bsc_enqueue_swiper_assets() {
+  // Swiper solo se usa en el hero del home — no cargar en otras páginas
+  if ( ! is_front_page() ) {
+    return;
+  }
   wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css');
   wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', [], null, true);
 }
