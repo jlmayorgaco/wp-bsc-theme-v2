@@ -15,16 +15,11 @@ function bsc_apply_coupon() {
     wp_send_json_error(['message' => 'Código de cupón no recibido.']);
   }
 
-  // TODO: VERFIY IF COUPON CODE EXIST, IF NOT SEND ERROR:
   $coupon_code = sanitize_text_field($_POST['coupon_code']);
 
-  // ✅ One-line validation
   if ( ! bsc_is_valid_coupon( $coupon_code ) ) {
     wp_send_json_error(['message' => 'El cupón no existe o no es válido.']);
   }
-
-
-  $coupon_code = sanitize_text_field($_POST['coupon_code']);
 
   if ( ! WC()->cart ) {
     wp_send_json_error(['message' => 'Carrito no disponible.']);

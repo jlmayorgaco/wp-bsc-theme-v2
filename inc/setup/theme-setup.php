@@ -74,11 +74,37 @@ if (!function_exists('bsc_create_default_pages')) {
                 'template' => 'page-bubble-points.php',
                 'parent'   => 'mi-cuenta',
             ],
-            // 👇 NEW: K-Beauty /product-category/ landing page
+                // K-Beauty /product-category/ landing page
             [
                 'slug'     => 'product-category',
                 'title'    => 'K-Beauty',
                 'template' => 'template-bsc-shop-landing.php',
+            ],
+            // BSC required pages — static content pages
+            [
+                'slug'     => 'bubble-creators',
+                'title'    => 'Bubble Creators',
+                'template' => 'page-bubble-creators.php',
+            ],
+            [
+                'slug'     => 'shipping-returns',
+                'title'    => 'Envíos y Devoluciones',
+                'template' => 'page-shipping-returns.php',
+            ],
+            [
+                'slug'     => 'faq',
+                'title'    => 'Preguntas Frecuentes',
+                'template' => 'page-faq.php',
+            ],
+            [
+                'slug'     => 'contact-us',
+                'title'    => 'Contacto',
+                'template' => 'page-contact-us.php',
+            ],
+            [
+                'slug'    => 'registro-familia-bubbles',
+                'title'   => '¡Bienvenida a la familia Bubbles!',
+                'content' => '<p>Gracias por registrarte. Ya eres parte de la familia Bubbles Skin Care. 🌸</p><p><a href="/shop/">Explorar la tienda</a></p>',
             ],
         ];
 
@@ -95,12 +121,13 @@ if (!function_exists('bsc_create_default_pages')) {
                     }
                 }
 
+                $content = $page['shortcode'] ?? $page['content'] ?? '';
                 $post_id = wp_insert_post([
                     'post_title'   => $page['title'],
                     'post_name'    => $page['slug'],
                     'post_status'  => 'publish',
                     'post_type'    => 'page',
-                    'post_content' => $page['shortcode'] ?? '',
+                    'post_content' => $content,
                     'post_parent'  => $parent_id,
                 ]);
 
@@ -120,19 +147,35 @@ if (!function_exists('bsc_create_default_pages')) {
     }
 
     function bsc_create_default_pages_once() {
-        // We already use this flag, now it also covers the K-Beauty landing
         if (!get_option('bsc_default_pages_created')) {
+            // First run: create all required pages
             bsc_create_default_pages();
             update_option('bsc_default_pages_created', true);
+            delete_transient('bsc_pages_checked');
         } else {
-            // Optional: run again but non-destructively to ensure templates stay correct
-            bsc_create_default_pages();
+            // Subsequent runs: check templates at most once per day to avoid
+            // running N get_page_by_path() queries on every single request
+            if (!get_transient('bsc_pages_checked')) {
+                bsc_create_default_pages();
+                set_transient('bsc_pages_checked', true, DAY_IN_SECONDS);
+            }
         }
     }
 
     add_action('after_setup_theme', 'bsc_create_default_pages_once');
-    add_action('after_switch_theme', 'bsc_create_default_pages_once');
+    // after_switch_theme: clear transient first (priority 5), then run bootstrap (priority 10)
+    add_action('after_switch_theme', 'bsc_create_default_pages_once', 10);
 }
+
+/**
+ * On theme (re)activation: clear daily transient so bootstrap always runs fully,
+ * then flush rewrite rules so new page slugs resolve immediately.
+ * Priority 5 ensures this runs before bsc_create_default_pages_once (priority 10).
+ */
+add_action('after_switch_theme', function () {
+    delete_transient('bsc_pages_checked');
+    flush_rewrite_rules();
+}, 5);
 
 /**
  * Load bundled plugins

@@ -12,6 +12,7 @@ class BSC_Products_Card {
     private $link;
     private $rating = 0;
     private $brand = '';
+    private $type  = 'simple';
 
     public function setProduct(WC_Product $product): void {
         $this->id            = $product->get_id();
@@ -27,6 +28,7 @@ class BSC_Products_Card {
 
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();
+        $this->type          = $product->get_type();
 
         // Set categories
         $terms = get_the_terms($product->get_id(), 'product_cat');
@@ -68,7 +70,7 @@ class BSC_Products_Card {
         $full = floor($rating);
         $empty = 5 - $full;
         $img_heart_full = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/2.png';
-        $img_heart_empty = 'https://bubblesskincare.com//wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
+        $img_heart_empty = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
 
         echo '';
         for ($i = 0; $i < $full; $i++) {
@@ -97,15 +99,24 @@ class BSC_Products_Card {
         echo $this->price;
     }
 
-    public function render_button(string $label = 'Agregar'): void {
+    public function render_button(string $label = '¡Lo quiero!'): void {
         $product_id = $this->id;
-        $in_cart = false;
+
+        // Variable products cannot be added to cart without selecting options — redirect to product page
+        if ( $this->type === 'variable' ) {
+            echo '<a href="' . esc_url($this->link) . '" class="bsc__button-add-to-cart bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
+            echo '<span>Ver opciones</span>';
+            echo '</a>';
+            return;
+        }
+
+        $in_cart  = false;
         $quantity = 0;
 
         // Check if product is in the cart
         foreach (WC()->cart->get_cart() as $cart_item) {
             if ((int)$cart_item['product_id'] === (int)$product_id) {
-                $in_cart = true;
+                $in_cart  = true;
                 $quantity = $cart_item['quantity'];
                 break;
             }
@@ -120,13 +131,13 @@ class BSC_Products_Card {
             echo '</div>';
         } else {
             // Render add-to-cart button
-            echo '<a 
-                href="?add-to-cart=' . esc_attr($product_id) . '" 
-                class="bsc__button-add-to-cart ajax_add_to_cart" 
-                data-quantity="1" 
-                data-product_id="' . esc_attr($product_id) . '" 
-                data-product_sku="" 
-                aria-label="Agregar este producto al carrito"
+            echo '<a
+                href="?add-to-cart=' . esc_attr($product_id) . '"
+                class="bsc__button-add-to-cart"
+                data-quantity="1"
+                data-product_id="' . esc_attr($product_id) . '"
+                data-product_sku=""
+                aria-label="' . esc_attr($label) . '"
                 rel="nofollow"
             >';
             echo '<span>' . esc_html($label) . '</span>';

@@ -22,13 +22,24 @@ function bsc_update_cart_quantity() {
 
 			if ($new_qty < 1) {
 				WC()->cart->remove_cart_item($cart_item_key);
+				WC()->cart->calculate_totals();
 				wc_clear_notices();
-				wp_send_json_success(['message' => 'Product removed from cart']);
+				// BSC-004: incluir cart_count para que el JS actualice el badge sin depender del fragmento
+				wp_send_json_success([
+					'message'    => 'Product removed from cart',
+					'cart_count' => WC()->cart->get_cart_contents_count(),
+				]);
 			}
 
 			WC()->cart->set_quantity($cart_item_key, $new_qty);
+			WC()->cart->calculate_totals();
 			wc_clear_notices();
-			wp_send_json_success(['message' => 'Quantity updated', 'new_qty' => $new_qty]);
+			// BSC-004: incluir cart_count en todas las respuestas
+			wp_send_json_success([
+				'message'    => 'Quantity updated',
+				'new_qty'    => $new_qty,
+				'cart_count' => WC()->cart->get_cart_contents_count(),
+			]);
 		}
 	}
 

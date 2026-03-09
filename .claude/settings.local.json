@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(git:*)",
+      "Bash(npm run:*)",
+      "Bash(cat:*)",
+      "Bash(npx vitest:*)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(wc:*)",
+      "Bash(npm install:*)",
+      "Bash(npx playwright:*)",
+      "Bash(do echo:*)",
+      "Bash(xargs wc:*)",
+      "Bash(find C:\\\\Users\\\\walla\\\\Local Sites\\\\bsc\\\\app\\\\public\\\\wp-content\\\\themes\\\\wp-bsc-theme-v2\\\\js:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}

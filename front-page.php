@@ -187,11 +187,19 @@
         ];
 
         foreach ($brands as $i => $brand) {
-          $name = esc_attr($brand['name']);
-          $slug = esc_attr($brand['slug']);
+          $raw_slug    = $brand['slug'];
+          $name        = esc_attr($brand['name']);
+          $slug        = esc_attr($raw_slug);
           $image_index = $i + 1;
-          $image_url = get_template_directory_uri() . "/images/home_brands/brand_0{$image_index}.png";
-          $brand_url = esc_url("/product-category/{$slug}");
+          $image_url   = get_template_directory_uri() . "/images/home_brands/brand_0{$image_index}.png";
+
+          // BSC-006: usar get_term_link() para generar la URL jerárquica correcta.
+          // El URL plano /product-category/{slug} tenía depth=1 y caía en renderLevel2(),
+          // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 → renderLevel3().
+          $term      = get_term_by('slug', $raw_slug, 'product_cat');
+          $term_link = ($term && !is_wp_error($term)) ? get_term_link($term) : null;
+          $brand_url = ($term_link && !is_wp_error($term_link)) ? esc_url($term_link) : '#';
+
           echo <<<HTML
           <li class="brands__item" data-brand-name="{$name}" data-brand-slug="{$slug}">
             <a href="{$brand_url}">
@@ -273,22 +281,24 @@
               >
             </div>
 
+            <!-- BSC-021: blog mockup con badge "Próximamente" -->
             <div class="home__contact__blog-row">
-              <img 
-                class="home__contact__blog-card" 
-                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image1.png" 
-                alt="Bubble Blog Card"
+              <img
+                class="home__contact__blog-card"
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image1.png"
+                alt="Bubble Blog"
               >
-              <img 
-                class="home__contact__blog-photo" 
-                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image2.png" 
-                alt="Bubble Blog Photo"
+              <img
+                class="home__contact__blog-photo"
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image2.png"
+                alt=""
               >
-              <img 
-                class="home__contact__blog-sticker" 
-                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image3.png" 
-                alt="Sticker"
+              <img
+                class="home__contact__blog-sticker"
+                src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image3.png"
+                alt=""
               >
+              <div class="home__contact__blog-coming-soon">Próximamente</div>
             </div>
           </div>
 
@@ -304,10 +314,51 @@
               <strong>Únete a la comunidad de BSC</strong> y entérate antes que nadie de promociones, noticias y lanzamientos exclusivos
             </p>
 
-            <form class="home__contact__form" action="#">
-              <input type="email" placeholder="Tu e-mail" class="home__contact__input" required>
-              <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit">
+            <form class="home__contact__form" id="bsc-newsletter-form" action="#">
+              <input type="email" name="email" id="bsc-newsletter-email" placeholder="Tu e-mail" class="home__contact__input" required>
+              <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit" id="bsc-newsletter-submit">
+              <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error" style="display:none;"></p>
             </form>
+            <div class="home__contact__success" id="bsc-newsletter-success" style="display:none;">
+              <p class="home__contact__success-msg" id="bsc-newsletter-success-msg"></p>
+            </div>
+
+            <script>
+            (function($){
+              $('#bsc-newsletter-form').on('submit', function(e) {
+                e.preventDefault();
+                var email   = $('#bsc-newsletter-email').val().trim();
+                var $submit = $('#bsc-newsletter-submit');
+                var $error  = $('#bsc-newsletter-error');
+
+                $error.hide().text('');
+
+                if (!email) {
+                  $error.text('Por favor ingresa tu correo electrónico.').show();
+                  return;
+                }
+
+                $submit.prop('disabled', true).val('Enviando…');
+
+                $.post(bsc_ajax.ajax_url, {
+                  action: 'bsc_newsletter_subscribe',
+                  email:  email
+                }).done(function(res) {
+                  if (res.success) {
+                    $('#bsc-newsletter-form').hide();
+                    $('#bsc-newsletter-success-msg').text(res.data.message);
+                    $('#bsc-newsletter-success').show();
+                  } else {
+                    $error.text(res.data.message || 'Hubo un error. Intenta nuevamente.').show();
+                    $submit.prop('disabled', false).val('¡Quiero Ser Parte !');
+                  }
+                }).fail(function() {
+                  $error.text('Error de conexión. Por favor intenta nuevamente.').show();
+                  $submit.prop('disabled', false).val('¡Quiero Ser Parte !');
+                });
+              });
+            })(jQuery);
+            </script>
 
             <img 
               class="home__contact__final-image" 

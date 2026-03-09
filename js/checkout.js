@@ -15,7 +15,7 @@ jQuery(function($) {
     billing_city: 'Selecciona una ciudad',
     billing_postcode: 'Código postal',
     billing_address_1: 'Dirección de entrega',
-    billing_address_2: 'Complemento de dirección',
+    // billing_address_2 is optional — complemento de dirección no debe ser requerido
   };
 
   const shippingToggleSelector = '#ship_to_different_address';
@@ -24,7 +24,7 @@ jQuery(function($) {
     shipping_country: 'Selecciona un país',
     shipping_state: 'Selecciona un departamento',
     shipping_postcode: 'Código postal',
-    shipping_address_1: 'Código postal',
+    shipping_address_1: 'Dirección de entrega',
   }
 
   // === HELPERS ===
@@ -178,48 +178,19 @@ jQuery(function($) {
   });
 
   $('form[name="checkout"]').on('submit', function (e) {
-
-    e.preventDefault(); // Evita el envío para validar primero
-
     const $form = $(this);
-    console.log('🧪 Validando antes de enviar...');
+    console.log('🧪 Validando checkout...');
 
     const hasError = validateRequiredFields($form);
-    refreshReviewSummary();
 
     if (hasError) {
-      console.log('❌ Validación falló. Previniendo envío.');
+      // Prevent ALL submission (native + WooCommerce AJAX) and show inline errors
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      console.log('❌ Validación fallida — campos requeridos vacíos.');
       scrollToFirstError($form);
-    } else {
-      console.log('✅ Validación correcta. Campos enviados:');
-
-      const formData = new FormData($form.get(0));
-      for (let [key, value] of formData.entries()) {
-        console.log(`📦 ${key}: ${value}`);
-      }
-
-      // 👉 IMPORTANTE: Aquí deberías permitir el envío normal si WooCommerce JS está presente
-      // Para eso, remueve preventDefault o usa trigger:
-      // $form.get(0).submit(); ← a veces WooCommerce no lo capta bien así
-      // Mejor:
-      $.ajax({
-  url: '/?wc-ajax=checkout', // Este es el endpoint real de WooCommerce
-  method: 'POST',
-  data: $form.serialize(),   // Aquí ya va todo lo que necesita
-  success: function (response) {
-    console.log('✅ Pedido procesado', response);
-    if (response.result === 'success') {
-      window.location.href = response.redirect;
-    } else {
-      alert('Error: ' + response.messages);
     }
-  },
-  error: function (err) {
-    console.error('❌ Error en AJAX Woo Checkout', err);
-  }
-});
-
-    }
+    // If no errors: don't preventDefault — WooCommerce's own checkout AJAX takes over
   });
 
 
