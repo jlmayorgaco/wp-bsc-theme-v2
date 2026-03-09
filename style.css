@@ -11224,16 +11224,68 @@ body.admin-bar .bsc__menu-nav--content {
   font-size: 20px;
   cursor: pointer;
 }
+/* BSC-008: sidebar-mobile__brand removed from DOM, rule kept inert */
 .bsc__sidebar--mobile .sidebar-mobile__brand {
+  display: none;
+}
+
+/* BSC-008: mobile menu visual improvements */
+.bsc__sidebar--mobile .mobile-nav {
+  border-bottom: 1px solid #ebebeb;
+}
+.bsc__sidebar--mobile .mobile-nav__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #222;
+  cursor: pointer;
+  list-style: none;
+}
+.bsc__sidebar--mobile .mobile-nav__title::after {
+  content: '+';
+  font-size: 18px;
+  font-weight: 300;
+  color: #999;
+  transition: transform 0.2s ease;
+}
+.bsc__sidebar--mobile details[open] > .mobile-nav__title::after {
+  content: '−';
+}
+.bsc__sidebar--mobile .mobile-nav__items {
+  padding: 4px 0 12px 12px;
+  background-color: #fafafa;
+  border-left: 2px solid var(--color--main);
+  margin-bottom: 4px;
+}
+.bsc__sidebar--mobile .mobile-nav__item {
+  margin-bottom: 0;
+}
+.bsc__sidebar--mobile .mobile-nav__item-link {
   display: block;
-  width: fit-content;
-  margin: 1em auto;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-align: center;
+  padding: 9px 8px;
+  color: #444;
+  font-size: 13px;
+  font-weight: 400;
   text-decoration: none;
-  color: #333;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.bsc__sidebar--mobile .mobile-nav__item-link:hover,
+.bsc__sidebar--mobile .mobile-nav__item-link:active {
+  background-color: var(--color--main);
+  color: #222;
+}
+.bsc__sidebar--mobile a.mobile-nav__title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 14px 0;
+  color: #222;
 }
 
 #mobileSidebar {
@@ -11668,6 +11720,24 @@ body.admin-bar .bsc__header--desktop {
   .footer__shopping-cart {
     bottom: 20px;
     right: 15px;
+  }
+  /* BSC-022: WhatsApp button on mobile — fix off-screen position caused by desktop calc */
+  .footer__whatsapp {
+    bottom: 80px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+  }
+  .footer__whatsapp .footer__wa {
+    display: none;
+  }
+  .footer__whatsapp i {
+    margin: 0;
+    font-size: 22px;
   }
 }
 @media (max-width: 480px) {

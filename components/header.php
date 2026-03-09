@@ -430,7 +430,7 @@
         </li>
         <li class="header-mobile__nav-item item--logo">
             <a href="/">
-                <img class="header-mobile__logo" src="http://bsc2.local/wp-content/themes/wp-bsc-theme-v2/images/bsc_logo_header.png" alt="Logo">
+                <img class="header-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
             </a>
         </li>
         <li class="header-mobile__nav-item item--shop">
@@ -445,7 +445,7 @@
   <div class="sidebar-mobile__container">
 
     <!-- Logo -->
-    <img class="sidebar-mobile__logo" src="http://bsc2.local/wp-content/themes/wp-bsc-theme-v2/images/bsc_logo_header.png" alt="Logo">
+    <img class="sidebar-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
 
     <!-- Navigation -->
     <nav class="sidebar-mobile__nav">
@@ -455,36 +455,34 @@
                 <div class="mobile-nav__title-text">MI CUENTA</div>
             </summary>
             <ul class="mobile-nav__items">
+                <?php if (is_user_logged_in()) : ?>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Iniciar Sesión</span>
+                    <a class="mobile-nav__item-link" href="/mi-cuenta/orders/">
+                        <span class="mobile-nav__item-text">Mis Pedidos</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Registrame</span>
+                    <a class="mobile-nav__item-link" href="/mi-cuenta/bubble-points/">
+                        <span class="mobile-nav__item-text">Bubble Points</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Mi Cuenta</span>
+                    <a class="mobile-nav__item-link" href="/mi-cuenta/customer-logout/">
+                        <span class="mobile-nav__item-text">Cerrar sesión</span>
+                    </a>
+                </li>
+                <?php else : ?>
+                <li class="mobile-nav__item">
+                    <a class="mobile-nav__item-link" href="/login/">
+                        <span class="mobile-nav__item-text">Iniciar sesión</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Mis Puntos</span>
+                    <a class="mobile-nav__item-link" href="/register/">
+                        <span class="mobile-nav__item-text">Crear cuenta</span>
                     </a>
                 </li>
-                <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Politicas de Privacidad</span>
-                    </a>
-                </li>
-                <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="">
-                        <span class="mobile-nav__item-text">Olvide mi contraseña</span>
-                    </a>
-                </li>
+                <?php endif; ?>
             </ul>
         </details>
 
@@ -558,12 +556,9 @@
 
     <!-- Footer -->
     <div class="sidebar-mobile__copy">
-      <h5>© 2023 BSC | Bubbles Skin Care</h5>
+      <h5>© 2020 - 2026 BSC | Bubbles Skin Care</h5>
       <h4>Todos los derechos reservados</h4>
-      <br>
     </div>
-
-    <a class="sidebar-mobile__brand" href="http://www.jlma.com.co" target="_blank">Desarrollado con amor por Wappy 🤍</a>
     
 
   </div>
