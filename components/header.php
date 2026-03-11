@@ -435,7 +435,7 @@
         </li>
         <li class="header-mobile__nav-item item--mobile-search">
             <button id="mobile-search-btn" aria-label="Buscar productos">
-                <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_header__search-icon--hover.png" alt="Buscar" style="width:22px;height:22px;object-fit:contain;">
+                <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_header__search-icon--hover.png" alt="Buscar">
             </button>
         </li>
         <li class="header-mobile__nav-item item--shop">

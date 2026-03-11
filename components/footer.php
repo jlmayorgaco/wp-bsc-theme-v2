@@ -19,14 +19,14 @@
         </ul>
       </div>
       <div class="footer__column">
-        <h2 class="footer__heading"><a href="/shop/">Tienda</a></h2>
+        <h2 class="footer__heading"><a href="/shop/">K-Beauty</a></h2>
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="/shop/" class="footer__link">Entrega inmediata</a>
+            <a href="/product-category/" class="footer__link">Entrega inmediata</a>
           </li>
           <li class="footer__list-item">
-            <a href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20hacer%20un%20encargo%20especial.%20%F0%9F%8C%B8" target="_blank" rel="noopener noreferrer" class="footer__link">Encargos</a>
+            <a href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20hacer%20un%20encargo%20..." target="_blank" rel="noopener noreferrer" class="footer__link">Encargos</a>
           </li>
         </ul>
       </div>

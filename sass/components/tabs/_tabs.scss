@@ -127,3 +127,30 @@
 .bsc__tab [data-tab-name="piel-normal"].tab__header.active .tab__icon .cls-1 {
   fill: #BAE5F1;
 }
+
+
+
+.tabs__headers--favs {
+}
+
+/* iPad / tablet */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .tabs__headers--favs {
+        justify-content: center !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .tabs__headers--favs {
+       justify-content: center !important;
+  }
+
+  .bsc__tabs {
+  margin-top: 0rem;
+}
+ .bsc__tabs .tab__header {
+  width: 85px;
+}
+  
+}

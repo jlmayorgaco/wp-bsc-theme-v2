@@ -1,18 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const MOBILE_BREAKPOINT = 1024;
+
+  function isMobileView() {
+    return window.innerWidth <= MOBILE_BREAKPOINT;
+  }
 
   // ── Shared AJAX search runner ─────────────────────────────────────────────
   async function runSearch(query, resultsList) {
-    resultsList.innerHTML = '<li class="search-loading">Buscando\u2026</li>';
+    resultsList.innerHTML = '<li class="search-loading">Buscando…</li>';
 
-    const ajaxUrl        = (window.bsc_search && window.bsc_search.ajax_url)        ? window.bsc_search.ajax_url        : '/wp-admin/admin-ajax.php';
-    const placeholderImg = (window.bsc_search && window.bsc_search.placeholder_img) ? window.bsc_search.placeholder_img : '';
+    const ajaxUrl =
+      window.bsc_search && window.bsc_search.ajax_url
+        ? window.bsc_search.ajax_url
+        : '/wp-admin/admin-ajax.php';
+
+    const placeholderImg =
+      window.bsc_search && window.bsc_search.placeholder_img
+        ? window.bsc_search.placeholder_img
+        : '';
 
     try {
       const res = await fetch(
         ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query)
       );
 
-      if (!res.ok) throw new Error('Network error ' + res.status);
+      if (!res.ok) {
+        throw new Error('Network error ' + res.status);
+      }
 
       const data = await res.json();
 
@@ -23,13 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      data.data.products.forEach(product => {
+      data.data.products.forEach((product) => {
         const li = document.createElement('li');
         li.classList.add('search-result-item');
 
         const img = document.createElement('img');
-        img.alt   = product.name;
+        img.alt = product.name;
         img.classList.add('search-result-image');
+
         if (product.image) {
           img.src = product.image;
         } else if (placeholderImg) {
@@ -56,80 +71,179 @@ document.addEventListener('DOMContentLoaded', () => {
         if (product.price) {
           const price = document.createElement('span');
           price.classList.add('search-result-price');
-          price.textContent = product.price;
+          price.textContent = decodeHtmlEntities(product.price);
           info.appendChild(price);
         }
 
         li.appendChild(img);
         li.appendChild(info);
 
-        li.addEventListener('click', () => { window.location.href = product.permalink; });
+        li.addEventListener('click', () => {
+          window.location.href = product.permalink;
+        });
 
         resultsList.appendChild(li);
       });
-
     } catch (err) {
       resultsList.innerHTML = '<li class="search-empty">Error al buscar. Intenta de nuevo.</li>';
     }
   }
 
-  // ── Init a search instance (toggle btn + panel + input + results) ─────────
-  function initSearchInstance(toggleBtn, searchContainer, searchInput, resultsList) {
-    if (!searchContainer || !searchInput || !resultsList) return;
+  // ── Init a search instance ────────────────────────────────────────────────
+  function initSearchInstance({
+    type,
+    toggleBtn,
+    searchContainer,
+    searchInput,
+    resultsList
+  }) {
+    if (!searchContainer || !searchInput || !resultsList) return null;
+
+    let searchTimeout = null;
+
+    function isThisInstanceActive() {
+      return type === 'mobile' ? isMobileView() : !isMobileView();
+    }
+
+    function openSearch() {
+      if (!isThisInstanceActive()) return;
+      searchContainer.classList.add('visible');
+      searchInput.focus();
+    }
+
+    function closeSearch() {
+      searchContainer.classList.remove('visible');
+    }
+
+    function clearSearchResults() {
+      resultsList.innerHTML = '';
+    }
+
+    function resetSearch() {
+      closeSearch();
+      searchInput.value = '';
+      clearSearchResults();
+    }
 
     if (toggleBtn) {
       toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        searchContainer.classList.toggle('visible');
-        if (searchContainer.classList.contains('visible')) searchInput.focus();
-      });
+        if (!isThisInstanceActive()) return;
 
-      document.addEventListener('click', (e) => {
-        if (!searchContainer.contains(e.target) && !toggleBtn.contains(e.target)) {
-          searchContainer.classList.remove('visible');
+        e.preventDefault();
+        e.stopPropagation();
+
+        const isVisible = searchContainer.classList.contains('visible');
+
+        if (isVisible) {
+          closeSearch();
+        } else {
+          openSearch();
         }
       });
     }
 
-    let searchTimeout = null;
-    searchInput.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      const query = searchInput.value.trim();
-      resultsList.innerHTML = '';
-      if (query.length < 3) return;
-      searchTimeout = setTimeout(() => runSearch(query, resultsList), 350);
+    document.addEventListener('click', (e) => {
+      if (!isThisInstanceActive()) return;
+
+      const clickedInsideContainer = searchContainer.contains(e.target);
+      const clickedToggle = toggleBtn ? toggleBtn.contains(e.target) : false;
+
+      if (!clickedInsideContainer && !clickedToggle) {
+        closeSearch();
+      }
     });
+
+    document.addEventListener('keydown', (e) => {
+      if (!isThisInstanceActive()) return;
+
+      if (e.key === 'Escape') {
+        closeSearch();
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      if (!isThisInstanceActive()) return;
+
+      clearTimeout(searchTimeout);
+
+      const query = searchInput.value.trim();
+      clearSearchResults();
+
+      if (query.length < 3) return;
+
+      searchTimeout = setTimeout(() => {
+        runSearch(query, resultsList);
+      }, 350);
+    });
+
+    return {
+      openSearch,
+      closeSearch,
+      resetSearch,
+      container: searchContainer,
+      input: searchInput,
+      results: resultsList
+    };
   }
 
-  // ── Desktop search ───────────────────────────────────────────────────────
-  initSearchInstance(
-    document.querySelector('.btn-search-toggle'),
-    document.querySelector('.bsc__header--desktop .header__search'),
-    document.querySelector('.bsc__header--desktop .header-search-input'),
-    document.querySelector('.bsc__header--desktop .search-results')
-  );
+  // ── Desktop search ────────────────────────────────────────────────────────
+  const desktopSearch = initSearchInstance({
+    type: 'desktop',
+    toggleBtn: document.querySelector('.btn-search-toggle'),
+    searchContainer: document.querySelector('.bsc__header--desktop .header__search'),
+    searchInput: document.querySelector('.bsc__header--desktop .header-search-input'),
+    resultsList: document.querySelector('.bsc__header--desktop .search-results')
+  });
 
-  // ── Mobile search ────────────────────────────────────────────────────────
-  initSearchInstance(
-    document.querySelector('#mobile-search-btn'),
-    document.querySelector('.bsc-mobile-search-panel'),
-    document.querySelector('.bsc-mobile-search-panel .header-search-input'),
-    document.querySelector('.bsc-mobile-search-panel .search-results')
-  );
+  // ── Mobile search ─────────────────────────────────────────────────────────
+  const mobileSearch = initSearchInstance({
+    type: 'mobile',
+    toggleBtn: document.querySelector('#mobile-search-btn'),
+    searchContainer: document.querySelector('.bsc-mobile-search-panel'),
+    searchInput: document.querySelector('.bsc-mobile-search-panel .header-search-input'),
+    resultsList: document.querySelector('.bsc-mobile-search-panel .search-results')
+  });
 
+  // ── Reset states on resize between desktop/mobile ─────────────────────────
+  let lastIsMobile = isMobileView();
+
+  window.addEventListener('resize', () => {
+    const currentIsMobile = isMobileView();
+
+    if (currentIsMobile !== lastIsMobile) {
+      if (desktopSearch) desktopSearch.resetSearch();
+      if (mobileSearch) mobileSearch.resetSearch();
+      lastIsMobile = currentIsMobile;
+    }
+
+    updateSearchPosition();
+  });
+
+  // ── Desktop search dropdown position ──────────────────────────────────────
+  function updateSearchPosition() {
+    const root = document.documentElement;
+    if (!root) return;
+
+    const pageContainerWidth =
+      parseInt(getComputedStyle(root).getPropertyValue('--size--page-container-w')) || 1200;
+
+    const windowWidth = window.innerWidth;
+    const rightValue =
+      windowWidth > pageContainerWidth
+        ? `${(windowWidth - pageContainerWidth) / 2}px`
+        : '0px';
+
+    root.style.setProperty('--header-search-right', rightValue);
+  }
+
+  window.addEventListener('load', updateSearchPosition);
+  updateSearchPosition();
 });
 
-// ── Desktop search dropdown position (right-aligned with page container) ─────
-function updateSearchPosition() {
-  const root = document.documentElement;
-  if (!root) return;
-  const pageContainerWidth = parseInt(getComputedStyle(root).getPropertyValue('--size--page-container-w')) || 1200;
-  const windowWidth = window.innerWidth;
-  const rightValue = (windowWidth > pageContainerWidth)
-    ? `${(windowWidth - pageContainerWidth) / 2}px`
-    : '0px';
-  root.style.setProperty('--header-search-right', rightValue);
-}
 
-window.addEventListener('load', updateSearchPosition);
-window.addEventListener('resize', updateSearchPosition);
+
+function decodeHtmlEntities(str) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = str;
+  return txt.value;
+}
