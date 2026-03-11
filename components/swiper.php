@@ -86,7 +86,7 @@ if (count($repeated_slides) > 0) : ?>
   document.addEventListener("DOMContentLoaded", function () {
     if (!document.querySelector('.bsc__home-swiper .swiper-wrapper')) return;
     new Swiper(".bsc__home-swiper", {
-      loop: true,
+      loop: false,
       autoplay: {
         delay: 4000,
         disableOnInteraction: true

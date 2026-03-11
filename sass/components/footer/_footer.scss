@@ -358,10 +358,85 @@ $logo-max-width: 180px;
       bottom: 20px;
       right: 15px;
     }
+    
   }
+
+      .footer__whatsapp {
+        bottom: 18px !important;
+      }
+          .footer__shopping-cart {
+             bottom: 22px !important;
+          }
+          
 }
 
 @media (max-width: 480px) {
   .footer__heading { font-size: 1em; }
   .footer__link { font-size: 0.9em; }
+    .footer__whatsapp {
+        bottom: 18px !important;
+      }
+          .footer__shopping-cart {
+             bottom: 22px !important;
+          }
+          
+
+
+          // 3. Block: Footer ---------------------------------------------
+
+          .bsc.footer{
+  padding: 0px 0px;
+          }
+.footer {
+  display: block;
+  background-color: $footer-bg-color;
+  width: 100%;
+  max-width: 100%;
+  z-index: 1;
+  position: relative;
+
+  &__container {
+    background-color: $footer-bg-color;
+    color: $footer-text-color;
+    max-width: $container-max-width;
+    margin: 0 auto;
+    padding: 0px 0px;
+    font-family: sans-serif;
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+  }
+
+  .footer__links-section,.footer__column{
+        display: flex;
+    flex-direction: column;
+    justify-items: center;
+
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  .footer__divider{
+    margin: 0 auto;
+    width: 380px;
+    margin-bottom: 5px;
+  }
+.footer__heading{
+  text-align: center;
+  font-size: 1.5em;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+  .footer__list-item{
+    text-align: center;
+    font-size: 1.15em;
+    margin-bottom: 5px;
+  }
+
+  .footer__divider--full{
+    display: none;
+  }
+}
 }

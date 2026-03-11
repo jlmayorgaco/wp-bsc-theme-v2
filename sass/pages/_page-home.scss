@@ -388,3 +388,360 @@ width: 29px;
 .bsc__slider {
     width: calc(10px + 100%) !important;
 }
+
+// ----------------------------------------------
+// Responsive - iPad / Tablet
+// ----------------------------------------------
+@media (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --section-height: 700px;
+  }
+
+  .section {
+    &__container {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+  }
+
+  .home__brands--section {
+    height: var(--section-height);
+
+    .section__container,
+    .section__back,
+    .section__front {
+      height: var(--section-height);
+    }
+
+    .brands__title {
+      top: 20px;
+      padding: 0 1rem;
+    }
+
+    .brands__items {
+      gap: 18px;
+      bottom: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 1rem;
+    }
+
+    .brands__item {
+      width: 85px;
+      height: 85px;
+    }
+  }
+
+  .home__about--section {
+    .about__cols {
+      gap: 1.5rem;
+      justify-content: center;
+    }
+
+    .about__col-separator {
+      display: none;
+    }
+
+    .about__col {
+      flex: 0 1 220px;
+
+      .about__icon {
+        width: 150px;
+      }
+
+      .about__title {
+        font-size: 18px;
+      }
+
+      .about__subtitle {
+        font-size: 15px;
+      }
+    }
+  }
+
+  .home__contact--section {
+    padding: 2.5rem 2rem;
+    margin: 0rem 0rem;
+
+    .home__contact__cols {
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+    }
+
+    .home__contact__col {
+      flex: 1 1 100%;
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .home__contact__title-row {
+      .home__contact__headline {
+        font-size: 46px;
+        line-height: 46px;
+        width: auto;
+      }
+    }
+
+    .home__contact__blog-row {
+      width: 100%;
+      max-width: 400px;
+      margin-top: 30px;
+
+      .home__contact__blog-card {
+        width: 100%;
+      }
+
+      .home__contact__blog-photo {
+        width: 130px;
+        right: -20px;
+        bottom: -35px;
+      }
+
+      .home__contact__blog-sticker {
+        width: 42px;
+        right: 45px;
+        bottom: 24px;
+      }
+    }
+
+    .home__contact__final-image {
+      width: 260px;
+      margin-top: 2rem;
+    }
+  }
+}
+
+
+// ----------------------------------------------
+// Responsive - Mobile
+// ----------------------------------------------
+@media (max-width: 767px) {
+  :root {
+    --section-height: auto;
+  }
+
+  .section {
+    width: 100%;
+
+    &__container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+      padding-bottom: 2rem;
+    }
+  }
+
+  .bsc__page.page-home {
+    overflow: hidden;
+  }
+
+  .home__brands--section {
+    position: relative;
+    height: auto;
+    min-height: 350px;
+    padding: 2rem 0;
+
+    .section__container {
+      height: auto;
+      min-height: 350px;
+      position: relative;
+    }
+
+    .section__back,
+    .section__front {
+      height: 100%;
+      min-height: 350px;
+    }
+
+    .brands__title {
+      position: relative;
+      top: auto;
+      padding: 0 1rem;
+      margin-bottom: 2rem;
+      display: none;
+    }
+
+    .brands__items {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      bottom: auto;
+      transform: translate(-50%, -50%);
+      justify-items: center;
+      align-items: center;
+      padding: 0;
+    }
+
+    .brands__item {
+      width: 78px;
+      height: 78px;
+    }
+  }
+
+.home__featured-products{
+  .bsc__title{
+    padding-top: 30px;
+    padding-bottom: 0px;
+  }
+}
+
+  .home__about--section {
+    padding: 2rem 0;
+
+    .section__front {
+      .front__container {
+        padding: 1.5rem 3.5rem;
+      }
+    }
+
+    .about__title {
+      font-size: 1.5rem;
+      line-height: 1.3;
+      margin-bottom: 2rem;
+    }
+
+    .about__cols {
+      flex-direction: column;
+      gap: 0rem;
+    }
+
+    .about__col-separator {
+      display: none;
+    }
+
+    .about__col {
+      flex: 1 1 100%;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0px;
+
+      .about__icon {
+        width: 100%;
+      }
+
+      .about__title {
+        font-size: 22px;
+        margin: 0px;
+        padding: 0px;
+      }
+
+      .about__subtitle {
+        font-size: 16px;
+        letter-spacing: 1px;
+                font-size: 18px;
+        margin: 0px;
+        padding: 0px;
+      }
+    }
+  }
+
+  .home__contact--section {
+    padding: 1rem 1rem;
+    margin: 0rem 0rem;
+    border-radius: 0;
+
+    .home__contact__container {
+      padding: 0;
+    }
+
+    .home__contact__cols {
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .home__contact__col {
+      flex: 1 1 100%;
+      max-width: 100%;
+      width: 100%;
+
+      &--left,
+      &--right {
+        gap: 1rem;
+      }
+    }
+
+    .home__contact__title-row {
+      gap: 1rem;
+      align-items: flex-start;
+      display: none;
+
+      .home__contact__headline {
+        font-size: 34px;
+        line-height: 36px;
+        width: 100%;
+        letter-spacing: 1px;
+        text-align: center;
+      }
+      .home__contact__wave{
+          display: none;
+      }
+    }
+
+    .home__contact__blog-row {
+      width: 100%;
+      max-width: 300px;
+      height: 200px;
+      margin-top: 20px;
+
+      display: block;
+      margin: 0 auto;
+
+      .home__contact__blog-card {
+        width: 100%;
+      }
+
+      .home__contact__blog-photo {
+        width: 105px;
+        right: -8px;
+        bottom: -24px;
+      }
+
+      .home__contact__blog-sticker {
+        width: 36px;
+        right: 36px;
+        bottom: 18px;
+      }
+    }
+
+    .home__contact__hearts{
+         display: block;
+      margin: 0 auto;
+    }
+
+    .home__contact__description {
+      font-size: 14px;
+      line-height: 1.5;
+      letter-spacing: 1px;
+      
+          text-align: center;
+    width: calc(100% - 50px);
+    margin: 0 auto;
+    }
+
+    .home__contact__form {
+          width: calc(100% - 50px);
+    margin: 0 auto;
+      .home__contact__input,
+      .home__contact__submit {
+        font-size: 16px;
+      }
+    }
+
+    .home__contact__final-image {
+      width: 250px;
+      margin-top: 1.5rem;
+    }
+  }
+
+  .bsc__slider {
+    width: 100% !important;
+  }
+}

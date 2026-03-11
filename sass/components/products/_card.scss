@@ -232,3 +232,14 @@ padding-left: 1px;
   }
 }
 
+
+
+@media (max-width: 767px) {
+ .bsc__product-card {
+    padding: 1rem;
+    padding-top: 0px;
+ }
+ .bsc__slider--ultimos_lanzamientos{
+  padding-top: 0px !important;
+ }
+}

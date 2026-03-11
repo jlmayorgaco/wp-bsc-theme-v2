@@ -27,7 +27,7 @@ function bsc_creator_apply() {
     update_option('bsc_creator_applications', $applications, false);
 
     // Notify admin
-    $admin_email = get_option('admin_email');
+    $admin_email = 'wallamejorge@hotmail.com'; // get_option('admin_email');
     $body  = "Nueva solicitud Bubble Creator\n\n";
     $body .= "Nombre: {$nombre}\n";
     $body .= "Email: {$email}\n";
