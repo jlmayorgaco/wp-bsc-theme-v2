@@ -60,10 +60,10 @@ class BSC_Products_Sliders {
 
         $slug_class = $this->slug ? "bsc__slider--{$this->slug}" : '';
 
-        echo "<div class='bsc__slider {$slug_class}'>";
         if (!empty($this->label)) {
             echo "<h2 class='bsc__slider-title'>{$this->label}</h2>";
         }
+        echo "<div class='bsc__slider {$slug_class}'>";
 
         while ($query->have_posts()) {
             $query->the_post();
