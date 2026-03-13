@@ -1,19 +1,23 @@
-//.bsc__products.bsc__products--latest{
-.bsc__slider{
+.bsc__slider {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-x: auto;
+  padding: 10px 0;
+  gap: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+  scroll-behavior: smooth;
+}
 
-    display:flex;
-    width: 100%;
+@media (max-width: 768px) {
+  .bsc__slider {
+    padding-left: 18px;
+    padding-right: 18px;
+    scroll-snap-type: x proximity;
+  }
 
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-
-    overflow-x: auto;
-    padding: 10px 0;
-    scrollbar-width: thin;
-    scrollbar-color: #ddd transparent;
-
-    // Remove default gap
-    gap: 0;
-
+ 
 }

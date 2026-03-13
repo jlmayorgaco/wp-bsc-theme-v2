@@ -13381,15 +13381,23 @@ body.admin-bar .bsc__header--desktop {
   display: flex;
   width: 100%;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   overflow-x: auto;
   padding: 10px 0;
+  gap: 0;
   scrollbar-width: thin;
   scrollbar-color: #ddd transparent;
-  gap: 0;
+  scroll-behavior: smooth;
 }
 
+@media (max-width: 768px) {
+  .bsc__slider {
+    padding-left: 18px;
+    padding-right: 18px;
+    scroll-snap-type: x proximity;
+  }
+}
 .bsc__filters {
   display: block;
   width: 100%;
