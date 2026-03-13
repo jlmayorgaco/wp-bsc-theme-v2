@@ -1,76 +1,195 @@
 // -------------------------------------------------------
-// _footer.scss – Organized and Cleaned for Maintainability
+// _footer.scss
+// Refactored for clarity, reuse, and maintainability
 // -------------------------------------------------------
+@use "sass:map";
 
-// 1. Variables --------------------------------------------------
-$footer-bg-color: #2e2e2e;
-$footer-text-color: #f0f0f0;
-$footer-link-color: #c0c0c0;
-$footer-link-hover-color: #ffffff;
-$footer-divider-color: rgba(255, 255, 255, 1);
-$footer-bottom-bg-color: #222222;
-$footer-accent-color: #f7a8b8;
+// =======================================================
+// 1) Design tokens
+// =======================================================
+$footer-colors: (
+  bg: #2e2e2e,
+  bg-bottom: #222222,
+  text: #f0f0f0,
+  link: #c0c0c0,
+  link-hover: #ffffff,
+  divider: rgba(255, 255, 255, 1),
+  accent: #f7a8b8,
+  social-bg: #333,
+  social-text: #fff,
+  floating-text: #333,
+  whatsapp-bg: #bae5f1,
+  whatsapp-border: #bae5f1,
+  whatsapp-hover: #fff3c2,
+  cart-bg: #ffffff
+);
 
-$container-max-width: 1200px;
-$column-min-width: 180px;
-$social-icon-size: 40px;
-$logo-max-width: 180px;
+$footer-layout: (
+  container-max-width: 1200px,
+  column-min-width: 180px,
+  column-min-width-md: 150px,
+  column-empty-min-width: 100px,
+  logo-max-width: 180px,
+  social-icon-size: 40px,
+  divider-width: 120px,
+  divider-width-mobile: 380px
+);
 
-.bsc {
-  --footer--floating--gap: 12px;
-  --footer--floating-whatsapp--w: 150px;
-  --footer--floating-whatsapp--h: 45px;
-  --footer--floating-whatsapp--bottom: 0px;
-  --footer--floating-whatsapp--right: calc((100vw - (var(--size--page-container-w))) / 2);
+$footer-spacing: (
+  container-y: 40px,
+  container-x: 20px,
+  container-y-mobile: 0,
+  container-x-mobile: 0,
+  links-bottom: 30px,
+  bottom-y: 20px,
+  column-gap: 30px,
+  column-gap-md: 20px,
+  column-bottom: 20px,
+  column-bottom-mobile: 25px,
+  social-gap: 15px,
+  heading-bottom: 15px,
+  list-item-bottom: 10px,
+  list-item-bottom-mobile: 5px,
+  divider-top: 10px,
+  divider-bottom: 20px,
+  divider-full-y: 30px
+);
 
-  --footer--floating-cart-icon--w: 50px;
-  --footer--floating-cart-icon--h: 50px;
-  --footer--floating-cart-icon--bottom: calc(
-    var(--footer--floating--gap) +
-    var(--footer--floating-whatsapp--h) +
-    var(--footer--floating-whatsapp--bottom)
-  );
-  --footer--floating-cart-icon--right:  var(--footer--floating-whatsapp--right);
+$footer-floating: (
+  gap: 12px,
+  whatsapp-width: 150px,
+  whatsapp-height: 45px,
+  whatsapp-bottom: 0px,
+  cart-width: 50px,
+  cart-height: 50px,
+  cart-hover-lift: -5px,
+  cart-badge-size: 30px,
+  cart-badge-offset: -10px
+);
+
+$breakpoints: (
+  lg: 992px,
+  md: 768px,
+  sm: 480px
+);
+
+// =======================================================
+// 2) Helpers
+// =======================================================
+@function footer-color($key) {
+  @return map.get($footer-colors, $key);
 }
 
-// 2. Mixins -----------------------------------------------------
+@function footer-layout($key) {
+  @return map.get($footer-layout, $key);
+}
+
+@function footer-space($key) {
+  @return map.get($footer-spacing, $key);
+}
+
+@function footer-floating($key) {
+  @return map.get($footer-floating, $key);
+}
+
+@function bp($key) {
+  @return map.get($breakpoints, $key);
+}
+
 @mixin flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-// 3. Block: Footer ---------------------------------------------
+@mixin mq($max) {
+  @media (max-width: $max) {
+    @content;
+  }
+}
+
+@mixin reset-link($color: inherit) {
+  color: $color;
+  text-decoration: none;
+}
+
+@mixin circle($size) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+}
+
+@mixin floating-button-base {
+  position: fixed;
+  z-index: 100;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@mixin mobile-floating-icon {
+  bottom: 18px;
+  right: 14px;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  @include flex-center;
+}
+
+// =======================================================
+// 3) Local CSS custom properties
+// =======================================================
+.bsc {
+  --footer--floating--gap: #{footer-floating(gap)};
+  --footer--floating-whatsapp--w: #{footer-floating(whatsapp-width)};
+  --footer--floating-whatsapp--h: #{footer-floating(whatsapp-height)};
+  --footer--floating-whatsapp--bottom: #{footer-floating(whatsapp-bottom)};
+  --footer--floating-whatsapp--right: calc((100vw - var(--size--page-container-w)) / 2);
+
+  --footer--floating-cart-icon--w: #{footer-floating(cart-width)};
+  --footer--floating-cart-icon--h: #{footer-floating(cart-height)};
+  --footer--floating-cart-icon--bottom: calc(
+    var(--footer--floating--gap) +
+    var(--footer--floating-whatsapp--h) +
+    var(--footer--floating-whatsapp--bottom)
+  );
+  --footer--floating-cart-icon--right: var(--footer--floating-whatsapp--right);
+}
+
+// =======================================================
+// 4) Footer block
+// =======================================================
 .footer {
+  position: relative;
+  z-index: 1;
   display: block;
-  background-color: $footer-bg-color;
   width: 100%;
   max-width: 100%;
-  z-index: 1;
-  position: relative;
+  background-color: footer-color(bg);
 
   &__container {
-    background-color: $footer-bg-color;
-    color: $footer-text-color;
-    max-width: $container-max-width;
-    margin: 0 auto;
-    padding: 40px 20px;
-    font-family: sans-serif;
     position: relative;
+    max-width: footer-layout(container-max-width);
+    margin: 0 auto;
+    padding: footer-space(container-y) footer-space(container-x);
+    color: footer-color(text);
+    background-color: footer-color(bg);
+    font-family: sans-serif;
   }
 
   &__links-section {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    padding-bottom: 30px;
+    padding-bottom: footer-space(links-bottom);
   }
 
   &__column {
     flex: 1;
-    min-width: $column-min-width;
-    margin-right: 30px;
-    margin-bottom: 20px;
+    min-width: footer-layout(column-min-width);
+    margin-right: footer-space(column-gap);
+    margin-bottom: footer-space(column-bottom);
 
     &:last-child {
       margin-right: 0;
@@ -78,53 +197,52 @@ $logo-max-width: 180px;
 
     &--empty {
       flex: 0.5;
-      min-width: 100px;
+      min-width: footer-layout(column-empty-min-width);
     }
   }
 
   &__heading {
+    margin-bottom: footer-space(heading-bottom);
     font-size: 1.1em;
+    font-weight: 700;
     letter-spacing: 1px;
-    margin-bottom: 15px;
     white-space: nowrap;
-    font-weight: bold;
 
     a {
-      text-decoration: none;
-      color: inherit;
+      @include reset-link(inherit);
     }
   }
 
   &__divider {
-    border-top: 2px dotted $footer-divider-color;
-    margin: 10px 0 20px;
-    width: 120px;
+    width: footer-layout(divider-width);
+    margin: footer-space(divider-top) 0 footer-space(divider-bottom);
+    border-top: 2px dotted footer-color(divider);
 
     &--full {
       width: 100%;
-      margin: 30px 0;
+      margin: footer-space(divider-full-y) 0;
     }
   }
 
   &__list {
-    list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   &__list-item {
-    margin-bottom: 10px;
+    margin-bottom: footer-space(list-item-bottom);
   }
 
   &__link {
-    letter-spacing: 1px;
-    text-decoration: none;
-    color: $footer-link-color;
-    transition: color 0.3s ease;
     font-size: 0.95em;
+    letter-spacing: 1px;
+    color: footer-color(link);
+    text-decoration: none;
+    transition: color 0.3s ease;
 
     &:hover {
-      color: $footer-link-hover-color;
+      color: footer-color(link-hover);
     }
   }
 
@@ -133,55 +251,57 @@ $logo-max-width: 180px;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 0;
+    padding: footer-space(bottom-y) 0;
   }
 
   &__logo {
     flex-shrink: 0;
-    margin-right: 30px;
+    margin-right: footer-space(column-gap);
 
     img {
-      max-width: $logo-max-width;
-      height: auto;
       display: block;
+      max-width: footer-layout(logo-max-width);
+      height: auto;
     }
   }
 
   &__social-icons {
     display: flex;
-    gap: 15px;
-    margin-right: 30px;
+    gap: footer-space(social-gap);
+    margin-right: footer-space(column-gap);
   }
 
   &__social-icon {
     @include flex-center;
-    width: $social-icon-size;
-    height: $social-icon-size;
-    border-radius: 50%;
-    color: #fff;
+    @include circle(footer-layout(social-icon-size));
+
+    color: footer-color(social-text);
+    background-color: footer-color(social-bg);
     font-size: 1.3em;
     text-decoration: none;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      opacity 0.3s ease;
 
     &--instagram,
     &--tiktok {
-      background-color: #333;
+      background-color: footer-color(social-bg);
     }
 
     &:hover {
       opacity: 0.8;
-      color: #333;
+      color: footer-color(social-bg);
       background-color: var(--color--main);
     }
   }
 
   &__copyright {
     flex-grow: 1;
-    text-align: right;
     margin-left: 20px;
+    text-align: right;
     text-transform: uppercase;
-    letter-spacing: 0px;
+    letter-spacing: 0;
 
     &-text {
       font-size: 0.85em;
@@ -191,37 +311,32 @@ $logo-max-width: 180px;
   }
 
   &__whatsapp {
-    position: fixed;
-    display: flex;
-    z-index: 100;
-    border: 2px solid #BAE5F1;
-    border-radius: 6px 6px 0 0;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    font-size: 24px;
-    letter-spacing: 2px;
-    padding: 10px;
-    background-color: #BAE5F1;
-    color: #333;
-    cursor: pointer;
-    width: fit-content;
-
-    text-decoration: none;
-
-    &:hover {
-      border-color: #FFF3C2;
-      background-color: #FFF3C2;
-    }
-
-    &:visited {
-      color: #333;
-    }
+    @include floating-button-base;
 
     bottom: var(--footer--floating-whatsapp--bottom);
     right: var(--footer--floating-whatsapp--right);
     width: var(--footer--floating-whatsapp--w);
     height: var(--footer--floating-whatsapp--h);
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+    border: 2px solid footer-color(whatsapp-border);
+    border-radius: 6px 6px 0 0;
+    background-color: footer-color(whatsapp-bg);
+    color: footer-color(floating-text);
+    font-size: 24px;
+    letter-spacing: 2px;
+
+    &:hover {
+      border-color: footer-color(whatsapp-hover);
+      background-color: footer-color(whatsapp-hover);
+    }
+
+    &:visited {
+      color: footer-color(floating-text);
+    }
 
     i {
       margin-left: 5px;
@@ -234,23 +349,24 @@ $logo-max-width: 180px;
   }
 
   &__shopping-cart {
-    position: fixed;
+    @include floating-button-base;
+    @include flex-center;
+
     bottom: var(--footer--floating-cart-icon--bottom);
     right: var(--footer--floating-cart-icon--right);
-    color: #333;
     width: var(--footer--floating-cart-icon--w);
     height: var(--footer--floating-cart-icon--h);
+
+    color: footer-color(floating-text);
+    background-color: footer-color(cart-bg);
     border-radius: 4px;
-    @include flex-center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
     font-size: 1.5em;
-    background-color: #ffffff;
-    box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 20px;
-    cursor: pointer;
     z-index: 99999997;
     transition: transform 0.3s ease-in-out;
 
     &:hover {
-      transform: translateY(-5px);
+      transform: translateY(footer-floating(cart-hover-lift));
     }
 
     i {
@@ -259,38 +375,37 @@ $logo-max-width: 180px;
 
     .footer__cart-count {
       position: absolute;
-      top: -10px;
-      right: -10px;
-      height: 30px;
-      width: 30px;
-      font-size: 12px;
-      line-height: 30px;
-      text-align: center;
+      top: footer-floating(cart-badge-offset);
+      right: footer-floating(cart-badge-offset);
+      width: footer-floating(cart-badge-size);
+      height: footer-floating(cart-badge-size);
+      border-radius: 50%;
       background: var(--color--main);
       color: var(--color--text);
-      border-radius: 50%;
+      font-size: 12px;
+      line-height: footer-floating(cart-badge-size);
+      text-align: center;
     }
   }
 
   &__developer-section {
-    color: $footer-text-color;
-    padding: 0;
     width: 100%;
+    padding: 0;
+    color: footer-color(text);
     text-align: center;
   }
 
   &__developer-heading {
-    font-size: 0.9em;
     margin: 1em 0 0;
+    font-size: 0.9em;
     letter-spacing: 1px;
 
     a {
-      color: inherit;
-      text-decoration: none;
+      @include reset-link(inherit);
       transition: color 0.3s ease;
 
       &:hover {
-        color: $footer-link-hover-color;
+        color: footer-color(link-hover);
       }
     }
 
@@ -298,26 +413,55 @@ $logo-max-width: 180px;
       content: " 🤍";
       display: inline-block;
       margin-left: 5px;
-      color: $footer-accent-color;
+      color: footer-color(accent);
     }
   }
 }
 
-// 4. Animations --------------------------------------------------
+// =======================================================
+// 5) Animations
+// =======================================================
 @keyframes woofc-shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
-// 5. Responsive Styles --------------------------------------------
-@media (max-width: 992px) {
-  .footer__column { margin-right: 20px; min-width: 150px; }
-  .footer__logo, .footer__social-icons { margin-right: 20px; }
+// =======================================================
+// 6) Responsive
+// =======================================================
+@include mq(bp(lg)) {
+  .footer {
+    &__column {
+      min-width: footer-layout(column-min-width-md);
+      margin-right: footer-space(column-gap-md);
+    }
+
+    &__logo,
+    &__social-icons {
+      margin-right: footer-space(column-gap-md);
+    }
+  }
 }
 
-@media (max-width: 768px) {
+@include mq(bp(md)) {
   .footer {
     padding: 30px 15px;
 
@@ -328,14 +472,14 @@ $logo-max-width: 180px;
 
     &__column {
       width: 100%;
-      margin: 0 0 25px 0;
+      margin: 0 0 footer-space(column-bottom-mobile);
     }
 
     &__heading,
     &__list,
     &__divider {
-      text-align: left;
       margin-left: 0;
+      text-align: left;
     }
 
     &__bottom-section {
@@ -346,97 +490,98 @@ $logo-max-width: 180px;
 
     &__logo,
     &__social-icons {
-      margin: 0 0 25px 0;
+      margin: 0 0 footer-space(column-bottom-mobile);
     }
 
     &__copyright {
-      text-align: center;
       margin-left: 0;
+      text-align: center;
+    }
+
+    &__whatsapp {
+      @include mobile-floating-icon;
+
+      .footer__wa {
+        display: none;
+      }
     }
 
     &__shopping-cart {
-      bottom: 20px;
+      bottom: 80px;
       right: 15px;
     }
-    
   }
-
-      .footer__whatsapp {
-        bottom: 18px !important;
-      }
-          .footer__shopping-cart {
-             bottom: 22px !important;
-          }
-          
 }
 
-@media (max-width: 480px) {
-  .footer__heading { font-size: 1em; }
-  .footer__link { font-size: 0.9em; }
-    .footer__whatsapp {
-        bottom: 18px !important;
-      }
-          .footer__shopping-cart {
-             bottom: 22px !important;
-          }
-          
+@include mq(bp(sm)) {
+  .bsc.footer {
+    padding: 0;
+  }
 
-
-          // 3. Block: Footer ---------------------------------------------
-
-          .bsc.footer{
-  padding: 0px 0px;
-          }
-.footer {
-  display: block;
-  background-color: $footer-bg-color;
-  width: 100%;
-  max-width: 100%;
-  z-index: 1;
-  position: relative;
-
-  &__container {
-    background-color: $footer-bg-color;
-    color: $footer-text-color;
-    max-width: $container-max-width;
-    margin: 0 auto;
-    padding: 0px 0px;
-    font-family: sans-serif;
+  .footer {
+    display: block;
     position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 100%;
+    background-color: footer-color(bg);
 
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-  }
+    &__container {
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+      padding: footer-space(container-y-mobile) footer-space(container-x-mobile);
+      max-width: footer-layout(container-max-width);
+      color: footer-color(text);
+      background-color: footer-color(bg);
+      font-family: sans-serif;
+      position: relative;
+    }
 
-  .footer__links-section,.footer__column{
-        display: flex;
-    flex-direction: column;
-    justify-items: center;
+    &__links-section,
+    &__column {
+      display: flex;
+      flex-direction: column;
+      width: fit-content;
+      margin: 0 auto;
+    }
 
-    margin: 0 auto;
-    width: fit-content;
-  }
+    &__heading {
+      margin-top: 5px;
+      margin-bottom: 5px;
+      font-size: 1.5em;
+      text-align: center;
+    }
 
-  .footer__divider{
-    margin: 0 auto;
-    width: 380px;
-    margin-bottom: 5px;
-  }
-.footer__heading{
-  text-align: center;
-  font-size: 1.5em;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-  .footer__list-item{
-    text-align: center;
-    font-size: 1.15em;
-    margin-bottom: 5px;
-  }
+    &__divider {
+      width: footer-layout(divider-width-mobile);
+      margin: 0 auto 5px;
+    }
 
-  .footer__divider--full{
-    display: none;
+    &__divider--full {
+      display: none;
+    }
+
+    &__list-item {
+      margin-bottom: footer-space(list-item-bottom-mobile);
+      font-size: 1.15em;
+      text-align: center;
+    }
+
+    &__link {
+      font-size: 0.9em;
+    }
+
+    &__whatsapp {
+      @include mobile-floating-icon;
+
+      .footer__wa {
+        display: none;
+      }
+    }
+
+    &__shopping-cart {
+      bottom: 80px;
+    }
   }
-}
 }
