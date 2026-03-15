@@ -186,7 +186,7 @@
     ];
     ?>
 
-    <section class="bsc-kb-grid bsc-kb-grid--home">
+    <section class="section bsc-kb-grid bsc-kb-grid--home">
       <?php foreach ( $groups as $g ) :
         $base = trailingslashit( home_url( '/product-category/' ) );
         $term_link = $base .$g['slug'] . '/';

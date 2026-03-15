@@ -1,5 +1,5 @@
 // --------------------------------------------
-// Design Tokens (you can later externalize these)
+// Design Tokens
 // --------------------------------------------
 $color-text: #222;
 $color-primary: var(--color--main);
@@ -18,6 +18,8 @@ $container-width: 1240px;
 
 $breakpoint-sm: 576px;
 $breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
 
 // --------------------------------------------
 // BSC Shop Layout
@@ -29,7 +31,6 @@ $breakpoint-md: 768px;
   gap: $spacing-xl;
   background-color: $color-surface-subtle;
 
-  // Container
   .bsc__container {
     width: 100%;
     max-width: $container-width;
@@ -37,7 +38,6 @@ $breakpoint-md: 768px;
     padding-inline: $spacing-md;
   }
 
-  // Top Navigation (e.g., breadcrumbs or tabbed filters)
   .bsc__shop-nav {
     padding-block: $spacing-md;
 
@@ -59,15 +59,12 @@ $breakpoint-md: 768px;
     }
   }
 
-  // Main layout: Sidebar and Products
   .shop__main {
-      
-      display: block;
-
+    display: block;
     grid-template-columns: 250px 1fr;
     gap: $spacing-xl;
 
-    &:has(.shop__sidebar){
+    &:has(.shop__sidebar) {
       display: grid;
       width: 100%;
     }
@@ -77,7 +74,6 @@ $breakpoint-md: 768px;
     }
   }
 
-  // Sidebar (Filters)
   .shop__sidebar {
     display: block;
 
@@ -86,9 +82,7 @@ $breakpoint-md: 768px;
     }
   }
 
-  // Product Grid
   .shop__products {
-
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: $spacing-lg;
@@ -96,30 +90,37 @@ $breakpoint-md: 768px;
     @media (max-width: $breakpoint-sm) {
       grid-template-columns: 1fr;
     }
-    &:has(.bsc__loading){
+
+    &:has(.bsc__loading) {
       display: flex;
       justify-content: center;
       align-items: center;
-
       width: 100%;
       height: 300px;
     }
   }
 
-  // Pagination
   .shop__pagination {
     margin-top: $spacing-xl;
     text-align: center;
   }
 }
 
-
-.bsc__category-grid{
-   display: grid;
-  grid-template-columns: repeat(4, 1fr); // 4 columns by default
+.bsc__category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   margin-top: 2rem;
+
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
 }
+
 .bsc__category-card {
   border: 1px solid #eee;
   border-radius: 12px;
@@ -153,34 +154,10 @@ $breakpoint-md: 768px;
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* =========================================
    K-Beauty Level 1 Landing Styles
-   (BubbleSkinCare)
    ========================================= */
 
-/* ---- Global container ---- */
 .bsc__shop {
   background-color: #fff;
   color: #1a1a1a;
@@ -217,16 +194,17 @@ $breakpoint-md: 768px;
   margin-bottom: 0rem;
   letter-spacing: 1px;
 }
+
 .bsc-hero__title::after {
-      content: '';
-      display: block;
-      width: 120px;
-      height: 20px; 
-      margin: 10px auto 0;
-      background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
+  content: '';
+  display: block;
+  width: 120px;
+  height: 20px;
+  margin: 10px auto 0;
+  background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .bsc-hero__quote {
@@ -277,93 +255,121 @@ $breakpoint-md: 768px;
    ========================================= */
 .bsc-kb-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
   gap: 2rem;
   justify-content: center;
   align-items: start;
-      max-width: 800px;
-    margin: 0 auto 1.5rem;
+  max-width: 1140px;
+  margin: 0 auto 2rem;
+  padding-inline: 1rem;
+}
+
+.bsc-kb-grid--home {
+  margin-top: 2.25rem;
+  margin-bottom: 3rem;
 }
 
 .bsc-kb-card {
   position: relative;
-  border-radius: 0px;
-    border: 2px solid #333333;
+  border-radius: 0;
+  border: 2px solid #333333;
   background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
-  height: 326px;
+  min-height: 420px;
+  height: 100%;
+  overflow: visible;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.35s ease;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
   cursor: pointer;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.6s ease forwards;
 }
+
+.bsc-kb-card:nth-child(2) { animation-delay: 0.1s; }
+.bsc-kb-card:nth-child(3) { animation-delay: 0.2s; }
+.bsc-kb-card:nth-child(4) { animation-delay: 0.3s; }
+.bsc-kb-card:nth-child(5) { animation-delay: 0.4s; }
+.bsc-kb-card:nth-child(6) { animation-delay: 0.5s; }
 
 .bsc-kb-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
 }
 
 .bsc-kb-card__link {
   display: block;
   text-decoration: none;
   color: inherit;
+  height: 100%;
 }
 
 .bsc-kb-card__imgwrap {
   width: 100%;
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
+  min-height: 420px;
   overflow: hidden;
 }
-.bsc-kb-card__front{
+
+.bsc-kb-card__front,
+.bsc-kb-card__back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bsc-kb-card__back {
+  z-index: 1;
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+}
+
+.bsc-kb-card__front {
+  z-index: 2;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
+  gap: 0.85rem;
+  padding: 1.25rem;
   opacity: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  transition: opacity 0.35s ease;
 
-  background-color: rgba(0,0,0,0.75);
-  .bsc-kb-card__icon{
+  .bsc-kb-card__icon {
     width: 25px !important;
     height: 25px !important;
+    object-fit: contain;
   }
-  p{
+
+  p {
     color: white;
+    margin: 0;
   }
-  .bsc-kb-text{
-    width: 80%;
+
+  .bsc-kb-text {
+    width: 88%;
     color: white;
     letter-spacing: 1px;
     text-align: center;
     font-size: 14px;
-    line-height: 1;
+    line-height: 1.3;
   }
 }
-.bsc-kb-card__front, .bsc-kb-card__back {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 241.328px;
-  height: 322px;
-}
 
-.bsc-kb-card__imgwrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.bsc-kb-card:hover .bsc-kb-card__imgwrap img {
+.bsc-kb-card:hover .bsc-kb-card__back img {
   transform: scale(1.04);
 }
 
-.bsc-kb-card:hover{
-  .bsc-kb-card__front{
-    opacity: 1;
-      transition:
-        opacity 1s,
-        display 1s allow-discrete;
-  }
+.bsc-kb-card:hover .bsc-kb-card__front {
+  opacity: 1;
 }
 
 /* ---- Category label ---- */
@@ -371,6 +377,7 @@ $breakpoint-md: 768px;
   position: absolute;
   top: -20px;
   right: -2px;
+  z-index: 3;
   background-color: #d8e4ea;
   color: #333;
   font-family: "Poppins", sans-serif;
@@ -378,9 +385,11 @@ $breakpoint-md: 768px;
   letter-spacing: 1px;
   font-weight: 600;
   padding: 6px 14px;
-  border-radius: 0px;
+  border-radius: 0;
   border: 2px solid #333333;
+  white-space: nowrap;
 }
+
 .bsc-kb-card__label::before {
   content: "";
   position: absolute;
@@ -392,16 +401,15 @@ $breakpoint-md: 768px;
     #f9f9f9 20px,
     #f9f9f9 40px
   );
-  opacity: 0.0;
+  opacity: 0;
 }
-/* Optional pastel color accents (category tags) */
-.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; } /* Skin Care */
-.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #FFF3C2; }/* Hair Care */
-.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #BAE5F1; } /* Make Up */
-.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #FFD3A4; } /* Dispositivos */
-.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #DCFFFD; } /* Inner Beauty */
-.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #ECDBFC; } /* Spa KBeauty */
 
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; }
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #FFF3C2; }
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #BAE5F1; }
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #FFD3A4; }
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #DCFFFD; }
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #ECDBFC; }
 
 /* =========================================
    🧩 RESPONSIVE
@@ -410,8 +418,89 @@ $breakpoint-md: 768px;
   .bsc-hero__title {
     font-size: 1.3rem;
   }
+
   .bsc-hero__quote {
     font-size: 0.9rem;
+  }
+
+  .bsc-kb-grid {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    max-width: 900px;
+    gap: 1.5rem;
+  }
+
+  .bsc-kb-card {
+    min-height: 390px;
+  }
+
+  .bsc-kb-card__imgwrap {
+    min-height: 390px;
+  }
+
+  .bsc-kb-card__front {
+    padding: 1.1rem;
+
+    .bsc-kb-text {
+      width: 90%;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .bsc-kb-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: 1.25rem;
+    padding-inline: 1rem;
+  }
+
+  .bsc-kb-card {
+    min-height: 420px;
+  }
+
+  .bsc-kb-card__imgwrap {
+    min-height: 420px;
+    aspect-ratio: 16 / 18;
+  }
+
+  .bsc-kb-card__front {
+    opacity: 1;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 1rem;
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.05) 0%,
+      rgba(0, 0, 0, 0.18) 35%,
+      rgba(0, 0, 0, 0.72) 100%
+    );
+
+    .bsc-kb-card__icon {
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    .bsc-kb-text {
+      width: 100%;
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.35;
+      letter-spacing: 0.6px;
+    }
+  }
+
+  .bsc-kb-card:hover .bsc-kb-card__front {
+    opacity: 1;
+  }
+
+  .bsc-kb-card__label {
+    top: -16px;
+    right: -2px;
+    font-size: 0.78rem;
+    padding: 6px 12px;
   }
 }
 
@@ -419,36 +508,76 @@ $breakpoint-md: 768px;
   .bsc-hero__icon img {
     width: 70px;
   }
+
   .bsc-hero__title {
     font-size: 1.2rem;
   }
+
   .bsc-hero__subtitle {
     font-size: 1.1rem;
   }
+
   .bsc-kb-grid {
-    gap: 1.25rem;
+    gap: 1rem;
+    padding-inline: 0.85rem;
   }
+
+  .bsc-kb-card {
+    min-height: 360px;
+  }
+
+  .bsc-kb-card__imgwrap {
+    min-height: 360px;
+    aspect-ratio: 1 / 1.15;
+  }
+
+  .bsc-kb-card__front {
+    padding: 0.95rem;
+
+    .bsc-kb-text {
+      font-size: 13px;
+      line-height: 1.3;
+    }
+  }
+
   .bsc-kb-card__label {
-    bottom: 0.7rem;
-    left: 0.7rem;
-    font-size: 0.8rem;
+    top: -14px;
+    right: -2px;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    letter-spacing: 0.7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .bsc-kb-grid {
+    padding-inline: 0.75rem;
+  }
+
+  .bsc-kb-card {
+    min-height: 330px;
+  }
+
+  .bsc-kb-card__imgwrap {
+    min-height: 330px;
+  }
+
+  .bsc-kb-card__front {
+    .bsc-kb-card__icon {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    .bsc-kb-text {
+      font-size: 12.5px;
+      line-height: 1.28;
+    }
   }
 }
 
 /* =========================================
-   🌿 Optional soft fade-in animation
+   🌿 Fade-in animation
    ========================================= */
-.bsc-kb-card {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: fadeUp 0.6s ease forwards;
-}
-.bsc-kb-card:nth-child(2) { animation-delay: 0.1s; }
-.bsc-kb-card:nth-child(3) { animation-delay: 0.2s; }
-.bsc-kb-card:nth-child(4) { animation-delay: 0.3s; }
-.bsc-kb-card:nth-child(5) { animation-delay: 0.4s; }
-.bsc-kb-card:nth-child(6) { animation-delay: 0.5s; }
-
 @keyframes fadeUp {
   to {
     opacity: 1;
@@ -456,39 +585,38 @@ $breakpoint-md: 768px;
   }
 }
 
-.bsc__title--subcategory{
-    font-size: 1.3rem;
-    font-weight:800;
-    color: #333;
-    text-align: center;
-    margin-bottom: 1rem;
-    padding-top: 1em;
-    text-transform: lower;
-
+.bsc__title--subcategory {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-top: 1em;
+  text-transform: lower;
 }
 
-.bsc__description--description-category{
-    font-size: 16px;
-    letter-spacing: 1px;
-    line-height: 25.25px;
+.bsc__description--description-category {
+  font-size: 16px;
+  letter-spacing: 1px;
+  line-height: 25.25px;
 }
 
-
-.bsc__subsubcategory-links{
+.bsc__subsubcategory-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;   /* left aligned */
-  gap: 1rem 1.25rem;           /* vertical / horizontal spacing */
+  justify-content: center;
+  gap: 1rem 1.25rem;
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
-.bsc__subsubcategory-link{
+
+.bsc__subsubcategory-link {
   cursor: pointer;
   display: block;
   align-items: center;
   padding: 0.35rem 0.9rem;
-  margin-left: 0px;
-  margin-right: 0px;
+  margin-left: 0;
+  margin-right: 0;
   border: 1px solid #333;
   border-radius: 2px;
   font-size: 0.9rem;
@@ -499,18 +627,20 @@ $breakpoint-md: 768px;
   letter-spacing: 1px;
   background-color: #fff;
   box-sizing: border-box;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
-              color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .bsc__subsubcategory-link:hover {
- background-color: #c3dde8;    /* light blue */
+  background-color: #c3dde8;
   border-color: #8ab3c7;
 }
 
-/* Active/selected one (the blue one in your design) */
 .bsc__subsubcategory-link--active {
-  background-color: #c3dde8;    /* light blue */
+  background-color: #c3dde8;
   border-color: #8ab3c7;
   color: #173642;
 }

@@ -8656,7 +8656,7 @@ button {
   text-align: center;
   width: 100%;
   position: absolute;
-  top: 0px;
+  top: 0;
   max-width: var(--container-width);
 }
 .home__brands--section .brands__items {
@@ -8667,7 +8667,7 @@ button {
   gap: 25px;
   margin: 2em auto;
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
 }
 .home__brands--section .brands__item {
   width: 100px;
@@ -8749,7 +8749,7 @@ button {
 }
 .home__about--section .about__col .about__icon {
   width: 185px;
-  margin-bottom: 0rem;
+  margin-bottom: 0;
 }
 .home__about--section .about__col .about__title {
   font-size: 20px;
@@ -8765,7 +8765,7 @@ button {
 
 .home__contact--section {
   background-color: var(--color-bg-contact);
-  border-radius: 0px;
+  border-radius: 0;
   padding: 3rem;
   margin: 5rem auto;
   max-width: 1200px;
@@ -8818,7 +8818,7 @@ button {
   line-height: 60px;
   letter-spacing: 2px;
   width: 260px;
-  margin: 0px;
+  margin: 0;
   color: var(--color--text);
 }
 .home__contact--section .home__contact__blog-row {
@@ -8963,7 +8963,7 @@ button {
   }
   .home__contact--section {
     padding: 2.5rem 2rem;
-    margin: 0rem 0rem;
+    margin: 0 0;
   }
   .home__contact--section .home__contact__cols {
     flex-direction: column;
@@ -9063,50 +9063,85 @@ button {
   }
   .home__featured-products .bsc__title {
     padding-top: 30px;
-    padding-bottom: 0px;
+    padding-bottom: 0;
   }
   .home__about--section {
     padding: 2rem 0;
   }
   .home__about--section .section__front .front__container {
-    padding: 1.5rem 3.5rem;
+    padding: 1.5rem 1rem;
   }
   .home__about--section .about__title {
     font-size: 1.25rem;
     line-height: 1.3;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
   .home__about--section .about__cols {
-    flex-direction: column;
-    gap: 0rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.85rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 1rem;
+    scroll-padding-right: 1rem;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0.25rem 1rem 0.75rem;
+    margin: 0 -1rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .home__about--section .about__cols::-webkit-scrollbar {
+    display: none;
   }
   .home__about--section .about__col-separator {
     display: none;
   }
   .home__about--section .about__col {
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0px;
+    flex: 0 0 82%;
+    width: 82%;
+    max-width: 82%;
+    min-width: 82%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    margin: 0;
+    padding: 1rem 0.75rem 1.1rem;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .home__about--section .about__col:hover {
+    transform: none;
   }
   .home__about--section .about__col .about__icon {
-    width: 80%;
+    width: min(78%, 210px);
+    margin: 0 auto 0.25rem;
+    display: block;
   }
   .home__about--section .about__col .about__title {
     font-size: 18px;
-    margin: 0px;
-    padding: 0px;
+    margin: 0 0 0.25rem;
+    padding: 0;
+    line-height: 1.2;
   }
   .home__about--section .about__col .about__subtitle {
     font-size: 14px;
     letter-spacing: 1px;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+  }
+  .home__about--section .about__col:last-child {
+    margin-right: 0.25rem;
   }
   .home__contact--section {
     padding: 1rem 1rem;
-    margin: 0rem 0rem;
+    margin: 0 0;
     border-radius: 0;
     padding-bottom: 30px;
   }
@@ -9629,6 +9664,16 @@ button {
   gap: 2rem;
   margin-top: 2rem;
 }
+@media (max-width: 992px) {
+  .bsc__category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 576px) {
+  .bsc__category-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 .bsc__category-card {
   border: 1px solid #eee;
@@ -9661,9 +9706,7 @@ button {
 
 /* =========================================
    K-Beauty Level 1 Landing Styles
-   (BubbleSkinCare)
    ========================================= */
-/* ---- Global container ---- */
 .bsc__shop {
   background-color: #fff;
   color: #1a1a1a;
@@ -9761,168 +9804,31 @@ button {
    ========================================= */
 .bsc-kb-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
   gap: 2rem;
   justify-content: center;
   align-items: start;
-  max-width: 800px;
-  margin: 0 auto 1.5rem;
+  max-width: 1140px;
+  margin: 0 auto 2rem;
+  padding-inline: 1rem;
+}
+
+.bsc-kb-grid--home {
+  margin-top: 2.25rem;
+  margin-bottom: 3rem;
 }
 
 .bsc-kb-card {
   position: relative;
-  border-radius: 0px;
+  border-radius: 0;
   border: 2px solid #333333;
   background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
-  height: 326px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.35s ease;
-  cursor: pointer;
-}
-
-.bsc-kb-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
-
-.bsc-kb-card__link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.bsc-kb-card__imgwrap {
-  width: 100%;
-  position: relative;
-  aspect-ratio: 3/4;
-  overflow: hidden;
-}
-
-.bsc-kb-card__front {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  opacity: 0;
-  background-color: rgba(0, 0, 0, 0.75);
-}
-.bsc-kb-card__front .bsc-kb-card__icon {
-  width: 25px !important;
-  height: 25px !important;
-}
-.bsc-kb-card__front p {
-  color: white;
-}
-.bsc-kb-card__front .bsc-kb-text {
-  width: 80%;
-  color: white;
-  letter-spacing: 1px;
-  text-align: center;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.bsc-kb-card__front, .bsc-kb-card__back {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 241.328px;
-  height: 322px;
-}
-
-.bsc-kb-card__imgwrap img {
-  width: 100%;
+  min-height: 420px;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s ease;
-}
-
-.bsc-kb-card:hover .bsc-kb-card__imgwrap img {
-  transform: scale(1.04);
-}
-
-.bsc-kb-card:hover .bsc-kb-card__front {
-  opacity: 1;
-  transition: opacity 1s, display 1s allow-discrete;
-}
-
-/* ---- Category label ---- */
-.bsc-kb-card__label {
-  position: absolute;
-  top: -20px;
-  right: -2px;
-  background-color: #d8e4ea;
-  color: #333;
-  font-family: "Poppins", sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 0px;
-  border: 2px solid #333333;
-}
-
-.bsc-kb-card__label::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(45deg, #efefef, #efefef 20px, #f9f9f9 20px, #f9f9f9 40px);
-  opacity: 0;
-}
-
-/* Optional pastel color accents (category tags) */
-.bsc-kb-card:nth-child(1) .bsc-kb-card__label {
-  background-color: #F4C8CF;
-} /* Skin Care */
-.bsc-kb-card:nth-child(2) .bsc-kb-card__label {
-  background-color: #FFF3C2;
-} /* Hair Care */
-.bsc-kb-card:nth-child(3) .bsc-kb-card__label {
-  background-color: #BAE5F1;
-} /* Make Up */
-.bsc-kb-card:nth-child(4) .bsc-kb-card__label {
-  background-color: #FFD3A4;
-} /* Dispositivos */
-.bsc-kb-card:nth-child(5) .bsc-kb-card__label {
-  background-color: #DCFFFD;
-} /* Inner Beauty */
-.bsc-kb-card:nth-child(6) .bsc-kb-card__label {
-  background-color: #ECDBFC;
-} /* Spa KBeauty */
-/* =========================================
-   🧩 RESPONSIVE
-   ========================================= */
-@media (max-width: 992px) {
-  .bsc-hero__title {
-    font-size: 1.3rem;
-  }
-  .bsc-hero__quote {
-    font-size: 0.9rem;
-  }
-}
-@media (max-width: 600px) {
-  .bsc-hero__icon img {
-    width: 70px;
-  }
-  .bsc-hero__title {
-    font-size: 1.2rem;
-  }
-  .bsc-hero__subtitle {
-    font-size: 1.1rem;
-  }
-  .bsc-kb-grid {
-    gap: 1.25rem;
-  }
-  .bsc-kb-card__label {
-    bottom: 0.7rem;
-    left: 0.7rem;
-    font-size: 0.8rem;
-  }
-}
-/* =========================================
-   🌿 Optional soft fade-in animation
-   ========================================= */
-.bsc-kb-card {
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  cursor: pointer;
   opacity: 0;
   transform: translateY(10px);
   animation: fadeUp 0.6s ease forwards;
@@ -9948,6 +9854,264 @@ button {
   animation-delay: 0.5s;
 }
 
+.bsc-kb-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.bsc-kb-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.bsc-kb-card__imgwrap {
+  width: 100%;
+  position: relative;
+  aspect-ratio: 4/5;
+  min-height: 420px;
+  overflow: hidden;
+}
+
+.bsc-kb-card__front,
+.bsc-kb-card__back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bsc-kb-card__back {
+  z-index: 1;
+}
+.bsc-kb-card__back img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.bsc-kb-card__front {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  transition: opacity 0.35s ease;
+}
+.bsc-kb-card__front .bsc-kb-card__icon {
+  width: 25px !important;
+  height: 25px !important;
+  object-fit: contain;
+}
+.bsc-kb-card__front p {
+  color: white;
+  margin: 0;
+}
+.bsc-kb-card__front .bsc-kb-text {
+  width: 88%;
+  color: white;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.bsc-kb-card:hover .bsc-kb-card__back img {
+  transform: scale(1.04);
+}
+
+.bsc-kb-card:hover .bsc-kb-card__front {
+  opacity: 1;
+}
+
+/* ---- Category label ---- */
+.bsc-kb-card__label {
+  position: absolute;
+  top: -20px;
+  right: -2px;
+  z-index: 3;
+  background-color: #d8e4ea;
+  color: #333;
+  font-family: "Poppins", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 0;
+  border: 2px solid #333333;
+  white-space: nowrap;
+}
+
+.bsc-kb-card__label::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, #efefef, #efefef 20px, #f9f9f9 20px, #f9f9f9 40px);
+  opacity: 0;
+}
+
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label {
+  background-color: #F4C8CF;
+}
+
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label {
+  background-color: #FFF3C2;
+}
+
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label {
+  background-color: #BAE5F1;
+}
+
+.bsc-kb-card:nth-child(4) .bsc-kb-card__label {
+  background-color: #FFD3A4;
+}
+
+.bsc-kb-card:nth-child(5) .bsc-kb-card__label {
+  background-color: #DCFFFD;
+}
+
+.bsc-kb-card:nth-child(6) .bsc-kb-card__label {
+  background-color: #ECDBFC;
+}
+
+/* =========================================
+   🧩 RESPONSIVE
+   ========================================= */
+@media (max-width: 992px) {
+  .bsc-hero__title {
+    font-size: 1.3rem;
+  }
+  .bsc-hero__quote {
+    font-size: 0.9rem;
+  }
+  .bsc-kb-grid {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    max-width: 900px;
+    gap: 1.5rem;
+  }
+  .bsc-kb-card {
+    min-height: 390px;
+  }
+  .bsc-kb-card__imgwrap {
+    min-height: 390px;
+  }
+  .bsc-kb-card__front {
+    padding: 1.1rem;
+  }
+  .bsc-kb-card__front .bsc-kb-text {
+    width: 90%;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}
+@media (max-width: 768px) {
+  .bsc-kb-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: 1.25rem;
+    padding-inline: 1rem;
+  }
+  .bsc-kb-card {
+    min-height: 420px;
+  }
+  .bsc-kb-card__imgwrap {
+    min-height: 420px;
+    aspect-ratio: 16/18;
+  }
+  .bsc-kb-card__front {
+    opacity: 1;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.18) 35%, rgba(0, 0, 0, 0.72) 100%);
+  }
+  .bsc-kb-card__front .bsc-kb-card__icon {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  .bsc-kb-card__front .bsc-kb-text {
+    width: 100%;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.35;
+    letter-spacing: 0.6px;
+  }
+  .bsc-kb-card:hover .bsc-kb-card__front {
+    opacity: 1;
+  }
+  .bsc-kb-card__label {
+    top: -16px;
+    right: -2px;
+    font-size: 0.78rem;
+    padding: 6px 12px;
+  }
+}
+@media (max-width: 600px) {
+  .bsc-hero__icon img {
+    width: 70px;
+  }
+  .bsc-hero__title {
+    font-size: 1.2rem;
+  }
+  .bsc-hero__subtitle {
+    font-size: 1.1rem;
+  }
+  .bsc-kb-grid {
+    gap: 1rem;
+    padding-inline: 0.85rem;
+  }
+  .bsc-kb-card {
+    min-height: 360px;
+  }
+  .bsc-kb-card__imgwrap {
+    min-height: 360px;
+    aspect-ratio: 1/1.15;
+  }
+  .bsc-kb-card__front {
+    padding: 0.95rem;
+  }
+  .bsc-kb-card__front .bsc-kb-text {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .bsc-kb-card__label {
+    top: -14px;
+    right: -2px;
+    font-size: 0.72rem;
+    padding: 5px 10px;
+    letter-spacing: 0.7px;
+  }
+}
+@media (max-width: 420px) {
+  .bsc-kb-grid {
+    padding-inline: 0.75rem;
+  }
+  .bsc-kb-card {
+    min-height: 330px;
+  }
+  .bsc-kb-card__imgwrap {
+    min-height: 330px;
+  }
+  .bsc-kb-card__front .bsc-kb-card__icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .bsc-kb-card__front .bsc-kb-text {
+    font-size: 12.5px;
+    line-height: 1.28;
+  }
+}
+/* =========================================
+   🌿 Fade-in animation
+   ========================================= */
 @keyframes fadeUp {
   to {
     opacity: 1;
@@ -9973,8 +10137,8 @@ button {
 .bsc__subsubcategory-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* left aligned */
-  gap: 1rem 1.25rem; /* vertical / horizontal spacing */
+  justify-content: center;
+  gap: 1rem 1.25rem;
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
@@ -9984,8 +10148,8 @@ button {
   display: block;
   align-items: center;
   padding: 0.35rem 0.9rem;
-  margin-left: 0px;
-  margin-right: 0px;
+  margin-left: 0;
+  margin-right: 0;
   border: 1px solid #333;
   border-radius: 2px;
   font-size: 0.9rem;
@@ -10000,13 +10164,12 @@ button {
 }
 
 .bsc__subsubcategory-link:hover {
-  background-color: #c3dde8; /* light blue */
+  background-color: #c3dde8;
   border-color: #8ab3c7;
 }
 
-/* Active/selected one (the blue one in your design) */
 .bsc__subsubcategory-link--active {
-  background-color: #c3dde8; /* light blue */
+  background-color: #c3dde8;
   border-color: #8ab3c7;
   color: #173642;
 }
