@@ -38,14 +38,16 @@
             ],
             [
                 'slug' => 'sk-rutina-s5-mascarillas-1',
-                'title' => '5. Mascarillas 1',
+                'title' => '5. Mascarillas',
                 'link' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s5-mascarillas-1'
             ],
+            /*
             [
                 'slug' => 'sk-rutina-s5-mascarillas-2',
                 'title' => '5. Mascarillas 2',
                 'link' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s5-mascarillas-2'
             ],
+            */
             [
                 'slug' => 'sk-rutina-s6-esencias',
                 'title' => '6. Esencias',
@@ -68,12 +70,12 @@
             ],
             [
                 'slug' => 'sk-rutina-s10-protectores-solares-crema',
-                'title' => '10. Protectores Solares',
+                'title' => '10. Protectores Solares Liquido',
                 'link' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s10-protectores-solares-crema'
             ],
             [
                 'slug' => 'sk-rutina-s10-protectores-solares-barrita',
-                'title' => '10. Protectores Solares',
+                'title' => '10. Protectores Solares Barrita',
                 'link' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s10-protectores-solares-barrita'
             ],
         ]
@@ -262,7 +264,7 @@
     $menuCoreanRutine->setSlug('BSC_MENU_NAV_COREAN_RUTINE');
     $menuCoreanRutine->setCover([
         'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-03-F-100.jpg',
-        'link' => 'https://api.whatsapp.com/send?phone=573202176359&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20tener%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20productos%20que%20tienen%20en%20la%20tienda.%20%E2%98%BA%EF%B8%8F',
+        'link' => 'https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubbles%20Skin%20care!%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97',
     ]);
     $menuCoreanRutine->appendMenu([
         'slug' => 'nav-menu-corea-rutine-basic',
@@ -420,30 +422,82 @@
 
 
 
-
 <header class="bsc bsc__header bsc__header--mobile" id="mobileHeader">
-    <ul class="header-mobile__nav">
-        <li class="header-mobile__nav-item item--sidebar-btn"> 
-            <button id="mobileHeaderButton">
-                <i aria-hidden="true" class="dlicon ui-3_menu-left"></i>
+    <div class="header-mobile__nav">
+
+        <div class="header-mobile__nav-left">
+            <button
+                id="mobileMenuToggle"
+                type="button"
+                aria-label="Abrir menú"
+                aria-controls="mobileSidebar"
+                aria-expanded="false"
+                class="header-mobile__icon-btn header-mobile__menu-btn"
+            >
+                <span class="mobile-toggle__icon mobile-toggle__icon--open">
+                    <i aria-hidden="true" class="dlicon ui-3_menu-left"></i>
+                </span>
+
+                <span class="mobile-toggle__icon mobile-toggle__icon--close" aria-hidden="true">
+                    &times;
+                </span>
             </button>
-        </li>
-        <li class="header-mobile__nav-item item--logo">
-            <a href="/">
-                <img class="header-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
+        </div>
+
+        <div class="header-mobile__nav-center">
+            <a href="/" class="item--logo">
+                <img
+                    class="header-mobile__logo"
+                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png"
+                    alt="Bubbles Skin Care"
+                >
             </a>
-        </li>
-        <li class="header-mobile__nav-item item--mobile-search">
-            <button id="mobile-search-btn" aria-label="Buscar productos">
-                <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_header__search-icon--hover.png" alt="Buscar">
+        </div>
+
+        <div class="header-mobile__nav-right">
+            <button
+                id="mobile-search-btn"
+                aria-label="Buscar productos"
+                class="header-mobile__icon-btn header-mobile__search-btn"
+                type="button"
+            >
+                <div class="image__icon-hoverable">
+                    <img
+                        class="image__icon icon--normal"
+                        alt="Buscar"
+                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png"
+                    >
+                    <img
+                        class="image__icon icon--hover"
+                        alt=""
+                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png"
+                    >
+                </div>
             </button>
-        </li>
-        <li class="header-mobile__nav-item item--shop">
-            <a href="/shop">
-                <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
-            </a>
-        </li>
-    </ul>
+
+            <button
+                id="profile-button-mobile"
+                aria-haspopup="true"
+                aria-expanded="false"
+                class="header-mobile__icon-btn header-mobile__profile-btn"
+                type="button"
+            >
+                <div class="image__icon-hoverable">
+                    <img
+                        class="image__icon icon--normal"
+                        alt="Mi cuenta"
+                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                    >
+                    <img
+                        class="image__icon icon--hover"
+                        alt=""
+                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                    >
+                </div>
+            </button>
+        </div>
+
+    </div>
 </header>
 
 <!-- Mobile search panel (standalone — not inside any display:none header) -->
@@ -455,13 +509,7 @@
 <sidebar class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar">
   <div class="sidebar-mobile__container">
 
-    <!-- Logo -->
-    <img class="sidebar-mobile__logo" src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
 
-    <!-- Search (sidebar) -->
-    <form class="sidebar-mobile__search" action="/shop/" method="get" role="search">
-        <input type="search" name="s" placeholder="Buscar productos…" autocomplete="off" aria-label="Buscar">
-    </form>
 
     <!-- Navigation -->
     <nav class="sidebar-mobile__nav">
@@ -514,7 +562,9 @@
                     <ul class="mobile-nav__items">
                         <?php foreach ($menuSections as $section): ?>
                         <?php foreach ($section['items'] as $item): ?>
-                            <li class="mobile-nav__item">
+                           
+                            
+                            <li class="mobile-nav__item <?php echo ($item['slug']); ?>">
                             <a class="mobile-nav__item-link" href="<?php echo esc_url($item['link']); ?>">
                                 <span class="mobile-nav__item-text"><?php echo esc_html($item['title']); ?></span>
                             </a>
@@ -540,10 +590,13 @@
     </nav>
 
     <!-- CTA Button -->
-    <a class="sidebar-mobile__button" href="/shop">
-      <span>VISITAR TIENDA</span>
-      <i aria-hidden="true" class="dlicon shopping_bag-09"></i>
+    <a class="sidebar-mobile__button " href="/shop">
+      <span>¡Ir a la tienda!</span>
     </a>
+
+    <div class="sidebar-mobile__carita">
+        <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_profile_logo.png" alt="BSC Profile">
+    </div>
 
     <!-- Social Media -->
     <ul class="sidebar-mobile__socials">
@@ -557,16 +610,8 @@
         <i class="fab fa-tiktok"></i>
         </a>
     </li>
-    <li class="sidebar-mobile__social">
-        <a href="https://www.threads.net/@bubbles.skincare" target="_blank" rel="noopener">
-        <!-- Threads icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="16" height="16" fill="currentColor">
-            <path d="m282,149.8c0,24.9,0,49.7,0,74.6,0,32.8-24.2,57-57.1,57-50,0-99.9,0-149.9,0-32.6,0-56.9-24.2-56.9-56.8,0-50.1,0-100.2,0-150.3,0-32.6,24.3-56.8,56.9-56.8,50,0,99.9,0,149.9,0,32.9,0,57,24.1,57.1,57,0,25.1,0,50.2,0,75.3Zm-132.1,107.6c25.1,0,50.2,0,75.3,0,19.5,0,32.8-13.2,32.8-32.6,0-50.2,0-100.4,0-150.6,0-19.4-13.3-32.6-32.8-32.6-50.1,0-100.2,0-150.3,0-19.7,0-32.8,13.2-32.8,33,0,50,0,99.9,0,149.9,0,19.9,13.2,33,33.2,33,24.9,0,49.7,0,74.6,0Z"/>
-            <path d="m222.7,112.3c-4.9,1.4-9.8,2.9-14.7,4.3-2-4.8-3.5-9.4-5.6-13.6-7.4-15-19.3-24.5-35.5-28.5-14.6-3.6-29.2-3.4-43.6,1.3-17.7,5.9-28.5,18.9-33.7,36.3-6.8,23.1-6.9,46.3.9,69.2,7.2,21.2,22.3,33.3,44.3,36.6,14.7,2.1,29.3,1.7,42.8-5.5,11.3-6,19.6-14.7,21.8-28,2-11.8-3.7-23.8-13.7-28.9-.8,3.1-1.4,6.2-2.2,9.2-6.8,24-33.2,35.1-55.1,23.1-10.4-5.7-15.8-14.6-15.3-26.5.5-12.7,7.7-20.8,19-25.6,10.6-4.5,21.8-4.1,33-3.2,1.6.1,3.1.3,4.7.5-.5-8.4-5.3-15.3-12.4-17.8-11-4-21.4-1.3-30,8-4-2.8-8.1-5.6-12.5-8.6,6-9.1,14.2-14.4,24.6-16,13.3-2,25.8-.3,35.7,10,6.9,7.1,9.6,16.1,10.6,25.7.2,2.2.6,3.7,3,4.8,31.8,15.1,32.1,51.8,14.7,72.1-11.5,13.4-26.3,20.6-43.7,22.6-1.2.1-2.4.5-3.5.7h-17.7c-1.2-.2-2.4-.6-3.5-.7-18.5-2.4-34.4-9.5-46.4-24.2-9.6-11.7-14.6-25.4-17.2-40.1-.8-4.8-1.4-9.7-2.1-14.5,0-6.4,0-12.8,0-19.2.2-1.1.4-2.1.6-3.2,1.7-8.6,2.6-17.5,5.2-25.9,7.4-23.7,22.6-40.1,46.9-47.1,5.4-1.5,11-2.3,16.5-3.4,5.9,0,11.8,0,17.7,0,1,.2,2.1.6,3.1.7,25.3,3.2,44.7,15.3,56.4,38.4,2.6,5.2,4.5,10.8,6.7,16.2v.7Z"/>
-            <path d="m170.5,149.6c-6.7-1.9-16.4-2.6-24.5-1.2-3.9.7-8,1.8-11.4,3.8-7.6,4.5-8.4,14.1-2.1,19.7,9,8.1,27.2,5.6,33.4-4.8,3.1-5.3,4.4-11.1,4.5-17.4Z"/>
-        </svg>
-        </a>
-    </li>
+
+    
     </ul>
 
 
@@ -578,26 +623,38 @@
     
 
   </div>
-  <!-- Close Button -->
-  <div class="sidebar-mobile__close" id="closeMobileMenu">
-    <span>x</span>
-  </div>
+
 </sidebar>
 
 
 <script>
-  const openBtn = document.getElementById('mobileHeaderButton');
-  const closeBtn = document.getElementById('closeMobileMenu');
+  const menuToggleBtn = document.getElementById('mobileMenuToggle');
   const sidebar = document.getElementById('mobileSidebar');
+  const body = document.body;
 
-  // Open mobile menu
-  function openMobileMenu() {
-    sidebar.classList.add('is-open');
+  function setMobileMenuState(isOpen) {
+    sidebar.classList.toggle('is-open', isOpen);
+    body.classList.toggle('mobile-menu-open', isOpen);
+
+    menuToggleBtn.setAttribute('aria-expanded', String(isOpen));
+    menuToggleBtn.setAttribute(
+      'aria-label',
+      isOpen ? 'Cerrar menú' : 'Abrir menú'
+    );
   }
 
-  openBtn.addEventListener('click', openMobileMenu);
+  function toggleMobileMenu() {
+    const isOpen = sidebar.classList.contains('is-open');
+    setMobileMenuState(!isOpen);
+  }
 
-  closeBtn.addEventListener('click', () => {
-    sidebar.classList.remove('is-open');
-  });
+  if (menuToggleBtn && sidebar) {
+    menuToggleBtn.addEventListener('click', toggleMobileMenu);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+        setMobileMenuState(false);
+      }
+    });
+  }
 </script>

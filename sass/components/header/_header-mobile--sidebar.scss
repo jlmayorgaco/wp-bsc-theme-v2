@@ -86,7 +86,12 @@
     display: block;
     width: 100%;
     margin-bottom: 10px;
+
+        
+
   }
+
+
 
   .mobile-nav__item-link {
     color: #292929;
@@ -113,8 +118,42 @@
     color: #fff;
     text-decoration: none;
 
-    background-color: #69727d;
+    background-color: #333;
     border-radius: 5em;
+
+    align-items: center;
+    display: inline-block;
+    font-family: "Helvetica", sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    transition: all 0.25s ease-in-out;
+    cursor: pointer;
+    background-color: #333;
+    color: #fff;
+    height: 45px;
+    overflow: hidden;
+
+    margin: 0 auto;
+    display: block;
+
+    margin-top: 25px;
+    margin-bottom: 25px;
+  }
+
+  .sidebar-mobile__carita{
+    width: 200px;
+    display: block;
+    margin: 10px auto;
+    img{
+        width: 100%;
+    display: block;
+    margin: 0 auto;
+    }
   }
 
   // -------------------------------------------
@@ -125,7 +164,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1em;
+    gap: 0.5em;
     width: 100%;
   }
 
@@ -143,10 +182,10 @@
     font-size: var(--icon-size, 25px);
     line-height: var(--icon-size, 25px);
 
-    background-color: #69727d;
+    background-color: #fff;
     border-radius: 100%;
 
-    color: #fff;
+    color: #333;
     font-weight: 600;
     text-decoration: none;
 
@@ -154,13 +193,13 @@
       color: inherit;
       font-weight: inherit;
       text-decoration: none;
+      font-size: 32px;
     }
 
-    i,
-    svg {
-      width: 1em;
-      height: 1em;
+    .fa-tiktok{
+      font-size: 28px;
     }
+
   }
 
   // -------------------------------------------
@@ -172,7 +211,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 2em 0;
+    margin: 1em 0;
 
     h5,
     h4 {
@@ -217,7 +256,7 @@
 
 #mobileSidebar {
   position: fixed;
-  top: 0;
+  top: 65px;
   left: 0;
   width: 100%;
   height: 100vh;
@@ -228,5 +267,82 @@
 
   &.is-open {
     transform: translateX(0);
+    top: 65px;
+  }
+}
+
+
+
+    .sk-tipo-piel-seca .mobile-nav__item-text{
+      font-weight: bold !important;
+    }
+        .sk-tipo-piel-normal .mobile-nav__item-text{
+      font-weight: bold !important;
+    }
+        .sk-tipo-piel-mixta .mobile-nav__item-text{
+      font-weight: bold !important;
+    }
+        .sk-tipo-piel-grasa .mobile-nav__item-text{
+      font-weight: bold !important;
+    } 
+
+
+
+    .bsc__header--mobile {
+  z-index: 1200;
+
+  .item--sidebar-btn {
+    position: relative;
+    z-index: 1301;
+
+    button {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      color: #333 !important;
+      position: relative;
+    }
+
+    .mobile-toggle__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .mobile-toggle__icon--open {
+      display: flex;
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .mobile-toggle__icon--close {
+      display: none;
+      font-size: 38px;
+      line-height: 1;
+      font-weight: 300;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+body.mobile-menu-open {
+  .bsc__header--mobile {
+    .item--sidebar-btn {
+      .mobile-toggle__icon--open {
+        display: none;
+      }
+
+      .mobile-toggle__icon--close {
+        display: flex;
+      }
+    }
   }
 }

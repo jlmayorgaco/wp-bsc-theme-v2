@@ -547,14 +547,15 @@ $breakpoints: (
     }
 
     &__heading {
-      margin-top: 5px;
-      margin-bottom: 5px;
-      font-size: 1.5em;
+              margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 20px;
       text-align: center;
     }
 
     &__divider {
       width: footer-layout(divider-width-mobile);
+      width: 300px;
       margin: 0 auto 5px;
     }
 
@@ -564,7 +565,7 @@ $breakpoints: (
 
     &__list-item {
       margin-bottom: footer-space(list-item-bottom-mobile);
-      font-size: 1.15em;
+      font-size: 16px;
       text-align: center;
     }
 

@@ -26,7 +26,14 @@
             <a href="/product-category/" class="footer__link">Entrega inmediata</a>
           </li>
           <li class="footer__list-item">
-            <a href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20hacer%20un%20encargo%20..." target="_blank" rel="noopener noreferrer" class="footer__link">Encargos</a>
+            <a
+              href="https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubbles%20Skin%20care!%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="footer__link"
+            >
+              Encargos
+            </a>
           </li>
         </ul>
       </div>
