@@ -138,6 +138,82 @@
         </div>
     </section>
 
+  <?php
+    // 🌸 Category showcase (6 blocks)
+    $groups = [
+        [
+            'slug'  => 'group-skin-care',
+            'title' => 'SKIN CARE',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+        ],
+        [
+            'slug'  => 'group-hair-care',
+            'title' => 'HAIR CARE',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+        ],
+        [
+            'slug'  => 'group-make-up',
+            'title' => 'MAKE UP',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+
+        ]
+        /*,
+        [
+            'slug'  => 'dispositivos',
+            'title' => 'DISPOSITIVOS',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+
+        ],
+        [
+            'slug'  => 'inner-beauty',
+            'title' => 'INNER BEAUTY',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+
+        ],
+        [
+            'slug'  => 'spa-kbeauty',
+            'title' => 'SPA KBEAUTY',
+            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+
+        ],
+        */
+    ];
+    ?>
+
+    <section class="bsc-kb-grid bsc-kb-grid--home">
+      <?php foreach ( $groups as $g ) :
+        $base = trailingslashit( home_url( '/product-category/' ) );
+        $term_link = $base .$g['slug'] . '/';
+      ?>
+        <article class="bsc-kb-card">
+          <a href="<?php echo esc_url( $term_link ); ?>" class="bsc-kb-card__link">
+            <div class="bsc-kb-card__imgwrap">
+        
+                <div class="bsc-kb-card__back">
+                    <img src="<?php echo esc_url( $g['image'] ); ?>" alt="<?php echo esc_attr( $g['title'] ); ?>" loading="lazy">
+                </div> 
+
+                <div class="bsc-kb-card__front">
+                    <img class="bsc-kb-card__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/shop/hear_icon.png" alt="" width="25px">
+                    <p class="bsc-kb-text">
+                        <? echo $g['text']; ?>
+                    </p>
+                </div>
+            </div>
+            <div class="bsc-kb-card__label">
+              <?php echo esc_html( $g['title'] ); ?>
+            </div>
+          </a>
+        </article>
+      <?php endforeach; ?>
+    </section>
+
     <section class="section home__brands--section">
       <div class="section__back">
         <img class="brands__bg" alt="" src="<?php echo get_template_directory_uri();?>/images/home_brands/bsc_home_brands_bg.jpg">
@@ -241,7 +317,7 @@
 
             <div class="about__col">
               <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon1.png" alt="">
-              <h1 class="about__title">Envíos a toda Colombia</h1>
+              <h1 class="about__title">Envíos gratis</h1>
               <h2 class="about__subtitle">Por compras mayores a $300.000</h2>
             </div>
 

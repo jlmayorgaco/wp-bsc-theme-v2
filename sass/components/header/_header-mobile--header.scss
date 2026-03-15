@@ -5,18 +5,14 @@
 .bsc__header--mobile {
   display: block;
   width: 100%;
-    margin-top: 0px;
+  margin-top: 0;
   box-sizing: border-box;
-  padding: 1em;
-
+  padding: 0.25em 1em;
   position: sticky;
-
+  top: 0;
+  z-index: 1200;
   background-color: var(--color--main);
   color: #333;
-
-  // -------------------------------------------
-  // Global Typography
-  // -------------------------------------------
 
   a {
     color: inherit;
@@ -24,54 +20,213 @@
   }
 
   button {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: #333;
     font-size: 25px;
+    line-height: 1;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  ul {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+  // -------------------------------------------
+  // Main Layout
+  // -------------------------------------------
+
+  .header-mobile__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
+    width: 100%;
+    min-height: 56px;
+    column-gap: 8px;
+  }
+
+  .header-mobile__nav-left {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .header-mobile__nav-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-mobile__nav-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0;
   }
 
   // -------------------------------------------
-  // Layout Elements
+  // Shared Icon Buttons
   // -------------------------------------------
 
-  .item--sidebar-btn {
-    // Button to toggle sidebar
+  .header-mobile__icon-btn {
+    width: 42px;
+    height: 46px;
+    min-width: 42px;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: #333 !important;
+    flex-shrink: 0;
+
+    &:visited,
+    &:link {
+      color: #333 !important;
+    }
   }
+
+  // -------------------------------------------
+  // Menu / Hamburger Button
+  // -------------------------------------------
+
+  .item--sidebar-btn,
+  .header-mobile__menu-btn {
+    color: #333 !important;
+
+    i {
+      color: #333 !important;
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    button {
+      color: #333 !important;
+
+      &:visited,
+      &:link {
+        color: #333 !important;
+      }
+    }
+  }
+
+  .mobile-toggle__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+  }
+
+  .mobile-toggle__icon--open {
+    display: flex;
+  }
+
+  .mobile-toggle__icon--close {
+    display: none;
+    font-size: 38px;
+    font-weight: 300;
+    line-height: 1;
+    transform: translateY(-1px);
+  }
+
+  // -------------------------------------------
+  // Logo
+  // -------------------------------------------
 
   .item--logo {
-    // Optional wrapper for logo in nav
+    display: block;
+    width: 150px;
+
+    img {
+      display: block;
+      width: 150px;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
   }
 
-  .item--logo{
-    display: none;
-  }
+  // -------------------------------------------
+  // Search + Profile Icons
+  // -------------------------------------------
 
-  .item--mobile-search{
-    order: 0;
+  .item--mobile-search,
+  .icon--profile {
     margin-left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .item--shop {
-     display: none;
+    display: none;
   }
 
-  .item--mobile-search {
-   
-    font-size: 24px;
-    //order: -1;
-    margin-left: 0;
-    img{
-      width: 50px;
-      height: 50px;
-      object-fit:contain;
+  .header-mobile__search-btn,
+  .header-mobile__profile-btn,
+  .item--mobile-search button,
+  .icon--profile button {
+    width: 42px;
+    height: 46px;
+    min-width: 42px;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .header-mobile__search-btn,
+  .header-mobile__profile-btn {
+    .image__icon-hoverable {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
     }
-    button{
-      width: 50px;
-      height: 50px;
+
+    .image__icon {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      object-fit: contain;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .icon--normal {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .icon--hover {
+      opacity: 0;
+      z-index: 2;
+    }
+
+    &:hover .icon--hover,
+    &:focus-visible .icon--hover,
+    &:active .icon--hover {
+      opacity: 1;
+    }
+
+    &:hover .icon--normal,
+    &:focus-visible .icon--normal,
+    &:active .icon--normal {
+      opacity: 0;
     }
   }
 }
@@ -83,4 +238,23 @@
 .header-mobile__logo {
   display: block;
   width: 120px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+// -------------------------------------------
+// Mobile Menu Open State
+// -------------------------------------------
+
+body.mobile-menu-open {
+  .bsc__header--mobile {
+    .mobile-toggle__icon--open {
+      display: none;
+    }
+
+    .mobile-toggle__icon--close {
+      display: flex;
+    }
+  }
 }
