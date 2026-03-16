@@ -6,6 +6,7 @@
 
 <?php require_once get_template_directory() . '/components/products/card.php'; ?>
 <?php require_once get_template_directory() . '/components/products/slider.php'; ?>
+<?php $home_options = get_option('bsc_home_favorites', []); ?>
 
 <main class="bsc bsc__page page-home">
 
@@ -20,7 +21,7 @@
               </h1>
               <?php 
                 $key = 'ultimos_lanzamientos';
-                $options = get_option('bsc_home_favorites');
+                $options = $home_options;
                 $skus = explode(',', $options[$key]);
                 $slider = new BSC_Products_Sliders();
                 $slider->setSkus($skus);
@@ -63,7 +64,7 @@
                   <div class="tab__content active" data-tab-name="piel-seca">
                     <?php 
                     $key = 'piel_seca';
-                    $options = get_option('bsc_home_favorites');
+                    $options = $home_options;
                     $skus = explode(',', $options[$key]);
                     $slider = new BSC_Products_Sliders();
                     $slider->setSkus($skus);
@@ -74,7 +75,7 @@
                   <div class="tab__content" data-tab-name="piel-normal">
                     <?php 
                       $key = 'piel_normal';
-                      $options = get_option('bsc_home_favorites');
+                      $options = $home_options;
                       $skus = explode(',', $options[$key]);
                       $slider = new BSC_Products_Sliders();
                       $slider->setSkus($skus);
@@ -85,7 +86,7 @@
                   <div class="tab__content" data-tab-name="piel-mixta">
                       <?php 
                       $key = 'piel_mixta';
-                      $options = get_option('bsc_home_favorites');
+                      $options = $home_options;
                       $skus = explode(',', $options[$key]);
                       $slider = new BSC_Products_Sliders();
                       $slider->setSkus($skus);
@@ -96,7 +97,7 @@
                   <div class="tab__content" data-tab-name="piel-grasa">
                     <?php 
                       $key = 'piel_grasa';
-                      $options = get_option('bsc_home_favorites');
+                      $options = $home_options;
                       $skus = explode(',', $options[$key]);
                       $slider = new BSC_Products_Sliders();
                       $slider->setSkus($skus);
@@ -107,7 +108,7 @@
                   <div class="tab__content" data-tab-name="hair-care">
                     <?php 
                       $key = 'hair_care';
-                      $options = get_option('bsc_home_favorites');
+                      $options = $home_options;
                       $skus = explode(',', $options[$key]);
                       $slider = new BSC_Products_Sliders();
                       $slider->setSkus($skus);
@@ -118,7 +119,7 @@
                   <div class="tab__content" data-tab-name="maquillaje">
                     <?php 
                       $key = 'maquillaje';
-                      $options = get_option('bsc_home_favorites');
+                      $options = $home_options;
                       $skus = explode(',', $options[$key]);
                       $slider = new BSC_Products_Sliders();
                       $slider->setSkus($skus);
@@ -418,7 +419,8 @@
 
                 $.post(bsc_ajax.ajax_url, {
                   action: 'bsc_newsletter_subscribe',
-                  email:  email
+                  email:  email,
+                  nonce:  bsc_ajax.nonce
                 }).done(function(res) {
                   if (res.success) {
                     $('#bsc-newsletter-form').hide();

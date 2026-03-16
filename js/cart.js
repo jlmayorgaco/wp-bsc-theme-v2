@@ -31,9 +31,10 @@ jQuery(function ($) {
     const quantity = $btn.data('quantity') || 1;
 
     $.post(bsc_ajax.ajax_url, {
-      action: 'woocommerce_ajax_add_to_cart',
+      action: 'bsc_add_to_cart',
       product_id: productId,
       quantity: quantity,
+      nonce: bsc_ajax.nonce,
     }).done((response) => {
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => console.error('Add to cart failed:', err));
@@ -84,7 +85,7 @@ jQuery(function ($) {
       $(SELECTORS.footerCount).text(cleanCount);
       $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cleanCount} items`);
 
-      $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities' }, function (res) {
+      $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities', nonce: bsc_ajax.nonce }, function (res) {
         if (res.success && Array.isArray(res.data)) {
           res.data.forEach(({ key, quantity }) => {
             $(`${SELECTORS.checkoutItem}[data-item-key="${key}"]`).find('label span').text(quantity);
@@ -123,6 +124,7 @@ jQuery(function ($) {
       action: 'update_cart_quantity',
       product_id: productId,
       quantity: isPlus ? 1 : -1,
+      nonce: bsc_ajax.nonce,
     }).done((response) => {
       // BSC-004: actualizar badge inmediatamente desde la respuesta del servidor (fuente de verdad)
       // evita depender del fragmento WC que puede no devolver el conteo cuando el carrito queda vacío
@@ -158,6 +160,7 @@ jQuery(function ($) {
     $.post(bsc_ajax.ajax_url, {
       action: 'bsc_remove_cart_item',
       cart_item_key: key,
+      nonce: bsc_ajax.nonce,
     }).done((res) => {
       $item.slideUp(300, function () { $(this).remove(); });
       if (res.fragments) {
@@ -180,7 +183,7 @@ function refreshReviewSummary() {
   jQuery.ajax({
     url: bsc_ajax.ajax_url,
     method: 'POST',
-    data: { action: 'bsc_get_review_summary' },
+    data: { action: 'bsc_get_review_summary', nonce: bsc_ajax.nonce },
   })
   .done(res => {
     if (res?.success && res?.data?.html) {

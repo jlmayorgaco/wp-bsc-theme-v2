@@ -52,7 +52,7 @@ jQuery(document).ready(function($) {
         $.ajax({
             type: 'GET',
             url: bsc_ajax.ajax_url,
-            data: data + '&action=bsc_filter_products',
+            data: data + '&action=bsc_filter_products&nonce=' + encodeURIComponent(bsc_ajax.nonce),
             beforeSend: function () {
               $('#bscProductsContainer').html(`
                 <div class="bsc__loading">

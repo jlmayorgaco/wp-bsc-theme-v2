@@ -88,7 +88,7 @@ jQuery(function($) {
       $.ajax({
         url: bsc_ajax.ajax_url,
         method: 'POST',
-        data: { action: 'bsc_reload_city_fields', billing_state: state },
+        data: { action: 'bsc_reload_city_fields', billing_state: state, nonce: bsc_ajax.nonce },
         beforeSend: () => $('#billing_city_field').html('<p>Cargando ciudad…</p>'),
         success: function (response) {
           if (response.success) {
@@ -133,7 +133,7 @@ jQuery(function($) {
     $.ajax({
       url: bsc_ajax.ajax_url,
       method: 'POST',
-      data: { action: 'bsc_get_review_summary' },
+      data: { action: 'bsc_get_review_summary', nonce: bsc_ajax.nonce },
       success: function (response) {
         if (response.success && response.data.html) {
           console.log(' ')

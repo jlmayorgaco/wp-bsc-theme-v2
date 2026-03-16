@@ -16,13 +16,6 @@ function bsc_bp_handle_manual_adjust() {
 
 
 
-    // DEBUG LOGGING – remove after testing
-if ( defined('WP_DEBUG') && WP_DEBUG ) {
-    error_log('BSC manual adjust HIT');
-    error_log('POST: ' . wp_json_encode( $_POST ));
-    error_log('REF: ' . ( wp_get_referer() ?: 'no-referer' ));
-}
-
     // Capability check
     if ( ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'manage_options' ) ) {
         wp_die( 'Insufficient permissions.' );
