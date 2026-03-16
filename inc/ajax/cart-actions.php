@@ -1,9 +1,32 @@
 <?php
 
+// ── Add to cart ────────────────────────────────────────────────────────────
+add_action('wp_ajax_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler');
+add_action('wp_ajax_nopriv_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler');
+
+function bsc_ajax_add_to_cart_handler() {
+	check_ajax_referer('bsc_ajax_action', 'nonce');
+
+	$product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['product_id'] ?? 0));
+	$quantity   = empty($_POST['quantity']) ? 1 : wc_stock_amount($_POST['quantity']);
+
+	$added = WC()->cart->add_to_cart($product_id, $quantity);
+
+	if ($added) {
+		WC_AJAX::get_refreshed_fragments();
+	} else {
+		wp_send_json_error(['error' => 'No se pudo agregar el producto al carrito.']);
+	}
+}
+
+
+// ── Update quantity ────────────────────────────────────────────────────────
 add_action('wp_ajax_update_cart_quantity', 'bsc_update_cart_quantity');
 add_action('wp_ajax_nopriv_update_cart_quantity', 'bsc_update_cart_quantity');
 
 function bsc_update_cart_quantity() {
+	check_ajax_referer('bsc_ajax_action', 'nonce');
+
 	if (!isset($_POST['product_id'], $_POST['quantity'])) {
 		wp_send_json_error(['message' => 'Missing required fields'], 400);
 	}
@@ -51,6 +74,8 @@ add_action('wp_ajax_bsc_get_cart_quantities', 'bsc_get_cart_quantities');
 add_action('wp_ajax_nopriv_bsc_get_cart_quantities', 'bsc_get_cart_quantities');
 
 function bsc_get_cart_quantities() {
+  check_ajax_referer('bsc_ajax_action', 'nonce');
+
   if ( ! WC()->cart ) {
     wp_send_json_error();
   }
@@ -73,6 +98,8 @@ add_action('wp_ajax_bsc_remove_cart_item', 'bsc_remove_cart_item');
 add_action('wp_ajax_nopriv_bsc_remove_cart_item', 'bsc_remove_cart_item');
 
 function bsc_remove_cart_item() {
+  check_ajax_referer('bsc_ajax_action', 'nonce');
+
   if ( ! isset($_POST['cart_item_key']) || ! WC()->cart ) {
     wp_send_json_error(['message' => 'Datos incompletos o carrito no disponible.']);
     wp_die();

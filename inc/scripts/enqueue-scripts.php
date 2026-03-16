@@ -32,6 +32,7 @@ function bsc_2_0_scripts() {
 	wp_localize_script('bsc-2-0-search', 'bsc_search', [
 		'ajax_url'        => admin_url('admin-ajax.php'),
 		'placeholder_img' => get_template_directory_uri() . '/images/bsc__placeholder_product.jpg',
+		'nonce'           => wp_create_nonce('bsc_ajax_action'),
 	]);
 
 	wp_enqueue_script(
@@ -45,6 +46,7 @@ function bsc_2_0_scripts() {
 	wp_localize_script('bsc-2-0-add-to-cart', 'bsc_ajax', [
 		'ajax_url'  => admin_url('admin-ajax.php'),
 		'theme_uri' => get_template_directory_uri(),
+		'nonce'     => wp_create_nonce('bsc_ajax_action'),
 	]);
 
 	// Slider mobile hint
@@ -78,7 +80,9 @@ function bsc_2_0_scripts() {
 		);
 
 		wp_localize_script('bsc-2-0-products-filters', 'bsc_ajax', [
-			'ajax_url' => admin_url('admin-ajax.php'),
+			'ajax_url'  => admin_url('admin-ajax.php'),
+			'theme_uri' => get_template_directory_uri(),
+			'nonce'     => wp_create_nonce('bsc_ajax_action'),
 		]);
 	}
 

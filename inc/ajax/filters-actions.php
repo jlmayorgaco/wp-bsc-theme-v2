@@ -4,6 +4,7 @@ add_action('wp_ajax_bsc_filter_products', 'bsc_filter_products');
 add_action('wp_ajax_nopriv_bsc_filter_products', 'bsc_filter_products');
 
 function bsc_filter_products() {
+	check_ajax_referer('bsc_ajax_action', 'nonce');
 
 	require_once get_template_directory() . '/components/products/card.php';
 
@@ -49,7 +50,7 @@ function bsc_filter_products() {
     $args = [
         'post_type'      => 'product',
         'post_status'    => 'publish',
-        'posts_per_page' => -1,
+        'posts_per_page' => 48,
         'meta_query'     => [
             [
                 'key'     => '_price',
@@ -108,8 +109,6 @@ try {
 
     wp_send_json_error([
         'message' => 'Ocurrió un error al cargar los productos.',
-        'error' => $e->getMessage(),
-        'args' => $args, // útil para debug
     ]);
 }
 

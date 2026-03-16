@@ -19,9 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ? window.bsc_search.placeholder_img
         : '';
 
+    const nonce =
+      window.bsc_search && window.bsc_search.nonce
+        ? window.bsc_search.nonce
+        : '';
+
     try {
       const res = await fetch(
-        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query)
+        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query) + '&nonce=' + encodeURIComponent(nonce)
       );
 
       if (!res.ok) {

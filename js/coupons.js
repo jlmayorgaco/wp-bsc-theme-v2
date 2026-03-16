@@ -49,7 +49,7 @@ jQuery(function ($) {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const ajaxPost = (action, data = {}, callback) => {
-    $.post(bsc_ajax.ajax_url, { action, ...data }, callback, 'json');
+    $.post(bsc_ajax.ajax_url, { action, nonce: bsc_ajax.nonce, ...data }, callback, 'json');
   };
 
   const updateTotals = (data) => {

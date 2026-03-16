@@ -8,6 +8,8 @@ add_action('wp_ajax_bsc_search_products', 'bsc_search_products');
 add_action('wp_ajax_nopriv_bsc_search_products', 'bsc_search_products');
 
 function bsc_search_products() {
+    check_ajax_referer('bsc_ajax_action', 'nonce');
+
     $query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
 
     if ( strlen($query) < 3 ) {

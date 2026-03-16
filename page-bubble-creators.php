@@ -131,6 +131,7 @@ get_header();
 
     $.post(bsc_ajax.ajax_url, {
       action:    'bsc_creator_apply',
+      nonce:     bsc_ajax.nonce,
       nombre:    $('#bc-name').val().trim(),
       email:     $('#bc-email').val().trim(),
       instagram: $('#bc-instagram').val().trim(),
