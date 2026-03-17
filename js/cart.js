@@ -70,10 +70,15 @@ jQuery(function ($) {
    * Refresh WooCommerce cart fragments and update counters
    */
   const refreshCartFragments = () => {
-    $.get('?wc-ajax=get_refreshed_fragments', function (cart) {
+    $.ajax({
+      url: '?wc-ajax=get_refreshed_fragments',
+      method: 'GET',
+      timeout: 8000, // 8 s timeout — prevents indefinite stall on slow network
+    })
+    .done(function (cart) {
       const rawHtml = cart?.fragments?.['a.cart-contents'];
       if (!rawHtml) {
-        // BSC-004: si WC no devuelve el fragmento (carrito vacío), poner badge en 0
+        // BSC-004: carrito vacío — WC no devuelve fragmento, poner badge en 0
         $(SELECTORS.footerCount).text('0');
         $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         return;
@@ -85,14 +90,18 @@ jQuery(function ($) {
       $(SELECTORS.footerCount).text(cleanCount);
       $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cleanCount} items`);
 
-      $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities', nonce: bsc_ajax.nonce }, function (res) {
-        if (res.success && Array.isArray(res.data)) {
-          res.data.forEach(({ key, quantity }) => {
-            $(`${SELECTORS.checkoutItem}[data-item-key="${key}"]`).find('label span').text(quantity);
-          });
-        }
-
-      });
+      $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities', nonce: bsc_ajax.nonce })
+        .done(function (res) {
+          if (res.success && Array.isArray(res.data)) {
+            res.data.forEach(({ key, quantity }) => {
+              $(`${SELECTORS.checkoutItem}[data-item-key="${key}"]`).find('label span').text(quantity);
+            });
+          }
+        });
+    })
+    .fail(function () {
+      // Timeout or network error — badge already updated from POST response (BSC-004)
+      console.warn('BSC: cart fragment refresh failed or timed out.');
     });
   };
 
@@ -169,7 +178,13 @@ jQuery(function ($) {
         if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
         jQuery(document.body).trigger('update_checkout');
       }
-    }).fail(() => alert('Hubo un error al eliminar el producto del carrito.'))
+    }).fail(() => {
+      console.error('BSC: Error al eliminar el producto del carrito.');
+      // Show inline notice instead of blocking alert()
+      const $notice = $('<div class="bsc__coupon-notice bsc__coupon-notice--error">Hubo un error. Intenta nuevamente.</div>');
+      $('body').append($notice);
+      setTimeout(() => $notice.remove(), 4000);
+    })
       .always(() => $btn.prop('disabled', false).removeClass('loading'));
   });
 });

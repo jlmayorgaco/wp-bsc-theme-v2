@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 add_action('wp_ajax_bsc_creator_apply', 'bsc_creator_apply');
 add_action('wp_ajax_nopriv_bsc_creator_apply', 'bsc_creator_apply');

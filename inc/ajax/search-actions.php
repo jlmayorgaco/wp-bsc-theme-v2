@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 /**
  * BSC Custom Product Search
  * Searches by: title, description, SKU, brand (product category taxonomy)

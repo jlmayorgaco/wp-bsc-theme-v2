@@ -627,34 +627,4 @@
 </sidebar>
 
 
-<script>
-  const menuToggleBtn = document.getElementById('mobileMenuToggle');
-  const sidebar = document.getElementById('mobileSidebar');
-  const body = document.body;
-
-  function setMobileMenuState(isOpen) {
-    sidebar.classList.toggle('is-open', isOpen);
-    body.classList.toggle('mobile-menu-open', isOpen);
-
-    menuToggleBtn.setAttribute('aria-expanded', String(isOpen));
-    menuToggleBtn.setAttribute(
-      'aria-label',
-      isOpen ? 'Cerrar menú' : 'Abrir menú'
-    );
-  }
-
-  function toggleMobileMenu() {
-    const isOpen = sidebar.classList.contains('is-open');
-    setMobileMenuState(!isOpen);
-  }
-
-  if (menuToggleBtn && sidebar) {
-    menuToggleBtn.addEventListener('click', toggleMobileMenu);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
-        setMobileMenuState(false);
-      }
-    });
-  }
-</script>
+<!-- Mobile menu script enqueued via mobile-menu.js -->

@@ -18,7 +18,9 @@
       "Bash(find \"/c/Users/walla/Local Sites/bsc/app/public/wp-content/themes/wp-bsc-theme-v2/inc\" -type f -name \"*.php\" -exec wc -l {} + | sort -rn)",
       "Bash(find \"/c/Users/walla/Local Sites/bsc/app/public/wp-content/themes/wp-bsc-theme-v2/components\" -type f -name \"*.php\" -exec wc -l {} + | sort -rn)",
       "Bash(find \"/c/Users/walla/Local Sites/bsc/app/public/wp-content/themes/wp-bsc-theme-v2/js\" -type f -name \"*.js\" -exec wc -l {} + | sort -rn)",
-      "Bash(find \"/c/Users/walla/Local Sites/bsc/app/public/wp-content/themes/wp-bsc-theme-v2/sass\" -type f -name \"*.scss\" -exec wc -l {} + | tail -1)"
+      "Bash(find \"/c/Users/walla/Local Sites/bsc/app/public/wp-content/themes/wp-bsc-theme-v2/sass\" -type f -name \"*.scss\" -exec wc -l {} + | tail -1)",
+      "Bash(find:*)",
+      "Bash(cd:*)"
     ]
   }
 }

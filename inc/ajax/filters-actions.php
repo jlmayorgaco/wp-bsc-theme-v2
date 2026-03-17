@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 add_action('wp_ajax_bsc_filter_products', 'bsc_filter_products');
 add_action('wp_ajax_nopriv_bsc_filter_products', 'bsc_filter_products');

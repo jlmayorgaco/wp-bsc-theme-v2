@@ -21,6 +21,15 @@ function bsc_2_0_scripts() {
 		true
 	);
 
+	// Mobile menu — extracted from header.php inline script
+	wp_enqueue_script(
+		'bsc-2-0-mobile-menu',
+		get_template_directory_uri() . '/js/mobile-menu.js',
+		array(),
+		_S_VERSION,
+		true
+	);
+
 	wp_enqueue_script(
 		'bsc-2-0-search',
 		get_template_directory_uri() . '/js/search.js',
@@ -58,8 +67,9 @@ function bsc_2_0_scripts() {
 		true
 	);
 
-	// Tabs — solo en home (sección favoritos por tipo de piel)
+	// Scripts solo en home
 	if (is_front_page()) {
+		// Tabs — sección favoritos por tipo de piel
 		wp_enqueue_script(
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
@@ -67,23 +77,45 @@ function bsc_2_0_scripts() {
 			_S_VERSION,
 			true
 		);
-	}
 
-	// Filtros de productos — solo en catálogo y páginas de categoría
-	if (is_shop() || is_product_category() || is_product_tag() || is_archive()) {
+		// Newsletter form handler
 		wp_enqueue_script(
-			'bsc-2-0-products-filters',
-			get_template_directory_uri() . '/js/filters.js',
+			'bsc-2-0-newsletter',
+			get_template_directory_uri() . '/js/newsletter.js',
 			array('jquery'),
 			_S_VERSION,
 			true
 		);
 
-		wp_localize_script('bsc-2-0-products-filters', 'bsc_ajax', [
-			'ajax_url'  => admin_url('admin-ajax.php'),
-			'theme_uri' => get_template_directory_uri(),
-			'nonce'     => wp_create_nonce('bsc_ajax_action'),
-		]);
+		// Swiper init — depends on swiper-js (loaded via script_init.php)
+		wp_enqueue_script(
+			'bsc-2-0-swiper-init',
+			get_template_directory_uri() . '/js/swiper-init.js',
+			array('swiper-js'),
+			_S_VERSION,
+			true
+		);
+	}
+
+	// Filtros y category filter — solo en catálogo y páginas de categoría
+	if (is_shop() || is_product_category() || is_product_tag() || is_archive()) {
+		// AJAX product filters (sidebar)
+		wp_enqueue_script(
+			'bsc-2-0-products-filters',
+			get_template_directory_uri() . '/js/filters.js',
+			array('jquery', 'bsc-2-0-add-to-cart'),
+			_S_VERSION,
+			true
+		);
+
+		// Client-side category filter (renderLevel2 subcategory tabs)
+		wp_enqueue_script(
+			'bsc-2-0-category-filter',
+			get_template_directory_uri() . '/js/category-filter.js',
+			array(),
+			_S_VERSION,
+			true
+		);
 	}
 
 	// Checkout — solo en la página de checkout

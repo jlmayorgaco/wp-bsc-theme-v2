@@ -30,56 +30,51 @@ class BSC_Products_Card {
         $this->rating        = (float) $product->get_average_rating();
         $this->type          = $product->get_type();
 
-        // Set categories
+        // Set categories — fetch ONCE and reuse for brand lookup
         $terms = get_the_terms($product->get_id(), 'product_cat');
         if ($terms && !is_wp_error($terms)) {
             $this->categories = array_map(fn($term) => $term->name, $terms);
         }
 
-        // Brand
-        // Get if product belongs to any "group" category
-        $this->brand = $this->getProductBrand($product);
+        // Brand — pass already-fetched terms to avoid a second DB query
+        $this->brand = $this->getProductBrand($terms ?: []);
 
     }
 
-    private function getProductBrand($product) {
-        $categories = get_the_terms($product->get_id(), 'product_cat');
-        $brand_term = null;
-
-        if (!is_wp_error($categories) && !empty($categories)) {
-            foreach ($categories as $category) {
-                if (strpos($category->slug, '-marca') !== false) {
-                    $brand_term = $category;
-                    break;
-                }
+    private function getProductBrand(array $terms): string {
+        foreach ($terms as $term) {
+            if ($term instanceof WP_Term && strpos($term->slug, '-marca') !== false) {
+                return $term->name;
             }
         }
-
-        return $brand_term ? $brand_term->name : 'Sin marca';
+        return 'Sin marca';
     }
 
     public function render_images(): void {
-       echo '<img class="card__image" src="' . esc_url($this->image) . '" alt="' . esc_attr($this->title) . '" />';
+        echo '<img'
+            . ' class="card__image"'
+            . ' src="' . esc_url($this->image) . '"'
+            . ' alt="' . esc_attr($this->title) . '"'
+            . ' loading="lazy"'
+            . ' decoding="async"'
+            . ' width="300"'
+            . ' height="300"'
+            . ' />';
     }
 
     public function render_rating(): void {
-    
-        $rating = $this->rating;
-        $rating = 5;
-        
-        $full = floor($rating);
-        $empty = 5 - $full;
-        $img_heart_full = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/2.png';
-        $img_heart_empty = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
+        // Use real rating clamped 0–5; fallback to 5 when no ratings yet
+        $rating = ($this->rating > 0) ? min(5, (float) $this->rating) : 5;
+        $full   = (int) floor($rating);
+        $empty  = 5 - $full;
 
-        echo '';
+        // Use Font Awesome icons (already loaded globally) — avoids external HTTP requests
         for ($i = 0; $i < $full; $i++) {
-            echo '<i class="star full-star"><img decoding="async" class="bsc__heart-icon-rating" src="' . esc_url($img_heart_full) . '"></i>';
+            echo '<i class="star full-star fas fa-heart bsc__heart-icon-rating" aria-hidden="true"></i>';
         }
         for ($i = 0; $i < $empty; $i++) {
-            echo '<i class="star empty-star"><img decoding="async" class="bsc__heart-icon-rating" src="' . esc_url($img_heart_empty) . '"></i>';
+            echo '<i class="star empty-star far fa-heart bsc__heart-icon-rating" aria-hidden="true"></i>';
         }
-        echo '';
     }
 
     public function render_title(): void {

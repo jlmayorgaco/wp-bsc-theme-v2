@@ -54,6 +54,8 @@ class BSC_Products_Sliders {
             'post__in'       => $product_ids,
             'orderby'        => 'post__in',
             'posts_per_page' => $this->max_products,
+            'no_found_rows'  => true,     // skip COUNT(*) — no pagination needed in sliders
+            'cache_results'  => true,
         ]);
 
         if (!$query->have_posts()) return;
@@ -87,7 +89,8 @@ class BSC_Products_Sliders {
             'post_status'    => 'publish',
             'posts_per_page' => $limit,
             'fields'         => 'ids',
-            'orderby'        => 'rand',
+            'orderby'        => 'date',  // deterministic — avoids MySQL RAND() full-table scan
+            'order'          => 'DESC',
             'post__not_in'   => $exclude_ids,
         ];
 

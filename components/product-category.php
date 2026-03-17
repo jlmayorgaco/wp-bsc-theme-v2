@@ -335,15 +335,18 @@ class BSCShopPage
         }
 
         // --- productos del defaultChild + todos sus descendientes ---
+        // Cap at 120 products: client-side filter needs all records upfront,
+        // but -1 causes full table scan and OOM on large catalogues.
         $products_query = new WP_Query([
             'post_type'      => 'product',
             'post_status'    => 'publish',
-            'posts_per_page' => -1,
+            'posts_per_page' => 120,
+            'no_found_rows'  => true, // skip COUNT(*) — pagination not needed here
             'tax_query'      => [[
                 'taxonomy'         => 'product_cat',
                 'field'            => 'term_id',
                 'terms'            => [$defaultChild->term_id],
-                'include_children' => true, // muy importante
+                'include_children' => true,
             ]],
         ]);
 
@@ -429,18 +432,36 @@ class BSCShopPage
         }
 
         echo "<section class='shop__content'><div id='bscProductsContainer' class='shop__products'>";
-        $this->renderProducts($cat);
-        echo "</div><div class='shop__pagination'>";
-        echo paginate_links();
-        echo "</div></section></div>";
+        $products_query = $this->renderProducts($cat);
+        echo "</div>";
+
+        // Pagination — only show if more than 1 page
+        if ($products_query->max_num_pages > 1) {
+            $paged = max(1, get_query_var('paged'));
+            echo "<div class='shop__pagination'>";
+            echo paginate_links([
+                'base'      => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
+                'format'    => '?paged=%#%',
+                'current'   => $paged,
+                'total'     => $products_query->max_num_pages,
+                'prev_text' => '&laquo; Anterior',
+                'next_text' => 'Siguiente &raquo;',
+            ]);
+            echo "</div>";
+        }
+
+        echo "</section></div>";
     }
 
-    private function renderProducts(WP_Term $category): void
+    private function renderProducts(WP_Term $category): WP_Query
     {
+        $paged = max(1, get_query_var('paged'));
+
         $query = new WP_Query([
             'post_type'      => 'product',
             'post_status'    => 'publish',
-            'posts_per_page' => -1,
+            'posts_per_page' => 24,
+            'paged'          => $paged,
             'tax_query'      => [[
                 'taxonomy' => 'product_cat',
                 'field'    => 'slug',
@@ -460,8 +481,10 @@ class BSCShopPage
             }
             wp_reset_postdata();
         } else {
-            echo '<p>No products found in this category.</p>';
+            echo '<p class="bsc__empty-category">No hay productos en esta categoría.</p>';
         }
+
+        return $query;
     }
 
     // ------------------------------
@@ -496,41 +519,4 @@ $page->render();
 
 ?>
 
-<style>
-/* Your CSS here */
-</style>
-
-
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const linksContainer = document.querySelector(".bsc__subsubcategory-links");
-    const cards = document.querySelectorAll(".bsc-product-card");
-
-    if (!linksContainer || !cards.length) return;
-
-    linksContainer.addEventListener("click", function (event) {
-        const btn = event.target.closest(".bsc__subsubcategory-link");
-        if (!btn) return;
-
-        // Active state
-        linksContainer.querySelectorAll(".bsc__subsubcategory-link--active")
-            .forEach(el => el.classList.remove("bsc__subsubcategory-link--active"));
-        btn.classList.add("bsc__subsubcategory-link--active");
-
-        const filter = btn.dataset.filter; // slug o 'all'
-
-        cards.forEach(card => {
-            const subcats = (card.dataset.subcat || "").split(" ").filter(Boolean);
-
-            if (filter === "all" || !filter) {
-                card.style.display = "";
-            } else if (subcats.includes(filter)) {
-                card.style.display = "";
-            } else {
-                card.style.display = "none";
-            }
-        });
-    });
-});
-</script>
+<!-- Category filter script enqueued via js/category-filter.js -->
