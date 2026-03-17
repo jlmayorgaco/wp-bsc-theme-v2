@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 
 add_action('wp_ajax_bsc_get_review_summary', 'bsc_get_review_summary');

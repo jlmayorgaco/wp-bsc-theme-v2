@@ -152,38 +152,32 @@ function get_brand_data($product): array {
 
 
         <?php
-            $summary_nquantity         = $order->get_item_count();
-            $summary_total_amount      = $order->get_subtotal(); // before discounts & taxes
-            $summary_discounts_amount  = $order->get_discount_total();
-            $summary_shipping_amount   = $order->get_shipping_total();
-
-            // Optional helper to format currency
-            function price($amount) {
-                return wc_price($amount);
-            }
-
+            $summary_nquantity        = $order->get_item_count();
+            $summary_total_amount     = $order->get_subtotal();
+            $summary_discounts_amount = $order->get_discount_total();
+            $summary_shipping_amount  = $order->get_shipping_total();
         ?>
 
         <div class="bsc__order-summary">
           <div class="summary__row summary__quantity-items">
             <div class="summary__title"><?php echo $summary_nquantity; ?> productos</div>
-            <div class="summary__content"><?php echo price($summary_total_amount); ?></div>
+            <div class="summary__content"><?php echo wc_price($summary_total_amount); ?></div>
           </div>
 
           <div class="summary__row summary__total-discounts">
             <div class="summary__title">descuento adicional</div>
-            <div class="summary__content"><?php echo price($summary_discounts_amount); ?></div>
+            <div class="summary__content"><?php echo wc_price($summary_discounts_amount); ?></div>
           </div>
 
           <div class="summary__row summary__shipping-cost">
             <div class="summary__title">envío</div>
-            <div class="summary__content"><?php echo price($summary_shipping_amount); ?></div>
+            <div class="summary__content"><?php echo wc_price($summary_shipping_amount); ?></div>
           </div>
 
           <div class="summary__divider"></div>
 
           <h1 class="bsc__order-summary__total">
-            Total <strong><?php echo price($summary_total_amount + $summary_shipping_amount - $summary_discounts_amount); ?></strong>
+            Total <strong><?php echo wc_price($summary_total_amount + $summary_shipping_amount - $summary_discounts_amount); ?></strong>
           </h1>
         </div>
 
@@ -200,30 +194,42 @@ function get_brand_data($product): array {
       </h2>
 
       <?php
-          $nombre    = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
-          $documento = $order->get_meta('_billing_cedula'); // assuming you store the document number in a custom field
-          $ciudad    = $order->get_shipping_city();
-          $direccion = $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2();
-          $telefono  = $order->get_billing_phone(); // or use get_shipping_phone() if custom
-          $bubble_points = 356;
+          $nombre    = trim($order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name());
+          // Fallback to billing name if shipping name is empty
+          if (empty($nombre)) {
+              $nombre = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name());
+          }
+          $documento = $order->get_meta('_billing_cedula');
+          $ciudad    = $order->get_shipping_city() ?: $order->get_billing_city();
+          $direccion = trim($order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2());
+          if (empty($direccion)) {
+              $direccion = trim($order->get_billing_address_1() . ' ' . $order->get_billing_address_2());
+          }
+          $telefono  = $order->get_billing_phone();
+
+          // Real Bubble Points from user meta (Bubble Points plugin stores them in user_meta)
+          $user_id      = $order->get_user_id();
+          $bubble_points = $user_id ? (int) get_user_meta($user_id, 'bubble_points', true) : 0;
       ?>
 
       <ul class="shipping-details__list">
-        <li class="shipping-details__item"><strong>Nombre:</strong> <?php echo $nombre; ?></li>
-        <li class="shipping-details__item"><strong>Documento:</strong> <?php echo $documento; ?></li>
-        <li class="shipping-details__item"><strong>Ciudad:</strong> <?php echo $ciudad; ?></li>
-        <li class="shipping-details__item"><strong>Dirección:</strong> <?php echo $direccion; ?></li>
-        <li class="shipping-details__item"><strong>Teléfono:</strong> <?php echo $telefono; ?></li>
+        <li class="shipping-details__item"><strong>Nombre:</strong> <?php echo esc_html($nombre); ?></li>
+        <?php if ($documento) : ?>
+        <li class="shipping-details__item"><strong>Documento:</strong> <?php echo esc_html($documento); ?></li>
+        <?php endif; ?>
+        <li class="shipping-details__item"><strong>Ciudad:</strong> <?php echo esc_html($ciudad); ?></li>
+        <li class="shipping-details__item"><strong>Dirección:</strong> <?php echo esc_html($direccion); ?></li>
+        <li class="shipping-details__item"><strong>Teléfono:</strong> <?php echo esc_html($telefono); ?></li>
       </ul>
 
+      <?php if ($bubble_points > 0) : ?>
       <hr class="shipping-details__divider">
-
       <p class="shipping-details__subtitle">Puntos acumulados</p>
-
       <div class="bsc__points">
-        <img class="bsc__points__icon" src="<?php echo get_template_directory_uri(); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
-        <h3 class="bsc__points__text">¡ <strong><?php echo $bubble_points; ?></strong> Bubble Points !</h3>
+        <img class="bsc__points__icon" src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc_checkout_points.png" alt="Bubble Points" width="48" height="48" loading="lazy">
+        <h3 class="bsc__points__text">¡ <strong><?php echo esc_html($bubble_points); ?></strong> Bubble Points !</h3>
       </div>
+      <?php endif; ?>
     </div>
 
     

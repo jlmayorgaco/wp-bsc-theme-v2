@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 // ── Add to cart ────────────────────────────────────────────────────────────
 add_action('wp_ajax_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler');

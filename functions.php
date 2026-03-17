@@ -39,9 +39,6 @@ if ( class_exists( 'WooCommerce' ) ) {
 require_once get_template_directory() . '/scripts/script_init.php';
 require_once get_template_directory() . '/scripts/script_custom_types.php';
 
-// Shortcodes
-require_once get_template_directory() . '/shortcodes/bsc_simple_carousel.php';
-
 // AJAX Actions
 require_once get_template_directory() . '/inc/ajax/cart-actions.php';
 require_once get_template_directory() . '/inc/ajax/checkout-actions.php';
@@ -53,6 +50,38 @@ require_once get_template_directory() . '/inc/ajax/creator-actions.php';
 require_once get_template_directory() . '/inc/ajax/search-actions.php';
 
 
+
+// ── Performance: disable WordPress emoji scripts/styles ───────────────────
+remove_action('wp_head', 'print_emoji_detection_script', 7);
+remove_action('wp_print_styles', 'print_emoji_styles');
+remove_action('admin_print_scripts', 'print_emoji_detection_script');
+remove_action('admin_print_styles', 'print_emoji_styles');
+remove_filter('the_content_feed', 'wp_staticize_emoji');
+remove_filter('comment_text_rss', 'wp_staticize_emoji');
+remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
+
+// ── Performance: remove oEmbed / REST API exposure from <head> ─────────────
+remove_action('wp_head', 'wp_oembed_add_discovery_links');
+remove_action('wp_head', 'rest_output_link_wp_head', 10);
+remove_action('wp_head', 'wlwmanifest_link');
+remove_action('wp_head', 'rsd_link');
+remove_action('wp_head', 'wp_generator');
+
+// ── Performance: disable Gutenberg block editor CSS on frontend ────────────
+add_action('wp_enqueue_scripts', function () {
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-block-library-theme');
+    wp_dequeue_style('wc-blocks-style');
+}, 100);
+
+// ── Security: remove WordPress version from all outputs ───────────────────
+add_filter('the_generator', '__return_empty_string');
+
+// ── Performance: add preconnect for Google Fonts CDN (used in style.css) ──
+add_action('wp_head', function () {
+    echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
+    echo '<meta name="robots" content="max-image-preview:large">' . "\n";
+}, 1);
 
 function bsc_redirect_my_account_guests() {
   if (is_account_page() && !is_user_logged_in()) {

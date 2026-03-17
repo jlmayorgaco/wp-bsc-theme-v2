@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 
 add_action('wp_ajax_apply_coupon', 'bsc_apply_coupon');

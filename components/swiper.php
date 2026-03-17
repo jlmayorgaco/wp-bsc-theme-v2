@@ -32,10 +32,17 @@ if (count($repeated_slides) > 0) : ?>
     <div class="bsc bsc__home-swiper">
 
         <div class="swiper-wrapper">
-          <?php foreach ($repeated_slides as $slide): ?>
+          <?php foreach ($repeated_slides as $i => $slide): ?>
             <div class="swiper-slide bsc-swiper__slide">
               <div class="slide__image">
-                <img src="<?php echo esc_url($slide['image']); ?>" alt="<?php echo esc_html($slide['title']); ?>">
+                <img
+                  src="<?php echo esc_url($slide['image']); ?>"
+                  alt="<?php echo esc_html($slide['title']); ?>"
+                  width="1440"
+                  height="700"
+                  <?php if ($i === 0) : ?>loading="eager" fetchpriority="high"<?php else : ?>loading="lazy"<?php endif; ?>
+                  decoding="<?php echo $i === 0 ? 'sync' : 'async'; ?>"
+                >
               </div>
               <div class="slide__content">
                 <div class="slide__container">
@@ -65,7 +72,15 @@ if (count($repeated_slides) > 0) : ?>
     <div class="bsc bsc__home-swiper bsc__home-swiper--fallback">
       <div class="swiper-slide bsc-swiper__slide">
         <div class="slide__image">
-          <img src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc__placeholder_product.jpg" alt="Bubbles Skin Care">
+          <img
+            src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc__placeholder_product.jpg"
+            alt="Bubbles Skin Care"
+            width="1440"
+            height="700"
+            loading="eager"
+            fetchpriority="high"
+            decoding="sync"
+          >
         </div>
         <div class="slide__content">
           <div class="slide__container">
@@ -82,37 +97,4 @@ if (count($repeated_slides) > 0) : ?>
 <?php endif; ?>
 
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    if (!document.querySelector('.bsc__home-swiper .swiper-wrapper')) return;
-    new Swiper(".bsc__home-swiper", {
-      loop: false,
-      autoplay: {
-        delay: 4000,
-        disableOnInteraction: true
-      },
-  navigation: {
-    nextEl: ".bsc-swiper__nav--next",
-    prevEl: ".bsc-swiper__nav--prev"
-  },
-      on: {
-        init: () => {
-        const initialHero = document.querySelector('.swiper-slide-active .slide__hero');
-        if (initialHero) {
-          initialHero.classList.add('fade-in');
-        }
-      },
-        slideChangeTransitionStart: () => {
-          const currentHero = document.querySelectorAll('.slide__hero');
-          currentHero.forEach(el => el.classList.remove('fade-in'));
-        },
-        slideChangeTransitionEnd: () => {
-          const activeSlide = document.querySelector('.swiper-slide-active .slide__hero');
-          if (activeSlide) {
-            activeSlide.classList.add('fade-in');
-          }
-        }
-      }
-    });
-  });
-</script>
+<!-- Swiper init enqueued via js/swiper-init.js -->
