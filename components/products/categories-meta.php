@@ -83,7 +83,7 @@ class BSC_Product_Category_Meta {
                 case 'rutine_steps':
                     foreach ($blocks_by_key['rutine_steps'] as $html) {
                         echo '<details class="bsc__product-detail-category">';
-                        echo '<summary>Pasos de la Rutina Coreana</summary>';
+                        echo '<summary>Paso de la rutina</summary>';
                         echo '<p>' . $html . '</p>';
                         echo '</details>';
                     }

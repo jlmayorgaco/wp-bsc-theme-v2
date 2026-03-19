@@ -410,10 +410,17 @@ $container-width: 1200px;
   .page-bubble-creators {
     .bsc__title {
       padding-top: 0;
-      font-size: 28px;
+      font-size: 20px !important;
       letter-spacing: 1px;
       width: 100%;
     }
+    .bsc__title::after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 18px;
+    margin: 25px auto 0;
+}
   }
 
   .bc__hero {

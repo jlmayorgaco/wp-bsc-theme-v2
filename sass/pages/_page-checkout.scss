@@ -232,7 +232,7 @@ $order-review-badge-size: 30px;
 
   &--checkout {
     .bsc__checkout-logo {
-      display: block;
+       display: block;
       width: 300px;
       max-width: 100%;
       margin: 0 auto 40px;
@@ -297,10 +297,7 @@ $order-review-badge-size: 30px;
     }
 
     @include mq($bp-sm) {
-      .bsc__checkout-logo {
-        width: 220px;
-        margin-bottom: 28px;
-      }
+   
 
       .bsc__container,
       .bsc__container--to-right,

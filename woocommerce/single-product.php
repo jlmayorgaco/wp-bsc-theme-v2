@@ -33,6 +33,8 @@ $meta_renderer = new BSC_Product_Category_Meta($product);
 <main class="bsc bsc__product--page">
   <div class="bsc__container">
     <nav class="bsc__breadcrumbs">
+
+      <?php // TODO: Home / Skin care (Group, link a http://bsc.local/product-category/group-skin-care/) / Green Grape Sebum Control Cooling Sun Gel (Product Name Link) ?>
       <?php woocommerce_breadcrumb(); ?>
     </nav>
 
