@@ -448,7 +448,7 @@
             <a href="/" class="item--logo">
                 <img
                     class="header-mobile__logo"
-                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png"
+                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header_mobile.png"
                     alt="Bubbles Skin Care"
                 >
             </a>

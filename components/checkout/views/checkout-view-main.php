@@ -9,7 +9,7 @@
                 <img class="bsc__checkout-logo"
                      src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc_checkout_logo.svg"
                      alt="Bubble Skin Care Checkout"
-                     width="200" height="60" loading="eager">
+                     width="300"  loading="eager">
                 <?php require_once get_template_directory() . '/components/checkout/checkout-form.php'; ?>
 
                 <!-- Trust signals bar -->

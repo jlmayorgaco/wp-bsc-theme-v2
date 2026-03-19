@@ -267,6 +267,7 @@ $breakpoint-xl: 1200px;
 .bsc-kb-grid--home {
   margin-top: 2.25rem;
   margin-bottom: 3rem;
+  overflow: visible !important;
 }
 
 .bsc-kb-card {
@@ -497,9 +498,11 @@ $breakpoint-xl: 1200px;
   }
 
   .bsc-kb-card__label {
-    top: -16px;
-    right: -2px;
-    font-size: 0.78rem;
+            top: calc(50% - 16px);
+        right: calc(50% - 70px);
+    font-size: 20px;
+    padding: 5px 10px;
+    letter-spacing: 0.7px;
     padding: 6px 12px;
   }
 }
@@ -540,12 +543,13 @@ $breakpoint-xl: 1200px;
     }
   }
 
-  .bsc-kb-card__label {
-    top: -14px;
-    right: -2px;
-    font-size: 0.72rem;
+   .bsc-kb-card__label {
+            top: calc(50% - 16px);
+        right: calc(50% - 70px);
+    font-size: 20px;
     padding: 5px 10px;
     letter-spacing: 0.7px;
+    padding: 6px 12px;
   }
 }
 
