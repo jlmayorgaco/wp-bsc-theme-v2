@@ -1,4 +1,5 @@
 
+/*
 document.addEventListener('DOMContentLoaded', function () {
   if (window.innerWidth > 768) return;
 
@@ -17,3 +18,4 @@ document.addEventListener('DOMContentLoaded', function () {
     slider.scrollLeft = offset;
   });
 });
+*/

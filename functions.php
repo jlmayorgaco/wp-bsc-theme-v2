@@ -35,6 +35,11 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/woocommerce.php';
 }
 
+// Admin: product custom fields
+if ( is_admin() ) {
+	require_once get_template_directory() . '/inc/admin/product-covers.php';
+}
+
 // Scripts 
 require_once get_template_directory() . '/scripts/script_init.php';
 require_once get_template_directory() . '/scripts/script_custom_types.php';
