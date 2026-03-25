@@ -59,11 +59,26 @@ jQuery(function ($) {
     $btn.parent().append(quantityControls);
     $btn.hide();
 
+    // Swap a.cart-contents fragment into DOM so header/subtotal is up to date
+    if (fragments && fragments['a.cart-contents']) {
+      $('a.cart-contents').replaceWith(fragments['a.cart-contents']);
+    }
+
     const updatedCart = $(fragments['a.cart-contents']);
     const count = parseInt(updatedCart.find('.count').text().match(/\d+/)) || 0;
 
     $(SELECTORS.footerCount).text(count);
     $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+
+    // BSC-MOB-001: swing animation (mobile floating cart button)
+    $(SELECTORS.footerCart)
+      .addClass('is-swinging')
+      .one('animationend', function () { $(this).removeClass('is-swinging'); });
+
+    // BSC-MOB-002: haptic feedback on compatible devices
+    navigator.vibrate?.(80);
+
+    if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
   });
 
   /**
@@ -135,14 +150,26 @@ jQuery(function ($) {
       quantity: isPlus ? 1 : -1,
       nonce: bsc_ajax.nonce,
     }).done((response) => {
-      // BSC-004: actualizar badge inmediatamente desde la respuesta del servidor (fuente de verdad)
-      // evita depender del fragmento WC que puede no devolver el conteo cuando el carrito queda vacío
       const cartCount = response?.data?.cart_count;
+      const itemTotal = response?.data?.item_total;
+
+      // Update footer badge (source of truth from server)
       if (cartCount !== undefined) {
         $(SELECTORS.footerCount).text(cartCount);
         $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cartCount} items`);
       }
+
+      // Update visible qty label in checkout-cart item
+      $control.closest('.checkout-cart__item').find('label span').text(newQty);
+
+      // Update per-item price total
+      if (itemTotal) {
+        $control.closest('.checkout-cart__item').find('.item__total').html(itemTotal);
+      }
+
       refreshCartFragments();
+      if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
+
       if (newQty === 0) {
         $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
         $(`a[data-product_id="${productId}"].bsc__button-add-to-cart`).show();

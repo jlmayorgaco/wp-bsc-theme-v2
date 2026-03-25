@@ -741,3 +741,17 @@ $order-review-badge-size: 30px;
 .bsc__form-control {
   @include bsc__form-control;
 }
+
+
+@media (max-width: 767px) {
+      .bsc__page--dual {
+        flex-direction: column-reverse;
+    }
+
+    .bsc__checkout-section{
+      .bsc__grid-2, .bsc__grid-3 {
+      gap:0px;
+      }
+    }
+ 
+}

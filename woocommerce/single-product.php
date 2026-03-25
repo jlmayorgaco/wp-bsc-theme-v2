@@ -33,9 +33,36 @@ $meta_renderer = new BSC_Product_Category_Meta($product);
 <main class="bsc bsc__product--page">
   <div class="bsc__container">
     <nav class="bsc__breadcrumbs">
+      <?php
+      $group_slugs = ['group-skin-care', 'group-hair-care', 'group-make-up'];
+      $group_term  = null;
+      $terms       = get_the_terms(get_the_ID(), 'product_cat');
 
-      <?php // TODO: Home / Skin care (Group, link a http://bsc.local/product-category/group-skin-care/) / Green Grape Sebum Control Cooling Sun Gel (Product Name Link) ?>
-      <?php woocommerce_breadcrumb(); ?>
+      if ($terms && !is_wp_error($terms)) {
+          foreach ($terms as $term) {
+              if (in_array($term->slug, $group_slugs, true)) {
+                  $group_term = $term;
+                  break;
+              }
+              foreach (get_ancestors($term->term_id, 'product_cat') as $ancestor_id) {
+                  $ancestor = get_term($ancestor_id, 'product_cat');
+                  if ($ancestor && !is_wp_error($ancestor) && in_array($ancestor->slug, $group_slugs, true)) {
+                      $group_term = $ancestor;
+                      break 2;
+                  }
+              }
+          }
+      }
+      ?>
+      <nav class="woocommerce-breadcrumb" aria-label="Breadcrumb">
+        <a href="<?php echo esc_url(home_url('/')); ?>">Home</a>
+        <?php if ($group_term) :
+          $group_link = get_term_link($group_term);
+        ?>
+        &nbsp;/&nbsp;<a href="<?php echo esc_url(is_wp_error($group_link) ? '#' : $group_link); ?>"><?php echo esc_html($group_term->name); ?></a>
+        <?php endif; ?>
+        &nbsp;/&nbsp;<?php the_title(); ?>
+      </nav>
     </nav>
 
     <div class="bsc__product-layout">
@@ -63,6 +90,41 @@ $meta_renderer = new BSC_Product_Category_Meta($product);
 
       </div>
     </div>
+
+<?php
+$cover_desktop_id = (int) get_post_meta(get_the_ID(), 'bsc_cover_desktop', true);
+$cover_mobile_id  = (int) get_post_meta(get_the_ID(), 'bsc_cover_mobile', true);
+
+// Fallback: mobile → desktop, desktop → mobile
+$render_desktop = $cover_desktop_id ?: $cover_mobile_id;
+$render_mobile  = $cover_mobile_id  ?: $cover_desktop_id;
+?>
+
+<?php if ($render_desktop || $render_mobile) : ?>
+<div class="bsc__product-cover">
+  <?php if ($render_desktop) : ?>
+    <div class="bsc__product-cover--desktop">
+      <?php echo wp_get_attachment_image(
+          $render_desktop,
+          'full',
+          false,
+          ['class' => 'bsc__product-cover-img', 'loading' => 'lazy', 'decoding' => 'async']
+      ); ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ($render_mobile) : ?>
+    <div class="bsc__product-cover--mobile">
+      <?php echo wp_get_attachment_image(
+          $render_mobile,
+          'full',
+          false,
+          ['class' => 'bsc__product-cover-img', 'loading' => 'lazy', 'decoding' => 'async']
+      ); ?>
+    </div>
+  <?php endif; ?>
+</div>
+<?php endif; ?>
 
     <div class="bsc__product-recommendations">
       <div class="section__container">
