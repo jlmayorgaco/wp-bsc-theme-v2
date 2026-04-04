@@ -10,9 +10,13 @@
     var wrapper = document.querySelector('.bsc__home-swiper .swiper-wrapper');
     if (!wrapper) return;
 
+    // BSC-007: start on slide 2 (index 1) on mobile, slide 1 (index 0) on desktop
+    var isMobile = window.innerWidth < 768;
+
     /* global Swiper */
     new Swiper('.bsc__home-swiper', {
       loop: false,
+      initialSlide: isMobile ? 1 : 0,
       autoplay: {
         delay: 4000,
         disableOnInteraction: true,
