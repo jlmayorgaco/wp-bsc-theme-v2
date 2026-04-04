@@ -57,6 +57,41 @@ function bsc_product_covers_render(WP_Post $post): void {
             <?php endif; ?>
         </div>
     <?php endforeach;
+
+    // BSC-015: 3 extra presentation images shown below product summary on frontend
+    echo '<hr style="margin:16px 0;"><p style="margin-bottom:8px;"><strong>Imágenes extra (se muestran debajo del resumen del producto)</strong></p>';
+    for ($i = 1; $i <= 3; $i++) :
+        $extra_key    = "_bsc_extra_image_{$i}";
+        $extra_id     = (int) get_post_meta($post->ID, $extra_key, true);
+        $extra_src    = $extra_id ? wp_get_attachment_image_url($extra_id, 'thumbnail') : '';
+        ?>
+        <div class="bsc-cover-field" style="margin-bottom:18px;">
+            <p style="margin-bottom:4px;"><strong>Imagen extra <?php echo $i; ?></strong></p>
+            <div class="bsc-cover-preview" style="margin-bottom:6px;min-height:40px;">
+                <?php if ($extra_src) : ?>
+                <img src="<?php echo esc_url($extra_src); ?>"
+                     style="max-width:100%;height:auto;display:block;border-radius:3px;" />
+                <?php endif; ?>
+            </div>
+            <input type="hidden"
+                   name="<?php echo esc_attr($extra_key); ?>"
+                   id="<?php echo esc_attr($extra_key); ?>"
+                   value="<?php echo esc_attr($extra_id ?: ''); ?>" />
+            <button type="button"
+                    class="button bsc-cover-select"
+                    data-field="<?php echo esc_attr($extra_key); ?>">
+                <?php echo $extra_id ? esc_html__('Cambiar imagen') : esc_html__('Seleccionar imagen'); ?>
+            </button>
+            <?php if ($extra_id) : ?>
+            <button type="button"
+                    class="button bsc-cover-remove"
+                    data-field="<?php echo esc_attr($extra_key); ?>"
+                    style="margin-left:4px;">
+                Eliminar
+            </button>
+            <?php endif; ?>
+        </div>
+    <?php endfor;
 }
 
 add_action('save_post_product', function (int $post_id): void {
@@ -74,7 +109,10 @@ add_action('save_post_product', function (int $post_id): void {
         return;
     }
 
-    foreach (['bsc_cover_desktop', 'bsc_cover_mobile'] as $key) {
+    $all_keys = ['bsc_cover_desktop', 'bsc_cover_mobile',
+                 '_bsc_extra_image_1', '_bsc_extra_image_2', '_bsc_extra_image_3'];
+
+    foreach ($all_keys as $key) {
         if (!isset($_POST[$key])) continue;
 
         $value = absint($_POST[$key]);

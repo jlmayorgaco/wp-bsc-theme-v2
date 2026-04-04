@@ -16824,6 +16824,35 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 
 /* =============================================
+   BSC-015 — Product extra images block
+   ============================================= */
+.bsc-product-extra-images {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin: 32px 0;
+  width: 100%;
+}
+.bsc-product-extra-images img {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+@media (max-width: 767px) {
+  .bsc-product-extra-images {
+    flex-direction: column;
+  }
+  .bsc-product-extra-images img {
+    width: 100%;
+    flex: none;
+  }
+}
+
+/* =============================================
    BSC-008 — Contact form
    ============================================= */
 .bsc__contact-form-wrap {
