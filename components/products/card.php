@@ -118,6 +118,18 @@ class BSC_Products_Card {
         }
 
         if ($in_cart) {
+            // BSC-003: render the add-to-cart button hidden so JS can show it when qty reaches 0
+            echo '<a
+                href="?add-to-cart=' . esc_attr($product_id) . '"
+                class="bsc__button-add-to-cart"
+                style="display:none"
+                data-quantity="1"
+                data-product_id="' . esc_attr($product_id) . '"
+                data-product_sku=""
+                aria-label="' . esc_attr($label) . '"
+                rel="nofollow"
+            ><span>' . esc_html($label) . '</span></a>';
+
             // Render quantity controls
             echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr($product_id) . '">';
             echo '<button class="bsc__qty-minus">−</button>';
