@@ -99,7 +99,7 @@ class BSC_Products_Card {
 
         // Variable products cannot be added to cart without selecting options — redirect to product page
         if ( $this->type === 'variable' ) {
-            echo '<a href="' . esc_url($this->link) . '" class="bsc__button-add-to-cart bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
+            echo '<a href="' . esc_url($this->link) . '" class="bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
             echo '<span>Ver opciones</span>';
             echo '</a>';
             return;
@@ -119,16 +119,15 @@ class BSC_Products_Card {
 
         if ($in_cart) {
             // BSC-003: render the add-to-cart button hidden so JS can show it when qty reaches 0
-            echo '<a
-                href="?add-to-cart=' . esc_attr($product_id) . '"
+            echo '<button
+                type="button"
                 class="bsc__button-add-to-cart"
                 style="display:none"
                 data-quantity="1"
                 data-product_id="' . esc_attr($product_id) . '"
                 data-product_sku=""
                 aria-label="' . esc_attr($label) . '"
-                rel="nofollow"
-            ><span>' . esc_html($label) . '</span></a>';
+            ><span>' . esc_html($label) . '</span></button>';
 
             // Render quantity controls
             echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr($product_id) . '">';
@@ -138,17 +137,14 @@ class BSC_Products_Card {
             echo '</div>';
         } else {
             // Render add-to-cart button
-            echo '<a
-                href="?add-to-cart=' . esc_attr($product_id) . '"
+            echo '<button
+                type="button"
                 class="bsc__button-add-to-cart"
                 data-quantity="1"
                 data-product_id="' . esc_attr($product_id) . '"
                 data-product_sku=""
                 aria-label="' . esc_attr($label) . '"
-                rel="nofollow"
-            >';
-            echo '<span>' . esc_html($label) . '</span>';
-            echo '</a>';
+            ><span>' . esc_html($label) . '</span></button>';
         }
     }
 

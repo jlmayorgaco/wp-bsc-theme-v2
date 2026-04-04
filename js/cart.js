@@ -22,11 +22,17 @@ jQuery(function ($) {
 
   /**
    * Add to cart handler
+   * BSC-005: listen to both pointerup (touch/mouse — no 300ms delay) and click
+   * (keyboard Enter/Space on <button>). The data-processing guard prevents
+   * double-firing when both events fire for the same interaction.
    */
-  $(document).on('click', SELECTORS.addToCart, function (e) {
+  $(document).on('pointerup click', SELECTORS.addToCart, function (e) {
     e.preventDefault();
 
     const $btn = $(this);
+    if ($btn.data('processing')) return;
+    $btn.data('processing', true);
+
     const productId = $btn.data('product_id');
     const quantity = $btn.data('quantity') || 1;
 
@@ -37,7 +43,11 @@ jQuery(function ($) {
       nonce: bsc_ajax.nonce,
     }).done((response) => {
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
-    }).fail((err) => console.error('Add to cart failed:', err));
+    }).fail((err) => {
+      console.error('Add to cart failed:', err);
+    }).always(() => {
+      $btn.data('processing', false);
+    });
   });
 
   /**
