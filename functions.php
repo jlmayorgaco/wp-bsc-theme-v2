@@ -11,6 +11,11 @@ if ( ! defined( '_S_VERSION' ) ) {
 	define( '_S_VERSION', (string) filemtime( get_template_directory() . '/style.css' ) );
 }
 
+// BSC-008: contact form destination — override in wp-config.php if needed
+if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {
+	define( 'BSC_CONTACT_EMAIL', 'contacto@bubbleskincare.co' );
+}
+
 // Setup
 require_once get_template_directory() . '/inc/setup/theme-setup.php';
 require_once get_template_directory() . '/inc/setup/widgets-setup.php';
@@ -52,6 +57,7 @@ require_once get_template_directory() . '/inc/ajax/coupons-actions.php';
 require_once get_template_directory() . '/inc/ajax/filters-actions.php';
 require_once get_template_directory() . '/inc/ajax/review-summary-actions.php';
 require_once get_template_directory() . '/inc/ajax/newsletter-actions.php';
+require_once get_template_directory() . '/inc/ajax/contact-actions.php';
 require_once get_template_directory() . '/inc/ajax/creator-actions.php';
 require_once get_template_directory() . '/inc/ajax/search-actions.php';
 

@@ -16815,4 +16815,97 @@ details[open] .bsc__product-detail-category > summary::after {
   padding-top: 0px !important;
 }
 
+/* =============================================
+   BSC-008 — Contact form
+   ============================================= */
+.bsc__contact-form-wrap {
+  margin-top: 2rem;
+}
+
+.bsc__contact-form-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--color--black, #333);
+}
+
+.bsc__contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 1rem;
+}
+
+.bsc__contact-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color--black, #333);
+}
+
+.bsc__contact-field input,
+.bsc__contact-field textarea {
+  padding: 10px 14px;
+  border: 1.5px solid #d8d8d8;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--color--black, #333);
+  background: #fff;
+  transition: border-color 0.2s;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bsc__contact-field input:focus,
+.bsc__contact-field textarea:focus {
+  border-color: var(--color--pink, #f7c0cd);
+}
+
+.bsc__contact-field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.bsc__contact-submit {
+  margin-top: 0.5rem;
+  background: var(--color--black, #333);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bsc__contact-submit:hover {
+  background: #000;
+}
+
+.bsc__contact-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.bsc__contact-notice {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.bsc__contact-notice--success {
+  background: #e6f4ea;
+  color: #256b2f;
+  border: 1px solid #b5d9bc;
+}
+
+.bsc__contact-notice--error {
+  background: #fdecea;
+  color: #b3261e;
+  border: 1px solid #f5c2bf;
+}
+
 /*# sourceMappingURL=style.css.map */

@@ -103,6 +103,27 @@ get_header();
             <div class="bsc__contact-actions">
               <a class="bsc__contact-btn" href="/shop/">Visitar tienda</a>
             </div>
+
+            <!-- BSC-008: contact form -->
+            <div class="bsc__contact-form-wrap">
+              <h3 class="bsc__contact-form-heading">Envíanos un mensaje</h3>
+              <form id="bsc-contact-form" class="bsc__contact-form" novalidate>
+                <div class="bsc__contact-field">
+                  <label for="bsc-contact-name">Nombre</label>
+                  <input type="text" id="bsc-contact-name" name="bsc_name" required placeholder="Tu nombre" autocomplete="name">
+                </div>
+                <div class="bsc__contact-field">
+                  <label for="bsc-contact-email">Correo electrónico</label>
+                  <input type="email" id="bsc-contact-email" name="bsc_email" required placeholder="tucorreo@ejemplo.com" autocomplete="email">
+                </div>
+                <div class="bsc__contact-field">
+                  <label for="bsc-contact-message">Mensaje</label>
+                  <textarea id="bsc-contact-message" name="bsc_message" required placeholder="¿En qué podemos ayudarte?" rows="4"></textarea>
+                </div>
+                <div id="bsc-contact-notice" class="bsc__contact-notice" style="display:none" aria-live="polite"></div>
+                <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__contact-submit">Enviar mensaje</button>
+              </form>
+            </div>
           </div>
 
           <div class="bsc__contact-col bsc__contact-col--image">
@@ -122,5 +143,47 @@ get_header();
   </section>
 
 </main>
+
+<script>
+(function($){
+  var $form   = $('#bsc-contact-form');
+  var $submit = $('#bsc-contact-submit');
+  var $notice = $('#bsc-contact-notice');
+
+  function showNotice(msg, isSuccess) {
+    $notice
+      .removeClass('bsc__contact-notice--success bsc__contact-notice--error')
+      .addClass(isSuccess ? 'bsc__contact-notice--success' : 'bsc__contact-notice--error')
+      .text(msg)
+      .show();
+  }
+
+  $form.on('submit', function(e) {
+    e.preventDefault();
+    $notice.hide();
+    $submit.prop('disabled', true).text('Enviando…');
+
+    $.post(bsc_ajax.ajax_url, {
+      action      : 'bsc_contact_form_submit',
+      nonce       : bsc_ajax.nonce,
+      bsc_name    : $('#bsc-contact-name').val(),
+      bsc_email   : $('#bsc-contact-email').val(),
+      bsc_message : $('#bsc-contact-message').val(),
+    }).done(function(res) {
+      if (res && res.success) {
+        $form[0].reset();
+        showNotice(res.data.message, true);
+      } else {
+        var msg = (res && res.data && res.data.message) ? res.data.message : 'Error al enviar. Intenta nuevamente.';
+        showNotice(msg, false);
+      }
+    }).fail(function() {
+      showNotice('Error de conexión. Por favor intenta nuevamente.', false);
+    }).always(function() {
+      $submit.prop('disabled', false).text('Enviar mensaje');
+    });
+  });
+})(jQuery);
+</script>
 
 <?php get_footer(); ?>
