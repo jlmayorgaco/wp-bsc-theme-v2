@@ -264,7 +264,7 @@
     $menuCoreanRutine->setSlug('BSC_MENU_NAV_COREAN_RUTINE');
     $menuCoreanRutine->setCover([
         'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-03-F-100.jpg',
-        'link' => 'https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubbles%20Skin%20care!%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97',
+        'link' => bsc_get_whatsapp_url( 'general' ),
     ]);
     $menuCoreanRutine->appendMenu([
         'slug' => 'nav-menu-corea-rutine-basic',

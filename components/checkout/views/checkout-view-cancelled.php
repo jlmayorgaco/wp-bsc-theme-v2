@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
     <div class="bsc__cancelled-actions">
       <a class="bsc__button" href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Volver a la tienda</a>
       <a class="bsc__button bsc__button--secondary" target="_blank" rel="noopener noreferrer"
-         href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20tuve%20un%20problema%20con%20mi%20pedido%20y%20necesito%20ayuda.">
+         href="<?php echo esc_url( bsc_get_whatsapp_url( 'order' ) ); ?>">
         Contactar por WhatsApp
       </a>
     </div>
