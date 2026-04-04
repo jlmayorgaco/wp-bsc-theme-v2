@@ -46,6 +46,12 @@ jQuery(function ($) {
   $(document.body).on('added_to_cart', function (e, fragments, hash, $btn) {
     if ($btn.siblings(SELECTORS.quantityControls).length) return;
 
+    // BUG-H: guard against failed add-to-cart (no fragments → server error)
+    if (!fragments || !fragments['a.cart-contents']) {
+      console.error('BSC: added_to_cart fired without valid fragments — cart operation may have failed.');
+      return;
+    }
+
     const productId = $btn.data('product_id');
     const quantityControls = `
       <div class="bsc__quantity-controls" data-product_id="${productId}">
@@ -59,8 +65,9 @@ jQuery(function ($) {
     $btn.parent().append(quantityControls);
     $btn.hide();
 
-    // Swap a.cart-contents fragment into DOM so header/subtotal is up to date
-    if (fragments && fragments['a.cart-contents']) {
+    // a.cart-contents is not rendered in the BSC header — replaceWith is a no-op
+    // but kept for forward-compatibility if header ever adds the fragment
+    if (fragments['a.cart-contents']) {
       $('a.cart-contents').replaceWith(fragments['a.cart-contents']);
     }
 
@@ -179,7 +186,11 @@ jQuery(function ($) {
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
-    }).fail((xhr) => console.error('❌ Update failed:', xhr.responseText));
+    }).fail((xhr) => {
+      // BUG-A: revert optimistic UI on server failure
+      console.error('❌ Update failed:', xhr.responseText);
+      $value.text(current);
+    });
   };
 
   $(document).on('click', SELECTORS.plusBtn + ', ' + SELECTORS.minusBtn, handleQtyChange);
@@ -204,6 +215,22 @@ jQuery(function ($) {
       $item.slideUp(300, function () { $(this).remove(); });
       if (res.fragments) {
         $.each(res.fragments, (selector, html) => $(selector).replaceWith(html));
+
+        // BUG-E: $.each above is a no-op for a.cart-contents (not in BSC header DOM).
+        // Parse count directly from the fragment HTML and update footer badge immediately.
+        if (res.fragments['a.cart-contents']) {
+          const $frag = $('<div>').append(res.fragments['a.cart-contents']);
+          const count = $frag.find('.count').text().replace(/\D/g, '') || '0';
+          $(SELECTORS.footerCount).text(count);
+          $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+        } else {
+          // Cart is now empty — WC returns no fragment for empty cart
+          $(SELECTORS.footerCount).text('0');
+          $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
+        }
+
+        // BUG-F: refreshCartFragments() was redundant here (fragments already applied above),
+        // but we keep it to sync bsc_get_cart_quantities for checkout item labels.
         if (typeof refreshCartFragments === 'function') refreshCartFragments();
         if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
         jQuery(document.body).trigger('update_checkout');
