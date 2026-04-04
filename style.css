@@ -14196,7 +14196,8 @@ body.admin-bar .bsc__header--desktop {
   --thumbs-gap: 10px;
   --thumbs-w: var(--thumb-w);
   --thumbs-h: calc((3 * var(--thumbs-gap)) + (4 * var(--thumb-h)));
-  --view-w: var(--thumbs-h) - var(--thumbs-gap);
+  /* BSC-014: fixed — was missing calc() wrapper, caused broken width calc */
+  --view-w: calc(var(--thumbs-h) - var(--thumbs-gap));
   --view-h: var(--thumbs-h);
 }
 
@@ -14218,10 +14219,14 @@ body.admin-bar .bsc__header--desktop {
 .woocommerce-product-gallery .flex-viewport {
   width: var(--view-w);
   height: var(--view-h);
+  overflow: hidden;
 }
+/* BSC-014: object-fit: contain prevents stretching on any aspect ratio */
 .woocommerce-product-gallery .flex-viewport img {
-  width: var(--view-w);
-  height: var(--view-h);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* Thumbnail container */
@@ -14240,9 +14245,12 @@ body.admin-bar .bsc__header--desktop {
   height: var(--thumb-h);
   position: relative;
 }
+/* BSC-014: thumbnails use cover to fill the fixed square box cleanly */
 .flex-control-thumbs li img {
   width: var(--thumb-w);
   height: var(--thumb-h);
+  object-fit: cover;
+  display: block;
 }
 .flex-control-thumbs li::before, .flex-control-thumbs li::after {
   content: none !important;
