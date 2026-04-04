@@ -95,6 +95,27 @@ add_action('wp_head', function () {
     echo '<meta name="robots" content="max-image-preview:large">' . "\n";
 }, 1);
 
+// BSC-015: render extra images block below product summary
+add_action('woocommerce_after_single_product_summary', 'bsc_render_extra_images', 25);
+function bsc_render_extra_images(): void {
+    $post_id = get_the_ID();
+    $images  = [];
+    for ($i = 1; $i <= 3; $i++) {
+        $attachment_id = (int) get_post_meta($post_id, "_bsc_extra_image_{$i}", true);
+        if ($attachment_id > 0) {
+            $url = wp_get_attachment_image_url($attachment_id, 'large');
+            if ($url) $images[] = ['url' => $url, 'alt' => get_post_meta($attachment_id, '_wp_attachment_image_alt', true)];
+        }
+    }
+    if (empty($images)) return;
+
+    echo '<div class="bsc-product-extra-images">';
+    foreach ($images as $img) {
+        echo '<img src="' . esc_url($img['url']) . '" alt="' . esc_attr($img['alt']) . '" loading="lazy">';
+    }
+    echo '</div>';
+}
+
 function bsc_redirect_my_account_guests() {
   if (is_account_page() && !is_user_logged_in()) {
     wp_redirect(home_url('/login/'));
