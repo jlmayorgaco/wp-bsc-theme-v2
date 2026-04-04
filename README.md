@@ -1,70 +1,202 @@
-[![Build Status](https://travis-ci.org/Automattic/_s.svg?branch=master)](https://travis-ci.org/Automattic/_s)
+# Bubble Skin Care (BSC) — WordPress Theme v2
 
-_s
-===
+Custom WordPress + WooCommerce theme for [Bubble Skin Care](https://bubbleskincare.co). Ecommerce de skincare K-beauty enfocado en alto tráfico, mobile-first y operación interna simplificada.
 
-Hi. I'm a starter theme called `_s`, or `underscores`, if you like. I'm a theme meant for hacking so don't use me as a Parent Theme. Instead try turning me into the next, most awesome, WordPress theme out there. That's what I'm here for.
+---
 
-My ultra-minimal CSS might make me look like theme tartare but that means less stuff to get in your way when you're designing your awesome theme. Here are some of the other more interesting things you'll find here:
+## Stack
 
-* A modern workflow with a pre-made command-line interface to turn your project into a more pleasant experience.
-* A just right amount of lean, well-commented, modern, HTML5 templates.
-* A custom header implementation in `inc/custom-header.php`. Just add the code snippet found in the comments of `inc/custom-header.php` to your `header.php` template.
-* Custom template tags in `inc/template-tags.php` that keep your templates clean and neat and prevent code duplication.
-* Some small tweaks in `inc/template-functions.php` that can improve your theming experience.
-* A script at `js/navigation.js` that makes your menu a toggled dropdown on small screens (like your phone), ready for CSS artistry. It's enqueued in `functions.php`.
-* 2 sample layouts in `sass/layouts/` made using CSS Grid for a sidebar on either side of your content. Just uncomment the layout of your choice in `sass/style.scss`.
-Note: `.no-sidebar` styles are automatically loaded.
-* Smartly organized starter CSS in `style.css` that will help you to quickly get your design off the ground.
-* Full support for `WooCommerce plugin` integration with hooks in `inc/woocommerce.php`, styling override woocommerce.css with product gallery features (zoom, swipe, lightbox) enabled.
-* Licensed under GPLv2 or later. :) Use it to make something cool.
+| Tecnología | Versión | Notas |
+|-----------|---------|-------|
+| WordPress | >= 6.0 | |
+| WooCommerce | >= 7.0 | |
+| PHP | >= 8.0 | |
+| jQuery | WP nativo | |
+| Swiper | v11 local | `vendor/swiper/` — solo home |
+| Font Awesome | 6.5.0 local | `vendor/fontawesome/` + `vendor/webfonts/` |
+| Bubble Points | plugin interno | `plugins/bubble-points/` |
 
-Installation
----------------
+---
 
-### Requirements
+## Requisitos
 
-`_s` requires the following dependencies:
+- PHP >= 8.0
+- WordPress >= 6.0
+- WooCommerce >= 7.0
+- Plugin activo: WooCommerce
 
-- [Node.js](https://nodejs.org/)
-- [Composer](https://getcomposer.org/)
+---
 
-### Quick Start
+## Instalación local
 
-Clone or download this repository, change its name to something else (like, say, `megatherium-is-awesome`), and then you'll need to do a six-step find and replace on the name in all the templates.
+```bash
+# 1. Clonar el repo dentro de wp-content/themes/
+git clone <repo-url> wp-bsc-theme-v2
 
-1. Search for `'_s'` (inside single quotations) to capture the text domain and replace with: `'megatherium-is-awesome'`.
-2. Search for `_s_` to capture all the functions names and replace with: `megatherium_is_awesome_`.
-3. Search for `Text Domain: _s` in `style.css` and replace with: `Text Domain: megatherium-is-awesome`.
-4. Search for <code>&nbsp;_s</code> (with a space before it) to capture DocBlocks and replace with: <code>&nbsp;Megatherium_is_Awesome</code>.
-5. Search for `_s-` to capture prefixed handles and replace with: `megatherium-is-awesome-`.
-6. Search for `_S_` (in uppercase) to capture constants and replace with: `MEGATHERIUM_IS_AWESOME_`.
+# 2. Activar el theme en WP Admin → Apariencia → Temas
 
-Then, update the stylesheet header in `style.css`, the links in `footer.php` with your own information and rename `_s.pot` from `languages` folder to use the theme's slug. Next, update or delete this readme.
+# 3. Activar WooCommerce si no está activo
 
-### Setup
+# 4. Flush de permalinks: WP Admin → Ajustes → Permalinks → Guardar
+#    (necesario para páginas custom: /mi-cuenta, /checkout, /bubble-points, etc.)
 
-To start using all the tools that come with `_s`  you need to install the necessary Node.js and Composer dependencies :
-
-```sh
-$ composer install
-$ npm install
+# 5. Assets: no requiere build step — CSS y JS están compilados en style.css y js/
 ```
 
-### Available CLI commands
+---
 
-`_s` comes packed with CLI commands tailored for WordPress theme development :
+## Convención de ramas
 
-- `composer lint:wpcs` : checks all PHP files against [PHP Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/).
-- `composer lint:php` : checks all PHP files for syntax errors.
-- `composer make-pot` : generates a .pot file in the `languages/` directory.
-- `npm run compile:css` : compiles SASS files to css.
-- `npm run compile:rtl` : generates an RTL stylesheet.
-- `npm run watch` : watches all SASS files and recompiles them to css when they change.
-- `npm run lint:scss` : checks all SASS files against [CSS Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/css/).
-- `npm run lint:js` : checks all JavaScript files against [JavaScript Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/javascript/).
-- `npm run bundle` : generates a .zip archive for distribution, excluding development and system files.
+```
+fix/BSC-XXX-descripcion-corta      → corrección de bug
+feat/BSC-XXX-descripcion-corta     → feature nueva
+refactor/BSC-XXX-descripcion-corta → refactor sin cambio de comportamiento
+style/BSC-XXX-descripcion-corta    → cambios solo de CSS/HTML visual
+perf/BSC-XXX-descripcion-corta     → mejora de performance
+docs/BSC-XXX-descripcion-corta     → solo documentación
+chore/BSC-XXX-descripcion-corta    → mantenimiento, configuración
+```
 
-Now you're ready to go! The next step is easy to say, but harder to do: make an awesome WordPress theme. :)
+### Formato de commit
 
-Good luck!
+```
+<tipo>(<scope>): [<TICKET-ID>] <resumen corto en imperativo>
+
+Ejemplos:
+fix(cart): [BSC-003] sync quantity controls when product reaches zero
+feat(admin-orders): [BSC-031] add operator order management table
+style(menu-mobile): [BSC-009] redesign mobile sidebar with BSC brand
+```
+
+---
+
+## Archivos críticos
+
+### Templates de páginas
+
+| Archivo | Responsabilidad |
+|---------|----------------|
+| `front-page.php` | Home: hero slider, sliders de productos, tabs de tipos de piel, newsletter |
+| `components/header.php` | Header desktop + mobile (~630 líneas), menú mega, menú mobile sidebar |
+| `components/footer.php` | Footer negro + bloque azul + WhatsApp |
+| `components/swiper.php` | Hero slider con Swiper v11, CPT `home_slide` |
+| `components/shop.php` | Vista principal del shop |
+| `components/product-category.php` | Página de categoría de productos |
+| `components/products/card.php` | Tarjeta de producto: add-to-cart, qty control, favoritos |
+| `components/products/slider.php` | Slider de productos (home, relacionados) |
+| `components/whatsapp.php` | Botón flotante de WhatsApp |
+| `page-checkout.php` | Checkout custom |
+| `page-cart.php` | Carrito custom |
+| `page-mi-cuenta.php` | Mi Cuenta custom |
+| `page-bubble-points.php` | Bubble Points landing |
+| `page-bubble-creators.php` | Bubble Creators landing |
+| `page-contact-us.php` | Página de contacto |
+| `page-faq.php` | Preguntas frecuentes |
+| `page-shipping-returns.php` | Envíos y devoluciones |
+
+### Includes (inc/)
+
+| Archivo | Responsabilidad |
+|---------|----------------|
+| `inc/woocommerce.php` | Cart fragments, soporte WC, hooks custom (~304 líneas) |
+| `inc/setup/theme-setup.php` | Setup del theme, image sizes, soporte de features |
+| `inc/scripts/enqueue-scripts.php` | Enqueue condicional de scripts y estilos |
+| `inc/functions_bsc.php` | Funciones helper BSC |
+
+### AJAX handlers (inc/ajax/)
+
+| Archivo | Endpoint(s) | Capability | Nonce |
+|---------|------------|-----------|-------|
+| `cart-actions.php` | `bsc_add_to_cart`, `bsc_update_cart_quantity`, `bsc_remove_cart_item` | public | `bsc_ajax_nonce` |
+| `checkout-actions.php` | acciones del checkout | public | WC nonce |
+| `coupons-actions.php` | `bsc_apply_coupon`, `bsc_remove_coupon` | public | `bsc_ajax_nonce` |
+| `filters-actions.php` | `bsc_filter_products` | public | `bsc_ajax_nonce` |
+| `search-actions.php` | `bsc_search_products` | public | `bsc_ajax_nonce` |
+| `newsletter-actions.php` | `bsc_newsletter_subscribe` | public | `bsc_ajax_nonce` |
+| `creator-actions.php` | `bsc_submit_creator` | public | `bsc_ajax_nonce` |
+| `review-summary-actions.php` | `bsc_get_review_summary` | public | `bsc_ajax_nonce` |
+
+### JavaScript (js/)
+
+| Archivo | Carga en | Responsabilidad |
+|---------|---------|----------------|
+| `cart.js` | Global | Add-to-cart, qty controls, badge sync, fragments |
+| `checkout.js` | Solo checkout | Validación del form, shipping |
+| `coupons.js` | Cart + checkout | Aplicar/remover cupones, showNotice() |
+| `filters.js` | Shop + archive | Filtros de productos por AJAX |
+| `search.js` | Global | Búsqueda AJAX con debounce |
+| `mobile-menu.js` | Global | Apertura/cierre del menú mobile |
+| `navigation.js` | Global | Navegación desktop |
+| `swiper-init.js` | Solo home | Inicialización del hero Swiper |
+| `tabs.js` | Solo home | Tabs de tipos de piel |
+| `newsletter.js` | Solo home | Form de newsletter |
+| `category-filter.js` | Shop | Filtro de categorías por tab |
+
+### WooCommerce overrides (woocommerce/)
+
+| Directorio | Templates sobrescritos |
+|-----------|----------------------|
+| `woocommerce/cart/` | cart.php, mini-cart.php, cart-totals.php, shipping-calculator.php, + otros |
+| `woocommerce/checkout/` | form-checkout.php, form-billing.php, form-shipping.php, payment.php, thankyou.php, + otros |
+| `woocommerce/myaccount/` | my-account.php, orders.php, view-order.php, navigation.php, form-edit-account.php, form-edit-address.php, + otros |
+| `woocommerce/single-product.php` | Template de producto individual |
+| `woocommerce/archive-product.php` | Template de archivo/shop |
+
+### Plugin interno
+
+| Ruta | Responsabilidad |
+|------|----------------|
+| `plugins/bubble-points/` | Sistema de puntos de fidelización. Clases en `classes/`, hooks en `hooks/`, vistas en `views/` |
+
+---
+
+## Flujo de datos (request → respuesta)
+
+```
+Request HTTP
+  → WordPress carga functions.php
+    → require_once inc/setup/theme-setup.php   (image sizes, WP supports)
+    → require_once inc/scripts/enqueue-scripts.php  (scripts condicionales)
+    → require_once inc/woocommerce.php          (fragments, hooks WC)
+    → require_once inc/ajax/*.php               (registra handlers AJAX)
+  → WordPress elige el template
+    → page-checkout.php / page-cart.php / etc.
+      → get_template_part('components/header')
+      → [contenido de la página]
+      → get_template_part('components/footer')
+        → get_template_part('components/whatsapp')
+
+AJAX Request
+  → wp-admin/admin-ajax.php
+    → check_ajax_referer()
+    → sanitize inputs
+    → operación WooCommerce
+    → wp_send_json_success/error
+```
+
+---
+
+## Custom Post Types
+
+| CPT | Slug | Uso |
+|-----|------|-----|
+| Hero Slide | `home_slide` | Slides del hero de la home |
+
+---
+
+## Configuración de staging
+
+1. Crear una copia local usando LocalWP o XAMPP.
+2. Exportar la DB de producción con WP Migratie o `wp db export`.
+3. Importar en local con `wp db import dump.sql`.
+4. Actualizar URLs: `wp search-replace 'https://bubbleskincare.co' 'https://bsc.local'`.
+5. Activar `define('WP_DEBUG', true)` en `wp-config.php` de staging.
+
+---
+
+## Documentación adicional
+
+- `.claude/tickets/` — Todos los tickets BSC-000 a BSC-053
+- `.claude/qa-checklist.md` — Checklist de smoke tests manual
+- `CHANGELOG.md` — Historial de cambios por versión
+- `docs/` — Runbooks operativos (deploy, restore, monitoreo)
