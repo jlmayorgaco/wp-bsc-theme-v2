@@ -263,7 +263,7 @@
     $menuCoreanRutine->setName('RUTINA COREANA');
     $menuCoreanRutine->setSlug('BSC_MENU_NAV_COREAN_RUTINE');
     $menuCoreanRutine->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-03-F-100.jpg',
+        'image' => content_url( '/uploads/2023/10/Menu-03-F-100.jpg' ),
         'link' => bsc_get_whatsapp_url( 'general' ),
     ]);
     $menuCoreanRutine->appendMenu([
@@ -309,14 +309,14 @@
     $menuBlog->setName('BLOG');
     $menuBlog->setSlug('BSC_MENU_NAV_BLOG');
     $menuBlog->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-04-F-100.jpg',
-        'link' => 'http://bsc.local/veja-just-dropped-limited-edition-sneakers-with-mansur-gavriel/',
+        'image' => content_url( '/uploads/2023/10/Menu-04-F-100.jpg' ),
+        'link' => home_url( '/veja-just-dropped-limited-edition-sneakers-with-mansur-gavriel/' ),
     ]);
     $menuBlog->appendMenu([
         'slug' => 'nav-menu-blog-categorias',
         'title' => 'Categorías',
         'items' => [
-            ['slug' => 'entrevistas', 'title' => '1. Entrevistas', 'link' => 'http://bsc.local/blog/'],
+            ['slug' => 'entrevistas', 'title' => '1. Entrevistas', 'link' => home_url( '/blog/' )],
             ['slug' => 'resenas', 'title' => '2. Reseñas', 'link' => '#'],
             ['slug' => 'tendencias', 'title' => '3. Tendencias', 'link' => '#'],
             ['slug' => 'skin-care', 'title' => '4. Skin care', 'link' => '#'],
