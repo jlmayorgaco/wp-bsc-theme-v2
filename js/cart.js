@@ -192,7 +192,7 @@ jQuery(function ($) {
 
       if (newQty === 0) {
         $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
-        $(`a[data-product_id="${productId}"].bsc__button-add-to-cart`).show();
+        $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).show();
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
