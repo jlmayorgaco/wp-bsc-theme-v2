@@ -99,6 +99,9 @@ jQuery(function ($) {
         return;
       }
 
+      // BSC-004: replace the header fragment so WC mini-cart stays in sync
+      $('a.cart-contents').replaceWith(rawHtml);
+
       const $cartContents = $('<div>').append(rawHtml);
       const cleanCount = $cartContents.find('.count').text().replace(/\D/g, '') || '0';
 
