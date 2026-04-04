@@ -27,8 +27,10 @@ class BSC_Checkout_Cart {
 
         $name = $_product->get_name();
         $quantity = $item['quantity'];
-        $price = wc_price($_product->get_price());
-        $price_total = wc_price($quantity * $_product->get_price());
+        // I-7: use wc_get_price_to_display() to respect sale prices and tax settings
+        $unit_price = (float) wc_get_price_to_display($_product);
+        $price = wc_price($unit_price);
+        $price_total = wc_price($quantity * $unit_price);
         $image = $_product->get_image('woocommerce_thumbnail');
 
         $link = get_permalink($_product->get_id());

@@ -130,28 +130,4 @@ if (!WC()->cart) {
   </div>
 </main>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const qtyWrappers = document.querySelectorAll('.bsc__qty-wrapper');
-
-    qtyWrappers.forEach(wrapper => {
-      const minusBtn = wrapper.querySelector('.bsc__qty-btn--minus');
-      const plusBtn = wrapper.querySelector('.bsc__qty-btn--plus');
-      const input = wrapper.querySelector('.bsc__qty-input');
-
-      minusBtn.addEventListener('click', () => {
-        const value = parseInt(input.value);
-        const min = parseInt(input.min) || 1;
-        if (value > min) input.value = value - 1;
-      });
-
-      plusBtn.addEventListener('click', () => {
-        const value = parseInt(input.value);
-        const max = parseInt(input.max) || 99;
-        if (value < max) input.value = value + 1;
-      });
-    });
-  });
-</script>
-
 <?php get_footer(); ?>

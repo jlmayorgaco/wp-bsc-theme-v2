@@ -149,20 +149,15 @@ jQuery(function ($) {
     const $btn = $(e.currentTarget);
     const $control = $btn.closest(SELECTORS.quantityControls + ', .bsc-checkout-cart--controls');
     const $value = $control.find(SELECTORS.quantityValue);
-    const min = Number($control.data('min')) || 0;
     const productId = $control.data('product_id');
 
     let current = parseInt($value.text(), 10);
     const isPlus = $btn.hasClass('bsc__qty-plus');
     const newQty = isPlus ? current + 1 : current - 1;
 
-    if (newQty == 0) {
-      $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
-    }
-
     if (newQty < 0) return;
- 
-    $value.text(newQty);
+
+    $value.text(newQty); // optimistic display update
 
     $.post(bsc_ajax.ajax_url, {
       action: 'update_cart_quantity',
@@ -173,31 +168,36 @@ jQuery(function ($) {
       const cartCount = response?.data?.cart_count;
       const itemTotal = response?.data?.item_total;
 
-      // Update footer badge (source of truth from server)
+      // Update footer badge — source of truth from server
       if (cartCount !== undefined) {
         $(SELECTORS.footerCount).text(cartCount);
         $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cartCount} items`);
       }
 
-      // Update visible qty label in checkout-cart item
-      $control.closest('.checkout-cart__item').find('label span').text(newQty);
-
-      // Update per-item price total
+      // I-2: Update per-item total in both checkout sidebar and cart page table
       if (itemTotal) {
         $control.closest('.checkout-cart__item').find('.item__total').html(itemTotal);
+        $control.closest('tr').find('.bsc__cart-subtotal').html(itemTotal);
       }
+
+      // Update visible qty badge in checkout sidebar label
+      $control.closest('.checkout-cart__item').find('label span').text(newQty);
 
       refreshCartFragments();
       if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
 
       if (newQty === 0) {
+        // Remove checkout sidebar item
         $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
+        // I-2: Remove cart page table row
+        $control.closest('tr').remove();
+        // Show add-to-cart button on product cards (tag-agnostic selector)
         $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).show();
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
     }).fail((xhr) => {
-      // BUG-A: revert optimistic UI on server failure
+      // Revert optimistic display on server failure
       console.error('❌ Update failed:', xhr.responseText);
       $value.text(current);
     });
@@ -222,12 +222,24 @@ jQuery(function ($) {
       cart_item_key: key,
       nonce: bsc_ajax.nonce,
     }).done((res) => {
+      // I-1: check server success BEFORE touching the DOM.
+      // bsc_remove_cart_item sends wp_send_json_error({success:false}) on failure,
+      // or WC_AJAX::get_refreshed_fragments() (no success field) on success.
+      if (res.success === false) {
+        const msg = res.data?.message || 'Error al eliminar el producto.';
+        const $notice = $('<div class="bsc__coupon-notice bsc__coupon-notice--error"></div>').text(msg);
+        $('body').append($notice);
+        setTimeout(() => $notice.remove(), 4000);
+        return;
+      }
+
       $item.slideUp(300, function () { $(this).remove(); });
+
       if (res.fragments) {
         $.each(res.fragments, (selector, html) => $(selector).replaceWith(html));
 
-        // BUG-E: $.each above is a no-op for a.cart-contents (not in BSC header DOM).
-        // Parse count directly from the fragment HTML and update footer badge immediately.
+        // Parse count from fragment HTML and update footer badge immediately
+        // (a.cart-contents is not in BSC header DOM so $.each replaceWith is a no-op)
         if (res.fragments['a.cart-contents']) {
           const $frag = $('<div>').append(res.fragments['a.cart-contents']);
           const count = $frag.find('.count').text().replace(/\D/g, '') || '0';
@@ -239,15 +251,12 @@ jQuery(function ($) {
           $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         }
 
-        // BUG-F: refreshCartFragments() was redundant here (fragments already applied above),
-        // but we keep it to sync bsc_get_cart_quantities for checkout item labels.
         if (typeof refreshCartFragments === 'function') refreshCartFragments();
         if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
         jQuery(document.body).trigger('update_checkout');
       }
     }).fail(() => {
       console.error('BSC: Error al eliminar el producto del carrito.');
-      // Show inline notice instead of blocking alert()
       const $notice = $('<div class="bsc__coupon-notice bsc__coupon-notice--error">Hubo un error. Intenta nuevamente.</div>');
       $('body').append($notice);
       setTimeout(() => $notice.remove(), 4000);
