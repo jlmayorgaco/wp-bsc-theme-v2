@@ -145,7 +145,7 @@
                 </a>
             </li>
             <li>
-                <a href="https://wa.me/573156922859" target="_blank">
+                <a href="<?php echo esc_url( bsc_get_whatsapp_url( 'general' ) ); ?>" target="_blank">
                     <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_SOCIAL_WHATSAPP.png" alt="WhatsApp">
                 </a>
             </li>

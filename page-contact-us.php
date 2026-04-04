@@ -43,7 +43,7 @@ get_header();
 
               <a
                 class="bsc__contact-item"
-                href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20tener%20m%C3%A1s%20informaci%C3%B3n."
+                href="<?php echo esc_url( bsc_get_whatsapp_url( 'support' ) ); ?>"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Escribir por WhatsApp a Bubble Skin Care"

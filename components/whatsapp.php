@@ -1,9 +1,20 @@
-<div class="">
-</div>
+<?php
+/**
+ * WhatsApp floating button component.
+ * Usa bsc_get_whatsapp_url() de inc/bsc-contact-options.php como fuente única del número.
+ *
+ * @package BSC2
+ */
 
-
-Punta Cana : 4 + 1.5*3 : 8.5
-San andres: 6 + 0.7*3 : 8.1
-Panama: 3.6 + 1
-Baru: 3 + 0.3*2
-
+if ( ! defined( 'ABSPATH' ) ) exit;
+?>
+<a
+    href="<?php echo esc_url( bsc_get_whatsapp_url( 'general' ) ); ?>"
+    class="footer__whatsapp whatsapp-float"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Contactar por WhatsApp"
+>
+    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+    <span class="footer__wa">WhatsApp</span>
+</a>
