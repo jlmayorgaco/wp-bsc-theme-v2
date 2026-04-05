@@ -70,6 +70,36 @@ function bsc_add_admin_menu(): void {
         'bsc-settings',
         'bsc_render_settings_page'
     );
+
+    // BSC-059: Home Favorites — gestión de productos destacados (shop manager + admin)
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Home Favorites', 'bsc-2-0' ),
+        __( 'Home Favorites', 'bsc-2-0' ),
+        'manage_woocommerce',
+        'bsc-home-favorites',
+        'bsc_home_favorites_settings_page'  // defined in scripts/script_custom_types.php
+    );
+
+    // BSC-059: Hero Slides — link al CPT home_slide (shop manager + admin)
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Hero Slides', 'bsc-2-0' ),
+        __( 'Hero Slides', 'bsc-2-0' ),
+        'manage_woocommerce',
+        'edit.php?post_type=home_slide',
+        ''
+    );
+
+    // BSC-059: Bubble Points — link al admin del plugin de puntos (shop manager + admin)
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Bubble Points', 'bsc-2-0' ),
+        __( 'Bubble Points', 'bsc-2-0' ),
+        'manage_woocommerce',
+        'bsc-bubble-points',
+        'bsc_bp_render_admin_screen'  // defined in plugins/bubble-points/admin/admin-menu.php
+    );
 }
 
 // ── Hide native WP/WC menus for operational roles ─────────────────────
@@ -77,10 +107,8 @@ add_action( 'admin_menu', 'bsc_restrict_admin_menus', 999 );
 
 function bsc_restrict_admin_menus(): void {
     $user = wp_get_current_user();
-    $operational_roles = [ 'bsc_operator', 'bsc_employee' ];
-
-    $is_operational = ! empty( array_intersect( $operational_roles, (array) $user->roles ) );
-    if ( ! $is_operational ) return;
+    // BSC-060: bsc_employee removed — only bsc_operator is restricted now
+    if ( ! in_array( 'bsc_operator', (array) $user->roles, true ) ) return;
 
     // Menus to hide for operational users
     $hide = [

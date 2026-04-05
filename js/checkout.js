@@ -91,6 +91,25 @@ jQuery(function ($) {
     return hasError;
   }
 
+  // === BSC-058: Hide shipping until state + city are both selected ===
+  function toggleShippingVisibility() {
+    const state = $('#billing_state').val();
+    const city  = $('#billing_city').val();
+    const $shippingRows = $('.woocommerce-shipping-totals');
+    const msgId = 'bsc-shipping-pending-msg';
+
+    if ( !state || !city ) {
+      $shippingRows.hide();
+      if ( !$('#' + msgId).length ) {
+        $('<tr id="' + msgId + '"><td colspan="2" class="bsc-shipping-pending-notice">Selecciona tu departamento y ciudad para ver las opciones de envío.</td></tr>')
+          .insertAfter('.cart-subtotal');
+      }
+    } else {
+      $shippingRows.show();
+      $('#' + msgId).remove();
+    }
+  }
+
   // === CITY FIELD AJAX LOADER ===
   function setupCityLoader() {
     $('#billing_state').on('change', function () {
@@ -105,6 +124,7 @@ jQuery(function ($) {
             setTimeout(() => {
               $('#billing_city_field').replaceWith(response.data.html);
               updateCityPlaceholder();
+              toggleShippingVisibility();
               $(document.body).trigger('update_checkout');
             }, 300);
           } else {
@@ -116,7 +136,9 @@ jQuery(function ($) {
     });
 
     // BSC-016: trigger shipping recalculation on city/state change
+    // BSC-058: also toggle shipping visibility
     $(document.body).on('change', '#billing_city, #billing_state', function () {
+      toggleShippingVisibility();
       $(document.body).trigger('update_checkout');
     });
   }
@@ -141,13 +163,16 @@ jQuery(function ($) {
     setupCityLoader();
     setupShippingToggle();
     updateCityPlaceholder();
+    toggleShippingVisibility(); // BSC-058: hide on load if no state/city yet
   }
 
   init();
 
   // === WC CHECKOUT EVENT ===
   // BSC-016: refreshReviewSummary is a global function defined in cart.js (loaded on all pages)
+  // BSC-058: re-apply shipping visibility after WC updates checkout
   $(document.body).on('updated_checkout', function () {
+    toggleShippingVisibility();
     if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
   });
 

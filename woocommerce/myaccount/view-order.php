@@ -40,7 +40,7 @@ function get_brand_data($product): array {
         <div class="bsc__order-overview__title">Fecha:</div>
         <div class="bsc__order-overview__content"><?php echo wc_format_datetime($order->get_date_created()); ?></div>
       </li>
-      <li class="bsc__order-overview__item" style="width: 325px">
+      <li class="bsc__order-overview__item bsc__order-overview__item--progress">
         <div class="bsc__order-overview__title">Estado:</div>
         <div class="bsc__order-overview__content">
           <?php
@@ -131,17 +131,17 @@ function get_brand_data($product): array {
         $bubble_points = (int) get_user_meta(get_current_user_id(), 'bubble_points_balance', true);
         ?>
         <ul class="shipping-details__list">
-          <li><strong>Nombre:</strong> <?php echo $nombre; ?></li>
-          <li><strong>Documento:</strong> <?php echo $documento; ?></li>
-          <li><strong>Ciudad:</strong> <?php echo $ciudad; ?></li>
-          <li><strong>Dirección:</strong> <?php echo $direccion; ?></li>
-          <li><strong>Teléfono:</strong> <?php echo $telefono; ?></li>
+          <li><strong>Nombre:</strong> <?php echo esc_html( $nombre ); ?></li>
+          <li><strong>Documento:</strong> <?php echo esc_html( $documento ); ?></li>
+          <li><strong>Ciudad:</strong> <?php echo esc_html( $ciudad ); ?></li>
+          <li><strong>Dirección:</strong> <?php echo esc_html( $direccion ); ?></li>
+          <li><strong>Teléfono:</strong> <?php echo esc_html( $telefono ); ?></li>
         </ul>
         <hr class="shipping-details__divider">
         <p class="shipping-details__subtitle">Puntos acumulados</p>
         <div class="bsc__points">
           <img class="bsc__points__icon" src="<?php echo get_template_directory_uri(); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
-          <h3 class="bsc__points__text">¡ <strong><?php echo $bubble_points; ?></strong> Bubble Points !</h3>
+          <h3 class="bsc__points__text">¡ <strong><?php echo esc_html( $bubble_points ); ?></strong> Bubble Points !</h3>
         </div>
       </div>
     </div>
