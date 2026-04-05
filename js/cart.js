@@ -20,6 +20,13 @@ jQuery(function ($) {
     checkoutItem: '.checkout-cart__item',
   };
 
+  // BSC-017: floating cart swing animation helper
+  function triggerCartSwing() {
+    const $cart = $(SELECTORS.footerCart);
+    $cart.addClass('is-swinging')
+      .one('animationend webkitAnimationEnd', function () { $(this).removeClass('is-swinging'); });
+  }
+
   /**
    * Add to cart handler
    * BSC-005: listen to both pointerup (touch/mouse — no 300ms delay) and click
@@ -32,6 +39,7 @@ jQuery(function ($) {
     const $btn = $(this);
     if ($btn.data('processing')) return;
     $btn.data('processing', true);
+    $btn.addClass('bsc-loading'); // BSC-019: show spinner while adding
 
     const productId = $btn.data('product_id');
     const quantity = $btn.data('quantity') || 1;
@@ -47,6 +55,7 @@ jQuery(function ($) {
       console.error('Add to cart failed:', err);
     }).always(() => {
       $btn.data('processing', false);
+      $btn.removeClass('bsc-loading'); // BSC-019: remove spinner
     });
   });
 
@@ -87,10 +96,8 @@ jQuery(function ($) {
     $(SELECTORS.footerCount).text(count);
     $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
 
-    // BSC-MOB-001: swing animation (mobile floating cart button)
-    $(SELECTORS.footerCart)
-      .addClass('is-swinging')
-      .one('animationend', function () { $(this).removeClass('is-swinging'); });
+    // BSC-017: swing animation (mobile floating cart button)
+    triggerCartSwing();
 
     // BSC-MOB-002: haptic feedback on compatible devices
     navigator.vibrate?.(80);
@@ -158,6 +165,7 @@ jQuery(function ($) {
     if (newQty < 0) return;
 
     $value.text(newQty); // optimistic display update
+    $btn.addClass('bsc-loading'); // BSC-019: show spinner on +/- button
 
     $.post(bsc_ajax.ajax_url, {
       action: 'update_cart_quantity',
@@ -183,6 +191,9 @@ jQuery(function ($) {
       // Update visible qty badge in checkout sidebar label
       $control.closest('.checkout-cart__item').find('label span').text(newQty);
 
+      // BSC-017: swing the floating cart button when quantity increases
+      if (isPlus) triggerCartSwing();
+
       refreshCartFragments();
       if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
 
@@ -200,6 +211,8 @@ jQuery(function ($) {
       // Revert optimistic display on server failure
       console.error('❌ Update failed:', xhr.responseText);
       $value.text(current);
+    }).always(() => {
+      $btn.removeClass('bsc-loading'); // BSC-019: remove spinner
     });
   };
 

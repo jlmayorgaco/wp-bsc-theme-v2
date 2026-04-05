@@ -13236,6 +13236,28 @@ body.admin-bar .bsc__header--desktop {
     transform: rotate(0deg) scale(1);
   }
 }
+/* BSC-019: loading state for AJAX buttons (add-to-cart, qty +/-, coupon apply) */
+@keyframes bsc-spin {
+  to { transform: rotate(360deg); }
+}
+.bsc-loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+}
+.bsc-loading::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 1em;
+  height: 1em;
+  margin: -0.5em 0 0 -0.5em;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: bsc-spin 0.6s linear infinite;
+}
+
 .footer__developer-section {
   width: 100%;
   padding: 0;

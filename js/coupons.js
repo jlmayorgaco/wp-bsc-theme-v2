@@ -80,7 +80,10 @@ jQuery(function ($) {
       return;
     }
 
+    $applyBtn.addClass('bsc-loading').prop('disabled', true); // BSC-019
+
     ajaxPost('apply_coupon', { coupon_code: code }, (res) => {
+      $applyBtn.removeClass('bsc-loading').prop('disabled', false); // BSC-019
       if (!res.success) {
         showNotice(res.data?.message || 'Error al aplicar el cupón.', 'error');
         return;
