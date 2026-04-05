@@ -292,9 +292,47 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
     return $rates;
 }
 
-add_action('woocommerce_before_calculate_totals', function() {
-    WC()->cart->calculate_shipping();
-}, 5);
+// BSC-058: removed woocommerce_before_calculate_totals/calculate_shipping() — caused infinite loops
+
+// BSC-058: force correct flat rate based on billing state + city
+add_filter('woocommerce_package_rates', 'bsc_force_shipping_by_location', 20, 2);
+function bsc_force_shipping_by_location( array $rates, array $package ): array {
+    $state = $package['destination']['state'] ?? '';
+    $city  = strtolower( trim( $package['destination']['city'] ?? '' ) );
+
+    if ( empty( $state ) || empty( $city ) ) {
+        return $rates;
+    }
+
+    $bogota_cities = [ 'bogotá', 'bogota', 'bogota d.c.', 'bogotá d.c.', 'santa fe de bogota', 'santa fe de bogotá' ];
+    $is_bogota     = ( $state === 'CUN' && in_array( $city, $bogota_cities, true ) );
+
+    $has_bogota_rate = false;
+    $has_general_rate = false;
+    foreach ( $rates as $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) continue;
+        $label_lower = strtolower( $rate->label );
+        if ( str_contains( $label_lower, 'bogot' ) ) $has_bogota_rate  = true;
+        else $has_general_rate = true;
+    }
+
+    // Only filter if there are distinct Bogotá vs general flat rates configured
+    if ( ! $has_bogota_rate || ! $has_general_rate ) {
+        return $rates;
+    }
+
+    foreach ( $rates as $rate_id => $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) continue;
+        $label_lower = strtolower( $rate->label );
+        $is_bogota_rate = str_contains( $label_lower, 'bogot' );
+        if ( $is_bogota && ! $is_bogota_rate ) {
+            unset( $rates[ $rate_id ] );
+        } elseif ( ! $is_bogota && $is_bogota_rate ) {
+            unset( $rates[ $rate_id ] );
+        }
+    }
+    return $rates;
+}
 
 add_filter('default_checkout_billing_country', function() {
   return 'CO';

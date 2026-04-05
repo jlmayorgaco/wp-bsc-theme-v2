@@ -231,11 +231,37 @@ function bsc_clear_category_cache( int $term_id, int $tt_id, string $taxonomy ):
     }
 }
 
-add_action('woocommerce_save_account_details', function($user_id) {
-  foreach (['bsc_needs1','bsc_needs2','bsc_needs3','bsc_needs4'] as $k) {
-    if (isset($_POST[$k])) update_user_meta($user_id, $k, sanitize_text_field(wp_unslash($_POST[$k])));
-  }
-  if (isset($_POST['account_birthday'])) update_user_meta($user_id, 'bsc_birthday', sanitize_text_field(wp_unslash($_POST['account_birthday'])));
-  if (isset($_POST['account_skin_type'])) update_user_meta($user_id, 'bsc_skin_type', sanitize_text_field(wp_unslash($_POST['account_skin_type'])));
-  if (isset($_POST['account_sensitivity'])) update_user_meta($user_id, 'bsc_sensitivity', sanitize_text_field(wp_unslash($_POST['account_sensitivity'])));
+add_action('woocommerce_save_account_details', function( int $user_id ): void {
+    // BSC-057: needs fields — plain text only, no HTML
+    foreach ( ['bsc_needs1','bsc_needs2','bsc_needs3','bsc_needs4'] as $k ) {
+        if ( isset( $_POST[ $k ] ) ) {
+            update_user_meta( $user_id, $k, sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
+        }
+    }
+
+    // BSC-057: birthday — validate format YYYY-MM-DD
+    if ( isset( $_POST['account_birthday'] ) ) {
+        $raw = sanitize_text_field( wp_unslash( $_POST['account_birthday'] ) );
+        if ( $raw === '' || preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw ) ) {
+            update_user_meta( $user_id, 'bsc_birthday', $raw );
+        }
+    }
+
+    // BSC-057: skin_type — whitelist
+    $allowed_skin_types = [ 'Grasa', 'Mixta', 'Seca', 'Normal', 'Normal a seca', 'Normal a grasa' ];
+    if ( isset( $_POST['account_skin_type'] ) ) {
+        $val = sanitize_text_field( wp_unslash( $_POST['account_skin_type'] ) );
+        if ( $val === '' || in_array( $val, $allowed_skin_types, true ) ) {
+            update_user_meta( $user_id, 'bsc_skin_type', $val );
+        }
+    }
+
+    // BSC-057: sensitivity — whitelist
+    $allowed_sensitivities = [ 'Sensible normal', 'Muy sensible', 'No sensible' ];
+    if ( isset( $_POST['account_sensitivity'] ) ) {
+        $val = sanitize_text_field( wp_unslash( $_POST['account_sensitivity'] ) );
+        if ( $val === '' || in_array( $val, $allowed_sensitivities, true ) ) {
+            update_user_meta( $user_id, 'bsc_sensitivity', $val );
+        }
+    }
 }, 10, 1);

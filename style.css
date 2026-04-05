@@ -17282,4 +17282,203 @@ details[open] .bsc__product-detail-category > summary::after {
     outline: none;
 }
 
+/* =========================================
+   BSC-054: Orders list — tablet responsive
+   ========================================= */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bsc__orders-table th,
+  .bsc__orders-table td {
+    padding: 0.7rem 0.6rem;
+    font-size: 0.85rem;
+  }
+  .bsc__orders { padding: 1rem; }
+}
+
+/* BSC-054: pagination touch targets */
+.bsc__orders-pagination a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* =========================================
+   BSC-055: Order detail — tablet + full mobile
+   ========================================= */
+.bsc__order-overview {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.bsc__order-overview__item {
+  min-width: 180px;
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bsc__thankyou-container { padding: 1.5rem 1rem; }
+  .bsc__order-review.product-details-and-shipping {
+    flex-direction: column;
+  }
+  .bsc__order-review.product-details,
+  .bsc__order-review.shipping-details {
+    width: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .bsc__order-review.product-details-and-shipping {
+    flex-direction: column;
+  }
+  .bsc__order-review.product-details,
+  .bsc__order-review.shipping-details {
+    width: 100%;
+  }
+  .bsc__order-review__item {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .bsc__order-review__image-link {
+    width: 70px;
+    flex-shrink: 0;
+  }
+  .bsc__order-review__image {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+  }
+  .bsc__order-review__info {
+    flex: 1;
+  }
+  .bsc__order-review__price {
+    font-weight: 700;
+  }
+  .bsc__order-summary {
+    font-size: 0.9rem;
+  }
+  .bsc__order-summary .summary__row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .shipping-details__list {
+    padding-left: 0;
+    list-style: none;
+  }
+  .shipping-details__list li {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+/* =========================================
+   BSC-056: Bubble Points — responsive
+   ========================================= */
+/* Tablet: 2-column ticket grid */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .profile-points__coupons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .profile-points__container { padding: 1rem; }
+}
+
+/* Mobile: single column */
+@media (max-width: 767px) {
+  .profile-points__coupons {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .profile-points { padding: 1rem; }
+  .profile-points__container { padding: 1rem; }
+  .profile-points__footer {
+    padding: 1rem 0;
+  }
+  .profile-points__title {
+    font-size: 1.2rem;
+    padding-bottom: 2rem;
+  }
+  /* bsc-ticket grid inside footer */
+  .profile-points__footer .bsc-ticket {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+  /* Ticket actions */
+  .bsc-ticket__actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .bsc-ticket__actions a,
+  .bsc-ticket__actions button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =========================================
+   BSC-057: My Account forms — extra fixes
+   ========================================= */
+/* iOS zoom fix: ensure all form elements have font-size >= 16px on mobile */
+@media (max-width: 767px) {
+  .bsc__account-form input,
+  .bsc__account-form select,
+  .bsc__account-form textarea,
+  .bsc__shipping-address input,
+  .bsc__shipping-address select,
+  .bsc__shipping-address textarea {
+    font-size: 16px !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* 3-column grid collapses to 1 column */
+  .bsc__account-grid {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .bsc__vl {
+    display: none;
+  }
+  .bsc__account-col {
+    width: 100%;
+  }
+  /* Submit button full width */
+  .bsc__account-submit .bsc__button,
+  .button--save-profile .bsc__button {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+  }
+}
+
+/* Tablet: 2-col account grid */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bsc__account-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .bsc__vl { display: none; }
+  .bsc__account-col { width: 100%; }
+  .bsc__account-needs { grid-column: 1 / -1; }
+  .bsc__shipping-address .woocommerce-address-fields__field-wrapper .form-row {
+    float: none !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+}
+
+/* =========================================
+   BSC-058: Checkout — shipping pending notice
+   ========================================= */
+.bsc-shipping-pending-notice {
+  color: #888;
+  font-size: 13px;
+  font-style: italic;
+  padding: 8px 0;
+}
+
 /*# sourceMappingURL=style.css.map */
