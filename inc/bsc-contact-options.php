@@ -17,7 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return string URL de WhatsApp con el mensaje codificado.
  */
 function bsc_get_whatsapp_url( $context = 'general' ) {
-    $phone = '573156922859';
+    // BSC-064: configurable from BSC Settings admin page
+    $phone = get_option( 'bsc_whatsapp_number', '573156922859' );
 
     $messages = [
         'general'  => '¡Hola Bubble Skin Care! 🌈✨💗 Quiero más información sobre sus productos.',

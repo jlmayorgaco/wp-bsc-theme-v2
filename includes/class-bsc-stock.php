@@ -50,4 +50,74 @@ class BSC_Stock {
             'envio_tipo' => get_post_meta( $product_id, '_envio_tipo', true ) ?: 'bodega',
         ];
     }
+
+    /**
+     * BSC-066: Adjust stock manually (reposition or correction).
+     *
+     * @param int    $product_id
+     * @param string $type    'bodega' | 'tienda'
+     * @param int    $delta   positive (add) or negative (subtract)
+     * @param string $reason  reason for the adjustment (logged)
+     * @return int  new stock value after adjustment
+     */
+    public static function adjust( int $product_id, string $type, int $delta, string $reason = '' ): int {
+        $meta_key = ( $type === 'tienda' ) ? '_stock_tienda' : '_stock_bodega';
+        $current  = (int) get_post_meta( $product_id, $meta_key, true );
+        $new      = max( 0, $current + $delta );
+        update_post_meta( $product_id, $meta_key, $new );
+
+        // Log the movement
+        $log   = get_post_meta( $product_id, '_bsc_stock_log', true );
+        $log   = is_array( $log ) ? $log : [];
+        $log[] = [
+            'date'    => current_time( 'mysql' ),
+            'type'    => $type,
+            'delta'   => $delta,
+            'before'  => $current,
+            'after'   => $new,
+            'reason'  => sanitize_text_field( $reason ),
+            'user_id' => get_current_user_id(),
+        ];
+        // Keep only last 50 entries
+        if ( count( $log ) > 50 ) {
+            $log = array_slice( $log, -50 );
+        }
+        update_post_meta( $product_id, '_bsc_stock_log', $log );
+
+        return $new;
+    }
+
+    /**
+     * BSC-066: Get stock movement log for a product.
+     *
+     * @return array Latest 50 log entries, newest first.
+     */
+    public static function get_log( int $product_id ): array {
+        $log = get_post_meta( $product_id, '_bsc_stock_log', true );
+        if ( ! is_array( $log ) ) return [];
+        return array_reverse( $log );
+    }
+
+    /**
+     * BSC-061/066: Get products with low stock bodega (below threshold).
+     *
+     * @param int $threshold  Alert threshold (default from option, fallback 3)
+     * @return array WP_Post objects
+     */
+    public static function get_low_stock_products( int $threshold = -1 ): array {
+        if ( $threshold < 0 ) {
+            $threshold = (int) get_option( 'bsc_low_stock_threshold', 3 );
+        }
+        global $wpdb;
+        $ids = $wpdb->get_col( $wpdb->prepare(
+            "SELECT p.ID FROM {$wpdb->posts} p
+             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_stock_bodega'
+             WHERE p.post_type = 'product' AND p.post_status = 'publish'
+               AND CAST(IFNULL(pm.meta_value, 0) AS UNSIGNED) < %d
+             ORDER BY CAST(IFNULL(pm.meta_value, 0) AS UNSIGNED) ASC
+             LIMIT 20",
+            max( 1, $threshold )
+        ) );
+        return $ids ? array_map( 'intval', $ids ) : [];
+    }
 }
