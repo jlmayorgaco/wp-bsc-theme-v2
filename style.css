@@ -16601,12 +16601,12 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc-ticket__notch--right {
   right: -9px;
 }
-.bsc-ticket--usado {
-  opacity: 0.65;
-}
+/* BSC-023: inactive tickets fully greyed out, non-interactive */
+.bsc-ticket--usado,
 .bsc-ticket--vencido {
-  opacity: 0.5;
-  filter: grayscale(0.2);
+  filter: grayscale(1);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .bsc-chip {
@@ -16965,6 +16965,158 @@ details[open] .bsc__product-detail-category > summary::after {
   background: #fdecea;
   color: #b3261e;
   border: 1px solid #f5c2bf;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BSC-020: My Account — full-width tabs on mobile + layout fixes
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .bsc__my-account-header .menu__items {
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+  }
+  .bsc__my-account-header .menu__item {
+    flex: 1 1 calc(50% - 0.5rem);
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.5rem;
+    letter-spacing: 0;
+  }
+  .bsc__my-account-header .header__logo img {
+    width: 160px;
+  }
+  .bsc__my-account-header .header__name {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BSC-021: Orders — pink chip for order number + mobile cards
+   ───────────────────────────────────────────────────────────── */
+.bsc__orders-cell-order-number a {
+  display: inline-block;
+  background: #FFB6C1;
+  color: #000 !important;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.bsc__orders-cell-order-number a:hover {
+  background: #f89fad;
+  text-decoration: none;
+}
+@media (max-width: 767px) {
+  .bsc__orders-table thead {
+    display: none;
+  }
+  .bsc__orders-table,
+  .bsc__orders-table tbody,
+  .bsc__orders-table tr,
+  .bsc__orders-table td {
+    display: block;
+  }
+  .bsc__orders-table tr {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+    border-bottom: none;
+  }
+  .bsc__orders-table td {
+    padding: 5px 0;
+    border-bottom: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .bsc__orders-table td::before {
+    content: attr(data-title) ": ";
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.5px;
+    color: #888;
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+  .bsc__orders-cell-status {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bsc__orders-cell-status::before {
+    content: "Estado:";
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BSC-022: Order detail — mobile overflow & spacing fixes
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .bsc__order-overview {
+    padding: 0 1rem;
+  }
+  .bsc__order-overview__item {
+    width: 100% !important;
+  }
+  .bsc__order-summary {
+    overflow-x: auto;
+  }
+  .bsc__thankyou-actions {
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 1rem 2rem;
+  }
+  .bsc__thankyou-actions .bsc__button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BSC-023: Bubble Points — full grayscale for inactive tickets
+   ───────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────
+   BSC-024: My Account forms — responsive fields on mobile
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .woocommerce-address-fields__field-wrapper .form-row,
+  .woocommerce-EditAccountForm .form-row {
+    float: none !important;
+    clear: both;
+    width: 100% !important;
+    padding: 0 !important;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+  }
+  .woocommerce-address-fields__field-wrapper .form-row input,
+  .woocommerce-address-fields__field-wrapper .form-row select,
+  .woocommerce-EditAccountForm .form-row input,
+  .woocommerce-EditAccountForm .form-row select,
+  .woocommerce-EditAccountForm .form-row textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+    font-size: 16px; /* prevents iOS zoom-in on focus */
+    padding: 12px;
+  }
+  .woocommerce-address-fields__field-wrapper .form-row label,
+  .woocommerce-EditAccountForm .form-row label {
+    display: block !important; /* show labels on account forms (overrides checkout hide) */
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+  }
+  .woocommerce-EditAccountForm p.form-row[type="submit"],
+  .woocommerce-address-fields + .form-row [type="submit"],
+  .woocommerce-EditAccountForm [type="submit"],
+  button.woocommerce-Button.button {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 /*# sourceMappingURL=style.css.map */

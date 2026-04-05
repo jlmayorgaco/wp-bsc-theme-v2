@@ -55,7 +55,6 @@ function get_brand_data($product): array {
             'shipping'   => BSC_Order_Progress_Bar::SHIPPED,
           ];
           $mapped_status = $status_map[$order->get_status()] ?? BSC_Order_Progress_Bar::PENDING;
-          $mapped_status = BSC_Order_Progress_Bar::DELIVERED;
           $bar = new BSC_Order_Progress_Bar();
           $bar->setStatus($mapped_status);
           $bar->render();
@@ -128,7 +127,7 @@ function get_brand_data($product): array {
         $ciudad = $order->get_shipping_city();
         $direccion = $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2();
         $telefono = $order->get_billing_phone();
-        $bubble_points = 356;
+        $bubble_points = (int) get_user_meta(get_current_user_id(), 'bubble_points_balance', true);
         ?>
         <ul class="shipping-details__list">
           <li><strong>Nombre:</strong> <?php echo $nombre; ?></li>
