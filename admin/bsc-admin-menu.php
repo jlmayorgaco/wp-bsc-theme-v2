@@ -93,6 +93,10 @@ function bsc_restrict_admin_menus(): void {
     }
 }
 
+// ── Include page-specific implementations ─────────────────────────────
+require_once get_template_directory() . '/admin/bsc-orders-page.php';
+require_once get_template_directory() . '/admin/bsc-reports-page.php';
+
 // ── Page render functions ──────────────────────────────────────────────
 
 function bsc_render_dashboard(): void {
@@ -135,18 +139,7 @@ function bsc_render_dashboard(): void {
     <?php
 }
 
-function bsc_render_orders_page(): void {
-    if ( ! current_user_can('edit_orders') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
-    }
-    ?>
-    <div class="wrap">
-        <h1>Pedidos BSC</h1>
-        <p>Vista de pedidos — <em>En construcción (BSC-031)</em>.</p>
-        <p><a href="<?php echo esc_url( admin_url('edit.php?post_type=shop_order') ); ?>" class="button">Ver en WooCommerce</a></p>
-    </div>
-    <?php
-}
+// bsc_render_orders_page() is defined in admin/bsc-orders-page.php
 
 function bsc_render_products_page(): void {
     if ( ! current_user_can('edit_products') ) {
@@ -161,17 +154,7 @@ function bsc_render_products_page(): void {
     <?php
 }
 
-function bsc_render_reports_page(): void {
-    if ( ! current_user_can('manage_woocommerce') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
-    }
-    ?>
-    <div class="wrap">
-        <h1>Informes BSC</h1>
-        <p>Informes de ventas — <em>En construcción (BSC-035)</em>.</p>
-    </div>
-    <?php
-}
+// bsc_render_reports_page() is defined in admin/bsc-reports-page.php
 
 function bsc_render_settings_page(): void {
     if ( ! current_user_can('manage_options') ) {
