@@ -49,6 +49,9 @@ if ( is_admin() ) {
 // BSC-029: custom roles (always loaded — roles must exist for frontend checks too)
 require_once get_template_directory() . '/includes/class-bsc-roles.php';
 
+// BSC-036: dual stock class (always loaded — hooks fire on both admin and frontend)
+require_once get_template_directory() . '/includes/class-bsc-stock.php';
+
 // BSC-029: admin access restrictions + BSC-030: custom admin menu (admin only)
 if ( is_admin() ) {
 	require_once get_template_directory() . '/includes/class-bsc-permissions.php';

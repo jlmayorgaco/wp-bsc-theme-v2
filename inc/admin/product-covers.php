@@ -124,6 +124,82 @@ add_action('save_post_product', function (int $post_id): void {
     }
 });
 
+// ── BSC-036: Dual Stock meta box ──────────────────────────────────────
+add_action('add_meta_boxes', function (): void {
+    add_meta_box(
+        'bsc_product_stock',
+        'BSC Stock Dual',
+        'bsc_product_stock_render',
+        'product',
+        'side',
+        'default'
+    );
+});
+
+function bsc_product_stock_render(WP_Post $post): void {
+    wp_nonce_field('bsc_product_stock_save', 'bsc_product_stock_nonce');
+
+    $bodega     = (int) get_post_meta($post->ID, '_stock_bodega', true);
+    $tienda     = (int) get_post_meta($post->ID, '_stock_tienda', true);
+    $envio_tipo = get_post_meta($post->ID, '_envio_tipo', true) ?: 'bodega';
+
+    $field_style = 'margin-bottom:14px';
+    $label_style = 'display:block;font-weight:600;margin-bottom:4px;font-size:12px';
+    $input_style = 'width:100%;padding:4px 6px;border:1px solid #ddd;border-radius:3px';
+    ?>
+    <div style="<?php echo esc_attr($field_style); ?>">
+        <label for="_stock_bodega" style="<?php echo esc_attr($label_style); ?>">
+            📦 Stock en Bodega <span style="font-weight:400;color:#888">(despacho web)</span>
+        </label>
+        <input type="number" id="_stock_bodega" name="_stock_bodega"
+               value="<?php echo esc_attr($bodega); ?>" min="0"
+               style="<?php echo esc_attr($input_style); ?>">
+    </div>
+    <div style="<?php echo esc_attr($field_style); ?>">
+        <label for="_stock_tienda" style="<?php echo esc_attr($label_style); ?>">
+            🏪 Stock en Tienda <span style="font-weight:400;color:#888">(showroom)</span>
+        </label>
+        <input type="number" id="_stock_tienda" name="_stock_tienda"
+               value="<?php echo esc_attr($tienda); ?>" min="0"
+               style="<?php echo esc_attr($input_style); ?>">
+    </div>
+    <div style="<?php echo esc_attr($field_style); ?>">
+        <label for="_envio_tipo" style="<?php echo esc_attr($label_style); ?>">Origen de despacho</label>
+        <select id="_envio_tipo" name="_envio_tipo" style="<?php echo esc_attr($input_style); ?>">
+            <option value="bodega" <?php selected($envio_tipo, 'bodega'); ?>>Desde Bodega</option>
+            <option value="tienda" <?php selected($envio_tipo, 'tienda'); ?>>Desde Tienda</option>
+            <option value="ambos"  <?php selected($envio_tipo, 'ambos');  ?>>Ambos</option>
+        </select>
+    </div>
+    <?php
+}
+
+add_action('save_post_product', function (int $post_id): void {
+    if (
+        !isset($_POST['bsc_product_stock_nonce']) ||
+        !wp_verify_nonce(
+            sanitize_text_field(wp_unslash($_POST['bsc_product_stock_nonce'])),
+            'bsc_product_stock_save'
+        )
+    ) return;
+
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+
+    foreach (['_stock_bodega', '_stock_tienda'] as $key) {
+        if (isset($_POST[$key])) {
+            update_post_meta($post_id, $key, max(0, absint($_POST[$key])));
+        }
+    }
+
+    if (isset($_POST['_envio_tipo'])) {
+        $allowed = ['bodega', 'tienda', 'ambos'];
+        $val = sanitize_text_field($_POST['_envio_tipo']);
+        if (in_array($val, $allowed, true)) {
+            update_post_meta($post_id, '_envio_tipo', $val);
+        }
+    }
+});
+
 add_action('admin_enqueue_scripts', function (string $hook): void {
     if (!in_array($hook, ['post.php', 'post-new.php'], true)) return;
 
