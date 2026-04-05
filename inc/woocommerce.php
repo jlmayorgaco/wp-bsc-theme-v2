@@ -343,6 +343,13 @@ function bsc_add_order_statuses_to_woo(array $statuses): array {
     return $new;
 }
 
+// ── BSC-036: Deduct bodega stock when web order moves to processing ───
+add_action('woocommerce_order_status_processing', function(int $order_id): void {
+    if (class_exists('BSC_Stock')) {
+        BSC_Stock::deduct_bodega($order_id);
+    }
+});
+
 // Allow email triggers for custom statuses
 add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(array $statuses): array {
     $statuses[] = 'preparing';
