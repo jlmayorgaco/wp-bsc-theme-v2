@@ -1,8 +1,5 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+defined('ABSPATH') || exit;
 
 require_once get_template_directory() . '/plugins/bubble-points/classes/class-bsc-bubble-points-coupon.php';
 require_once get_template_directory() . '/plugins/bubble-points/classes/class-bsc-bubble-points.php';

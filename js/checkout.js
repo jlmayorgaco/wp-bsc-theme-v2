@@ -92,20 +92,26 @@ jQuery(function ($) {
   }
 
   // === BSC-058: Hide shipping until state + city are both selected ===
+  // The custom BSC checkout renders shipping as #review-summary__shipping inside .review-summary__row
   function toggleShippingVisibility() {
     const state = $('#billing_state').val();
     const city  = $('#billing_city').val();
-    const $shippingRows = $('.woocommerce-shipping-totals');
+    // BSC custom checkout uses a div-based summary, not WC table rows
+    const $shippingRow = $('#review-summary__shipping').closest('.review-summary__row');
     const msgId = 'bsc-shipping-pending-msg';
 
     if ( !state || !city ) {
-      $shippingRows.hide();
+      $shippingRow.hide();
       if ( !$('#' + msgId).length ) {
-        $('<tr id="' + msgId + '"><td colspan="2" class="bsc-shipping-pending-notice">Selecciona tu departamento y ciudad para ver las opciones de envío.</td></tr>')
-          .insertAfter('.cart-subtotal');
+        $shippingRow.after(
+          '<div id="' + msgId + '" class="review-summary__row bsc-shipping-pending-row">' +
+          '<div class="review-summary__label bsc-shipping-pending-notice">' +
+          'Selecciona tu departamento y ciudad para ver las opciones de envío.' +
+          '</div></div>'
+        );
       }
     } else {
-      $shippingRows.show();
+      $shippingRow.show();
       $('#' + msgId).remove();
     }
   }
