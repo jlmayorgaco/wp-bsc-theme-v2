@@ -196,7 +196,15 @@ AJAX Request
 
 ## Documentación adicional
 
-- `.claude/tickets/` — Todos los tickets BSC-000 a BSC-053
-- `.claude/qa-checklist.md` — Checklist de smoke tests manual
-- `CHANGELOG.md` — Historial de cambios por versión
-- `docs/` — Runbooks operativos (deploy, restore, monitoreo)
+| Documento | Descripción |
+|-----------|-------------|
+| [`docs/deploy.md`](docs/deploy.md) | Runbook de deploy a producción y rollback |
+| [`docs/runbook-restore.md`](docs/runbook-restore.md) | Restauración desde backup (DB + archivos) |
+| [`docs/architecture.md`](docs/architecture.md) | Arquitectura del theme, endpoints AJAX, roles |
+| [`docs/monitoring-setup.md`](docs/monitoring-setup.md) | Configuración de UptimeRobot y scripts de health check |
+| [`docs/cache-config.md`](docs/cache-config.md) | Browser cache, gzip, page cache y transients BSC |
+| [`docs/media-optimization.md`](docs/media-optimization.md) | Guía de optimización de imágenes y WebP |
+| [`.claude/security-checklist.md`](.claude/security-checklist.md) | Auditoría de seguridad de handlers AJAX |
+| [`.claude/qa-checklist.md`](.claude/qa-checklist.md) | Checklist de smoke tests manual pre-deploy |
+| [`.claude/tickets/`](.claude/tickets/) | Todos los tickets BSC-000 a BSC-053 |
+| [`CHANGELOG.md`](CHANGELOG.md) | Historial de cambios por versión |

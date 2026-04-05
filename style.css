@@ -17249,4 +17249,37 @@ details[open] .bsc__product-detail-category > summary::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* =========================================
+   BSC-051: ACCESSIBILITY
+   ========================================= */
+
+/* Skip link — visible only on keyboard focus */
+.bsc-skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    z-index: 99999;
+    background: #222;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 0 0 6px 0;
+    transition: top 0.15s ease;
+}
+.bsc-skip-link:focus {
+    top: 0;
+}
+
+/* Focus ring — visible on keyboard nav, suppressed on mouse click */
+:focus-visible {
+    outline: 2px solid #f8c0cd;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
 /*# sourceMappingURL=style.css.map */

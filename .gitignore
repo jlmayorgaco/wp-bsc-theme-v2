@@ -2,3 +2,6 @@ node_modules/**/*
 node_modules/
 vendor/
 vendor/**/*/
+
+# BSC-045: backup credentials — never commit
+scripts/backup-config.sh
