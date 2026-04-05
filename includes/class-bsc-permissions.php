@@ -21,7 +21,7 @@ class BSC_Permissions {
 
         if ( in_array( 'bsc_operator', (array) $user->roles, true ) ) {
             $page    = sanitize_text_field( $_GET['page'] ?? '' );
-            $allowed = [ 'bsc-orders' ];
+            $allowed = [ 'bsc-dashboard', 'bsc-orders', 'bsc-showroom' ];
             if ( ! in_array( $page, $allowed, true ) ) {
                 wp_safe_redirect( admin_url( 'admin.php?page=bsc-orders' ) );
                 exit;
@@ -30,7 +30,7 @@ class BSC_Permissions {
 
         if ( in_array( 'bsc_employee', (array) $user->roles, true ) ) {
             $page    = sanitize_text_field( $_GET['page'] ?? '' );
-            $allowed = [ 'bsc-orders', 'bsc-products' ];
+            $allowed = [ 'bsc-dashboard', 'bsc-orders', 'bsc-products', 'bsc-showroom' ];
             if ( ! in_array( $page, $allowed, true ) ) {
                 wp_safe_redirect( admin_url( 'admin.php?page=bsc-orders' ) );
                 exit;
