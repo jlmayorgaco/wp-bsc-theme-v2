@@ -302,3 +302,50 @@ add_filter('default_checkout_billing_country', function() {
 add_filter('default_checkout_shipping_country', function() {
   return 'CO';
 });
+
+// ── BSC-032: Custom order statuses ────────────────────────────────────
+add_action('init', 'bsc_register_order_statuses');
+function bsc_register_order_statuses(): void {
+    register_post_status('wc-preparing', [
+        'label'                     => _x('En preparación', 'Order status', 'bsc-2-0'),
+        'public'                    => true,
+        'exclude_from_search'       => false,
+        'show_in_admin_all_list'    => true,
+        'show_in_admin_status_list' => true,
+        'label_count'               => _n_noop(
+            'En preparación <span class="count">(%s)</span>',
+            'En preparación <span class="count">(%s)</span>'
+        ),
+    ]);
+    register_post_status('wc-shipped', [
+        'label'                     => _x('Enviado', 'Order status', 'bsc-2-0'),
+        'public'                    => true,
+        'exclude_from_search'       => false,
+        'show_in_admin_all_list'    => true,
+        'show_in_admin_status_list' => true,
+        'label_count'               => _n_noop(
+            'Enviado <span class="count">(%s)</span>',
+            'Enviados <span class="count">(%s)</span>'
+        ),
+    ]);
+}
+
+add_filter('wc_order_statuses', 'bsc_add_order_statuses_to_woo');
+function bsc_add_order_statuses_to_woo(array $statuses): array {
+    $new = [];
+    foreach ($statuses as $key => $label) {
+        $new[$key] = $label;
+        if ($key === 'wc-processing') {
+            $new['wc-preparing'] = _x('En preparación', 'Order status', 'bsc-2-0');
+        }
+    }
+    $new['wc-shipped'] = _x('Enviado', 'Order status', 'bsc-2-0');
+    return $new;
+}
+
+// Allow email triggers for custom statuses
+add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(array $statuses): array {
+    $statuses[] = 'preparing';
+    $statuses[] = 'shipped';
+    return $statuses;
+});
