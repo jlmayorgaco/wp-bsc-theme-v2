@@ -475,26 +475,32 @@
                 </div>
             </button>
 
-            <button
+            <?php
+            // BSC-012: navigate to orders (logged in) or login with redirect (guest)
+            $profile_url = is_user_logged_in()
+                ? esc_url( wc_get_account_endpoint_url('orders') )
+                : esc_url( home_url('/login/') );
+            $profile_label = is_user_logged_in() ? 'Mis Pedidos' : 'Ingresar';
+            ?>
+            <a
                 id="profile-button-mobile"
-                aria-haspopup="true"
-                aria-expanded="false"
+                href="<?php echo $profile_url; ?>"
+                aria-label="<?php echo esc_attr( $profile_label ); ?>"
                 class="header-mobile__icon-btn header-mobile__profile-btn"
-                type="button"
             >
                 <div class="image__icon-hoverable">
                     <img
                         class="image__icon icon--normal"
-                        alt="Mi cuenta"
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                        alt="<?php echo esc_attr( $profile_label ); ?>"
+                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
                     >
                     <img
                         class="image__icon icon--hover"
                         alt=""
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
                     >
                 </div>
-            </button>
+            </a>
         </div>
 
     </div>
