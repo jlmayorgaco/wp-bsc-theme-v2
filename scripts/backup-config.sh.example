@@ -1,0 +1,15 @@
+#!/bin/bash
+# BSC-045: Backup configuration — copy to backup-config.sh and fill in real values.
+# DO NOT commit backup-config.sh — it contains credentials.
+
+DB_HOST="localhost"
+DB_NAME="bsc_production"
+DB_USER="bsc_user"
+DB_PASS="secure_password_here"
+
+WP_ROOT="/var/www/html"                                    # absolute path to WP root
+BACKUP_LOCAL="/backups/bsc"                                # local backup directory
+REMOTE_DEST="user@backup-server:/backups/bsc"              # rsync target (or S3 via rclone)
+RETENTION_DAYS=30                                          # days before old backups are purged
+LOG_FILE="/var/log/bsc-backup.log"
+ADMIN_EMAIL="admin@bubbleskincare.co"

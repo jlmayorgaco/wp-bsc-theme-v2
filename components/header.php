@@ -346,6 +346,9 @@
 
 
 ?>
+<!-- BSC-051: skip link for keyboard and screen-reader navigation -->
+<a href="#main-content" class="bsc-skip-link">Saltar al contenido principal</a>
+
 <header class="bsc bsc__header bsc__header--desktop">
     <div class="header__container">
         <a class="header__image" href="/">

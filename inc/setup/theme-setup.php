@@ -15,6 +15,15 @@ if (!function_exists('bsc_2_0_setup')) {
         add_image_size('bsc-hero', 1440, 600, true);  // hero slider
         add_image_size('bsc-thumb', 120, 120, true);  // thumbnails
 
+        // BSC-050: convert new uploads to WebP when the server supports it
+        add_filter('image_editor_output_format', function ( array $formats ): array {
+            if ( function_exists('imagewebp') ) { // GD WebP support check
+                $formats['image/jpeg'] = 'image/webp';
+                $formats['image/png']  = 'image/webp';
+            }
+            return $formats;
+        } );
+
         register_nav_menus([
             'menu-1' => esc_html__('Primary', 'bsc-2-0'),
         ]);

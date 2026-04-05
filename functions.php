@@ -64,6 +64,11 @@ require_once get_template_directory() . '/includes/class-bsc-roles.php';
 // BSC-036: dual stock class (always loaded — hooks fire on both admin and frontend)
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
 
+// BSC-053: BSC-branded email system (hooks into WooCommerce order status changes)
+if ( class_exists('WooCommerce') ) {
+    require_once get_template_directory() . '/emails/bsc-emails.php';
+}
+
 // BSC-029: admin access restrictions + BSC-030: custom admin menu (admin only)
 if ( is_admin() ) {
 	require_once get_template_directory() . '/includes/class-bsc-permissions.php';
@@ -112,6 +117,31 @@ add_action('wp_enqueue_scripts', function () {
 
 // ── Security: remove WordPress version from all outputs ───────────────────
 add_filter('the_generator', '__return_empty_string');
+
+// ── BSC-048: Disable XML-RPC (not used; attack surface reduction) ─────────
+add_filter('xmlrpc_enabled', '__return_false');
+
+// ── BSC-048: Login rate limiting — 5 failures → 15-min block per IP ───────
+add_action('wp_login_failed', function ( string $username ): void {
+    $key   = 'bsc_lf_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
+    $fails = (int) get_transient( $key );
+    set_transient( $key, $fails + 1, 15 * MINUTE_IN_SECONDS );
+} );
+
+add_filter('authenticate', function ( $user, string $username, string $password ) {
+    if ( empty( $username ) && empty( $password ) ) {
+        return $user; // skip on blank credentials (WP internal calls)
+    }
+    $key   = 'bsc_lf_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
+    $fails = (int) get_transient( $key );
+    if ( $fails >= 5 ) {
+        return new WP_Error(
+            'bsc_too_many_retries',
+            __( 'Demasiados intentos fallidos. Por favor espera 15 minutos antes de intentar de nuevo.', 'bsc-2-0' )
+        );
+    }
+    return $user;
+}, 30, 3 );
 
 // ── Performance: add preconnect for Google Fonts CDN (used in style.css) ──
 add_action('wp_head', function () {
