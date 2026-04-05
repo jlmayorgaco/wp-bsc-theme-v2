@@ -17304,19 +17304,14 @@ details[open] .bsc__product-detail-category > summary::after {
 /* =========================================
    BSC-055: Order detail — tablet + full mobile
    ========================================= */
-.bsc__order-overview {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-.bsc__order-overview__item {
-  min-width: 180px;
+
+/* Progress bar item in overview — allow flexible width on desktop */
+.bsc__order-overview__item--progress {
+  flex: 1 1 auto;
+  min-width: 260px;
 }
 
-/* Tablet */
+/* Tablet: collapse to column */
 @media (min-width: 768px) and (max-width: 1024px) {
   .bsc__thankyou-container { padding: 1.5rem 1rem; }
   .bsc__order-review.product-details-and-shipping {
@@ -17325,37 +17320,15 @@ details[open] .bsc__product-detail-category > summary::after {
   .bsc__order-review.product-details,
   .bsc__order-review.shipping-details {
     width: 100%;
+    max-width: 100%;
   }
 }
 
-/* Mobile */
+/* Mobile: stack items, shrink images */
 @media (max-width: 767px) {
-  .bsc__order-review.product-details-and-shipping {
-    flex-direction: column;
-  }
-  .bsc__order-review.product-details,
-  .bsc__order-review.shipping-details {
-    width: 100%;
-  }
-  .bsc__order-review__item {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .bsc__order-review__image-link {
-    width: 70px;
-    flex-shrink: 0;
-  }
   .bsc__order-review__image {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-  }
-  .bsc__order-review__info {
-    flex: 1;
-  }
-  .bsc__order-review__price {
-    font-weight: 700;
+    width: 80px;
+    height: 80px;
   }
   .bsc__order-summary {
     font-size: 0.9rem;
@@ -17365,25 +17338,21 @@ details[open] .bsc__product-detail-category > summary::after {
     justify-content: space-between;
     padding: 4px 0;
   }
-  .shipping-details__list {
-    padding-left: 0;
-    list-style: none;
-  }
-  .shipping-details__list li {
-    padding: 4px 0;
-    border-bottom: 1px solid #f0f0f0;
-  }
 }
 
 /* =========================================
    BSC-056: Bubble Points — responsive
    ========================================= */
-/* Tablet: 2-column ticket grid */
+/* Tablet: 2-column coupon + ticket grids */
 @media (min-width: 768px) and (max-width: 1024px) {
   .profile-points__coupons {
     grid-template-columns: repeat(2, 1fr);
   }
   .profile-points__container { padding: 1rem; }
+  /* Wallet (earned coupons) — 2 cols on tablet */
+  .bsc-coupon-wallet__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* Mobile: single column */
@@ -17396,32 +17365,66 @@ details[open] .bsc__product-detail-category > summary::after {
   .profile-points__container { padding: 1rem; }
   .profile-points__footer {
     padding: 1rem 0;
+    overflow-x: hidden;
   }
   .profile-points__title {
     font-size: 1.2rem;
     padding-bottom: 2rem;
   }
-  /* bsc-ticket grid inside footer */
-  .profile-points__footer .bsc-ticket {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto;
+  /* Wallet (earned coupons) — 1 col on mobile */
+  .bsc-coupon-wallet__grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  /* Ticket actions */
-  .bsc-ticket__actions {
-    flex-direction: column;
-    gap: 8px;
+  /* Ticket: ensure it fits within viewport */
+  .bsc-ticket {
+    grid-template-columns: 1fr;  /* stack body and hidden actions */
+    min-width: 0;
   }
-  .bsc-ticket__actions a,
-  .bsc-ticket__actions button {
-    width: 100%;
-    text-align: center;
+  .bsc-ticket__row {
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+  }
+  .bsc-ticket__value {
+    font-size: 1.4rem;
+  }
+  .bsc-code-badge code {
+    font-size: 0.85rem;
+    word-break: break-all;
   }
 }
 
 /* =========================================
    BSC-057: My Account forms — extra fixes
    ========================================= */
+
+/* Address selector: 3-col grid → responsive */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .bsc__address-container {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bsc__address-illustration {
+    display: none; /* hide illustration on tablet to save space */
+  }
+  .bsc__address-wrapper { padding: 2rem 1rem; }
+}
+@media (max-width: 767px) {
+  .bsc__address-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .bsc__address-illustration {
+    display: none;
+  }
+  .bsc__address-wrapper { padding: 1.5rem 1rem; }
+  .bsc__address-card {
+    border-left: none;
+    border-top: 1px dashed #999;
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
+}
+
 /* iOS zoom fix: ensure all form elements have font-size >= 16px on mobile */
 @media (max-width: 767px) {
   .bsc__account-form input,
@@ -17478,7 +17481,10 @@ details[open] .bsc__product-detail-category > summary::after {
   color: #888;
   font-size: 13px;
   font-style: italic;
-  padding: 8px 0;
+  padding: 4px 0;
+}
+.bsc-shipping-pending-row {
+  opacity: 0.8;
 }
 
 /*# sourceMappingURL=style.css.map */
