@@ -280,7 +280,7 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
     $subtotal = WC()->cart->get_subtotal();
     $discount = WC()->cart->get_discount_total();
     $subtotal_after_discount = $subtotal - $discount;
-    $min_amount = 300000;
+    $min_amount = (int) get_option('bsc_free_shipping_threshold', 300000); // BSC-064: configurable
     // Si no alcanza el mínimo, eliminamos el envío gratuito
     foreach ($rates as $rate_id => $rate) {
         if ($rate->method_id === 'free_shipping' && $subtotal_after_discount < $min_amount) {
@@ -307,12 +307,15 @@ function bsc_force_shipping_by_location( array $rates, array $package ): array {
     $bogota_cities = [ 'bogotá', 'bogota', 'bogota d.c.', 'bogotá d.c.', 'santa fe de bogota', 'santa fe de bogotá' ];
     $is_bogota     = ( $state === 'CUN' && in_array( $city, $bogota_cities, true ) );
 
+    // BSC-064: configurable Bogotá label identifier
+    $bogota_label_key = strtolower( get_option('bsc_bogota_shipping_label', 'bogot') );
+
     $has_bogota_rate = false;
     $has_general_rate = false;
     foreach ( $rates as $rate ) {
         if ( $rate->method_id !== 'flat_rate' ) continue;
         $label_lower = strtolower( $rate->label );
-        if ( str_contains( $label_lower, 'bogot' ) ) $has_bogota_rate  = true;
+        if ( str_contains( $label_lower, $bogota_label_key ) ) $has_bogota_rate  = true;
         else $has_general_rate = true;
     }
 
@@ -324,7 +327,7 @@ function bsc_force_shipping_by_location( array $rates, array $package ): array {
     foreach ( $rates as $rate_id => $rate ) {
         if ( $rate->method_id !== 'flat_rate' ) continue;
         $label_lower = strtolower( $rate->label );
-        $is_bogota_rate = str_contains( $label_lower, 'bogot' );
+        $is_bogota_rate = str_contains( $label_lower, $bogota_label_key );
         if ( $is_bogota && ! $is_bogota_rate ) {
             unset( $rates[ $rate_id ] );
         } elseif ( ! $is_bogota && $is_bogota_rate ) {
