@@ -2,8 +2,9 @@
 defined('ABSPATH') || exit;
 
 /**
- * BSC Custom Product Search
- * Searches by: title, description, SKU, brand (product category taxonomy)
+ * BSC-038: Custom Product Search — optimized with transient cache.
+ * Searches by: title/description, SKU, brand (product category taxonomy).
+ * Results cached 15 min per unique query; client cache handled in search.js.
  */
 
 add_action('wp_ajax_bsc_search_products', 'bsc_search_products');
@@ -14,76 +15,94 @@ function bsc_search_products() {
 
     $query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
 
-    if ( strlen($query) < 3 ) {
+    if ( strlen($query) < 2 ) {
         wp_send_json_success(['products' => []]);
+    }
+
+    // ── Transient cache (15 min per unique search term) ────────────────────
+    $cache_key = 'bsc_search_' . md5($query);
+    $cached    = get_transient($cache_key);
+    if ( $cached !== false ) {
+        wp_send_json_success(['products' => $cached]);
     }
 
     $collected_ids = [];
 
-    // ── 1. Title + description (WP native search: post_title + post_content) ──
+    // ── 1. Title + description ─────────────────────────────────────────────
     $q1 = new WP_Query([
-        'post_type'      => 'product',
-        'post_status'    => 'publish',
-        's'              => $query,
-        'fields'         => 'ids',
-        'posts_per_page' => 20,
-        'no_found_rows'  => true,
+        'post_type'              => 'product',
+        'post_status'            => 'publish',
+        's'                      => $query,
+        'fields'                 => 'ids',
+        'posts_per_page'         => 8,
+        'no_found_rows'          => true,
+        'update_post_meta_cache' => false,
+        'update_post_term_cache' => false,
     ]);
     if ( ! empty($q1->posts) ) {
         $collected_ids = array_merge($collected_ids, $q1->posts);
     }
 
-    // ── 2. SKU (product meta _sku) ──────────────────────────────────────────
-    $q2 = new WP_Query([
-        'post_type'      => 'product',
-        'post_status'    => 'publish',
-        'fields'         => 'ids',
-        'posts_per_page' => 20,
-        'no_found_rows'  => true,
-        'meta_query'     => [[
-            'key'     => '_sku',
-            'value'   => $query,
-            'compare' => 'LIKE',
-        ]],
-    ]);
-    if ( ! empty($q2->posts) ) {
-        $collected_ids = array_merge($collected_ids, $q2->posts);
-    }
-
-    // ── 3. Brand / category name matching the query ─────────────────────────
-    $matching_terms = get_terms([
-        'taxonomy'   => 'product_cat',
-        'name__like' => $query,
-        'fields'     => 'ids',
-        'hide_empty' => true,
-    ]);
-
-    if ( ! empty($matching_terms) && ! is_wp_error($matching_terms) ) {
-        $q3 = new WP_Query([
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'fields'         => 'ids',
-            'posts_per_page' => 20,
-            'no_found_rows'  => true,
-            'tax_query'      => [[
-                'taxonomy' => 'product_cat',
-                'field'    => 'term_id',
-                'terms'    => $matching_terms,
+    // ── 2. SKU (product meta _sku) ─────────────────────────────────────────
+    if ( count($collected_ids) < 8 ) {
+        $q2 = new WP_Query([
+            'post_type'              => 'product',
+            'post_status'            => 'publish',
+            'fields'                 => 'ids',
+            'posts_per_page'         => 8,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'meta_query'             => [[
+                'key'     => '_sku',
+                'value'   => $query,
+                'compare' => 'LIKE',
             ]],
         ]);
-        if ( ! empty($q3->posts) ) {
-            $collected_ids = array_merge($collected_ids, $q3->posts);
+        if ( ! empty($q2->posts) ) {
+            $collected_ids = array_merge($collected_ids, $q2->posts);
         }
     }
 
-    // ── Deduplicate and limit ───────────────────────────────────────────────
-    $product_ids = array_slice(array_unique($collected_ids), 0, 12);
+    // ── 3. Brand / category name ───────────────────────────────────────────
+    if ( count($collected_ids) < 8 ) {
+        $matching_terms = get_terms([
+            'taxonomy'   => 'product_cat',
+            'name__like' => $query,
+            'fields'     => 'ids',
+            'hide_empty' => true,
+        ]);
+
+        if ( ! empty($matching_terms) && ! is_wp_error($matching_terms) ) {
+            $q3 = new WP_Query([
+                'post_type'              => 'product',
+                'post_status'            => 'publish',
+                'fields'                 => 'ids',
+                'posts_per_page'         => 8,
+                'no_found_rows'          => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'tax_query'              => [[
+                    'taxonomy' => 'product_cat',
+                    'field'    => 'term_id',
+                    'terms'    => $matching_terms,
+                ]],
+            ]);
+            if ( ! empty($q3->posts) ) {
+                $collected_ids = array_merge($collected_ids, $q3->posts);
+            }
+        }
+    }
+
+    // ── Deduplicate and limit to 8 ─────────────────────────────────────────
+    $product_ids = array_slice(array_unique($collected_ids), 0, 8);
 
     if ( empty($product_ids) ) {
+        set_transient($cache_key, [], 15 * MINUTE_IN_SECONDS);
         wp_send_json_success(['products' => []]);
     }
 
-    // ── Build response ──────────────────────────────────────────────────────
+    // ── Build response ─────────────────────────────────────────────────────
     $results = [];
 
     foreach ( $product_ids as $pid ) {
@@ -121,5 +140,7 @@ function bsc_search_products() {
         ];
     }
 
+    // ── Cache and return ───────────────────────────────────────────────────
+    set_transient($cache_key, $results, 15 * MINUTE_IN_SECONDS);
     wp_send_json_success(['products' => $results]);
 }

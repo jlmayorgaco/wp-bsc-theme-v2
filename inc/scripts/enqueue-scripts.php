@@ -9,7 +9,7 @@ add_action('init', function () {
 });
 
 function bsc_2_0_scripts() {
-	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), _S_VERSION);
+	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION);
 	wp_style_add_data('bsc-2-0-style', 'rtl', 'replace');
 
 	// Scripts globales — necesarios en todas las páginas
@@ -17,7 +17,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-navigation',
 		get_template_directory_uri() . '/js/navigation.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -26,7 +26,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-mobile-menu',
 		get_template_directory_uri() . '/js/mobile-menu.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -34,7 +34,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-search',
 		get_template_directory_uri() . '/js/search.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -48,7 +48,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-add-to-cart',
 		get_template_directory_uri() . '/js/cart.js',
 		array('jquery'),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -63,7 +63,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-slider-mobile-hint',
 		get_template_directory_uri() . '/js/bsc-slider-mobile-hint.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -74,7 +74,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 
@@ -83,7 +83,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-newsletter',
 			get_template_directory_uri() . '/js/newsletter.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 
@@ -92,7 +92,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-swiper-init',
 			get_template_directory_uri() . '/js/swiper-init.js',
 			array('swiper-js'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}
@@ -104,7 +104,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-products-filters',
 			get_template_directory_uri() . '/js/filters.js',
 			array('jquery', 'bsc-2-0-add-to-cart'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 
@@ -113,7 +113,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-category-filter',
 			get_template_directory_uri() . '/js/category-filter.js',
 			array(),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}
@@ -124,7 +124,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-checkout',
 			get_template_directory_uri() . '/js/checkout.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}
@@ -135,7 +135,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-coupons',
 			get_template_directory_uri() . '/js/coupons.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}

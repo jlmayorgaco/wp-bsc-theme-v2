@@ -50,10 +50,13 @@ function bsc_filter_products() {
     $max_price = isset($_GET['max_price']) ? intval($_GET['max_price']) : 999999;
 
     $args = [
-        'post_type'      => 'product',
-        'post_status'    => 'publish',
-        'posts_per_page' => 48,
-        'meta_query'     => [
+        'post_type'              => 'product',
+        'post_status'            => 'publish',
+        'posts_per_page'         => 48,
+        'no_found_rows'          => true,
+        'update_post_meta_cache' => true,  // BSC-040: pre-load meta in batch
+        'update_post_term_cache' => true,  // BSC-040: pre-load terms in batch
+        'meta_query'             => [
             [
                 'key'     => '_price',
                 'value'   => [$min_price, $max_price],

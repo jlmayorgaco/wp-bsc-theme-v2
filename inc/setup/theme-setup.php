@@ -10,6 +10,11 @@ if (!function_exists('bsc_2_0_setup')) {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
 
+        // BSC-042: register responsive image sizes for srcset generation
+        add_image_size('bsc-card', 400, 400, true);   // product card (square crop)
+        add_image_size('bsc-hero', 1440, 600, true);  // hero slider
+        add_image_size('bsc-thumb', 120, 120, true);  // thumbnails
+
         register_nav_menus([
             'menu-1' => esc_html__('Primary', 'bsc-2-0'),
         ]);
@@ -198,6 +203,24 @@ if (!function_exists('bsc_load_theme_plugins')) {
     add_action('after_switch_theme', 'bsc_load_theme_plugins');
 }
 
+
+// ── BSC-039: Invalidate slider and menu category transients on content change ──
+add_action('save_post_product', 'bsc_clear_slider_cache');
+add_action('edited_term',       'bsc_clear_category_cache', 10, 3);
+add_action('created_term',      'bsc_clear_category_cache', 10, 3);
+
+function bsc_clear_slider_cache(): void {
+    global $wpdb;
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_bsc_slider_%' OR option_name LIKE '_transient_timeout_bsc_slider_%'"
+    );
+}
+
+function bsc_clear_category_cache( int $term_id, int $tt_id, string $taxonomy ): void {
+    if ( $taxonomy === 'product_cat' ) {
+        delete_transient('bsc_menu_categories');
+    }
+}
 
 add_action('woocommerce_save_account_details', function($user_id) {
   foreach (['bsc_needs1','bsc_needs2','bsc_needs3','bsc_needs4'] as $k) {

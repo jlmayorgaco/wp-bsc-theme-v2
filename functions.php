@@ -11,6 +11,18 @@ if ( ! defined( '_S_VERSION' ) ) {
 	define( '_S_VERSION', (string) filemtime( get_template_directory() . '/style.css' ) );
 }
 
+// BSC-041: static version constant for production asset versioning (no filemtime I/O per request)
+if ( ! defined( 'BSC_THEME_VERSION' ) ) {
+	// In debug mode keep filemtime so changes are picked up immediately without manual bumps.
+	// In production this is a static string — update it on each deploy to bust browser caches.
+	define(
+		'BSC_THEME_VERSION',
+		( defined('WP_DEBUG') && WP_DEBUG )
+			? (string) filemtime( get_template_directory() . '/style.css' )
+			: '2.1.0'
+	);
+}
+
 // BSC-008: contact form destination — override in wp-config.php if needed
 if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {
 	define( 'BSC_CONTACT_EMAIL', 'contacto@bubbleskincare.co' );
