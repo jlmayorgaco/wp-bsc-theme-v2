@@ -5,9 +5,14 @@ get_header();
 $registration_error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
-  $nombres   = sanitize_text_field($_POST['nombres']);
-  $email     = sanitize_email($_POST['email']);
-  $password  = $_POST['password'];
+  // BSC-043: CSRF protection
+  if ( ! isset($_POST['bsc_register_nonce']) || ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['bsc_register_nonce'])), 'bsc_register_action' ) ) {
+    wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
+  }
+
+  $nombres   = sanitize_text_field(wp_unslash($_POST['nombres'] ?? ''));
+  $email     = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+  $password  = $_POST['password'] ?? '';
 
   if (email_exists($email)) {
     $registration_error = 'Este correo ya está registrado. Intenta iniciar sesión.';
@@ -59,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <?php endif; ?>
 
         <form name="registerform" id="registerform" method="post" class="form" novalidate>
+          <?php wp_nonce_field('bsc_register_action', 'bsc_register_nonce'); ?>
           <div class="bsc__form-field">
             <label for="nombres" class="bsc__label"><strong>Nombres</strong> y Apellidos</label>
             <input type="text" name="nombres" id="nombres" class="bsc__input" required />

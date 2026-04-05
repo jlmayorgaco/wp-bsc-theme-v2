@@ -118,12 +118,33 @@ Ejecutar antes de cada deploy a producción. Marcar ✅ o ❌ con fecha y notas.
 
 ---
 
-## 12. Admin (si aplica)
+## 12. Admin BSC
+
+- [ ] El menú "BSC" aparece en el sidebar admin
+- [ ] BSC → Pedidos carga la tabla de pedidos sin errores
+- [ ] Se puede cambiar el estado de un pedido desde el select inline
+- [ ] Guardar un código de tracking cambia el estado a "Enviado" y envía el email
+- [ ] El email de envío llega con el código de tracking y el CTA de rastreo
+- [ ] La exportación CSV descarga el archivo con los pedidos correctos
+- [ ] La vista de impresión de packing se abre correctamente
+- [ ] BSC → Informes muestra KPIs del mes actual
+- [ ] BSC → Venta Presencial: se puede buscar un producto y agregarlo al carrito
+- [ ] Registrar una venta presencial crea la orden y descuenta `_stock_tienda`
+
+## 13. Roles operativos
+
+- [ ] Usuario con rol `bsc_operator`: solo ve Pedidos, Venta Presencial y Dashboard BSC
+- [ ] Usuario con rol `bsc_operator`: intentar navegar a `/wp-admin/plugins.php` redirige a Pedidos
+- [ ] Usuario con rol `bsc_employee`: además ve Productos BSC
+- [ ] El administrador no tiene ninguna restricción
+
+## 14. Admin WooCommerce nativo
 
 - [ ] El admin de WordPress carga sin errores
 - [ ] WooCommerce → Pedidos muestra los pedidos
 - [ ] Se puede cambiar el estado de un pedido manualmente
 - [ ] Los productos se pueden editar (precio, stock, imagen)
+- [ ] El meta box "BSC Stock Dual" aparece en el editor de producto con campos `_stock_bodega` y `_stock_tienda`
 
 ---
 
@@ -142,7 +163,9 @@ Ejecutar antes de cada deploy a producción. Marcar ✅ o ❌ con fecha y notas.
 | Bubble Points | | |
 | Performance | | |
 | SEO básico | | |
-| Admin | | |
+| Admin BSC | | |
+| Roles operativos | | |
+| Admin WooCommerce | | |
 
 **Decisión de deploy:** ✅ Aprobar / ❌ Bloquear  
 **Notas:** ___________________________________________

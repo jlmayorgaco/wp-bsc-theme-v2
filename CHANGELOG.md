@@ -7,6 +7,42 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- BSC-029: Custom WP roles `bsc_operator` (edit_orders) y `bsc_employee` (edit_orders + edit_products)
+- BSC-030: Admin menu custom "BSC" con subpáginas: Pedidos, Productos, Venta Presencial, Informes, Configuración
+- BSC-031: Tabla de pedidos admin con filtros, paginación 25/página, select de estado inline, inputs de tracking
+- BSC-032: Estatutos de pedido custom: `wc-preparing` (En preparación), `wc-shipped` (Enviado)
+- BSC-033: Email de envío HTML con código de tracking y CTA "Rastrear mi pedido" (`emails/bsc-order-shipped.php`)
+- BSC-034: Exportación CSV de pedidos con UTF-8 BOM y vista de impresión para packing
+- BSC-035: Página de informes con KPIs (ventas totales, cantidad, ticket promedio) y top 5 productos
+- BSC-036: Modelo de stock dual (`_stock_bodega`, `_stock_tienda`) con clase `BSC_Stock` y meta box en producto
+- BSC-037: Flujo de venta presencial (showroom) — búsqueda de productos, carrito JS, registro de venta, descuento de `_stock_tienda`
+- BSC-038: Caché de búsqueda con transients 15min por término; caché del lado del cliente (objeto `searchCache`, max 20 entradas)
+- BSC-039: Transients para fallback del slider de productos (1h TTL); invalidación en `save_post_product`, `edited_term`, `created_term`
+- BSC-041: Constante `BSC_THEME_VERSION` para versionado de assets sin filemtime I/O en producción
+- BSC-042: Tamaños de imagen registrados: `bsc-card` (400×400), `bsc-hero` (1440×600), `bsc-thumb` (120×120); cards usan `wp_get_attachment_image()` para srcset automático
+- BSC-043: Nonce CSRF en `page-register.php`; checklist de seguridad en `.claude/security-checklist.md`
+- BSC-044: README.md expandido con stack completo, archivos críticos, roles y stock dual; CHANGELOG actualizado con todas las entradas BSC-029–044
+
+### Fixed
+- BSC-020: Scroll automático al contenido en páginas de Mi Cuenta (evita que el usuario vea solo la navegación)
+- BSC-021: Cards de pedidos en mobile con layout de bloque y labels `data-title` legibles
+- BSC-022: Vista de detalle de pedido: eliminado `$mapped_status` hardcodeado y `$bubble_points = 356` fijo
+- BSC-023: Tickets usados/vencidos en Bubble Points con `grayscale(1)` y `pointer-events:none`
+- BSC-024: Formularios de dirección WooCommerce responsive en mobile (width 100%, font-size 16px)
+- BSC-029: Permisos de admin: `bsc_operator` ahora tiene acceso a bsc-dashboard y bsc-showroom
+
+### Performance
+- BSC-038: Búsqueda AJAX: min 3 chars → 2, debounce 350ms → 400ms, límite 12 → 8 resultados
+- BSC-039: Fallback del slider no ejecuta WP_Query en cada page load (transient 1h)
+- BSC-040: `update_post_meta_cache` y `update_post_term_cache` habilitados en queries de slider y filtros
+- BSC-041: Assets encolados con `BSC_THEME_VERSION` estático en producción (sin filemtime por request)
+- BSC-042: Cards de producto con `srcset` automático via `wp_get_attachment_image()`
+
+### Security
+- BSC-043: CSRF nonce en formulario de registro (`page-register.php`)
+- BSC-043: Todos los handlers AJAX verificados: nonce ✅, sanitización ✅, rate limiting ✅ (contact/newsletter/creators)
+
 ### Pendiente
 - BSC-001: Reparar componente WhatsApp y helper centralizado
 - BSC-002: Eliminar URLs localhost/bsc.local hardcodeadas
@@ -15,9 +51,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 - BSC-009: Rediseño visual del menú mobile
 - BSC-010: Unificar árbol de menú mobile con desktop
 - BSC-014: Corregir stretching de galería en producto
-- BSC-016: Shipping dinámico Bogotá vs resto en checkout
-- BSC-029–037: Módulo admin operativo (roles, pedidos, tracking, stock dual)
-- BSC-038–053: Performance, seguridad, backups, accesibilidad
+- BSC-045–053: Backups, monitoreo, accesibilidad, i18n
 
 ---
 

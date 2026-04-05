@@ -22,9 +22,14 @@ class BSC_Products_Card {
         $this->sale_price    = wc_price($product->get_sale_price());
         $this->stock_status  = $product->get_stock_status();
         
-        $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single');
+        // BSC-042: store image_id so render_images() can use wp_get_attachment_image() for srcset
         $img_placeholder = esc_url(get_stylesheet_directory_uri()) . '/images/bsc__placeholder_product.jpg';
-        $this->image = is_array($image_data) ? $image_data[0] : $img_placeholder . '?query_photo_index=0';
+        $image_id = $product->get_image_id();
+        if ( $image_id ) {
+            $this->image = $image_id; // store ID — rendered via wp_get_attachment_image()
+        } else {
+            $this->image = $img_placeholder;
+        }
 
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();
@@ -51,15 +56,33 @@ class BSC_Products_Card {
     }
 
     public function render_images(): void {
-        echo '<img'
-            . ' class="card__image"'
-            . ' src="' . esc_url($this->image) . '"'
-            . ' alt="' . esc_attr($this->title) . '"'
-            . ' loading="lazy"'
-            . ' decoding="async"'
-            . ' width="300"'
-            . ' height="300"'
-            . ' />';
+        // BSC-042: use wp_get_attachment_image() when we have an ID to get auto srcset/sizes
+        if ( is_int($this->image) ) {
+            echo wp_get_attachment_image(
+                $this->image,
+                'bsc-card',
+                false,
+                [
+                    'class'   => 'card__image',
+                    'alt'     => esc_attr($this->title),
+                    'loading' => 'lazy',
+                    'decoding' => 'async',
+                    'width'   => '400',
+                    'height'  => '400',
+                ]
+            );
+        } else {
+            // Fallback placeholder (no attachment ID)
+            echo '<img'
+                . ' class="card__image"'
+                . ' src="' . esc_url($this->image) . '"'
+                . ' alt="' . esc_attr($this->title) . '"'
+                . ' loading="lazy"'
+                . ' decoding="async"'
+                . ' width="400"'
+                . ' height="400"'
+                . ' />';
+        }
     }
 
     public function render_rating(): void {
