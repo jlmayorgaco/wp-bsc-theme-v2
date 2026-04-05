@@ -46,6 +46,15 @@ if ( is_admin() ) {
 	require_once get_template_directory() . '/inc/admin/product-covers.php';
 }
 
+// BSC-029: custom roles (always loaded — roles must exist for frontend checks too)
+require_once get_template_directory() . '/includes/class-bsc-roles.php';
+
+// BSC-029: admin access restrictions + BSC-030: custom admin menu (admin only)
+if ( is_admin() ) {
+	require_once get_template_directory() . '/includes/class-bsc-permissions.php';
+	require_once get_template_directory() . '/admin/bsc-admin-menu.php';
+}
+
 // Scripts 
 require_once get_template_directory() . '/scripts/script_init.php';
 require_once get_template_directory() . '/scripts/script_custom_types.php';

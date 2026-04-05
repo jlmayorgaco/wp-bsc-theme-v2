@@ -177,6 +177,13 @@ add_action('after_switch_theme', function () {
     flush_rewrite_rules();
 }, 5);
 
+// BSC-029: create operational roles on theme (re)activation
+add_action('after_switch_theme', function () {
+    if ( class_exists('BSC_Roles') ) {
+        BSC_Roles::create();
+    }
+}, 15);
+
 /**
  * Load bundled plugins
  */
