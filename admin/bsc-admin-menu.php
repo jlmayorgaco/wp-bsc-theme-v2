@@ -51,6 +51,16 @@ function bsc_add_admin_menu(): void {
         'bsc_render_reports_page'
     );
 
+    // Venta Presencial — operator + employee + admin
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Venta Presencial', 'bsc-2-0' ),
+        __( 'Venta Presencial', 'bsc-2-0' ),
+        'edit_orders',
+        'bsc-showroom',
+        'bsc_render_showroom_page'
+    );
+
     // Configuración — admin only
     add_submenu_page(
         'bsc-dashboard',
@@ -96,6 +106,7 @@ function bsc_restrict_admin_menus(): void {
 // ── Include page-specific implementations ─────────────────────────────
 require_once get_template_directory() . '/admin/bsc-orders-page.php';
 require_once get_template_directory() . '/admin/bsc-reports-page.php';
+require_once get_template_directory() . '/admin/bsc-showroom-page.php';
 
 // ── Page render functions ──────────────────────────────────────────────
 
