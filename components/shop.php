@@ -1,4 +1,64 @@
 
+<?php
+// BSC-013: "3 niñas" — main category showcase cards (Skin Care, Hair Care, Make Up)
+$bsc_shop_groups = [
+    [
+        'slug'  => 'group-skin-care',
+        'title' => 'SKIN CARE',
+        'image' => get_template_directory_uri() . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+        'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días.',
+    ],
+    [
+        'slug'  => 'group-hair-care',
+        'title' => 'HAIR CARE',
+        'image' => get_template_directory_uri() . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+        'text'  => 'Cuida tu cabello con la <strong>tecnología coreana</strong>: champús, acondicionadores, tratamientos y más para un cabello sano y brillante.',
+    ],
+    [
+        'slug'  => 'group-make-up',
+        'title' => 'MAKE UP',
+        'image' => get_template_directory_uri() . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+        'text'  => 'El <strong>K-Beauty make up</strong> que cuida mientras embellece: bases, tintes, labiales y mucho más.',
+    ],
+];
+?>
+
+<section class="section bsc-kb-grid bsc-kb-grid--home bsc-kb-grid--shop">
+    <?php foreach ( $bsc_shop_groups as $g ) :
+        $term_link = esc_url( trailingslashit( home_url( '/product-category/' ) ) . $g['slug'] . '/' );
+    ?>
+        <article class="bsc-kb-card">
+            <a href="<?php echo $term_link; ?>" class="bsc-kb-card__link">
+                <div class="bsc-kb-card__imgwrap">
+                    <div class="bsc-kb-card__back">
+                        <img
+                            src="<?php echo esc_url( $g['image'] ); ?>"
+                            alt="<?php echo esc_attr( $g['title'] ); ?>"
+                            loading="lazy"
+                            width="600"
+                            height="480"
+                        >
+                    </div>
+                    <div class="bsc-kb-card__front">
+                        <img
+                            class="bsc-kb-card__icon"
+                            src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/shop/hear_icon.png"
+                            alt=""
+                            width="25"
+                            height="25"
+                        >
+                        <p class="bsc-kb-text">
+                            <?php echo wp_kses( $g['text'], [ 'strong' => [] ] ); ?>
+                        </p>
+                    </div>
+                </div>
+                <div class="bsc-kb-card__label">
+                    <?php echo esc_html( $g['title'] ); ?>
+                </div>
+            </a>
+        </article>
+    <?php endforeach; ?>
+</section>
 
 <div class="custom-shop-wrapper" style="padding: 2rem; max-width: 1200px; margin: auto;">
   <h1 class="shop-title" style="font-size: 2.5rem; margin-bottom: 2rem;">Nuestra tienda Bubbles</h1>
