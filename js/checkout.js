@@ -1,31 +1,27 @@
-
-
-
-
-jQuery(function($) {
+jQuery(function ($) {
   // === SETTINGS ===
   const requiredFieldLabels = {
     billing_first_name: 'Nombres',
-    billing_last_name: 'Apellidos',
-    billing_cedula: 'Número de cédula',
-    billing_email: 'Correo electrónico',
-    billing_phone: 'Número de teléfono',
-    billing_country: 'Selecciona un país',
-    billing_state: 'Selecciona un departamento',
-    billing_city: 'Selecciona una ciudad',
-    billing_postcode: 'Código postal',
-    billing_address_1: 'Dirección de entrega',
-    // billing_address_2 is optional — complemento de dirección no debe ser requerido
+    billing_last_name:  'Apellidos',
+    billing_cedula:     'Número de cédula',
+    billing_email:      'Correo electrónico',
+    billing_phone:      'Número de teléfono',
+    billing_country:    'Selecciona un país',
+    billing_state:      'Selecciona un departamento',
+    billing_city:       'Selecciona una ciudad',
+    billing_postcode:   'Código postal',
+    billing_address_1:  'Dirección de entrega',
+    // billing_address_2 is optional
   };
 
   const shippingToggleSelector = '#ship_to_different_address';
 
   const requiredFieldLabelsIfShippingEnabled = {
-    shipping_country: 'Selecciona un país',
-    shipping_state: 'Selecciona un departamento',
-    shipping_postcode: 'Código postal',
+    shipping_country:   'Selecciona un país',
+    shipping_state:     'Selecciona un departamento',
+    shipping_postcode:  'Código postal',
     shipping_address_1: 'Dirección de entrega',
-  }
+  };
 
   // === HELPERS ===
   function triggerWiggle($el) {
@@ -35,10 +31,12 @@ jQuery(function($) {
   }
 
   function markError($input) {
-    const $wrapper = $input.closest('.bsc__field').length ? $input.closest('.bsc__field') : $input.closest('p');
+    const $wrapper = $input.closest('.bsc__field').length
+      ? $input.closest('.bsc__field')
+      : $input.closest('p');
     $wrapper.addClass('has-error');
     triggerWiggle($wrapper);
-    $input.on('input change', () => $wrapper.removeClass('has-error'));
+    $input.one('input change', () => $wrapper.removeClass('has-error'));
   }
 
   function scrollToFirstError($form) {
@@ -54,12 +52,25 @@ jQuery(function($) {
       : !$input.val().trim();
   }
 
-  // === Validation ===
+  // BSC-016: inline notice — replaces alert() in checkout AJAX callbacks
+  function showCheckoutNotice(message, type) {
+    let $notice = $('#bsc-checkout-notice');
+    if (!$notice.length) {
+      $notice = $('<div id="bsc-checkout-notice" class="bsc__coupon-notice"></div>');
+      $('form[name="checkout"]').prepend($notice);
+    }
+    $notice
+      .attr('class', 'bsc__coupon-notice bsc__coupon-notice--' + type)
+      .text(message)
+      .stop(true).fadeIn(200);
+    setTimeout(() => $notice.fadeOut(400), 5000);
+  }
+
+  // === VALIDATION ===
   function validateRequiredFields($form) {
     let hasError = false;
 
-    // Always validate billing fields
-    $.each(requiredFieldLabels, function (fieldName, label) {
+    $.each(requiredFieldLabels, function (fieldName) {
       const $input = $form.find(`[name="${fieldName}"]`);
       if ($input.length && isFieldEmpty($input)) {
         markError($input);
@@ -67,9 +78,8 @@ jQuery(function($) {
       }
     });
 
-    // Conditionally validate shipping fields
     if ($(shippingToggleSelector).is(':checked')) {
-      $.each(requiredFieldLabelsIfShippingEnabled, function (fieldName, label) {
+      $.each(requiredFieldLabelsIfShippingEnabled, function (fieldName) {
         const $input = $form.find(`[name="${fieldName}"]`);
         if ($input.length && isFieldEmpty($input)) {
           markError($input);
@@ -81,7 +91,7 @@ jQuery(function($) {
     return hasError;
   }
 
-  // === AJAX: LOAD CITY FIELD ===
+  // === CITY FIELD AJAX LOADER ===
   function setupCityLoader() {
     $('#billing_state').on('change', function () {
       const state = $(this).val();
@@ -92,22 +102,21 @@ jQuery(function($) {
         beforeSend: () => $('#billing_city_field').html('<p>Cargando ciudad…</p>'),
         success: function (response) {
           if (response.success) {
-            console.log('✅ AJAX city field loaded');
             setTimeout(() => {
               $('#billing_city_field').replaceWith(response.data.html);
               updateCityPlaceholder();
               $(document.body).trigger('update_checkout');
             }, 300);
           } else {
-            alert('Error al cargar las ciudades.');
+            showCheckoutNotice('Error al cargar las ciudades. Por favor recarga la página.', 'error');
           }
         },
-        error: () => alert('Hubo un problema con la petición AJAX.')
+        error: () => showCheckoutNotice('Hubo un problema al cargar las ciudades.', 'error'),
       });
     });
 
+    // BSC-016: trigger shipping recalculation on city/state change
     $(document.body).on('change', '#billing_city, #billing_state', function () {
-      console.log(`📍 ${this.id} changed —> update_checkout`);
       $(document.body).trigger('update_checkout');
     });
   }
@@ -127,39 +136,8 @@ jQuery(function($) {
     $toggle.trigger('change');
   }
 
-  // === REVIEW SUMMARY AJAX REFRESH ===
-  function refreshReviewSummary() {
-    console.log('🔁 Refreshing Review Summary...');
-    $.ajax({
-      url: bsc_ajax.ajax_url,
-      method: 'POST',
-      data: { action: 'bsc_get_review_summary', nonce: bsc_ajax.nonce },
-      success: function (response) {
-        if (response.success && response.data.html) {
-          console.log(' ')
-          console.log(' ')
-          console.log(' ')
-          console.log(' // === REVIEW SUMMARY AJAX REFRESH === ')
-          console.log(' response.data ')
-          console.log(response.data)
-          console.log(' ')
-          console.log(' ')
-          $('#bsc-review-summary').html(response.data.html);
-        } else {
-          console.warn('⚠️ Invalid review summary response');
-        }
-      },
-      error: function () {
-        console.error('❌ Error al refrescar el resumen del pedido.');
-      }
-    });
-  }
-
- 
-
-  // === INIT ALL ===
+  // === INIT ===
   function init() {
-    console.log('🚀 Init BSC Checkout');
     setupCityLoader();
     setupShippingToggle();
     updateCityPlaceholder();
@@ -167,34 +145,22 @@ jQuery(function($) {
 
   init();
 
-  // === WooCommerce Trigger Hook ===
+  // === WC CHECKOUT EVENT ===
+  // BSC-016: refreshReviewSummary is a global function defined in cart.js (loaded on all pages)
   $(document.body).on('updated_checkout', function () {
-
-    console.log('📦 WC Checkout event');
-
-    //setupOrderButtonValidation();
-    refreshReviewSummary();
-
+    if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
   });
 
+  // === FORM SUBMIT VALIDATION ===
   $('form[name="checkout"]').on('submit', function (e) {
     const $form = $(this);
-    console.log('🧪 Validando checkout...');
-
     const hasError = validateRequiredFields($form);
 
     if (hasError) {
-      // Prevent ALL submission (native + WooCommerce AJAX) and show inline errors
       e.preventDefault();
       e.stopImmediatePropagation();
-      console.log('❌ Validación fallida — campos requeridos vacíos.');
       scrollToFirstError($form);
     }
     // If no errors: don't preventDefault — WooCommerce's own checkout AJAX takes over
   });
-
-
-
-
 });
-
