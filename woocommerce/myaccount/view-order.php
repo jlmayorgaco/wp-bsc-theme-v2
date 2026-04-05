@@ -48,11 +48,12 @@ function get_brand_data($product): array {
             'pending'    => BSC_Order_Progress_Bar::PENDING,
             'processing' => BSC_Order_Progress_Bar::RECEIVED,
             'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+            'preparing'  => BSC_Order_Progress_Bar::RECEIVED,  // BSC-032 custom
+            'shipped'    => BSC_Order_Progress_Bar::SHIPPED,   // BSC-032 custom
             'completed'  => BSC_Order_Progress_Bar::DELIVERED,
             'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
             'failed'     => BSC_Order_Progress_Bar::CANCELLED,
             'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
-            'shipping'   => BSC_Order_Progress_Bar::SHIPPED,
           ];
           $mapped_status = $status_map[$order->get_status()] ?? BSC_Order_Progress_Bar::PENDING;
           $bar = new BSC_Order_Progress_Bar();
