@@ -15,6 +15,19 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     private array $query_args;
 
+    /** Status → badge colors [ bg, text ] */
+    private const STATUS_COLORS = [
+        'pending'    => ['#FED7AA', '#7C2D12'],
+        'processing' => ['#BFDBFE', '#1E3A5F'],
+        'preparing'  => ['#E9D5FF', '#4C1D95'],
+        'shipped'    => ['#A7F3D0', '#064E3B'],
+        'completed'  => ['#BBF7D0', '#14532D'],
+        'cancelled'  => ['#FECACA', '#7F1D1D'],
+        'refunded'   => ['#FEE2E2', '#991B1B'],
+        'on-hold'    => ['#E5E7EB', '#374151'],
+        'failed'     => ['#FEE2E2', '#7F1D1D'],
+    ];
+
     public function __construct( array $query_args = [] ) {
         parent::__construct([
             'singular' => 'pedido',
@@ -30,6 +43,7 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
             'order_id' => 'Pedido',
             'date'     => 'Fecha',
             'customer' => 'Cliente',
+            'city'     => 'Ciudad',
             'items'    => 'Productos',
             'total'    => 'Total',
             'status'   => 'Estado',
@@ -105,6 +119,12 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
         return $date ? esc_html( $date->date_i18n( 'd M Y H:i' ) ) : '—';
     }
 
+    public function column_city( $item ): string {
+        /** @var WC_Order $item */
+        $city = $item->get_shipping_city() ?: $item->get_billing_city();
+        return esc_html( $city ?: '—' );
+    }
+
     public function column_customer( $item ): string {
         /** @var WC_Order $item */
         $name  = trim( $item->get_billing_first_name() . ' ' . $item->get_billing_last_name() );
@@ -132,10 +152,14 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     public function column_status( $item ): string {
         /** @var WC_Order $item */
-        $current  = 'wc-' . $item->get_status();
-        $statuses = wc_get_order_statuses();
+        $raw_status = $item->get_status();             // e.g. "processing", "wc-preparing" without prefix
+        $current    = 'wc-' . $raw_status;
+        $statuses   = wc_get_order_statuses();
 
-        $html  = '<select class="bsc-status-select" data-order-id="' . esc_attr( $item->get_id() ) . '">';
+        $badge = $this->status_badge( $raw_status );
+
+        $html  = $badge . '<br>';
+        $html .= '<select class="bsc-status-select" data-order-id="' . esc_attr( $item->get_id() ) . '" style="margin-top:4px;max-width:150px">';
         foreach ( $statuses as $key => $label ) {
             $html .= sprintf(
                 '<option value="%s"%s>%s</option>',
@@ -147,6 +171,18 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
         $html .= '</select>';
         $html .= '<span class="bsc-saved-indicator" style="display:none;color:#46b450;font-weight:bold;margin-left:4px">✓</span>';
         return $html;
+    }
+
+    private function status_badge( string $status ): string {
+        $clean  = preg_replace( '/^wc-/', '', $status );
+        $colors = self::STATUS_COLORS[ $clean ] ?? [ '#E5E7EB', '#374151' ];
+        $label  = wc_get_order_statuses()[ 'wc-' . $clean ] ?? ucfirst( $clean );
+        return sprintf(
+            '<span class="bsc-order-badge" style="background:%s;color:%s;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">%s</span>',
+            esc_attr( $colors[0] ),
+            esc_attr( $colors[1] ),
+            esc_html( $label )
+        );
     }
 
     public function column_tracking( $item ): string {
@@ -178,6 +214,6 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
     }
 
     public function no_items(): void {
-        echo '<td colspan="8" style="text-align:center;padding:2rem">No hay pedidos para mostrar.</td>';
+        echo '<td colspan="9" style="text-align:center;padding:2rem">No hay pedidos para mostrar.</td>';
     }
 }

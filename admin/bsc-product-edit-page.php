@@ -7,7 +7,7 @@
 defined('ABSPATH') || exit;
 
 function bsc_render_product_edit_page(): void {
-    if ( ! current_user_can('edit_products') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('edit_products') ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 

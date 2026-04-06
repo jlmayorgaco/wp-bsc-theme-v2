@@ -198,6 +198,15 @@ add_action('after_switch_theme', function () {
     }
 }, 15);
 
+// BSC-066: also create roles at init in case theme was already active
+// (safe: BSC_Roles::create() is guarded by get_role checks)
+add_action('init', function () {
+    if ( class_exists('BSC_Roles') ) {
+        BSC_Roles::create();
+        BSC_Roles::grant_admin_wc_caps(); // ensure admin has all WC caps (WC 7.x+ fix)
+    }
+}, 1);
+
 /**
  * Load bundled plugins
  */

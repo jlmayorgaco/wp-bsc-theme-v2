@@ -13,7 +13,7 @@ add_action('admin_enqueue_scripts', function (string $hook): void {
 
 // ── Page render ───────────────────────────────────────────────────────
 function bsc_render_showroom_page(): void {
-    if (!current_user_can('edit_orders')) {
+    if (!current_user_can('manage_options') && !current_user_can('edit_orders')) {
         wp_die(esc_html__('No tienes permisos.', 'bsc-2-0'));
     }
 
@@ -316,7 +316,7 @@ function bsc_render_showroom_page(): void {
 add_action('wp_ajax_bsc_showroom_search', 'bsc_ajax_showroom_search');
 function bsc_ajax_showroom_search(): void {
     check_ajax_referer('bsc_admin_orders', 'nonce');
-    if (!current_user_can('edit_orders')) wp_send_json_error();
+    if (!current_user_can('manage_options') && !current_user_can('edit_orders')) wp_send_json_error();
 
     $q = sanitize_text_field($_POST['q'] ?? '');
     if (strlen($q) < 2) wp_send_json_success([]);
@@ -346,7 +346,7 @@ function bsc_ajax_showroom_search(): void {
 add_action('wp_ajax_bsc_register_showroom_sale', 'bsc_ajax_register_showroom_sale');
 function bsc_ajax_register_showroom_sale(): void {
     check_ajax_referer('bsc_admin_orders', 'nonce');
-    if (!current_user_can('edit_orders')) {
+    if (!current_user_can('manage_options') && !current_user_can('edit_orders')) {
         wp_send_json_error(['message' => 'Sin permisos']);
     }
 

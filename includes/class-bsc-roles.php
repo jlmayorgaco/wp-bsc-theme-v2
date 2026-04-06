@@ -2,18 +2,24 @@
 /**
  * BSC-029: Custom user roles for store operations.
  * Roles are created once (guarded by get_role) and removed on theme deactivation.
+ *
+ * Role hierarchy (admin access):
+ *   administrator   → everything
+ *   shop_manager    → all BSC pages
+ *   bsc_employee    → orders + products only (no reports, no settings)
+ *   bsc_operator    → orders + showroom only
+ *   customer        → no admin
  */
 defined('ABSPATH') || exit;
 
 class BSC_Roles {
 
     /**
-     * Create bsc_operator role if it doesn't already exist.
-     * BSC-060: bsc_employee removed — use native shop_manager instead.
+     * Create custom BSC roles if they don't already exist.
      * Safe to call on every after_switch_theme.
      */
     public static function create(): void {
-        // BSC-029 / BSC-060: Operador — solo pedidos BSC
+        // BSC-029: Operador — solo pedidos BSC
         if ( ! get_role('bsc_operator') ) {
             add_role(
                 'bsc_operator',
@@ -25,25 +31,56 @@ class BSC_Roles {
             );
         }
 
-        // BSC-060: Migrate any remaining bsc_employee users to shop_manager
-        self::migrate_employees_to_shop_manager();
-
-        // BSC-060: Remove obsolete bsc_employee role
-        if ( get_role('bsc_employee') ) {
-            remove_role('bsc_employee');
+        // BSC-066: Empleado — pedidos + productos, sin informes ni configuración
+        if ( ! get_role('bsc_employee') ) {
+            add_role(
+                'bsc_employee',
+                'BSC Empleado',
+                [
+                    'read'                    => true,
+                    'edit_orders'             => true,
+                    'edit_products'           => true,
+                    'read_private_products'   => true,
+                    'publish_products'        => true,
+                    'edit_published_products' => true,
+                    'upload_files'            => true,
+                ]
+            );
         }
     }
 
     /**
-     * BSC-060: Move any user with bsc_employee role to shop_manager.
-     * Runs once; safe to call repeatedly.
+     * BSC-066: Ensure the administrator role has all WooCommerce capabilities.
+     *
+     * WooCommerce 7.x stopped auto-granting WC-specific caps to administrators.
+     * This writes to the DB once per cap (guarded by has_cap) so it is safe to
+     * call on every init without causing unnecessary DB writes.
      */
-    private static function migrate_employees_to_shop_manager(): void {
-        $employees = get_users( [ 'role' => 'bsc_employee', 'fields' => [ 'ID' ] ] );
-        foreach ( $employees as $user ) {
-            $u = new WP_User( $user->ID );
-            $u->remove_role('bsc_employee');
-            $u->add_role('shop_manager');
+    public static function grant_admin_wc_caps(): void {
+        $admin = get_role( 'administrator' );
+        if ( ! $admin ) return;
+
+        $caps = [
+            'edit_orders',
+            'edit_others_orders',
+            'publish_orders',
+            'read_private_orders',
+            'delete_orders',
+            'manage_woocommerce',
+            'edit_products',
+            'edit_others_products',
+            'publish_products',
+            'read_private_products',
+            'delete_products',
+            'manage_product_terms',
+            'edit_product_terms',
+            'assign_product_terms',
+        ];
+
+        foreach ( $caps as $cap ) {
+            if ( ! $admin->has_cap( $cap ) ) {
+                $admin->add_cap( $cap, true );
+            }
         }
     }
 
@@ -52,11 +89,44 @@ class BSC_Roles {
      */
     public static function remove(): void {
         remove_role('bsc_operator');
+        remove_role('bsc_employee');
     }
 }
 
 // BSC-060: Default role for new registrations is 'customer' (WooCommerce customer, not subscriber)
 add_filter( 'pre_option_default_role', function( $role ) {
-    // Only override if not already set to something meaningful
     return 'customer';
 });
+
+/**
+ * BSC-066: Grant WooCommerce capabilities to administrators.
+ *
+ * WooCommerce 7.x no longer auto-inherits edit_orders / edit_products /
+ * manage_woocommerce for the administrator role. This filter ensures
+ * admins always pass every WC capability check without modifying the
+ * stored role in the database.
+ */
+add_filter( 'user_has_cap', function( array $allcaps, array $caps, array $args, WP_User $user ): array {
+    if ( ! in_array( 'administrator', (array) $user->roles, true ) ) {
+        return $allcaps;
+    }
+    $wc_caps = [
+        'edit_orders',
+        'edit_others_orders',
+        'publish_orders',
+        'read_private_orders',
+        'delete_orders',
+        'manage_woocommerce',
+        'edit_products',
+        'edit_others_products',
+        'publish_products',
+        'read_private_products',
+        'delete_products',
+        'manage_product_terms',
+        'edit_product_terms',
+    ];
+    foreach ( $wc_caps as $cap ) {
+        $allcaps[ $cap ] = true;
+    }
+    return $allcaps;
+}, 10, 4 );
