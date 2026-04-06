@@ -21,14 +21,15 @@ function get_related_product_skus(int $product_id, int $limit = 8): array {
         $terms = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
 
         if (!empty($terms)) {
-            // Fetch random products from same categories
+            // Fetch recent products from same categories (avoids MySQL RAND() full-table scan)
             $fallback_products = wc_get_products([
-                'limit' => $remaining * 2, // ask for more, we'll filter later
-                'status' => 'publish',
+                'limit'   => $remaining * 2,
+                'status'  => 'publish',
                 'exclude' => array_merge([$product_id], $related_ids),
                 'category' => $terms,
-                'orderby' => 'rand',
-                'return' => 'ids',
+                'orderby' => 'date',
+                'order'   => 'DESC',
+                'return'  => 'ids',
             ]);
 
             foreach ($fallback_products as $fid) {
@@ -51,10 +52,11 @@ function get_cart_recommendation_skus(int $limit = 8): array {
     // If cart is empty, return $limit random product SKUs
     if (!$cart || $cart->is_empty()) {
         $args = [
-            'status' => 'publish',
-            'limit' => $limit,
-            'orderby' => 'rand',
-            'return' => 'ids',
+            'status'  => 'publish',
+            'limit'   => $limit,
+            'orderby' => 'date',  // avoids MySQL RAND() full-table scan
+            'order'   => 'DESC',
+            'return'  => 'ids',
         ];
         $random_products = wc_get_products($args);
 

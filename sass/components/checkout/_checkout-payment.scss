@@ -102,3 +102,48 @@
 
   }
 }
+
+
+@mixin mq($max) {
+  @media (max-width: $max) {
+    @content;
+  }
+}
+
+$bp-tablet: 768px;
+$bp-mobile: 480px;
+// =======================================================
+// 5) Mobile
+// =======================================================
+@include mq($bp-mobile) {
+#place_order {
+    font-family: "Helvetica", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 10px 30px;
+    transition: all 0.3s ease-in-out;
+    box-sizing: border-box;
+    border: 2px solid transparent;
+    background-color: var(--color--text);
+    color: white;
+    display: block;
+    margin-top: 35px;
+    margin-left: 0px;
+    margin-right: 0px;
+    width: 100%;
+
+
+    position: fixed;
+    bottom: 21px;
+    left: 10px;
+    width: 290px;
+    background-color: #333;
+    color: white;
+    border: 2px solid white;
+    z-index: 1000;
+}
+}

@@ -10,6 +10,20 @@ if (!function_exists('bsc_2_0_setup')) {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
 
+        // BSC-042: register responsive image sizes for srcset generation
+        add_image_size('bsc-card', 400, 400, true);   // product card (square crop)
+        add_image_size('bsc-hero', 1440, 600, true);  // hero slider
+        add_image_size('bsc-thumb', 120, 120, true);  // thumbnails
+
+        // BSC-050: convert new uploads to WebP when the server supports it
+        add_filter('image_editor_output_format', function ( array $formats ): array {
+            if ( function_exists('imagewebp') ) { // GD WebP support check
+                $formats['image/jpeg'] = 'image/webp';
+                $formats['image/png']  = 'image/webp';
+            }
+            return $formats;
+        } );
+
         register_nav_menus([
             'menu-1' => esc_html__('Primary', 'bsc-2-0'),
         ]);
@@ -177,6 +191,22 @@ add_action('after_switch_theme', function () {
     flush_rewrite_rules();
 }, 5);
 
+// BSC-029: create operational roles on theme (re)activation
+add_action('after_switch_theme', function () {
+    if ( class_exists('BSC_Roles') ) {
+        BSC_Roles::create();
+    }
+}, 15);
+
+// BSC-066: also create roles at init in case theme was already active
+// (safe: BSC_Roles::create() is guarded by get_role checks)
+add_action('init', function () {
+    if ( class_exists('BSC_Roles') ) {
+        BSC_Roles::create();
+        BSC_Roles::grant_admin_wc_caps(); // ensure admin has all WC caps (WC 7.x+ fix)
+    }
+}, 1);
+
 /**
  * Load bundled plugins
  */
@@ -192,11 +222,55 @@ if (!function_exists('bsc_load_theme_plugins')) {
 }
 
 
-add_action('woocommerce_save_account_details', function($user_id) {
-  foreach (['bsc_needs1','bsc_needs2','bsc_needs3','bsc_needs4'] as $k) {
-    if (isset($_POST[$k])) update_user_meta($user_id, $k, sanitize_text_field(wp_unslash($_POST[$k])));
-  }
-  if (isset($_POST['account_birthday'])) update_user_meta($user_id, 'bsc_birthday', sanitize_text_field(wp_unslash($_POST['account_birthday'])));
-  if (isset($_POST['account_skin_type'])) update_user_meta($user_id, 'bsc_skin_type', sanitize_text_field(wp_unslash($_POST['account_skin_type'])));
-  if (isset($_POST['account_sensitivity'])) update_user_meta($user_id, 'bsc_sensitivity', sanitize_text_field(wp_unslash($_POST['account_sensitivity'])));
+// ── BSC-039: Invalidate slider and menu category transients on content change ──
+add_action('save_post_product', 'bsc_clear_slider_cache');
+add_action('edited_term',       'bsc_clear_category_cache', 10, 3);
+add_action('created_term',      'bsc_clear_category_cache', 10, 3);
+
+function bsc_clear_slider_cache(): void {
+    global $wpdb;
+    $wpdb->query(
+        "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_bsc_slider_%' OR option_name LIKE '_transient_timeout_bsc_slider_%'"
+    );
+}
+
+function bsc_clear_category_cache( int $term_id, int $tt_id, string $taxonomy ): void {
+    if ( $taxonomy === 'product_cat' ) {
+        delete_transient('bsc_menu_categories');
+    }
+}
+
+add_action('woocommerce_save_account_details', function( int $user_id ): void {
+    // BSC-057: needs fields — plain text only, no HTML
+    foreach ( ['bsc_needs1','bsc_needs2','bsc_needs3','bsc_needs4'] as $k ) {
+        if ( isset( $_POST[ $k ] ) ) {
+            update_user_meta( $user_id, $k, sanitize_text_field( wp_unslash( $_POST[ $k ] ) ) );
+        }
+    }
+
+    // BSC-057: birthday — validate format YYYY-MM-DD
+    if ( isset( $_POST['account_birthday'] ) ) {
+        $raw = sanitize_text_field( wp_unslash( $_POST['account_birthday'] ) );
+        if ( $raw === '' || preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw ) ) {
+            update_user_meta( $user_id, 'bsc_birthday', $raw );
+        }
+    }
+
+    // BSC-057: skin_type — whitelist
+    $allowed_skin_types = [ 'Grasa', 'Mixta', 'Seca', 'Normal', 'Normal a seca', 'Normal a grasa' ];
+    if ( isset( $_POST['account_skin_type'] ) ) {
+        $val = sanitize_text_field( wp_unslash( $_POST['account_skin_type'] ) );
+        if ( $val === '' || in_array( $val, $allowed_skin_types, true ) ) {
+            update_user_meta( $user_id, 'bsc_skin_type', $val );
+        }
+    }
+
+    // BSC-057: sensitivity — whitelist
+    $allowed_sensitivities = [ 'Sensible normal', 'Muy sensible', 'No sensible' ];
+    if ( isset( $_POST['account_sensitivity'] ) ) {
+        $val = sanitize_text_field( wp_unslash( $_POST['account_sensitivity'] ) );
+        if ( $val === '' || in_array( $val, $allowed_sensitivities, true ) ) {
+            update_user_meta( $user_id, 'bsc_sensitivity', $val );
+        }
+    }
 }, 10, 1);

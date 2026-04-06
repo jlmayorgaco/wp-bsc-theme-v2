@@ -300,11 +300,11 @@ $bp-mobile: 480px;
           }
 
           label {
-            top: -10px;
-            right: -6px;
-            width: 26px;
-            height: 26px;
-            font-size: 12px;
+            top: -15px;
+            left: -16px;
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
           }
         }
       }
@@ -337,11 +337,21 @@ $bp-mobile: 480px;
           justify-content: flex-start;
           margin-top: 0.75rem;
           margin-left: 0;
+          
+          padding-bottom: 20px;
 
           .quantity-btn,
           .delete-btn {
             width: 34px;
-            margin-right: 8px;
+            height: 34px;
+            margin-right: 23px;
+            span{
+              font-size: 20px;
+              width: 22px;
+              height: 22px;
+                  top: -1px;
+                left: -1px;
+            }
           }
         }
       }

@@ -27,7 +27,7 @@
           </li>
           <li class="footer__list-item">
             <a
-              href="https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubbles%20Skin%20care!%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97"
+              href="<?php echo esc_url( bsc_get_whatsapp_url( 'encargo' ) ); ?>"
               target="_blank"
               rel="noopener noreferrer"
               class="footer__link"
@@ -104,10 +104,7 @@
         <span class="footer__cart-count"><?php echo WC()->cart->get_cart_contents_count(); ?></span>
       </a>
 
-      <a target="_blank" rel="noopener noreferrer" href="https://api.whatsapp.com/send?phone=573156922859&text=Hola%20BSC%2C%20me%20gustar%C3%ADa%20tener%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20productos%20que%20tienen%20en%20la%20tienda.%20%E2%98%BA%EF%B8%8F" class="footer__whatsapp" aria-label="Whatsapp Link">
-        <i class="premium-svg-nodraw premium-drawable-icon fab fa-whatsapp" aria-hidden="true"></i>
-        <span class="footer__wa">Whatsapp</span>
-      </a>
+      <?php get_template_part( 'components/whatsapp' ); ?>
 
       <div class="footer__developer-section">
 

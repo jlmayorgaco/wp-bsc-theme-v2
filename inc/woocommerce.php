@@ -280,7 +280,7 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
     $subtotal = WC()->cart->get_subtotal();
     $discount = WC()->cart->get_discount_total();
     $subtotal_after_discount = $subtotal - $discount;
-    $min_amount = 300000;
+    $min_amount = (int) get_option('bsc_free_shipping_threshold', 300000); // BSC-064: configurable
     // Si no alcanza el mínimo, eliminamos el envío gratuito
     foreach ($rates as $rate_id => $rate) {
         if ($rate->method_id === 'free_shipping' && $subtotal_after_discount < $min_amount) {
@@ -292,13 +292,108 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
     return $rates;
 }
 
-add_action('woocommerce_before_calculate_totals', function() {
-    WC()->cart->calculate_shipping();
-}, 5);
+// BSC-058: removed woocommerce_before_calculate_totals/calculate_shipping() — caused infinite loops
+
+// BSC-058: force correct flat rate based on billing state + city
+add_filter('woocommerce_package_rates', 'bsc_force_shipping_by_location', 20, 2);
+function bsc_force_shipping_by_location( array $rates, array $package ): array {
+    $state = $package['destination']['state'] ?? '';
+    $city  = strtolower( trim( $package['destination']['city'] ?? '' ) );
+
+    if ( empty( $state ) || empty( $city ) ) {
+        return $rates;
+    }
+
+    $bogota_cities = [ 'bogotá', 'bogota', 'bogota d.c.', 'bogotá d.c.', 'santa fe de bogota', 'santa fe de bogotá' ];
+    $is_bogota     = ( $state === 'CUN' && in_array( $city, $bogota_cities, true ) );
+
+    // BSC-064: configurable Bogotá label identifier
+    $bogota_label_key = strtolower( get_option('bsc_bogota_shipping_label', 'bogot') );
+
+    $has_bogota_rate = false;
+    $has_general_rate = false;
+    foreach ( $rates as $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) continue;
+        $label_lower = strtolower( $rate->label );
+        if ( str_contains( $label_lower, $bogota_label_key ) ) $has_bogota_rate  = true;
+        else $has_general_rate = true;
+    }
+
+    // Only filter if there are distinct Bogotá vs general flat rates configured
+    if ( ! $has_bogota_rate || ! $has_general_rate ) {
+        return $rates;
+    }
+
+    foreach ( $rates as $rate_id => $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) continue;
+        $label_lower = strtolower( $rate->label );
+        $is_bogota_rate = str_contains( $label_lower, $bogota_label_key );
+        if ( $is_bogota && ! $is_bogota_rate ) {
+            unset( $rates[ $rate_id ] );
+        } elseif ( ! $is_bogota && $is_bogota_rate ) {
+            unset( $rates[ $rate_id ] );
+        }
+    }
+    return $rates;
+}
 
 add_filter('default_checkout_billing_country', function() {
   return 'CO';
 });
 add_filter('default_checkout_shipping_country', function() {
   return 'CO';
+});
+
+// ── BSC-032: Custom order statuses ────────────────────────────────────
+add_action('init', 'bsc_register_order_statuses');
+function bsc_register_order_statuses(): void {
+    register_post_status('wc-preparing', [
+        'label'                     => _x('En preparación', 'Order status', 'bsc-2-0'),
+        'public'                    => true,
+        'exclude_from_search'       => false,
+        'show_in_admin_all_list'    => true,
+        'show_in_admin_status_list' => true,
+        'label_count'               => _n_noop(
+            'En preparación <span class="count">(%s)</span>',
+            'En preparación <span class="count">(%s)</span>'
+        ),
+    ]);
+    register_post_status('wc-shipped', [
+        'label'                     => _x('Enviado', 'Order status', 'bsc-2-0'),
+        'public'                    => true,
+        'exclude_from_search'       => false,
+        'show_in_admin_all_list'    => true,
+        'show_in_admin_status_list' => true,
+        'label_count'               => _n_noop(
+            'Enviado <span class="count">(%s)</span>',
+            'Enviados <span class="count">(%s)</span>'
+        ),
+    ]);
+}
+
+add_filter('wc_order_statuses', 'bsc_add_order_statuses_to_woo');
+function bsc_add_order_statuses_to_woo(array $statuses): array {
+    $new = [];
+    foreach ($statuses as $key => $label) {
+        $new[$key] = $label;
+        if ($key === 'wc-processing') {
+            $new['wc-preparing'] = _x('En preparación', 'Order status', 'bsc-2-0');
+        }
+    }
+    $new['wc-shipped'] = _x('Enviado', 'Order status', 'bsc-2-0');
+    return $new;
+}
+
+// ── BSC-036: Deduct bodega stock when web order moves to processing ───
+add_action('woocommerce_order_status_processing', function(int $order_id): void {
+    if (class_exists('BSC_Stock')) {
+        BSC_Stock::deduct_bodega($order_id);
+    }
+});
+
+// Allow email triggers for custom statuses
+add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(array $statuses): array {
+    $statuses[] = 'preparing';
+    $statuses[] = 'shipped';
+    return $statuses;
 });

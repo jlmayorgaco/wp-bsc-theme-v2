@@ -386,7 +386,25 @@ $breakpoints: (
       line-height: footer-floating(cart-badge-size);
       text-align: center;
     }
+
+    &.is-swinging {
+      animation: bsc-cart-swing 0.55s ease-in-out;
+      transform-origin: center center;
+    }
   }
+}
+
+@keyframes bsc-cart-swing {
+  0%   { transform: rotate(0deg)   scale(1); }
+  15%  { transform: rotate(-15deg) scale(1.08); }
+  35%  { transform: rotate(12deg)  scale(1.05); }
+  55%  { transform: rotate(-7deg)  scale(1.02); }
+  75%  { transform: rotate(4deg)   scale(1.01); }
+  100% { transform: rotate(0deg)   scale(1); }
+}
+
+// re-open .footer for remaining rules
+.footer {
 
   &__developer-section {
     width: 100%;

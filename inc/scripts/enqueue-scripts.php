@@ -9,7 +9,7 @@ add_action('init', function () {
 });
 
 function bsc_2_0_scripts() {
-	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), _S_VERSION);
+	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION);
 	wp_style_add_data('bsc-2-0-style', 'rtl', 'replace');
 
 	// Scripts globales — necesarios en todas las páginas
@@ -17,7 +17,16 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-navigation',
 		get_template_directory_uri() . '/js/navigation.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
+		true
+	);
+
+	// Mobile menu — extracted from header.php inline script
+	wp_enqueue_script(
+		'bsc-2-0-mobile-menu',
+		get_template_directory_uri() . '/js/mobile-menu.js',
+		array(),
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -25,7 +34,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-search',
 		get_template_directory_uri() . '/js/search.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -39,7 +48,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-add-to-cart',
 		get_template_directory_uri() . '/js/cart.js',
 		array('jquery'),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
@@ -54,36 +63,59 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-slider-mobile-hint',
 		get_template_directory_uri() . '/js/bsc-slider-mobile-hint.js',
 		array(),
-		_S_VERSION,
+		BSC_THEME_VERSION,
 		true
 	);
 
-	// Tabs — solo en home (sección favoritos por tipo de piel)
+	// Scripts solo en home
 	if (is_front_page()) {
+		// Tabs — sección favoritos por tipo de piel
 		wp_enqueue_script(
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
+			true
+		);
+
+		// Newsletter form handler
+		wp_enqueue_script(
+			'bsc-2-0-newsletter',
+			get_template_directory_uri() . '/js/newsletter.js',
+			array('jquery'),
+			BSC_THEME_VERSION,
+			true
+		);
+
+		// Swiper init — depends on swiper-js (loaded via script_init.php)
+		wp_enqueue_script(
+			'bsc-2-0-swiper-init',
+			get_template_directory_uri() . '/js/swiper-init.js',
+			array('swiper-js'),
+			BSC_THEME_VERSION,
 			true
 		);
 	}
 
-	// Filtros de productos — solo en catálogo y páginas de categoría
+	// Filtros y category filter — solo en catálogo y páginas de categoría
 	if (is_shop() || is_product_category() || is_product_tag() || is_archive()) {
+		// AJAX product filters (sidebar)
 		wp_enqueue_script(
 			'bsc-2-0-products-filters',
 			get_template_directory_uri() . '/js/filters.js',
-			array('jquery'),
-			_S_VERSION,
+			array('jquery', 'bsc-2-0-add-to-cart'),
+			BSC_THEME_VERSION,
 			true
 		);
 
-		wp_localize_script('bsc-2-0-products-filters', 'bsc_ajax', [
-			'ajax_url'  => admin_url('admin-ajax.php'),
-			'theme_uri' => get_template_directory_uri(),
-			'nonce'     => wp_create_nonce('bsc_ajax_action'),
-		]);
+		// Client-side category filter (renderLevel2 subcategory tabs)
+		wp_enqueue_script(
+			'bsc-2-0-category-filter',
+			get_template_directory_uri() . '/js/category-filter.js',
+			array(),
+			BSC_THEME_VERSION,
+			true
+		);
 	}
 
 	// Checkout — solo en la página de checkout
@@ -92,7 +124,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-checkout',
 			get_template_directory_uri() . '/js/checkout.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}
@@ -103,7 +135,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-coupons',
 			get_template_directory_uri() . '/js/coupons.js',
 			array('jquery'),
-			_S_VERSION,
+			BSC_THEME_VERSION,
 			true
 		);
 	}

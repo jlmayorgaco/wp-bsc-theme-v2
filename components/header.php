@@ -263,8 +263,8 @@
     $menuCoreanRutine->setName('RUTINA COREANA');
     $menuCoreanRutine->setSlug('BSC_MENU_NAV_COREAN_RUTINE');
     $menuCoreanRutine->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-03-F-100.jpg',
-        'link' => 'https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubbles%20Skin%20care!%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97',
+        'image' => content_url( '/uploads/2023/10/Menu-03-F-100.jpg' ),
+        'link' => bsc_get_whatsapp_url( 'general' ),
     ]);
     $menuCoreanRutine->appendMenu([
         'slug' => 'nav-menu-corea-rutine-basic',
@@ -309,14 +309,14 @@
     $menuBlog->setName('BLOG');
     $menuBlog->setSlug('BSC_MENU_NAV_BLOG');
     $menuBlog->setCover([
-        'image' => 'http://bsc.local/wp-content/uploads/2023/10/Menu-04-F-100.jpg',
-        'link' => 'http://bsc.local/veja-just-dropped-limited-edition-sneakers-with-mansur-gavriel/',
+        'image' => content_url( '/uploads/2023/10/Menu-04-F-100.jpg' ),
+        'link' => home_url( '/veja-just-dropped-limited-edition-sneakers-with-mansur-gavriel/' ),
     ]);
     $menuBlog->appendMenu([
         'slug' => 'nav-menu-blog-categorias',
         'title' => 'Categorías',
         'items' => [
-            ['slug' => 'entrevistas', 'title' => '1. Entrevistas', 'link' => 'http://bsc.local/blog/'],
+            ['slug' => 'entrevistas', 'title' => '1. Entrevistas', 'link' => home_url( '/blog/' )],
             ['slug' => 'resenas', 'title' => '2. Reseñas', 'link' => '#'],
             ['slug' => 'tendencias', 'title' => '3. Tendencias', 'link' => '#'],
             ['slug' => 'skin-care', 'title' => '4. Skin care', 'link' => '#'],
@@ -346,6 +346,9 @@
 
 
 ?>
+<!-- BSC-051: skip link for keyboard and screen-reader navigation -->
+<a href="#main-content" class="bsc-skip-link">Saltar al contenido principal</a>
+
 <header class="bsc bsc__header bsc__header--desktop">
     <div class="header__container">
         <a class="header__image" href="/">
@@ -448,7 +451,7 @@
             <a href="/" class="item--logo">
                 <img
                     class="header-mobile__logo"
-                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header.png"
+                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header_mobile.png"
                     alt="Bubbles Skin Care"
                 >
             </a>
@@ -475,26 +478,32 @@
                 </div>
             </button>
 
-            <button
+            <?php
+            // BSC-012: navigate to orders (logged in) or login with redirect (guest)
+            $profile_url = is_user_logged_in()
+                ? esc_url( wc_get_account_endpoint_url('orders') )
+                : esc_url( home_url('/login/') );
+            $profile_label = is_user_logged_in() ? 'Mis Pedidos' : 'Ingresar';
+            ?>
+            <a
                 id="profile-button-mobile"
-                aria-haspopup="true"
-                aria-expanded="false"
+                href="<?php echo $profile_url; ?>"
+                aria-label="<?php echo esc_attr( $profile_label ); ?>"
                 class="header-mobile__icon-btn header-mobile__profile-btn"
-                type="button"
             >
                 <div class="image__icon-hoverable">
                     <img
                         class="image__icon icon--normal"
-                        alt="Mi cuenta"
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                        alt="<?php echo esc_attr( $profile_label ); ?>"
+                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
                     >
                     <img
                         class="image__icon icon--hover"
                         alt=""
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png"
+                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
                     >
                 </div>
-            </button>
+            </a>
         </div>
 
     </div>
@@ -627,34 +636,4 @@
 </sidebar>
 
 
-<script>
-  const menuToggleBtn = document.getElementById('mobileMenuToggle');
-  const sidebar = document.getElementById('mobileSidebar');
-  const body = document.body;
-
-  function setMobileMenuState(isOpen) {
-    sidebar.classList.toggle('is-open', isOpen);
-    body.classList.toggle('mobile-menu-open', isOpen);
-
-    menuToggleBtn.setAttribute('aria-expanded', String(isOpen));
-    menuToggleBtn.setAttribute(
-      'aria-label',
-      isOpen ? 'Cerrar menú' : 'Abrir menú'
-    );
-  }
-
-  function toggleMobileMenu() {
-    const isOpen = sidebar.classList.contains('is-open');
-    setMobileMenuState(!isOpen);
-  }
-
-  if (menuToggleBtn && sidebar) {
-    menuToggleBtn.addEventListener('click', toggleMobileMenu);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
-        setMobileMenuState(false);
-      }
-    });
-  }
-</script>
+<!-- Mobile menu script enqueued via mobile-menu.js -->

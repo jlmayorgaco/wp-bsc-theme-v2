@@ -1,3 +1,7 @@
+// BSC-038: client-side search cache (session-only, max 20 unique queries)
+const searchCache = {};
+const SEARCH_CACHE_MAX = 20;
+
 document.addEventListener('DOMContentLoaded', () => {
   const MOBILE_BREAKPOINT = 1024;
 
@@ -7,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Shared AJAX search runner ─────────────────────────────────────────────
   async function runSearch(query, resultsList) {
+    // BSC-038: serve from client cache when available
+    if (searchCache[query]) {
+      renderResults(searchCache[query], resultsList);
+      return;
+    }
+
     resultsList.innerHTML = '<li class="search-loading">Buscando…</li>';
 
     const ajaxUrl =
@@ -35,63 +45,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await res.json();
 
-      resultsList.innerHTML = '';
-
       if (!data.success || !data.data.products || data.data.products.length === 0) {
         resultsList.innerHTML = '<li class="search-empty">No se encontraron productos.</li>';
         return;
       }
 
-      data.data.products.forEach((product) => {
-        const li = document.createElement('li');
-        li.classList.add('search-result-item');
+      // BSC-038: store in client cache (evict oldest entry if over limit)
+      const cacheKeys = Object.keys(searchCache);
+      if (cacheKeys.length >= SEARCH_CACHE_MAX) {
+        delete searchCache[cacheKeys[0]];
+      }
+      searchCache[query] = data.data.products;
 
-        const img = document.createElement('img');
-        img.alt = product.name;
-        img.classList.add('search-result-image');
-
-        if (product.image) {
-          img.src = product.image;
-        } else if (placeholderImg) {
-          img.src = placeholderImg;
-        } else {
-          img.style.display = 'none';
-        }
-
-        const info = document.createElement('div');
-        info.classList.add('search-result-info');
-
-        const name = document.createElement('span');
-        name.classList.add('search-result-name');
-        name.textContent = product.name;
-        info.appendChild(name);
-
-        if (product.brand) {
-          const brand = document.createElement('span');
-          brand.classList.add('search-result-brand');
-          brand.textContent = product.brand;
-          info.appendChild(brand);
-        }
-
-        if (product.price) {
-          const price = document.createElement('span');
-          price.classList.add('search-result-price');
-          price.textContent = decodeHtmlEntities(product.price);
-          info.appendChild(price);
-        }
-
-        li.appendChild(img);
-        li.appendChild(info);
-
-        li.addEventListener('click', () => {
-          window.location.href = product.permalink;
-        });
-
-        resultsList.appendChild(li);
-      });
+      renderResults(data.data.products, resultsList);
     } catch (err) {
       resultsList.innerHTML = '<li class="search-empty">Error al buscar. Intenta de nuevo.</li>';
     }
+  }
+
+  function renderResults(products, resultsList) {
+    resultsList.innerHTML = '';
+
+    const placeholderImg =
+      window.bsc_search && window.bsc_search.placeholder_img
+        ? window.bsc_search.placeholder_img
+        : '';
+
+    products.forEach((product) => {
+      const li = document.createElement('li');
+      li.classList.add('search-result-item');
+
+      const img = document.createElement('img');
+      img.alt = product.name;
+      img.classList.add('search-result-image');
+
+      if (product.image) {
+        img.src = product.image;
+      } else if (placeholderImg) {
+        img.src = placeholderImg;
+      } else {
+        img.style.display = 'none';
+      }
+
+      const info = document.createElement('div');
+      info.classList.add('search-result-info');
+
+      const name = document.createElement('span');
+      name.classList.add('search-result-name');
+      name.textContent = product.name;
+      info.appendChild(name);
+
+      if (product.brand) {
+        const brand = document.createElement('span');
+        brand.classList.add('search-result-brand');
+        brand.textContent = product.brand;
+        info.appendChild(brand);
+      }
+
+      if (product.price) {
+        const price = document.createElement('span');
+        price.classList.add('search-result-price');
+        price.textContent = decodeHtmlEntities(product.price);
+        info.appendChild(price);
+      }
+
+      li.appendChild(img);
+      li.appendChild(info);
+
+      li.addEventListener('click', () => {
+        window.location.href = product.permalink;
+      });
+
+      resultsList.appendChild(li);
+    });
   }
 
   // ── Init a search instance ────────────────────────────────────────────────
@@ -174,11 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const query = searchInput.value.trim();
       clearSearchResults();
 
-      if (query.length < 3) return;
+      if (query.length < 2) return;
 
       searchTimeout = setTimeout(() => {
         runSearch(query, resultsList);
-      }, 350);
+      }, 400);
     });
 
     return {

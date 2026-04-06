@@ -74,6 +74,10 @@
   .home__products--section {
     background-color: var(--color-bg-light);
     background-color: white;
+    padding-bottom: -5rem !important;
+    .section__container{
+      padding-bottom: 1rem !important;
+    }
   }
 }
 

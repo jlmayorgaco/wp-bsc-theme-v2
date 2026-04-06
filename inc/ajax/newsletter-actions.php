@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 add_action('wp_ajax_bsc_newsletter_subscribe', 'bsc_newsletter_subscribe');
 add_action('wp_ajax_nopriv_bsc_newsletter_subscribe', 'bsc_newsletter_subscribe');

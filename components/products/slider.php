@@ -50,10 +50,14 @@ class BSC_Products_Sliders {
         if (empty($product_ids)) return;
 
         $query = new WP_Query([
-            'post_type'      => 'product',
-            'post__in'       => $product_ids,
-            'orderby'        => 'post__in',
-            'posts_per_page' => $this->max_products,
+            'post_type'              => 'product',
+            'post__in'               => $product_ids,
+            'orderby'                => 'post__in',
+            'posts_per_page'         => $this->max_products,
+            'no_found_rows'          => true,     // skip COUNT(*) — no pagination needed in sliders
+            'cache_results'          => true,
+            'update_post_meta_cache' => true,     // BSC-040: pre-load meta in batch
+            'update_post_term_cache' => true,     // BSC-040: pre-load terms in batch
         ]);
 
         if (!$query->have_posts()) return;
@@ -82,13 +86,23 @@ class BSC_Products_Sliders {
     }
 
     private function getFallbackProductIds(int $limit, array $exclude_ids = []): array {
+        // BSC-039: check transient cache first (1 hour TTL, invalidated on product save)
+        $cache_key = 'bsc_slider_' . md5($this->slug . '_' . $limit . '_' . implode(',', $exclude_ids));
+        $cached    = get_transient($cache_key);
+        if ( $cached !== false ) {
+            return $cached;
+        }
+
         $args = [
-            'post_type'      => 'product',
-            'post_status'    => 'publish',
-            'posts_per_page' => $limit,
-            'fields'         => 'ids',
-            'orderby'        => 'rand',
-            'post__not_in'   => $exclude_ids,
+            'post_type'              => 'product',
+            'post_status'            => 'publish',
+            'posts_per_page'         => $limit,
+            'fields'                 => 'ids',
+            'orderby'                => 'date',  // deterministic — avoids MySQL RAND() full-table scan
+            'order'                  => 'DESC',
+            'post__not_in'           => $exclude_ids,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
         ];
 
         switch ($this->slug) {
@@ -132,7 +146,11 @@ class BSC_Products_Sliders {
                 $args['order'] = 'DESC';
         }
 
-        return get_posts($args);
+        $ids = get_posts($args);
+
+        set_transient($cache_key, $ids, HOUR_IN_SECONDS);
+
+        return $ids;
     }
 }
 

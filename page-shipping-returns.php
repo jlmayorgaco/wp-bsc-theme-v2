@@ -51,7 +51,7 @@ get_header();
             <h2>📬 Contáctanos</h2>
             <p>
               Si tienes alguna duda sobre tu pedido, escríbenos por
-              <a href="https://api.whatsapp.com/send?phone=573156922859" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+              <a href="<?php echo esc_url( bsc_get_whatsapp_url( 'support' ) ); ?>" target="_blank" rel="noopener noreferrer">WhatsApp</a>
               y te ayudamos con gusto. 🌸
             </p>
           </div>

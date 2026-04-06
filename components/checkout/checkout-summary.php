@@ -4,17 +4,11 @@ defined('ABSPATH') || exit;
 class BSC_Checkout_Review_Summary {
 
     protected $cart;
-    protected $debug_messages = [];
 
     public function __construct() {
         $this->cart = WC()->cart;
-
-        if (isset(WC()->session)) {
-            WC()->cart->calculate_totals(); // Asegura que todo esté listo
-        }
-
-        // 🚫 Aplica lógica para forzar eliminación visual del envío gratuito si no aplica
-        add_filter('woocommerce_package_rates', [$this, 'maybe_disable_free_shipping'], 10, 2);
+        // I-5: free_shipping filter is already registered globally in inc/woocommerce.php
+        // I-4: calculate_totals() moved to render() — only called once per request
     }
 
     public function render(): void {
@@ -68,37 +62,6 @@ class BSC_Checkout_Review_Summary {
 
 
         echo '</div>';
-    }
-
-    public function maybe_disable_free_shipping($rates, $package) {
-        $subtotal = WC()->cart->get_subtotal();
-        $discount = WC()->cart->get_discount_total();
-        $subtotal_after_discount = $subtotal - $discount;
-        $min_amount = 300000;
-
-        $this->debug_messages[] = "Subtotal original: " . wc_price($subtotal);
-        $this->debug_messages[] = "Descuento aplicado: " . wc_price($discount);
-        $this->debug_messages[] = "Subtotal con descuento: " . wc_price($subtotal_after_discount);
-        $this->debug_messages[] = "Mínimo requerido para envío gratuito: " . wc_price($min_amount);
-
-        if (empty($rates)) {
-            $this->debug_messages[] = "🚨 No hay métodos de envío disponibles.";
-        }
-
-        foreach ($rates as $rate_id => $rate) {
-            $this->debug_messages[] = "🔹 Método disponible: {$rate->label} ({$rate->method_id}) – Costo: " . wc_price($rate->cost);
-
-            if ($rate->method_id === 'free_shipping') {
-                if ($subtotal_after_discount < $min_amount) {
-                    $this->debug_messages[] = "❌ Eliminando 'Free Shipping' porque el subtotal con descuento es menor a " . wc_price($min_amount);
-                    unset($rates[$rate_id]);
-                } else {
-                    $this->debug_messages[] = "✅ 'Free Shipping' permitido: el subtotal con descuento cumple.";
-                }
-            }
-        }
-
-        return $rates;
     }
 
     protected function get_shipping_method_label(): string {

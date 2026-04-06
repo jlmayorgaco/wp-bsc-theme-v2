@@ -134,8 +134,6 @@
               <a class="bsc__button bsc__button--outline bsc__button--floating" href="/shop">¡Ver todos!</a>
               -->
 
-            <br>
-
         </div>
     </section>
 
@@ -203,7 +201,7 @@
                 <div class="bsc-kb-card__front">
                     <img class="bsc-kb-card__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/shop/hear_icon.png" alt="" width="25px">
                     <p class="bsc-kb-text">
-                        <? echo $g['text']; ?>
+                        <?php echo wp_kses($g['text'], ['strong' => []]); ?>
                     </p>
                 </div>
             </div>
@@ -400,43 +398,6 @@
               <p class="home__contact__success-msg" id="bsc-newsletter-success-msg"></p>
             </div>
 
-            <script>
-            (function($){
-              $('#bsc-newsletter-form').on('submit', function(e) {
-                e.preventDefault();
-                var email   = $('#bsc-newsletter-email').val().trim();
-                var $submit = $('#bsc-newsletter-submit');
-                var $error  = $('#bsc-newsletter-error');
-
-                $error.hide().text('');
-
-                if (!email) {
-                  $error.text('Por favor ingresa tu correo electrónico.').show();
-                  return;
-                }
-
-                $submit.prop('disabled', true).val('Enviando…');
-
-                $.post(bsc_ajax.ajax_url, {
-                  action: 'bsc_newsletter_subscribe',
-                  email:  email,
-                  nonce:  bsc_ajax.nonce
-                }).done(function(res) {
-                  if (res.success) {
-                    $('#bsc-newsletter-form').hide();
-                    $('#bsc-newsletter-success-msg').text(res.data.message);
-                    $('#bsc-newsletter-success').show();
-                  } else {
-                    $error.text(res.data.message || 'Hubo un error. Intenta nuevamente.').show();
-                    $submit.prop('disabled', false).val('¡Quiero Ser Parte !');
-                  }
-                }).fail(function() {
-                  $error.text('Error de conexión. Por favor intenta nuevamente.').show();
-                  $submit.prop('disabled', false).val('¡Quiero Ser Parte !');
-                });
-              });
-            })(jQuery);
-            </script>
 
             <img 
               class="home__contact__final-image" 

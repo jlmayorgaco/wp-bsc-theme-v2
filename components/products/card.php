@@ -22,64 +22,82 @@ class BSC_Products_Card {
         $this->sale_price    = wc_price($product->get_sale_price());
         $this->stock_status  = $product->get_stock_status();
         
-        $image_data = wp_get_attachment_image_src($product->get_image_id(), 'woocommerce_single');
+        // BSC-042: store image_id so render_images() can use wp_get_attachment_image() for srcset
         $img_placeholder = esc_url(get_stylesheet_directory_uri()) . '/images/bsc__placeholder_product.jpg';
-        $this->image = is_array($image_data) ? $image_data[0] : $img_placeholder . '?query_photo_index=0';
+        $image_id = $product->get_image_id();
+        if ( $image_id ) {
+            $this->image = $image_id; // store ID — rendered via wp_get_attachment_image()
+        } else {
+            $this->image = $img_placeholder;
+        }
 
         $this->link          = get_permalink($product->get_id());
         $this->rating        = (float) $product->get_average_rating();
         $this->type          = $product->get_type();
 
-        // Set categories
+        // Set categories — fetch ONCE and reuse for brand lookup
         $terms = get_the_terms($product->get_id(), 'product_cat');
         if ($terms && !is_wp_error($terms)) {
             $this->categories = array_map(fn($term) => $term->name, $terms);
         }
 
-        // Brand
-        // Get if product belongs to any "group" category
-        $this->brand = $this->getProductBrand($product);
+        // Brand — pass already-fetched terms to avoid a second DB query
+        $this->brand = $this->getProductBrand($terms ?: []);
 
     }
 
-    private function getProductBrand($product) {
-        $categories = get_the_terms($product->get_id(), 'product_cat');
-        $brand_term = null;
-
-        if (!is_wp_error($categories) && !empty($categories)) {
-            foreach ($categories as $category) {
-                if (strpos($category->slug, '-marca') !== false) {
-                    $brand_term = $category;
-                    break;
-                }
+    private function getProductBrand(array $terms): string {
+        foreach ($terms as $term) {
+            if ($term instanceof WP_Term && strpos($term->slug, '-marca') !== false) {
+                return $term->name;
             }
         }
-
-        return $brand_term ? $brand_term->name : 'Sin marca';
+        return 'Sin marca';
     }
 
     public function render_images(): void {
-       echo '<img class="card__image" src="' . esc_url($this->image) . '" alt="' . esc_attr($this->title) . '" />';
+        // BSC-042: use wp_get_attachment_image() when we have an ID to get auto srcset/sizes
+        if ( is_int($this->image) ) {
+            echo wp_get_attachment_image(
+                $this->image,
+                'bsc-card',
+                false,
+                [
+                    'class'   => 'card__image',
+                    'alt'     => esc_attr($this->title),
+                    'loading' => 'lazy',
+                    'decoding' => 'async',
+                    'width'   => '400',
+                    'height'  => '400',
+                ]
+            );
+        } else {
+            // Fallback placeholder (no attachment ID)
+            echo '<img'
+                . ' class="card__image"'
+                . ' src="' . esc_url($this->image) . '"'
+                . ' alt="' . esc_attr($this->title) . '"'
+                . ' loading="lazy"'
+                . ' decoding="async"'
+                . ' width="400"'
+                . ' height="400"'
+                . ' />';
+        }
     }
 
     public function render_rating(): void {
-    
-        $rating = $this->rating;
-        $rating = 5;
-        
-        $full = floor($rating);
-        $empty = 5 - $full;
-        $img_heart_full = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/2.png';
-        $img_heart_empty = 'https://bubblesskincare.com/wp-content/plugins/wp-bsc-plugin-v1/assets/images/1.png';
+        // Use real rating clamped 0–5; fallback to 5 when no ratings yet
+        $rating = ($this->rating > 0) ? min(5, (float) $this->rating) : 5;
+        $full   = (int) floor($rating);
+        $empty  = 5 - $full;
 
-        echo '';
+        // Use Font Awesome icons (already loaded globally) — avoids external HTTP requests
         for ($i = 0; $i < $full; $i++) {
-            echo '<i class="star full-star"><img decoding="async" class="bsc__heart-icon-rating" src="' . esc_url($img_heart_full) . '"></i>';
+            echo '<i class="star full-star fas fa-heart bsc__heart-icon-rating" aria-hidden="true"></i>';
         }
         for ($i = 0; $i < $empty; $i++) {
-            echo '<i class="star empty-star"><img decoding="async" class="bsc__heart-icon-rating" src="' . esc_url($img_heart_empty) . '"></i>';
+            echo '<i class="star empty-star far fa-heart bsc__heart-icon-rating" aria-hidden="true"></i>';
         }
-        echo '';
     }
 
     public function render_title(): void {
@@ -104,7 +122,7 @@ class BSC_Products_Card {
 
         // Variable products cannot be added to cart without selecting options — redirect to product page
         if ( $this->type === 'variable' ) {
-            echo '<a href="' . esc_url($this->link) . '" class="bsc__button-add-to-cart bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
+            echo '<a href="' . esc_url($this->link) . '" class="bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
             echo '<span>Ver opciones</span>';
             echo '</a>';
             return;
@@ -123,6 +141,17 @@ class BSC_Products_Card {
         }
 
         if ($in_cart) {
+            // BSC-003: render the add-to-cart button hidden so JS can show it when qty reaches 0
+            echo '<button
+                type="button"
+                class="bsc__button-add-to-cart"
+                style="display:none"
+                data-quantity="1"
+                data-product_id="' . esc_attr($product_id) . '"
+                data-product_sku=""
+                aria-label="' . esc_attr($label) . '"
+            ><span>' . esc_html($label) . '</span></button>';
+
             // Render quantity controls
             echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr($product_id) . '">';
             echo '<button class="bsc__qty-minus">−</button>';
@@ -131,17 +160,14 @@ class BSC_Products_Card {
             echo '</div>';
         } else {
             // Render add-to-cart button
-            echo '<a
-                href="?add-to-cart=' . esc_attr($product_id) . '"
+            echo '<button
+                type="button"
                 class="bsc__button-add-to-cart"
                 data-quantity="1"
                 data-product_id="' . esc_attr($product_id) . '"
                 data-product_sku=""
                 aria-label="' . esc_attr($label) . '"
-                rel="nofollow"
-            >';
-            echo '<span>' . esc_html($label) . '</span>';
-            echo '</a>';
+            ><span>' . esc_html($label) . '</span></button>';
         }
     }
 

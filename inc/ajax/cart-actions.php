@@ -1,4 +1,6 @@
 <?php
+defined('ABSPATH') || exit;
+
 
 // ── Add to cart ────────────────────────────────────────────────────────────
 add_action('wp_ajax_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler');
@@ -57,11 +59,11 @@ function bsc_update_cart_quantity() {
 			WC()->cart->set_quantity($cart_item_key, $new_qty);
 			WC()->cart->calculate_totals();
 			wc_clear_notices();
-			// BSC-004: incluir cart_count en todas las respuestas
 			wp_send_json_success([
 				'message'    => 'Quantity updated',
 				'new_qty'    => $new_qty,
 				'cart_count' => WC()->cart->get_cart_contents_count(),
+				'item_total' => wc_price($new_qty * $cart_item['data']->get_price()),
 			]);
 		}
 	}
