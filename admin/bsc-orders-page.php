@@ -27,16 +27,25 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
 } );
 
 // ── BSC-034: handle bulk export/packing on admin_init ────────────────
+// Form POSTs back to admin.php?page=bsc-orders (same page).
+// admin_init fires after WooCommerce is ready but before any HTML output.
 add_action( 'admin_init', 'bsc_handle_bulk_export' );
 function bsc_handle_bulk_export(): void {
+    // Only act on our form POST
     if ( ! isset( $_POST['bsc_bulk_action'], $_POST['bsc_export_nonce'] ) ) return;
-    if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_export_nonce'] ) ), 'bsc_bulk_export' ) ) return;
-    if ( ! current_user_can( 'edit_orders' ) ) return;
+    if ( ( sanitize_text_field( $_GET['page'] ?? '' ) ) !== 'bsc-orders' ) return;
+
+    if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_export_nonce'] ) ), 'bsc_bulk_export' ) ) {
+        wp_die( esc_html__( 'Nonce inválido.', 'bsc-2-0' ) );
+    }
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
+        wp_die( esc_html__( 'Sin permisos.', 'bsc-2-0' ) );
+    }
 
     $action    = sanitize_text_field( $_POST['bsc_bulk_action'] );
     $order_ids = array_map( 'absint', (array) ( $_POST['order_ids'] ?? [] ) );
 
-    if ( empty( $order_ids ) ) return;
+    if ( empty( $order_ids ) ) return; // JS already prevents this, but safety guard
 
     if ( $action === 'export_csv' ) {
         bsc_export_orders_csv( $order_ids );
@@ -45,74 +54,171 @@ function bsc_handle_bulk_export(): void {
     }
 }
 
+// ── Status tabs config ─────────────────────────────────────────────────
+function bsc_orders_status_tabs(): array {
+    return [
+        ''             => 'Todos',
+        'pending'      => 'Pendiente',
+        'processing'   => 'Procesando',
+        'wc-preparing' => 'Preparando',
+        'wc-shipped'   => 'Enviado',
+        'completed'    => 'Completado',
+        'cancelled'    => 'Cancelado',
+    ];
+}
+
 // ── Page render ───────────────────────────────────────────────────────
 function bsc_render_orders_page(): void {
-    if ( ! current_user_can( 'edit_orders' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 
     // Sanitize filters
-    $date_start = isset( $_GET['date_start'] ) ? sanitize_text_field( $_GET['date_start'] ) : '';
-    $date_end   = isset( $_GET['date_end'] )   ? sanitize_text_field( $_GET['date_end'] )   : '';
-    $search     = isset( $_GET['s'] )          ? sanitize_text_field( $_GET['s'] )          : '';
+    $date_start     = isset( $_GET['date_start'] )    ? sanitize_text_field( $_GET['date_start'] )    : '';
+    $date_end       = isset( $_GET['date_end'] )      ? sanitize_text_field( $_GET['date_end'] )      : '';
+    $search         = isset( $_GET['s'] )             ? sanitize_text_field( $_GET['s'] )             : '';
+    $active_status  = isset( $_GET['order_status'] )  ? sanitize_text_field( $_GET['order_status'] )  : '';
+
+    // Status tabs + counts
+    $status_tabs = bsc_orders_status_tabs();
+    $tab_counts  = [];
+    foreach ( $status_tabs as $slug => $label ) {
+        if ( $slug === '' ) {
+            // Total across all key statuses
+            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => array_values( array_filter( array_keys( $status_tabs ) ) ) ] ) );
+        } else {
+            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => [ $slug ] ] ) );
+        }
+    }
 
     // Build query args
     $query_args = [];
-    if ( $date_start ) $query_args['date_after']  = $date_start . ' 00:00:00';
-    if ( $date_end )   $query_args['date_before'] = $date_end   . ' 23:59:59';
-    if ( $search ) {
-        // WC supports search by name/email/order # via 's' in newer versions
-        $query_args['s'] = $search;
-    }
+    if ( $date_start )    $query_args['date_after']  = $date_start . ' 00:00:00';
+    if ( $date_end )      $query_args['date_before'] = $date_end   . ' 23:59:59';
+    if ( $search )        $query_args['s']           = $search;
+    if ( $active_status ) $query_args['status']      = [ $active_status ];
 
     $table = new BSC_Admin_Orders_Table( $query_args );
     $table->prepare_items();
+
+    $base_url = admin_url( 'admin.php?page=bsc-orders' );
     ?>
     <div class="wrap bsc-admin-orders">
         <h1 class="wp-heading-inline">Pedidos BSC</h1>
         <hr class="wp-header-end">
 
+        <!-- ── Status tabs ── -->
+        <nav class="bsc-orders-tabs">
+            <?php foreach ( $status_tabs as $slug => $label ) :
+                $tab_url = $slug
+                    ? add_query_arg( 'order_status', $slug, $base_url )
+                    : $base_url;
+                $is_active = ( $active_status === $slug );
+                $count = $tab_counts[ $slug ] ?? 0;
+            ?>
+            <a href="<?php echo esc_url( $tab_url ); ?>"
+               class="bsc-orders-tab<?php echo $is_active ? ' bsc-orders-tab--active' : ''; ?>">
+                <?php echo esc_html( $label ); ?>
+                <span class="bsc-tab-count"><?php echo esc_html( $count ); ?></span>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
         <!-- ── Filters ── -->
-        <form method="get" style="margin:16px 0;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <form method="get" class="bsc-orders-filters">
             <input type="hidden" name="page" value="bsc-orders">
+            <?php if ( $active_status ) : ?>
+            <input type="hidden" name="order_status" value="<?php echo esc_attr( $active_status ); ?>">
+            <?php endif; ?>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Desde</label>
-                <input type="date" name="date_start" value="<?php echo esc_attr( $date_start ); ?>" style="padding:5px">
+                <label>Desde</label>
+                <input type="date" name="date_start" value="<?php echo esc_attr( $date_start ); ?>">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Hasta</label>
-                <input type="date" name="date_end" value="<?php echo esc_attr( $date_end ); ?>" style="padding:5px">
+                <label>Hasta</label>
+                <input type="date" name="date_end" value="<?php echo esc_attr( $date_end ); ?>">
             </div>
             <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Buscar</label>
+                <label>Buscar</label>
                 <input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
-                       placeholder="Nombre, email o # de orden" style="width:220px;padding:5px">
+                       placeholder="Nombre, email o # de orden" style="width:220px">
             </div>
-            <button type="submit" class="button">Filtrar</button>
+            <button type="submit" class="button button-primary">Filtrar</button>
             <?php if ( $date_start || $date_end || $search ) : ?>
-                <a href="<?php echo esc_url( admin_url('admin.php?page=bsc-orders') ); ?>" class="button">Limpiar</a>
+                <a href="<?php echo esc_url( $active_status ? add_query_arg('order_status', $active_status, $base_url) : $base_url ); ?>" class="button">Limpiar</a>
             <?php endif; ?>
         </form>
 
         <!-- ── Table with bulk export form ── -->
-        <form method="post" id="bsc-orders-form">
+        <!-- Posts back to this same page; bsc_handle_bulk_export() intercepts in admin_init -->
+        <form method="post" id="bsc-orders-form"
+              action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
             <?php wp_nonce_field( 'bsc_bulk_export', 'bsc_export_nonce' ); ?>
-            <div style="margin-bottom:10px;display:flex;gap:8px">
-                <button type="submit" name="bsc_bulk_action" value="export_csv" class="button">
+            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
+                <button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
                     ⬇ Exportar CSV
                 </button>
-                <button type="submit" name="bsc_bulk_action" value="print_packing" class="button">
+                <button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
                     🖨 Vista de empaque
                 </button>
+                <span id="bsc-bulk-msg" style="display:none;color:#c0392b;font-size:13px;margin-left:6px">
+                    Selecciona al menos un pedido primero.
+                </span>
             </div>
             <?php $table->display(); ?>
         </form>
+
+        <script>
+        (function($){
+            function requireSelection(e) {
+                if ($('input[name="order_ids[]"]:checked').length === 0) {
+                    e.preventDefault();
+                    $('#bsc-bulk-msg').stop(true).fadeIn(150).delay(3000).fadeOut(400);
+                    return false;
+                }
+                return true;
+            }
+
+            // Vista de empaque → open in new tab so orders page stays visible
+            $('#bsc-packing-btn').on('click', function(e) {
+                if (!requireSelection(e)) return;
+                $('#bsc-orders-form').attr('target', '_blank');
+                setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);
+            });
+
+            // CSV → same tab (browser downloads file, page stays)
+            $('#bsc-csv-btn').on('click', function(e) {
+                if (!requireSelection(e)) return;
+                $('#bsc-orders-form').removeAttr('target');
+            });
+        })(jQuery);
+        </script>
     </div>
 
     <style>
-        .bsc-admin-orders .wp-list-table { font-size: 13px; }
-        .bsc-admin-orders .column-tracking input { margin-bottom: 4px; }
-        .bsc-admin-orders .bsc-status-select { max-width: 160px; }
+        /* ── Status tabs ── */
+        .bsc-orders-tabs { display:flex; gap:2px; flex-wrap:wrap; margin:16px 0 0; border-bottom:2px solid #ddd; }
+        .bsc-orders-tab {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:8px 14px; font-size:13px; color:#555; text-decoration:none;
+            border:1px solid transparent; border-bottom:none; border-radius:4px 4px 0 0;
+            margin-bottom:-2px; background:#f9f9f9;
+        }
+        .bsc-orders-tab:hover { background:#fff; color:#333; }
+        .bsc-orders-tab--active { background:#fff; color:#000; font-weight:600; border-color:#ddd; border-bottom-color:#fff; }
+        .bsc-tab-count { background:#e1e1e1; color:#555; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; }
+        .bsc-orders-tab--active .bsc-tab-count { background:#2271b1; color:#fff; }
+
+        /* ── Filters row ── */
+        .bsc-orders-filters { margin:12px 0 16px; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+        .bsc-orders-filters label { display:block; font-size:11px; font-weight:600; margin-bottom:3px; text-transform:uppercase; letter-spacing:.3px; color:#555; }
+        .bsc-orders-filters input[type=date], .bsc-orders-filters input[type=search] { padding:5px; }
+
+        /* ── Table ── */
+        .bsc-admin-orders .wp-list-table { font-size:13px; }
+        .bsc-admin-orders .column-tracking input { margin-bottom:4px; }
+        .bsc-admin-orders .column-city { width:90px; }
+        .bsc-admin-orders .column-status { width:170px; }
     </style>
     <?php
 }
@@ -121,7 +227,7 @@ function bsc_render_orders_page(): void {
 add_action( 'wp_ajax_bsc_update_order_status', 'bsc_ajax_update_order_status' );
 function bsc_ajax_update_order_status(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
-    if ( ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
 
     $order_id = absint( $_POST['order_id'] ?? 0 );
     $status   = sanitize_text_field( $_POST['status'] ?? '' );
@@ -140,7 +246,7 @@ function bsc_ajax_update_order_status(): void {
 add_action( 'wp_ajax_bsc_save_tracking', 'bsc_ajax_save_tracking' );
 function bsc_ajax_save_tracking(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
-    if ( ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
 
     $order_id      = absint( $_POST['order_id'] ?? 0 );
     $tracking_code = sanitize_text_field( $_POST['tracking_code'] ?? '' );
@@ -194,6 +300,11 @@ function bsc_send_shipping_email( int $order_id ): string {
 
 // ── BSC-034: CSV export ───────────────────────────────────────────────
 function bsc_export_orders_csv( array $order_ids ): void {
+    // Clear any WP output buffers so headers can be sent cleanly
+    while ( ob_get_level() > 0 ) {
+        ob_end_clean();
+    }
+
     // UTF-8 BOM for Excel compatibility
     $bom = "\xEF\xBB\xBF";
 
@@ -236,6 +347,11 @@ function bsc_export_orders_csv( array $order_ids ): void {
 
 // ── BSC-034: Packing print view ───────────────────────────────────────
 function bsc_render_packing_view( array $order_ids ): void {
+    // Clear any WP output buffers so we control the full response
+    while ( ob_get_level() > 0 ) {
+        ob_end_clean();
+    }
+    header( 'Content-Type: text/html; charset=UTF-8' );
     ?>
     <!DOCTYPE html>
     <html>

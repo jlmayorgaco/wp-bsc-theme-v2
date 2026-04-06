@@ -10,7 +10,7 @@ defined('ABSPATH') || exit;
 add_action('admin_init', function() {
     if ( ! isset($_GET['page']) || $_GET['page'] !== 'bsc-reports' ) return;
     if ( ! isset($_GET['bsc_export_csv']) ) return;
-    if ( ! current_user_can('manage_woocommerce') ) wp_die('Sin permisos.');
+    if ( ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce') ) wp_die('Sin permisos.');
     if ( ! wp_verify_nonce( sanitize_text_field($_GET['bsc_export_nonce'] ?? ''), 'bsc_reports_export' ) ) wp_die('Nonce inválido.');
 
     $date_start  = sanitize_text_field( $_GET['date_start'] ?? gmdate('Y-m-01') );
@@ -57,7 +57,7 @@ function bsc_reports_get_statuses(): array {
 }
 
 function bsc_render_reports_page(): void {
-    if ( ! current_user_can('manage_woocommerce') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce') ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 

@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 add_action('wp_ajax_bsc_update_product_stock', 'bsc_ajax_update_product_stock');
 function bsc_ajax_update_product_stock(): void {
     check_ajax_referer('bsc_products_nonce', 'nonce');
-    if ( ! current_user_can('edit_products') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('edit_products') ) {
         wp_send_json_error([ 'message' => 'Sin permisos' ], 403);
     }
 
@@ -39,7 +39,7 @@ function bsc_ajax_update_product_stock(): void {
 add_action('wp_ajax_bsc_adjust_stock', 'bsc_ajax_adjust_stock');
 function bsc_ajax_adjust_stock(): void {
     check_ajax_referer('bsc_products_nonce', 'nonce');
-    if ( ! current_user_can('edit_products') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('edit_products') ) {
         wp_send_json_error([ 'message' => 'Sin permisos' ], 403);
     }
 
@@ -60,7 +60,7 @@ function bsc_ajax_adjust_stock(): void {
 add_action('wp_ajax_bsc_get_stock_log', 'bsc_ajax_get_stock_log');
 function bsc_ajax_get_stock_log(): void {
     check_ajax_referer('bsc_products_nonce', 'nonce');
-    if ( ! current_user_can('edit_products') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('edit_products') ) {
         wp_send_json_error([ 'message' => 'Sin permisos' ], 403);
     }
 
@@ -163,7 +163,7 @@ JS;
 
 // ── Page render function ──────────────────────────────────────────────
 function bsc_render_products_page(): void {
-    if ( ! current_user_can('edit_products') ) {
+    if ( ! current_user_can('manage_options') && ! current_user_can('edit_products') ) {
         wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
     }
 
