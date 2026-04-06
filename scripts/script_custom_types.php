@@ -11,12 +11,14 @@ function bsc_register_home_slide_post_type() {
             'name'          => __('BSC Home Slides', 'bsc'),
             'singular_name' => __('Home Slide', 'bsc'),
         ],
-        'public'       => true,
-        'has_archive'  => false,
-        'menu_icon'    => 'dashicons-slides',
-        'supports'     => ['title', 'thumbnail'],
-        'show_in_rest' => true,
-        'menu_position' => 20, 
+        'public'        => true,
+        'has_archive'   => false,
+        'menu_icon'     => 'dashicons-slides',
+        'supports'      => ['title', 'thumbnail'],
+        'show_in_rest'  => true,
+        'menu_position' => 20,
+        // BSC-021: hide CPT auto-menu; Hero Slides submenu lives under BSC in bsc-admin-menu.php
+        'show_in_menu'  => false,
     ]);
 }
 
@@ -92,18 +94,8 @@ function bsc_save_home_slide_meta($post_id) {
     }
 }
 
-function bsc_home_favories_menu() {
-    add_menu_page(
-        'Home Favorites',
-        'BSC Favorites',
-        'manage_options',
-        'bsc-home-favorites',
-        'bsc_home_favorites_settings_page',
-        'dashicons-star-filled',
-        20
-    );
-}
-add_action('admin_menu', 'bsc_home_favories_menu');
+// BSC-021: bsc-home-favorites is registered as a submenu of BSC in bsc-admin-menu.php.
+// The standalone add_menu_page() has been removed to avoid a duplicate top-level entry.
 
 function bsc_home_favorites_settings_page() {
     ?>

@@ -21,8 +21,9 @@ function bsc_add_admin_menu(): void {
         3
     );
 
-    // Pedidos — operator + employee + admin
-    // Capability 'read' so WP never blocks the route; access enforced inside render + BSC_Permissions
+    // ── BSC-021: Ordered submenu list ────────────────────────────────────
+
+    // 1. Pedidos — operator + employee + admin
     add_submenu_page(
         'bsc-dashboard',
         __( 'Pedidos BSC', 'bsc-2-0' ),
@@ -32,7 +33,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_orders_page'
     );
 
-    // Productos — shop manager + admin + employee
+    // 2. Productos — admin + employee
     add_submenu_page(
         'bsc-dashboard',
         __( 'Productos BSC', 'bsc-2-0' ),
@@ -42,17 +43,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_products_page'
     );
 
-    // BSC-065: Product edit — hidden from menu, accessible via bsc-products table
-    add_submenu_page(
-        null,
-        __( 'Editar Producto — BSC', 'bsc-2-0' ),
-        __( 'Editar Producto', 'bsc-2-0' ),
-        'read',
-        'bsc-product-edit',
-        'bsc_render_product_edit_page'
-    );
-
-    // Informes — admin + shop manager
+    // 3. Informes — admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Informes BSC', 'bsc-2-0' ),
@@ -62,27 +53,17 @@ function bsc_add_admin_menu(): void {
         'bsc_render_reports_page'
     );
 
-    // Venta Presencial — operator + employee + admin
+    // 4. Showcase (Venta Presencial) — operator + employee + admin
     add_submenu_page(
         'bsc-dashboard',
         __( 'Venta Presencial', 'bsc-2-0' ),
-        __( 'Venta Presencial', 'bsc-2-0' ),
+        __( 'Showcase', 'bsc-2-0' ),
         'read',
         'bsc-showroom',
         'bsc_render_showroom_page'
     );
 
-    // Configuración — admin only
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Configuración BSC', 'bsc-2-0' ),
-        __( 'Configuración', 'bsc-2-0' ),
-        'manage_options',
-        'bsc-settings',
-        'bsc_render_settings_page'
-    );
-
-    // BSC-059: Home Favorites — gestión de productos destacados (shop manager + admin)
+    // 5. Home Favorites — admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Home Favorites', 'bsc-2-0' ),
@@ -92,7 +73,7 @@ function bsc_add_admin_menu(): void {
         'bsc_home_favorites_settings_page'  // defined in scripts/script_custom_types.php
     );
 
-    // BSC-059: Hero Slides — link al CPT home_slide (shop manager + admin)
+    // 6. Hero Slides — links to CPT list (show_in_menu=false on the CPT keeps this clean)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Hero Slides', 'bsc-2-0' ),
@@ -102,17 +83,17 @@ function bsc_add_admin_menu(): void {
         ''
     );
 
-    // BSC-059: Bubble Points — link al admin del plugin de puntos (shop manager + admin)
+    // 7. Bubble Points — callbacks defined in plugins/bubble-points/admin/admin-menu.php
     add_submenu_page(
         'bsc-dashboard',
         __( 'Bubble Points', 'bsc-2-0' ),
         __( 'Bubble Points', 'bsc-2-0' ),
         'manage_options',
         'bsc-bubble-points',
-        'bsc_bp_render_admin_screen'  // defined in plugins/bubble-points/admin/admin-menu.php
+        'bsc_bp_render_admin_screen'
     );
 
-    // BSC-066: Cupones — gestión de cupones WC desde el menú BSC
+    // 8. Cupones — WC coupons management
     add_submenu_page(
         'bsc-dashboard',
         __( 'Cupones BSC', 'bsc-2-0' ),
@@ -122,7 +103,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_coupons_page'
     );
 
-    // BSC-066: Control de Acceso — matrix de roles × páginas (admin only)
+    // 9. Control de Acceso — role × page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -130,6 +111,37 @@ function bsc_add_admin_menu(): void {
         'manage_options',
         'bsc-access',
         'bsc_render_access_page'
+    );
+
+    // 10. Configuración — admin only (always last)
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Configuración BSC', 'bsc-2-0' ),
+        __( 'Configuración', 'bsc-2-0' ),
+        'manage_options',
+        'bsc-settings',
+        'bsc_render_settings_page'
+    );
+
+    // ── Hidden pages (no sidebar entry, accessible via direct URL) ────────
+    // Product editor — reachable from Productos table
+    add_submenu_page(
+        null,
+        __( 'Editar Producto — BSC', 'bsc-2-0' ),
+        __( 'Editar Producto', 'bsc-2-0' ),
+        'read',
+        'bsc-product-edit',
+        'bsc_render_product_edit_page'
+    );
+
+    // Bubble Points settings stub
+    add_submenu_page(
+        null,
+        __( 'Bubble Points — Ajustes', 'bsc-2-0' ),
+        __( 'Bubble Points Ajustes', 'bsc-2-0' ),
+        'manage_options',
+        'bsc-bp-settings',
+        'bsc_bp_render_settings_screen'
     );
 }
 
@@ -158,9 +170,10 @@ function bsc_restrict_admin_menus(): void {
         'users.php',                    // Users
         'tools.php',                    // Tools
         'options-general.php',          // Settings
-        'woocommerce',                  // WooCommerce native
-        'edit.php?post_type=product',   // WC Products native
-        'edit.php?post_type=shop_order', // WC Orders native
+        'woocommerce',                     // WooCommerce native
+        'edit.php?post_type=product',      // WC Products native
+        'edit.php?post_type=shop_order',   // WC Orders native
+        'edit.php?post_type=home_slide',   // BSC CPT (now under BSC menu)
     ];
 
     foreach ( $hide as $slug ) {

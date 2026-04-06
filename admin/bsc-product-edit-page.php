@@ -92,9 +92,40 @@ function bsc_render_product_edit_page(): void {
     $thumbnail_id = get_post_thumbnail_id( $product_id );
     $thumbnail_src = $thumbnail_id ? wp_get_attachment_image_src($thumbnail_id, 'medium')[0] : '';
 
-    $all_cats     = get_terms(['taxonomy'=>'product_cat','hide_empty'=>false]);
+    $all_cats     = get_terms(['taxonomy'=>'product_cat','hide_empty'=>false,'orderby'=>'name']);
     $current_cats = wp_get_object_terms($product_id, 'product_cat', ['fields'=>'ids']);
     $all_tags     = wp_get_object_terms($product_id, 'product_tag', ['fields'=>'names']);
+
+    // BSC-023: Build nested category tree
+    $build_cat_tree = function(array $terms, int $parent) use (&$build_cat_tree): array {
+        $nodes = [];
+        foreach ($terms as $t) {
+            if ((int) $t->parent === $parent) {
+                $nodes[] = [
+                    'id'       => $t->term_id,
+                    'name'     => $t->name,
+                    'slug'     => $t->slug,
+                    'children' => $build_cat_tree($terms, $t->term_id),
+                ];
+            }
+        }
+        return $nodes;
+    };
+    $cat_tree_data   = $build_cat_tree( is_array($all_cats) ? $all_cats : [], 0 );
+    $current_cat_ids = array_values( array_map('intval', is_array($current_cats) ? $current_cats : []) );
+
+    // Covers
+    $cover_fields = [
+        'bsc_cover_desktop'  => 'Cover Desktop',
+        'bsc_cover_mobile'   => 'Cover Mobile',
+        '_bsc_extra_image_1' => 'Imagen extra 1',
+        '_bsc_extra_image_2' => 'Imagen extra 2',
+        '_bsc_extra_image_3' => 'Imagen extra 3',
+    ];
+    $cover_values = [];
+    foreach ( $cover_fields as $key => $label ) {
+        $cover_values[$key] = (int) get_post_meta( $product_id, $key, true );
+    }
 
     // Enqueue media uploader
     wp_enqueue_media();
@@ -110,6 +141,7 @@ function bsc_render_product_edit_page(): void {
 
         <form method="post" style="max-width:960px;margin-top:16px">
             <?php wp_nonce_field('bsc_product_edit_action', 'bsc_product_edit_nonce'); ?>
+            <?php wp_nonce_field('bsc_product_covers_save', 'bsc_product_covers_nonce'); ?>
 
             <div class="bsc-product-edit-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
 
@@ -148,21 +180,11 @@ function bsc_render_product_edit_page(): void {
                         </label>
                     </div>
 
-                    <!-- C: Categorías y Tags -->
+                    <!-- C: Tags -->
                     <div class="postbox" style="padding:16px 20px;margin-bottom:16px">
-                        <h2 style="margin:0 0 12px;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:8px">Categorías</h2>
-                        <div style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px">
-                            <?php foreach ($all_cats as $cat): ?>
-                            <label style="display:block;padding:3px 0">
-                                <input type="checkbox" name="product_cat[]" value="<?php echo esc_attr($cat->term_id); ?>"
-                                    <?php checked(in_array($cat->term_id, $current_cats)); ?>>
-                                <?php echo esc_html($cat->name); ?>
-                            </label>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <label style="display:block;margin-top:12px">
-                            <span style="font-weight:600;display:block;margin-bottom:4px">Tags (separados por coma)</span>
+                        <h2 style="margin:0 0 12px;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:8px">Tags</h2>
+                        <label style="display:block">
+                            <span style="font-size:12px;color:#666;display:block;margin-bottom:4px">Separados por coma</span>
                             <input type="text" name="product_tag" value="<?php echo esc_attr(implode(', ', $all_tags)); ?>" class="large-text">
                         </label>
                     </div>
@@ -221,7 +243,53 @@ function bsc_render_product_edit_page(): void {
                             </select>
                         </label>
                     </div>
+
+                    <!-- E: Covers de Producto -->
+                    <div class="postbox" style="padding:16px 20px;margin-bottom:16px">
+                        <h2 style="margin:0 0 12px;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:8px">Covers de Producto</h2>
+                        <?php foreach ( $cover_fields as $key => $label ):
+                            $att_id  = $cover_values[$key];
+                            $img_src = $att_id ? wp_get_attachment_image_url($att_id, 'thumbnail') : '';
+                            ?>
+                            <div class="bsc-cover-field" style="margin-bottom:16px">
+                                <p style="margin:0 0 4px"><strong><?php echo esc_html($label); ?></strong></p>
+                                <div class="bsc-cover-preview" style="margin-bottom:6px;min-height:40px">
+                                    <?php if ($img_src): ?>
+                                    <img src="<?php echo esc_url($img_src); ?>"
+                                         style="max-width:100%;height:auto;display:block;border-radius:3px">
+                                    <?php endif; ?>
+                                </div>
+                                <input type="hidden"
+                                       name="<?php echo esc_attr($key); ?>"
+                                       id="<?php echo esc_attr($key); ?>"
+                                       value="<?php echo esc_attr($att_id ?: ''); ?>">
+                                <button type="button" class="button bsc-cover-select"
+                                        data-field="<?php echo esc_attr($key); ?>">
+                                    <?php echo $att_id ? 'Cambiar imagen' : 'Seleccionar imagen'; ?>
+                                </button>
+                                <?php if ($att_id): ?>
+                                <button type="button" class="button bsc-cover-remove"
+                                        data-field="<?php echo esc_attr($key); ?>"
+                                        style="margin-left:4px">Eliminar</button>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
+            </div>
+
+            <!-- C2: Categorías jerárquicas (BSC-023) – full width -->
+            <div class="postbox" style="padding:16px 20px;margin-bottom:16px">
+                <h2 style="margin:0 0 12px;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:8px">Categorías</h2>
+
+                <!-- Root group tabs -->
+                <div id="bsc-root-tabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap"></div>
+
+                <!-- Branch sections (rendered by JS) -->
+                <div id="bsc-cat-branches"></div>
+
+                <!-- Hidden product_cat[] inputs populated by JS (only leaf IDs) -->
+                <div id="bsc-cat-hidden-inputs" style="display:none"></div>
             </div>
 
             <div style="margin-top:8px">
@@ -274,6 +342,149 @@ function bsc_render_product_edit_page(): void {
             galleryFrame.open();
         });
     })(jQuery);
+
+    // ── BSC-023: Hierarchical Category Selector ──────────────────────
+    (function() {
+        var catTree     = <?php echo wp_json_encode($cat_tree_data); ?>;
+        var currentCats = <?php echo wp_json_encode($current_cat_ids); ?>;
+        var ROOT_SLUGS  = ['group-skin-care','group-hair-care','group-make-up'];
+        var ROOT_LABELS = {'group-skin-care':'Skin Care','group-hair-care':'Hair Care','group-make-up':'Make Up'};
+
+        // Build flat indexes from tree
+        var byId = {}, bySlug = {};
+        function indexTree(nodes, parentId) {
+            nodes.forEach(function(n) {
+                n.parentId = parentId;
+                byId[n.id]     = n;
+                bySlug[n.slug] = n;
+                if (n.children && n.children.length) indexTree(n.children, n.id);
+            });
+        }
+        indexTree(catTree, 0);
+
+        // Walk ancestors to find which root group a term belongs to
+        function getRootSlug(termId) {
+            var node = byId[termId];
+            while (node && node.parentId !== 0) node = byId[node.parentId];
+            return (node && ROOT_SLUGS.indexOf(node.slug) !== -1) ? node.slug : null;
+        }
+
+        // Detect initial root from currently assigned cats
+        function detectInitialRoot() {
+            for (var i = 0; i < currentCats.length; i++) {
+                var r = getRootSlug(currentCats[i]);
+                if (r) return r;
+            }
+            return ROOT_SLUGS[0];
+        }
+
+        var activeRoot = detectInitialRoot();
+
+        function esc(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function renderTabs() {
+            var html = '';
+            ROOT_SLUGS.forEach(function(slug) {
+                html += '<button type="button" class="button' + (slug === activeRoot ? ' button-primary' : '') + '" ' +
+                        'data-root="' + esc(slug) + '">' + esc(ROOT_LABELS[slug] || slug) + '</button>';
+            });
+            document.getElementById('bsc-root-tabs').innerHTML = html;
+        }
+
+        function leafHtml(node) {
+            var chk = currentCats.indexOf(node.id) !== -1 ? ' checked' : '';
+            return '<label style="display:inline-flex;align-items:center;gap:4px;margin:2px 4px;white-space:nowrap;font-size:13px">' +
+                   '<input type="checkbox" class="bsc-cat-check" value="' + node.id + '"' + chk + '> ' +
+                   esc(node.name) + '</label>';
+        }
+
+        function renderBranches() {
+            var rootNode   = bySlug[activeRoot];
+            var container  = document.getElementById('bsc-cat-branches');
+
+            if (!rootNode || !rootNode.children || !rootNode.children.length) {
+                container.innerHTML = '<p style="color:#888;font-style:italic;font-size:13px">No hay categorías para este grupo.</p>';
+                syncHiddenInputs();
+                return;
+            }
+
+            var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">';
+
+            rootNode.children.forEach(function(branch) {
+                html += '<div class="bsc-branch-section" style="border:1px solid #dde0e3;border-radius:4px;padding:10px 12px">';
+
+                // Header + search
+                html += '<strong style="font-size:0.85rem;display:block;margin-bottom:6px;color:#23282d">' + esc(branch.name) + '</strong>';
+                html += '<input type="text" class="bsc-branch-search" placeholder="Buscar..." ' +
+                        'style="width:100%;box-sizing:border-box;padding:3px 6px;border:1px solid #ccd0d4;border-radius:3px;font-size:12px;margin-bottom:8px">';
+
+                html += '<div class="bsc-branch-items">';
+
+                if (!branch.children || !branch.children.length) {
+                    html += '<em style="color:#aaa;font-size:11px">Sin subcategorías</em>';
+                } else {
+                    branch.children.forEach(function(child) {
+                        if (child.children && child.children.length) {
+                            // Level-3 sub-group: child is a named group, its children are the checkboxes
+                            html += '<div class="bsc-subgroup">';
+                            html += '<div class="bsc-subgroup-header" style="font-size:11px;font-weight:600;color:#666;margin:6px 0 2px;padding-top:6px;border-top:1px dashed #e0e0e0">' +
+                                    esc(child.name) + '</div>';
+                            child.children.forEach(function(gc) { html += leafHtml(gc); });
+                            html += '</div>';
+                        } else {
+                            html += leafHtml(child);
+                        }
+                    });
+                }
+
+                html += '</div></div>';
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+            syncHiddenInputs();
+        }
+
+        // Populate hidden product_cat[] inputs from checked leaf checkboxes
+        function syncHiddenInputs() {
+            var container = document.getElementById('bsc-cat-hidden-inputs');
+            container.innerHTML = '';
+            document.querySelectorAll('.bsc-cat-check:checked').forEach(function(el) {
+                var inp = document.createElement('input');
+                inp.type  = 'hidden';
+                inp.name  = 'product_cat[]';
+                inp.value = el.value;
+                container.appendChild(inp);
+            });
+        }
+
+        jQuery(document)
+            .on('click', '#bsc-root-tabs .button', function() {
+                activeRoot = this.getAttribute('data-root');
+                renderTabs();
+                renderBranches();
+            })
+            .on('change', '.bsc-cat-check', syncHiddenInputs)
+            .on('input', '.bsc-branch-search', function() {
+                var q       = this.value.toLowerCase().trim();
+                var section = this.closest('.bsc-branch-section');
+                section.querySelectorAll('.bsc-branch-items label').forEach(function(lbl) {
+                    lbl.style.display = (!q || lbl.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+                });
+                // Hide sub-group header + wrapper if all children hidden
+                section.querySelectorAll('.bsc-subgroup').forEach(function(sg) {
+                    var anyVisible = Array.from(sg.querySelectorAll('label')).some(function(l) {
+                        return l.style.display !== 'none';
+                    });
+                    sg.style.display = (!q || anyVisible) ? '' : 'none';
+                });
+            });
+
+        renderTabs();
+        renderBranches();
+    })();
     </script>
     <?php
 }

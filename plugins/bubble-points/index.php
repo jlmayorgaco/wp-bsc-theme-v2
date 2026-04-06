@@ -42,15 +42,11 @@ add_action('after_switch_theme', 'bsc_bp_maybe_install');
 require_once __DIR__ . '/includes/store.php';
 require_once __DIR__ . '/includes/redeem.php';
 require_once __DIR__ . '/admin/admin-menu.php';
-
 require_once __DIR__ . '/admin/admin-actions.php';
-require_once __DIR__ . '/admin/class-bsc-bp-list-table.php';
-require_once __DIR__ . '/admin/class-bsc-bp-list-table.php';
 require_once __DIR__ . '/admin/user-history.php';
 
-// Step 4 (admin only)
 if (is_admin()) {
-    require_once __DIR__ . '/admin/admin-menu.php';
+    require_once __DIR__ . '/admin/class-bsc-bp-list-table.php';
 }
 
 

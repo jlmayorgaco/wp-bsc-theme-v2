@@ -201,10 +201,11 @@ add_action('save_post_product', function (int $post_id): void {
 });
 
 add_action('admin_enqueue_scripts', function (string $hook): void {
-    if (!in_array($hook, ['post.php', 'post-new.php'], true)) return;
+    $on_native_product = in_array($hook, ['post.php', 'post-new.php'], true)
+        && ( ($screen = get_current_screen()) && $screen->post_type === 'product' );
+    $on_bsc_product_edit = ( sanitize_key($_GET['page'] ?? '') === 'bsc-product-edit' );
 
-    $screen = get_current_screen();
-    if (!$screen || $screen->post_type !== 'product') return;
+    if (!$on_native_product && !$on_bsc_product_edit) return;
 
     wp_enqueue_media();
 

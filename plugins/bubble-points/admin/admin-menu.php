@@ -2,46 +2,10 @@
 if (!defined('ABSPATH')) exit;
 
 /**
- * Top-level Bubble Points menu at position 20,
- * with a default "All Users" screen (your list table)
- * and an optional "Settings" stub you can fill later.
+ * BSC-021: Bubble Points is registered as a submenu of BSC (bsc-dashboard)
+ * in admin/bsc-admin-menu.php. This file only defines the callback functions.
+ * The top-level add_menu_page() has been removed to avoid a duplicate menu entry.
  */
-add_action('admin_menu', 'bsc_bp_register_top_menu');
-function bsc_bp_register_top_menu() {
-    // Capability: use manage_woocommerce (or manage_options for super-admin only)
-    $cap = current_user_can('manage_woocommerce') ? 'manage_woocommerce' : 'manage_options';
-
-    // Top-level menu
-    $hook = add_menu_page(
-        __('BSC Points', 'bsc'),
-        __('BSC Points', 'bsc'),
-        $cap,
-        'bsc-bubble-points',                 // parent slug
-        'bsc_bp_render_admin_screen',       // callback (users table / router)
-        'dashicons-awards',                 // menu icon
-        21                                  // menu_position
-    );
-
-    // Submenu: “All users” (points overview) – same slug to make it the default
-    add_submenu_page(
-        'bsc-bubble-points',
-        __('All Users', 'bsc'),
-        __('All Users', 'bsc'),
-        $cap,
-        'bsc-bubble-points',
-        'bsc_bp_render_admin_screen'
-    );
-
-    // Submenu: “Settings” (optional stub)
-    add_submenu_page(
-        'bsc-bubble-points',
-        __('Settings', 'bsc'),
-        __('Settings', 'bsc'),
-        $cap,
-        'bsc-bp-settings',
-        'bsc_bp_render_settings_screen'
-    );
-}
 
 /**
  * Router / main screen: shows either the users list
