@@ -17,7 +17,7 @@
     <section class="section home__products--section">
           <div class="section__container">
               <h1 class="bsc__title">
-                <strong>Últimos</strong> Lanzamientos K-Beauty
+                <strong>Últimos</strong> Lanzamientos
               </h1>
               <?php 
                 $key = 'ultimos_lanzamientos';
