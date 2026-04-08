@@ -1,5 +1,6 @@
 <?php
 if (!defined('ABSPATH')) exit;
+
 require_once get_template_directory() . '/components/orders/order-progress-bar.php';
 
 class BSC_Orders_Table {
@@ -26,74 +27,100 @@ class BSC_Orders_Table {
         }
         ?>
         <div class="bsc bsc__orders">
-            <table class="bsc__orders-table woocommerce-orders-table shop_table responsive">
-                <thead>
-                    <tr>
-                        <th class="bsc__orders-header-order-number">Número de Orden</th>
-                        <th class="bsc__orders-header-order-date">Fecha</th>
-                        <th class="bsc__orders-header-status">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($this->customer_orders->orders as $customer_order) :
-                        $order = wc_get_order($customer_order);
-                    ?>
-                    <tr class="bsc__orders-row status-<?php echo esc_attr($order->get_status()); ?>">
-                        <!-- Número de orden -->
-                        <td class="bsc__orders-cell-order-number" data-title="Número de Orden">
-                            <a href="<?php echo esc_url($order->get_view_order_url()); ?>">
-                                #<?php echo esc_html($order->get_order_number()); ?>
-                            </a>
-                        </td>
 
-                        <!-- Fecha -->
-                        <td class="bsc__orders-cell-order-date" data-title="Fecha">
-                            <?php
-                                $timestamp = $order->get_date_created()->getTimestamp();
+            <!-- Desktop / tablet table -->
+            <div class="bsc__orders-table-wrap">
+                <table class="bsc__orders-table woocommerce-orders-table shop_table responsive">
+                    <thead>
+                        <tr>
+                            <th class="bsc__orders-header-order-number">Número de Orden</th>
+                            <th class="bsc__orders-header-order-date">Fecha</th>
+                            <th class="bsc__orders-header-status">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($this->customer_orders->orders as $customer_order) :
+                            $order = wc_get_order($customer_order);
+                            if (!$order) {
+                                continue;
+                            }
+                        ?>
+                            <tr class="bsc__orders-row status-<?php echo esc_attr($order->get_status()); ?>">
+                                <td class="bsc__orders-cell-order-number" data-title="Número de Orden">
+                                    <a href="<?php echo esc_url($order->get_view_order_url()); ?>">
+                                        #<?php echo esc_html($order->get_order_number()); ?>
+                                    </a>
+                                </td>
 
-                                $meses = array(
-                                    'January'   => 'enero',
-                                    'February'  => 'febrero',
-                                    'March'     => 'marzo',
-                                    'April'     => 'abril',
-                                    'May'       => 'mayo',
-                                    'June'      => 'junio',
-                                    'July'      => 'julio',
-                                    'August'    => 'agosto',
-                                    'September' => 'septiembre',
-                                    'October'   => 'octubre',
-                                    'November'  => 'noviembre',
-                                    'December'  => 'diciembre',
-                                );
+                                <td class="bsc__orders-cell-order-date" data-title="Fecha">
+                                    <time datetime="<?php echo esc_attr($order->get_date_created()->date('c')); ?>">
+                                        <?php echo esc_html($this->format_order_date($order)); ?>
+                                    </time>
+                                </td>
 
-                                $fecha_en = date('j F Y', $timestamp);
-                                $fecha_es = strtr($fecha_en, $meses);
-                                ?>
+                                <td class="bsc__orders-cell-status" data-title="Estado">
+                                    <?php $this->render_progress_bar($order); ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
 
-                                <time datetime="<?php echo esc_attr( $order->get_date_created()->date('c') ); ?>">
-                                    <?php echo esc_html( $fecha_es ); ?>
+            <!-- Mobile cards -->
+            <div class="bsc__orders-cards">
+                <?php foreach ($this->customer_orders->orders as $customer_order) :
+                    $order = wc_get_order($customer_order);
+                    if (!$order) {
+                        continue;
+                    }
+                ?>
+                    <article class="bsc__orders-card status-<?php echo esc_attr($order->get_status()); ?>">
+                        <div class="bsc__orders-card-row">
+                            <span class="bsc__orders-card-label">Número de Orden</span>
+                            <div class="bsc__orders-card-value bsc__orders-card-value--order-number">
+                                <a href="<?php echo esc_url($order->get_view_order_url()); ?>">
+                                    #<?php echo esc_html($order->get_order_number()); ?>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="bsc__orders-card-row">
+                            <span class="bsc__orders-card-label">Fecha</span>
+                            <div class="bsc__orders-card-value">
+                                <time datetime="<?php echo esc_attr($order->get_date_created()->date('c')); ?>">
+                                    <?php echo esc_html($this->format_order_date($order)); ?>
                                 </time>
-                        </td>
+                            </div>
+                        </div>
 
-                        <!-- Estado (barra de progreso) -->
-                        <td class="bsc__orders-cell-status" data-title="Estado">
-                            <?php $this->render_progress_bar($order); ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                        <div class="bsc__orders-card-row bsc__orders-card-row--status">
+                            <span class="bsc__orders-card-label">Estado</span>
+                            <div class="bsc__orders-card-value bsc__orders-card-value--status">
+                                <?php $this->render_progress_bar($order); ?>
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
 
             <?php if ($this->customer_orders->max_num_pages > 1): ?>
                 <div class="bsc__orders-pagination">
                     <?php if ($this->current_page > 1): ?>
-                        <a class="<?php echo esc_attr($this->button_class); ?> bsc__orders-prev" href="<?php echo esc_url(wc_get_endpoint_url('orders', $this->current_page - 1)); ?>">
-                            <?php _e('Anterior', 'woocommerce'); ?>
+                        <a
+                            class="<?php echo esc_attr($this->button_class); ?> bsc__orders-prev"
+                            href="<?php echo esc_url(wc_get_endpoint_url('orders', $this->current_page - 1)); ?>"
+                        >
+                            <?php esc_html_e('Anterior', 'woocommerce'); ?>
                         </a>
                     <?php endif; ?>
+
                     <?php if ($this->current_page < $this->customer_orders->max_num_pages): ?>
-                        <a class="<?php echo esc_attr($this->button_class); ?> bsc__orders-next" href="<?php echo esc_url(wc_get_endpoint_url('orders', $this->current_page + 1)); ?>">
-                            <?php _e('Siguiente', 'woocommerce'); ?>
+                        <a
+                            class="<?php echo esc_attr($this->button_class); ?> bsc__orders-next"
+                            href="<?php echo esc_url(wc_get_endpoint_url('orders', $this->current_page + 1)); ?>"
+                        >
+                            <?php esc_html_e('Siguiente', 'woocommerce'); ?>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -102,12 +129,42 @@ class BSC_Orders_Table {
         <?php
     }
 
+    protected function format_order_date($order) {
+        $date_created = $order->get_date_created();
+
+        if (!$date_created) {
+            return '';
+        }
+
+        $timestamp = $date_created->getTimestamp();
+
+        $meses = [
+            'January'   => 'enero',
+            'February'  => 'febrero',
+            'March'     => 'marzo',
+            'April'     => 'abril',
+            'May'       => 'mayo',
+            'June'      => 'junio',
+            'July'      => 'julio',
+            'August'    => 'agosto',
+            'September' => 'septiembre',
+            'October'   => 'octubre',
+            'November'  => 'noviembre',
+            'December'  => 'diciembre',
+        ];
+
+        $fecha_en = date('j F Y', $timestamp);
+
+        return strtr($fecha_en, $meses);
+    }
+
     protected function render_progress_bar($order) {
         if (!class_exists('BSC_Order_Progress_Bar')) {
             require_once get_template_directory() . '/src/components/BSC_Order_Progress_Bar.php';
         }
 
         $wc_status = $order->get_status();
+
         $status_map = [
             'pending'    => BSC_Order_Progress_Bar::PENDING,
             'on-hold'    => BSC_Order_Progress_Bar::PENDING,
@@ -116,7 +173,7 @@ class BSC_Orders_Table {
             'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
             'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
             'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-            'shipped'    => BSC_Order_Progress_Bar::SHIPPED, // custom status
+            'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
         ];
 
         $mapped_status = $status_map[$wc_status] ?? BSC_Order_Progress_Bar::PENDING;

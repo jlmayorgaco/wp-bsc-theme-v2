@@ -1,20 +1,25 @@
 .bsc__orders {
-  overflow-x: auto;
   padding: 1rem 0 !important;
-
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+
+  &-table-wrap {
+    overflow-x: auto;
+    width: 100%;
+  }
 
   &-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
 
-    th, td {
+    th,
+    td {
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid #eee;
+      vertical-align: middle;
     }
 
     a {
@@ -28,9 +33,68 @@
     }
   }
 
+  &-cards {
+    display: none;
+    width: 100%;
+    padding: 10px;
+  }
+
+  &-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 2px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+
+  &-card-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+
+    &--status {
+      padding-top: 0.25rem;
+    }
+  }
+
+  &-card-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bsc-color-text);
+    opacity: 0.7;
+  }
+
+  &-card-value {
+    color: var(--bsc-color-text);
+
+    a {
+      color: var(--bsc-color-text);
+      font-weight: bold;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &--order-number {
+      letter-spacing: 1px;
+    }
+
+    &--status {
+      width: 100%;
+    }
+  }
+
   &-pagination {
     display: flex;
     justify-content: space-between;
+    gap: 1rem;
     padding-top: 1.5rem;
 
     a {
@@ -54,18 +118,55 @@
   }
 }
 
-
-
-
 .bsc__orders-header-order-number,
 .bsc__orders-header-order-date,
-.bsc__orders-header-status
-{
+.bsc__orders-header-status {
   color: var(--bsc-color-text) !important;
   letter-spacing: 1px;
 }
 
-.bsc__orders-cell-order-number{
-    color: var(--bsc-color-text) !important;
+.bsc__orders-cell-order-number {
+  color: var(--bsc-color-text) !important;
   letter-spacing: 1px;
+}
+
+@media (max-width: 767px) {
+  .bsc__orders {
+    max-width: 100%;
+    padding: 1rem 0 !important;
+
+    &-table-wrap {
+      display: none;
+    }
+
+    &-cards {
+      display: grid;
+      gap: 1rem;
+    }
+
+    &-card {
+      margin: 0;
+    }
+
+    &-pagination {
+      flex-direction: column;
+      align-items: stretch;
+
+      a {
+        text-align: center;
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .bsc__orders {
+    &-table-wrap {
+      display: block;
+    }
+
+    &-cards {
+      display: none;
+    }
+  }
 }

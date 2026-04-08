@@ -1,7 +1,7 @@
 // --------------------------------------------
 // Design Tokens
 // --------------------------------------------
-$color-text: #222;
+$color-text: #333;
 $color-primary: var(--color--main);
 $color-surface-subtle: #eef1f0;
 
@@ -178,7 +178,7 @@ $breakpoint-xl: 1200px;
 .bsc-hero {
   text-align: center;
   margin-bottom: 3rem;
-  color: #222;
+  color: #333;
 }
 
 .bsc-hero__icon img {
@@ -567,12 +567,14 @@ $breakpoint-xl: 1200px;
   }
 
   .bsc-kb-card__front {
+            background: none;
     .bsc-kb-card__icon {
       width: 20px !important;
       height: 20px !important;
     }
 
     .bsc-kb-text {
+      display: none;
       font-size: 12.5px;
       line-height: 1.28;
     }

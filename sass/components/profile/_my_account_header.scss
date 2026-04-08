@@ -1,3 +1,9 @@
+@mixin mq($max) {
+  @media (max-width: $max) {
+    @content;
+  }
+}
+
 .bsc__my-account-header {
   text-align: center;
   padding: 2rem 0;
@@ -48,4 +54,42 @@
       font-weight: bold;
     }
   }
+
+
+
 }
+
+  $bp-mobile: 480px;
+  @include mq($bp-mobile) {
+
+    
+  .bsc__my-account-header {
+    
+
+      text-align: center;
+  padding-bottom: 0px;
+  padding-top: 0px;
+
+  .header__name {
+
+  }
+
+  .bsc__title {
+    padding-bottom: 0px;
+  }
+
+    .menu__items {
+      width: 100%;
+      padding: 5px 15px;
+    }
+      .menu__item {
+        width: 100%;
+      }
+ 
+
+
+} 
+
+
+}
+
