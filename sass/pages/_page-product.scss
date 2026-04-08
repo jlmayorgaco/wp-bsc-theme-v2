@@ -158,6 +158,10 @@
       font-weight: bold;
       color: #333;
     }
+
+    .bsc__title{
+      padding-top: 40px;
+    }
   }
 
   /**
@@ -194,7 +198,33 @@
   margin-top: 60px;
 }
 
+
+.bsc__product-extra-images{
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 30px;
+}
+
 @media (max-width: 768px) {
+
+
+.bsc__product-extra-images{
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 30px;
+}
+
+  .bsc__product--page .bsc__title--product:after{
+    left: 0px !important;
+  }
+
+  .bsc__product--page .price{
+    text-align: center;
+  }
   .bsc__product--page {
     padding: 1rem !important;
     .bsc__container {
@@ -228,7 +258,7 @@
       z-index: 1000;
 
       .bsc__button-add-to-cart {
-        width: 260px;
+       width: calc(100vw - 95px);
         cursor: pointer;
         background-color: #333;
         border-radius: 30px;
@@ -236,19 +266,27 @@
       }
 
       .bsc__quantity-controls {
-        width: 260px;
+        width: calc(100vw - 95px);
         cursor: pointer;
         background-color: #ffffff;
         border: 1px solid #333;
         border-radius: 30px;
-        justify-content: space-around;
+        justify-content: center;
         transition: all 0.25s ease-in-out;
+
+        padding-left: 10px;
+        padding-right: 10px;
       }
 
       .bsc__quantity-controls button {
         width: 25px;
-        height: 25px;
+        height: 20px;
         margin: 0;
+        font-size: 20px;
+        color: #333 !important;
+        background-color: transparent !important;
+        border: transparent !important;
+        outline: transparent !important;
       }
     }
 
@@ -273,6 +311,29 @@
       &--mobile {
         display: block;
       }
+    }
+  }
+
+  .bsc__product-gallery {
+    img {
+      display: block;
+      width: 100% !important;
+    }
+  }
+.bsc__product--page{
+  .bsc__title{
+    text-align: center;
+  }
+  .bsc__product--page .bsc__title--product:after {
+    position: relative;
+    left: 0px;
+    margin: 10px auto 10px 0;
+}
+      .flex-control-thumbs {
+        flex-direction: row;
+        justify-content: space-between;
+        display: flex;
+        width: 100%;
     }
   }
 }

@@ -33,6 +33,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "mixins/mixins";
 
 @use "pages/page-home";
+@use "pages/admin/admin";
+
 @use "pages/page-signins";
 @use "pages/page-shop";
 @use "pages/page-cart";

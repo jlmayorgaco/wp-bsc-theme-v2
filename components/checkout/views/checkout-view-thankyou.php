@@ -180,9 +180,6 @@ function get_brand_data($product): array {
             Total <strong><?php echo wc_price($summary_total_amount + $summary_shipping_amount - $summary_discounts_amount); ?></strong>
           </h1>
         </div>
-
-
-        <br><br><br><br>
       </div>
 
 

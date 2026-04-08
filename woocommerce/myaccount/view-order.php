@@ -117,7 +117,7 @@ function get_brand_data($product): array {
           <div class="summary__divider"></div>
           <h1 class="bsc__order-summary__total">Total <strong><?php echo wc_price($summary_total + $summary_shipping - $summary_discount); ?></strong></h1>
         </div>
-        <br><br><br><br>
+  
       </div>
 
       <div class="bsc__order-review shipping-details">
@@ -147,8 +147,7 @@ function get_brand_data($product): array {
     </div>
 
     <div class="bsc__thankyou-actions">
-      <a class="bsc__button" href="<?php echo esc_url(home_url()); ?>">Volver al inicio</a>
-      <a class="bsc__button bsc__button--secondary" href="<?php echo esc_url(wc_get_endpoint_url('orders', '', wc_get_page_permalink('myaccount'))); ?>">Ver mis pedidos</a>
+      <a class="bsc__button" href="/shop">¡ Ir a la tienda !</a>
     </div>
   </div>
 </main>

@@ -118,7 +118,7 @@ $bp-mobile: 480px;
 @include mq($bp-mobile) {
 #place_order {
     font-family: "Helvetica", sans-serif;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 1px;
     border-radius: 30px;

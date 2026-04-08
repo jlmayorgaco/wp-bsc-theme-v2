@@ -56,7 +56,7 @@ get_header('shop'); ?>
             <?php endforeach; ?>
         </section>
 
-        <?php require_once get_template_directory() . '/components/shop.php'; ?>
+        
 
     <?php else : ?>
 
