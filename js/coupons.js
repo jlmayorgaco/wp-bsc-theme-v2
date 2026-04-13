@@ -20,6 +20,9 @@ jQuery(function ($) {
   let noticeTimer = null;
 
   function showNotice(message, type) {
+
+    alert(message);
+    
     let $notice = $(selectors.noticeWrap);
 
     if (!$notice.length) {
