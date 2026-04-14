@@ -9,7 +9,7 @@
   padding: 2rem 0;
 
   .header__logo img {
-    width: 250px;
+    width: 170px;
     margin: 0 auto 1rem;
   }
 
@@ -31,28 +31,32 @@
   }
 
   .menu__item {
-    border: 1px solid #333;
-    padding: 0.5rem 1.25rem;
-    font-weight: 500;
-    font-size: 1rem;
-    letter-spacing: 1px;
-    background-color: white;
-    transition: all 0.2s ease;
-    
-    &:hover{
-      background-color: #c7e7f1;
-      background-color: #fdf4c6;
-    }
-
+   
     a {
       text-decoration: none;
       color: #333;
-    }
+      
+       border: 1px solid #333;
+      padding: 0.5rem 1.25rem;
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      background-color: white;
+      transition: all 0.2s ease;
+      
+      &:hover{
+        background-color: #c7e7f1;
+        background-color: #fdf4c6;
+      }
 
     &.is-active {
-      background-color: #fdf4c6; // amarillo pastel
-      font-weight: bold;
+          background-color: #fdf4c6; // amarillo pastel
+          font-weight: bold;
+        }
+
     }
+
+   
   }
 
 
@@ -83,6 +87,10 @@
       padding: 5px 15px;
     }
       .menu__item {
+        width: 100%;
+      }
+      .menu__item a{
+        display: block;
         width: 100%;
       }
  

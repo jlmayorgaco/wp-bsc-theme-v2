@@ -31,9 +31,10 @@ $points_by_user =  BSC_Bubble_Points::get($user_id);
 
         <div class="profile-points__text">
             <h2>¡En BSC todas tus compras suman Bubble Points que se convierten en K-Beauty GRATISSS!</h2>
-            <p>Entre más compras, ¡más ahorras! Cada $1.000 COP en productos coreanos equivale a 1 Bubble Point.
-                Tus puntos tienen una vigencia aproximada de 2 años, ya que el programa se actualiza cada enero.
-                <strong>Próxima actualización: Enero 2027 :)</strong>
+            <p>
+                Entre más compras, ¡más ahorras! Cada $1.000 COP en productos coreanos equivale a 1 Bubble Point.
+                Tus puntos tienen una vigencia de 2 años, ya que el programa se actualiza cada enero.
+                <strong>Próxima actualización: Enero <?php echo (date("Y") + 2); ?> :)</strong>
             </p>
         </div>
         
