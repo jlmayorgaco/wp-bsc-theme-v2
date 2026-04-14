@@ -328,10 +328,108 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
 // BSC-058: force correct flat rate based on billing state + city
 add_filter('woocommerce_package_rates', 'bsc_force_shipping_by_location', 20, 2);
 function bsc_force_shipping_by_location( array $rates, array $package ): array {
-    $state = $package['destination']['state'] ?? '';
-    $city  = strtolower( trim( $package['destination']['city'] ?? '' ) );
+    $destination = bsc_get_checkout_shipping_destination( $package );
+    $state = $destination['state'];
+    $city  = $destination['city'];
 
-    return bsc_apply_location_shipping_rates( $rates, (string) $state, (string) $city );
+    return bsc_apply_location_shipping_rates( $rates, $state, $city );
+}
+
+add_action('woocommerce_checkout_update_order_review', 'bsc_update_customer_destination_from_checkout_post', 5);
+function bsc_update_customer_destination_from_checkout_post( string $post_data = '' ): void {
+    $posted = [];
+    if ( $post_data !== '' ) {
+        parse_str( $post_data, $posted );
+    }
+
+    bsc_sync_customer_shipping_destination( $posted ?: null );
+}
+
+function bsc_get_checkout_shipping_destination( array $package = [] ): array {
+    $posted_destination = bsc_get_posted_checkout_destination();
+    if ( $posted_destination['state'] !== '' && $posted_destination['city'] !== '' ) {
+        return $posted_destination;
+    }
+
+    $package_destination = $package['destination'] ?? [];
+    $state = sanitize_text_field( (string) ( $package_destination['state'] ?? '' ) );
+    $city  = sanitize_text_field( (string) ( $package_destination['city'] ?? '' ) );
+
+    if ( $state !== '' && $city !== '' ) {
+        return [
+            'country'  => sanitize_text_field( (string) ( $package_destination['country'] ?? 'CO' ) ),
+            'state'    => $state,
+            'city'     => $city,
+            'postcode' => sanitize_text_field( (string) ( $package_destination['postcode'] ?? '' ) ),
+        ];
+    }
+
+    if ( function_exists('WC') && WC()->customer ) {
+        $customer_state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
+        $customer_city = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
+
+        return [
+            'country'  => WC()->customer->get_shipping_country() ?: WC()->customer->get_billing_country() ?: 'CO',
+            'state'    => sanitize_text_field( (string) $customer_state ),
+            'city'     => sanitize_text_field( (string) $customer_city ),
+            'postcode' => sanitize_text_field( (string) ( WC()->customer->get_shipping_postcode() ?: WC()->customer->get_billing_postcode() ) ),
+        ];
+    }
+
+    return [
+        'country'  => 'CO',
+        'state'    => '',
+        'city'     => '',
+        'postcode' => '',
+    ];
+}
+
+function bsc_get_posted_checkout_destination( ?array $posted = null ): array {
+    $posted = $posted ?? wp_unslash( $_POST );
+    $ship_to_different = ! empty( $posted['ship_to_different_address'] );
+    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] ) && ! empty( $posted['shipping_city'] )
+        ? 'shipping'
+        : 'billing';
+
+    return [
+        'country'  => sanitize_text_field( (string) ( $posted[ "{$prefix}_country" ] ?? 'CO' ) ),
+        'state'    => sanitize_text_field( (string) ( $posted[ "{$prefix}_state" ] ?? '' ) ),
+        'city'     => sanitize_text_field( (string) ( $posted[ "{$prefix}_city" ] ?? '' ) ),
+        'postcode' => sanitize_text_field( (string) ( $posted[ "{$prefix}_postcode" ] ?? '' ) ),
+    ];
+}
+
+function bsc_sync_customer_shipping_destination( ?array $posted = null ): void {
+    if ( ! function_exists('WC') || ! WC()->customer ) {
+        return;
+    }
+
+    $destination = bsc_get_posted_checkout_destination( $posted );
+    if ( $destination['state'] === '' || $destination['city'] === '' ) {
+        return;
+    }
+
+    WC()->customer->set_billing_country( $destination['country'] ?: 'CO' );
+    WC()->customer->set_billing_state( $destination['state'] );
+    WC()->customer->set_billing_city( $destination['city'] );
+    WC()->customer->set_billing_postcode( $destination['postcode'] );
+    WC()->customer->set_shipping_country( $destination['country'] ?: 'CO' );
+    WC()->customer->set_shipping_state( $destination['state'] );
+    WC()->customer->set_shipping_city( $destination['city'] );
+    WC()->customer->set_shipping_postcode( $destination['postcode'] );
+    WC()->customer->save();
+
+    bsc_clear_cached_shipping_packages();
+}
+
+function bsc_clear_cached_shipping_packages(): void {
+    if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
+        return;
+    }
+
+    foreach ( WC()->cart->get_shipping_packages() as $package_index => $package ) {
+        WC()->session->__unset( 'shipping_for_package_' . $package_index );
+    }
 }
 
 function bsc_apply_location_shipping_rates( array $rates, string $state, string $city ): array {
