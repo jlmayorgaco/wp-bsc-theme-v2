@@ -10,14 +10,48 @@
 .bsc__form-input,
 .bsc__form-textarea,
 .bsc__form-select,
+#billing_state,
+#billing_state.state_select,
+#billing_city,
 #billing_city.city_select,
 #billing_country,
-#shipping_city,
 #shipping_state,
+#shipping_state.state_select,
+#shipping_city,
+#shipping_city.city_select,
 #shipping_postcode,
 #shipping_country,
 #order_comments {
   @include checkout.bsc__form-control;
+}
+
+#billing_state,
+#billing_state.state_select,
+#billing_city,
+#billing_city.city_select,
+#billing_country,
+#shipping_state,
+#shipping_state.state_select,
+#shipping_city,
+#shipping_city.city_select,
+#shipping_country {
+  height: var(--bsc-input-height);
+  min-height: var(--bsc-input-height);
+  padding-right: 40px;
+  color: var(--bsc-color-text);
+  letter-spacing: 0;
+  line-height: 1.2;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--bsc-color-text) 50%),
+    linear-gradient(135deg, var(--bsc-color-text) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 50%,
+    calc(100% - 13px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 // Optional overrides (specific case: order comments)
@@ -29,6 +63,10 @@
 // -------------------------------------------
 // Select2 Styling
 // -------------------------------------------
+.woocommerce-input-wrapper .select2-container {
+  width: 100% !important;
+}
+
 .bsc__form-select.select2-hidden-accessible + .select2,
 .woocommerce-input-wrapper .select2-container .select2-selection--single {
   height: var(--bsc-input-height);
@@ -37,15 +75,16 @@
   background-color: #fff;
   box-sizing: border-box;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .select2-selection__rendered {
   padding: 0 var(--bsc-spacing-sm);
-  line-height: var(--bsc-input-height);
-  letter-spacing: 1px;
+  line-height: 1.2;
+  letter-spacing: 0;
   color: var(--bsc-color-text);
-  top: 6px;
-  position: relative;
+  width: 100%;
 }
 
 // -------------------------------------------

@@ -274,9 +274,40 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
+function bsc_cart_has_free_shipping_coupon(): bool {
+    if ( ! function_exists('WC') || ! WC()->cart ) {
+        return false;
+    }
+
+    foreach ( WC()->cart->get_coupons() as $coupon ) {
+        if ( is_object( $coupon ) && method_exists( $coupon, 'get_free_shipping' ) && $coupon->get_free_shipping() ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function bsc_cart_qualifies_for_free_shipping(): bool {
+    if ( ! function_exists('WC') || ! WC()->cart ) {
+        return false;
+    }
+
+    $subtotal = (float) WC()->cart->get_subtotal();
+    $discount = (float) WC()->cart->get_discount_total();
+    $subtotal_after_discount = max( 0, $subtotal - $discount );
+    $min_amount = (float) get_option('bsc_free_shipping_threshold', 300000); // BSC-064: configurable
+
+    return $subtotal_after_discount >= $min_amount || bsc_cart_has_free_shipping_coupon();
+}
+
 add_filter('woocommerce_package_rates', 'bsc_force_hide_free_shipping_if_under_discount_threshold', 10, 2);
 
 function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $package) {
+    if ( bsc_cart_has_free_shipping_coupon() ) {
+        return $rates;
+    }
+
     $subtotal = WC()->cart->get_subtotal();
     $discount = WC()->cart->get_discount_total();
     $subtotal_after_discount = $subtotal - $discount;
@@ -300,41 +331,169 @@ function bsc_force_shipping_by_location( array $rates, array $package ): array {
     $state = $package['destination']['state'] ?? '';
     $city  = strtolower( trim( $package['destination']['city'] ?? '' ) );
 
-    if ( empty( $state ) || empty( $city ) ) {
+    return bsc_apply_location_shipping_rates( $rates, (string) $state, (string) $city );
+}
+
+function bsc_apply_location_shipping_rates( array $rates, string $state, string $city ): array {
+    if ( trim( $state ) === '' || trim( $city ) === '' ) {
         return $rates;
     }
 
-    $bogota_cities = [ 'bogotá', 'bogota', 'bogota d.c.', 'bogotá d.c.', 'santa fe de bogota', 'santa fe de bogotá' ];
-    $is_bogota     = ( $state === 'CUN' && in_array( $city, $bogota_cities, true ) );
-
-    // BSC-064: configurable Bogotá label identifier
-    $bogota_label_key = strtolower( get_option('bsc_bogota_shipping_label', 'bogot') );
-
-    $has_bogota_rate = false;
-    $has_general_rate = false;
+    $has_free_shipping = false;
     foreach ( $rates as $rate ) {
-        if ( $rate->method_id !== 'flat_rate' ) continue;
-        $label_lower = strtolower( $rate->label );
-        if ( str_contains( $label_lower, $bogota_label_key ) ) $has_bogota_rate  = true;
-        else $has_general_rate = true;
+        if ( $rate->method_id === 'free_shipping' ) {
+            $has_free_shipping = true;
+            break;
+        }
     }
 
-    // Only filter if there are distinct Bogotá vs general flat rates configured
-    if ( ! $has_bogota_rate || ! $has_general_rate ) {
+    if ( $has_free_shipping ) {
+        foreach ( $rates as $rate_id => $rate ) {
+            if ( $rate->method_id === 'flat_rate' ) {
+                unset( $rates[ $rate_id ] );
+            }
+        }
+
+        return $rates;
+    }
+
+    $is_local = bsc_is_bogota_or_cundinamarca_destination( $state, $city );
+    $qualifies_for_free_shipping = bsc_cart_qualifies_for_free_shipping();
+    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? 9000 : 20000 );
+    $target_label = $qualifies_for_free_shipping
+        ? 'Envio gratis'
+        : ( $is_local ? 'Envio Bogota/Cundinamarca' : 'Envio nacional' );
+    $first_flat_rate_id = null;
+    $preferred_flat_rate_id = null;
+
+    foreach ( $rates as $rate_id => $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) {
+            continue;
+        }
+
+        if ( null === $first_flat_rate_id ) {
+            $first_flat_rate_id = $rate_id;
+        }
+
+        if ( null === $preferred_flat_rate_id && bsc_flat_rate_matches_destination( $rate, $is_local ) ) {
+            $preferred_flat_rate_id = $rate_id;
+        }
+
+        bsc_set_shipping_rate_cost( $rate, $target_cost );
+
+        if ( method_exists( $rate, 'set_label' ) ) {
+            $rate->set_label( $target_label );
+        }
+    }
+
+    $flat_rate_to_keep = $preferred_flat_rate_id ?: $first_flat_rate_id;
+    if ( null === $flat_rate_to_keep ) {
         return $rates;
     }
 
     foreach ( $rates as $rate_id => $rate ) {
-        if ( $rate->method_id !== 'flat_rate' ) continue;
-        $label_lower = strtolower( $rate->label );
-        $is_bogota_rate = str_contains( $label_lower, $bogota_label_key );
-        if ( $is_bogota && ! $is_bogota_rate ) {
-            unset( $rates[ $rate_id ] );
-        } elseif ( ! $is_bogota && $is_bogota_rate ) {
+        if ( $rate->method_id === 'flat_rate' && $rate_id !== $flat_rate_to_keep ) {
             unset( $rates[ $rate_id ] );
         }
     }
+
     return $rates;
+}
+
+function bsc_normalize_shipping_text( string $value ): string {
+    $value = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
+
+    if ( function_exists( 'remove_accents' ) ) {
+        $value = remove_accents( $value );
+    }
+
+    $value = strtolower( trim( $value ) );
+    $value = preg_replace( '/[^a-z0-9]+/', ' ', $value ) ?: '';
+    $value = preg_replace( '/\s+/', ' ', $value ) ?: '';
+
+    return trim( $value );
+}
+
+function bsc_shipping_text_contains_any( string $haystack, array $needles ): bool {
+    foreach ( $needles as $needle ) {
+        if ( $needle !== '' && strpos( $haystack, $needle ) !== false ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function bsc_is_bogota_or_cundinamarca_destination( string $state, string $city ): bool {
+    $state = bsc_normalize_shipping_text( $state );
+    $city  = bsc_normalize_shipping_text( $city );
+
+    $local_states = [
+        'bog',
+        'bogota',
+        'bogota d c',
+        'bogota dc',
+        'capital district',
+        'cun',
+        'co cun',
+        'cundinamarca',
+        'd c',
+        'dc',
+        'distrito capital',
+    ];
+
+    $bogota_cities = [
+        'bog',
+        'bogota',
+        'bogota d c',
+        'bogota dc',
+        'santa fe de bogota',
+    ];
+
+    return in_array( $state, $local_states, true )
+        || bsc_shipping_text_contains_any( $state, [ 'bogota', 'cundinamarca', 'distrito capital' ] )
+        || in_array( $city, $bogota_cities, true )
+        || bsc_shipping_text_contains_any( $city, [ 'bogota' ] );
+}
+
+function bsc_flat_rate_matches_destination( $rate, bool $is_local ): bool {
+    $label = method_exists( $rate, 'get_label' )
+        ? bsc_normalize_shipping_text( (string) $rate->get_label() )
+        : bsc_normalize_shipping_text( (string) ( $rate->label ?? '' ) );
+
+    $is_local_label = bsc_shipping_text_contains_any( $label, [ 'bogot', 'cundinamarca', 'local' ] );
+
+    if ( $is_local ) {
+        return $is_local_label;
+    }
+
+    return bsc_shipping_text_contains_any( $label, [ 'nacional', 'colombia', 'general' ] ) || ! $is_local_label;
+}
+
+function bsc_set_shipping_rate_cost( $rate, float $target_cost ): void {
+    if ( ! method_exists( $rate, 'set_cost' ) ) {
+        return;
+    }
+
+    $current_cost = method_exists( $rate, 'get_cost' ) ? (float) $rate->get_cost() : 0;
+    $rate->set_cost( $target_cost );
+
+    if ( ! method_exists( $rate, 'get_taxes' ) || ! method_exists( $rate, 'set_taxes' ) ) {
+        return;
+    }
+
+    $taxes = $rate->get_taxes();
+    if ( empty( $taxes ) || ! is_array( $taxes ) ) {
+        return;
+    }
+
+    foreach ( $taxes as $tax_id => $tax ) {
+        $taxes[ $tax_id ] = $current_cost > 0
+            ? wc_format_decimal( (float) $tax * ( $target_cost / $current_cost ) )
+            : 0;
+    }
+
+    $rate->set_taxes( $taxes );
 }
 
 add_filter('default_checkout_billing_country', function() {
