@@ -1,14 +1,14 @@
 .bsc-coupon-wallet {
-  margin-top: 1.25rem;
+  margin-top: 0.85rem;
 
   
   &__title { 
     text-align: center; font-weight: 800;
     font-weight: normal;
-      font-size: 24px !important;
+      font-size: 22px !important;
       padding-bottom: 1rem;
       margin-top: 1em;
-      margin-bottom: 3rem !important;
+      margin-bottom: 2rem !important;
       padding-bottom: 0rem;
       margin: 0px;
       text-align: center;
@@ -296,4 +296,24 @@
   font-size: 10px;
 }
 
+}
+
+
+
+
+@media (max-width: 768px) {
+    .bsc-coupon-wallet__grid{
+      display: flex;
+      gap: 1rem;
+      flex-direction: column;
+      .bsc-ticket{
+        min-height: 100px;
+      }
+      .bsc-ticket__body{
+        min-height: 100px;
+      }
+      .bsc-ticket__row{
+        margin-top: 24px;
+      }
+    }
 }

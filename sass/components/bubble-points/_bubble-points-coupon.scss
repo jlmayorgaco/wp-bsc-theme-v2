@@ -332,6 +332,8 @@
   &.is-disabled {
     opacity: 0.5;
     cursor: not-allowed;
+     background: white !important;
+     filter: grayscale(100%) !important;
     .bsc__coupon-button {
       display: none;
     }
