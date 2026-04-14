@@ -274,6 +274,23 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
+function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
+    $user_id = (int) $order->get_user_id();
+    if ( $user_id <= 0 ) {
+        return 0;
+    }
+
+    if ( function_exists( 'bsc_bp_get_balance' ) ) {
+        return (int) bsc_bp_get_balance( $user_id );
+    }
+
+    if ( class_exists( 'BSC_Bubble_Points' ) && method_exists( 'BSC_Bubble_Points', 'get' ) ) {
+        return (int) BSC_Bubble_Points::get( $user_id );
+    }
+
+    return (int) get_user_meta( $user_id, 'bsc_bubble_points', true );
+}
+
 function bsc_cart_has_free_shipping_coupon(): bool {
     if ( ! function_exists('WC') || ! WC()->cart ) {
         return false;

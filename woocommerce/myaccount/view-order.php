@@ -128,7 +128,9 @@ function get_brand_data($product): array {
         $ciudad = $order->get_shipping_city();
         $direccion = $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2();
         $telefono = $order->get_billing_phone();
-        $bubble_points = (int) get_user_meta(get_current_user_id(), 'bubble_points_balance', true);
+        $bubble_points = function_exists( 'bsc_get_order_bubble_points_balance' )
+          ? bsc_get_order_bubble_points_balance( $order )
+          : (int) get_user_meta( (int) $order->get_user_id(), 'bsc_bubble_points', true );
         ?>
         <ul class="shipping-details__list">
           <li><strong>Nombre:</strong> <?php echo esc_html( $nombre ); ?></li>
@@ -140,7 +142,7 @@ function get_brand_data($product): array {
         <hr class="shipping-details__divider">
         <p class="shipping-details__subtitle">Puntos acumulados</p>
         <div class="bsc__points">
-          <img class="bsc__points__icon" src="<?php echo get_template_directory_uri(); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
+          <img class="bsc__points__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
           <h3 class="bsc__points__text">¡ <strong><?php echo esc_html( $bubble_points ); ?></strong> Bubble Points !</h3>
         </div>
       </div>
