@@ -246,3 +246,118 @@ position: absolute;
 
 
 }
+
+#bsc__coupon-notice.bsc__coupon-notice {
+  position: fixed;
+  z-index: 99999;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  width: min(420px, calc(100vw - 32px));
+  padding: 14px 14px 14px 16px;
+  border: 1px solid #333;
+  border-left-width: 6px;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-12px);
+  transition: opacity 180ms ease, transform 180ms ease;
+
+  &.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  &--success {
+    border-left-color: #2e7d55;
+  }
+
+  &--error {
+    border-left-color: #c83c5a;
+  }
+
+  &--warning,
+  &--info {
+    border-left-color: #f2a7bc;
+  }
+}
+
+#bsc__coupon-notice .bsc__coupon-notice-content {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+#bsc__coupon-notice .bsc__coupon-notice-title {
+  display: block;
+  color: #333;
+  font-family: "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#bsc__coupon-notice .bsc__coupon-notice-message {
+  display: block;
+  color: #333;
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+#bsc__coupon-notice .bsc__coupon-notice-close {
+  align-self: start;
+  padding: 7px 9px;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+  font-family: "Helvetica", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  &:hover,
+  &:focus {
+    background: #fff;
+    color: #333;
+  }
+}
+
+@media (max-width: 767px) {
+  #bsc__coupon-notice.bsc__coupon-notice {
+    top: auto;
+    right: 16px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    left: 16px;
+    width: auto;
+    padding: 13px 12px 13px 14px;
+    transform: translateY(14px);
+
+    &.is-visible {
+      transform: translateY(0);
+    }
+  }
+
+  #bsc__coupon-notice .bsc__coupon-notice-title {
+    font-size: 12px;
+  }
+
+  #bsc__coupon-notice .bsc__coupon-notice-message {
+    font-size: 13px;
+  }
+}
