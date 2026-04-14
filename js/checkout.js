@@ -142,6 +142,7 @@ jQuery(function ($) {
           if (response.success) {
             setTimeout(() => {
               $('#billing_city_field').replaceWith(response.data.html);
+              $(document.body).trigger('city_to_select');
               updateCityPlaceholder();
               toggleShippingVisibility();
               queueShippingSummaryRefresh();
