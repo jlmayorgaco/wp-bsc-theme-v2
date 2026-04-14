@@ -14,6 +14,10 @@ function bsc_get_review_summary() {
       wp_die();
     }
 
+    if ( function_exists('bsc_sync_customer_shipping_destination') ) {
+        bsc_sync_customer_shipping_destination();
+    }
+
     require_once get_template_directory() . '/components/checkout/checkout-summary.php';
 
     ob_start();

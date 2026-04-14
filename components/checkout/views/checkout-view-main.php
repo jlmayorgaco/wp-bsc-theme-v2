@@ -1,6 +1,39 @@
-<?php defined('ABSPATH') || exit; ?>
+<?php
+defined('ABSPATH') || exit;
 
-<form id="checkout" class="" name="checkout" method="post" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
+$bsc_checkout_trust_items = [
+    [
+        'icon' => '1ICONOS_CHECKOUT.png',
+        'copy' => '<strong>Pago seguro</strong> y env&iacute;os a toda Colombia',
+    ],
+    [
+        'icon' => '2ICONOS_CHECKOUT.png',
+        'copy' => 'Importados directamente de <strong>Corea del Sur</strong>',
+    ],
+    [
+        'icon' => '3ICONOS_CHECKOUT.png',
+        'copy' => '<strong>100% productos originales</strong> con c&oacute;digo',
+    ],
+    [
+        'icon' => '4ICONOS_CHECKOUT.png',
+        'copy' => '<strong>Muestras coreanas gratis</strong> en cada pedido',
+    ],
+    [
+        'icon' => '5ICONOS_CHECKOUT.png',
+        'copy' => '<strong>Env&iacute;o gratis</strong> por compras mayores a $300.000',
+    ],
+    [
+        'icon' => '6ICONOS_CHECKOUT.png',
+        'copy' => 'M&aacute;s de <strong>5 a&ntilde;os de experiencia</strong> en Kbeauty',
+    ],
+    [
+        'icon' => '7ICONOS_CHECKOUT.png',
+        'copy' => '<strong>Soporte</strong> especializado en <strong>Whatsapp</strong>',
+    ],
+];
+?>
+
+<form id="checkout" class="checkout woocommerce-checkout" name="checkout" method="post" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
     <main class="bsc bsc__page bsc__page--dual bsc__page--checkout <?php if (!WC()->cart->is_empty()) echo 'is-visible'; ?>">
 
         <!-- Left panel: billing form + trust signals -->
@@ -13,23 +46,21 @@
                 <?php require_once get_template_directory() . '/components/checkout/checkout-form.php'; ?>
 
                 <!-- Trust signals bar -->
-                <div class="bsc__trust-signals" role="list" aria-label="Garantías de compra">
-                    <div class="bsc__trust-item" role="listitem">
-                        <i class="fas fa-lock" aria-hidden="true"></i>
-                        <span>Pago seguro</span>
-                    </div>
-                    <div class="bsc__trust-item" role="listitem">
-                        <i class="fas fa-shield-halved" aria-hidden="true"></i>
-                        <span>Datos protegidos</span>
-                    </div>
-                    <div class="bsc__trust-item" role="listitem">
-                        <i class="fas fa-truck" aria-hidden="true"></i>
-                        <span>Envío garantizado</span>
-                    </div>
-                    <div class="bsc__trust-item" role="listitem">
-                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
-                        <span>Soporte WhatsApp</span>
-                    </div>
+                <div class="bsc__trust-signals" role="list" aria-label="Garant&iacute;as de compra">
+                    <?php foreach ( $bsc_checkout_trust_items as $trust_item ) : ?>
+                        <div class="bsc__trust-item" role="listitem">
+                            <div class="trust-item__img" aria-hidden="true">
+                                <img
+                                    src="<?php echo esc_url( get_template_directory_uri() . '/images/checkout/' . $trust_item['icon'] ); ?>"
+                                    alt=""
+                                    width="200"
+                                    height="200"
+                                    loading="lazy"
+                                    decoding="async">
+                            </div>
+                            <span class="trust-item__copy"><?php echo wp_kses( $trust_item['copy'], [ 'strong' => [] ] ); ?></span>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>

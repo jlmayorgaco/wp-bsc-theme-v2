@@ -284,16 +284,25 @@ jQuery(function ($) {
 function refreshReviewSummary() {
   if (!window.bsc_ajax || !bsc_ajax.ajax_url) return;
 
+  const formData = jQuery('form[name="checkout"]').length
+    ? jQuery('form[name="checkout"]').serializeArray()
+    : [];
+
   jQuery.ajax({
     url: bsc_ajax.ajax_url,
     method: 'POST',
-    data: { action: 'bsc_get_review_summary', nonce: bsc_ajax.nonce },
+    data: [
+      { name: 'action', value: 'bsc_get_review_summary' },
+      { name: 'nonce', value: bsc_ajax.nonce },
+    ].concat(formData),
   })
   .done(res => {
     if (res?.success && res?.data?.html) {
       jQuery('#bsc-review-summary').html(res.data.html);
-      // BSC-058: re-apply shipping visibility after DOM replacement (checkout.js defines this)
-      if (typeof toggleShippingVisibility === 'function') toggleShippingVisibility();
+      // BSC-058: re-apply shipping visibility after DOM replacement.
+      if (typeof window.bscToggleShippingVisibility === 'function') {
+        window.bscToggleShippingVisibility();
+      }
     }
   })
   .fail(xhr => console.error('❌ Error al refrescar el resumen del pedido.', xhr?.responseText));

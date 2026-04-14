@@ -348,10 +348,27 @@ $bp-mobile: 480px;
             span{
               font-size: 20px;
               width: 22px;
+              position: relative;
               height: 22px;
                   top: -1px;
                 left: -1px;
             }
+          }
+
+          .bsc__qty-minus span{
+            position: relative;
+                         top: -1px;
+                left: -1px;
+          }
+          .bsc__qty-plus span{
+            position: relative;
+                         top: 1px;
+                left: -1px;
+          }
+          .delete-btn span{
+                         top: 0px;
+                left: 0px;
+                font-size: 18px;
           }
         }
       }

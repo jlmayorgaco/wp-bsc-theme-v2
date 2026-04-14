@@ -11,35 +11,63 @@ jQuery(function ($) {
     noticeWrap:  '#bsc__coupon-notice',
   };
 
-  const $input        = $(selectors.input);
-  const $applyBtn     = $(selectors.applyBtn);
-  const $couponList   = $(selectors.couponList);
+  const $input         = $(selectors.input);
+  const $applyBtn      = $(selectors.applyBtn);
+  const $couponList    = $(selectors.couponList);
   const $couponSection = $(selectors.section);
 
-  // ── Inline notice (replaces native alert()) ──────────────────────────────
   let noticeTimer = null;
 
-  function showNotice(message, type) {
+  function hideNotice() {
+    $(selectors.noticeWrap).removeClass('is-visible');
+  }
+
+  function ensureNotice() {
     let $notice = $(selectors.noticeWrap);
 
     if (!$notice.length) {
-      $notice = $('<div id="bsc__coupon-notice"></div>');
-      $input.closest('form, .coupon-form, .bsc__coupon-form').append($notice);
-      if (!$notice.closest('form, .coupon-form, .bsc__coupon-form').length) {
-        $input.after($notice);
-      }
+      $notice = $(`
+        <div id="bsc__coupon-notice" class="bsc__coupon-notice" role="status" aria-live="polite" aria-atomic="true">
+          <div class="bsc__coupon-notice-content">
+            <strong class="bsc__coupon-notice-title"></strong>
+            <span class="bsc__coupon-notice-message"></span>
+          </div>
+          <button type="button" class="bsc__coupon-notice-close" aria-label="Cerrar mensaje">Cerrar</button>
+        </div>
+      `);
+
+      $('body').append($notice);
+      $notice.find('.bsc__coupon-notice-close').on('click', hideNotice);
     }
 
-    $notice
-      .attr('class', 'bsc__coupon-notice bsc__coupon-notice--' + type)
-      .text(message)
-      .stop(true).fadeIn(200);
-
-    clearTimeout(noticeTimer);
-    noticeTimer = setTimeout(() => $notice.fadeOut(400), 4000);
+    return $notice;
   }
 
-  // ── Dynamic icon path (uses theme_uri localized from PHP) ────────────────
+  function showNotice(message, type = 'info') {
+    const labels = {
+      success: 'Cupón aplicado',
+      error: 'Revisa el cupón',
+      warning: 'Falta el cupón',
+      info: 'Cupón',
+    };
+    const safeType = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+    const $notice = ensureNotice();
+
+    $notice
+      .attr('class', 'bsc__coupon-notice bsc__coupon-notice--' + safeType)
+      .find('.bsc__coupon-notice-title')
+      .text(labels[safeType]);
+
+    $notice.find('.bsc__coupon-notice-message').text(message);
+
+    window.requestAnimationFrame(() => {
+      $notice.addClass('is-visible');
+    });
+
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(hideNotice, 4500);
+  }
+
   function getCouponIconPath() {
     const themeUri = (window.bsc_ajax && window.bsc_ajax.theme_uri)
       ? window.bsc_ajax.theme_uri
@@ -47,10 +75,9 @@ jQuery(function ($) {
     return themeUri + '/images/bsc_image_coupons.png';
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
-  const ajaxPost = (action, data = {}, callback) => {
-    $.post(bsc_ajax.ajax_url, { action, nonce: bsc_ajax.nonce, ...data }, callback, 'json');
-  };
+  const ajaxPost = (action, data = {}, callback) => (
+    $.post(bsc_ajax.ajax_url, { action, nonce: bsc_ajax.nonce, ...data }, callback, 'json')
+  );
 
   const updateTotals = (data) => {
     if (!data) return;
@@ -72,11 +99,10 @@ jQuery(function ($) {
     `;
   };
 
-  // ── Apply coupon ─────────────────────────────────────────────────────────
   const applyCoupon = () => {
     const code = $input.val().trim();
     if (!code) {
-      showNotice('Por favor, ingresa un código de cupón.', 'error');
+      showNotice('Ingresa un código de cupón para aplicarlo.', 'warning');
       return;
     }
 
@@ -84,31 +110,37 @@ jQuery(function ($) {
 
     ajaxPost('apply_coupon', { coupon_code: code }, (res) => {
       $applyBtn.removeClass('bsc-loading').prop('disabled', false); // BSC-019
+
       if (!res.success) {
-        showNotice(res.data?.message || 'Error al aplicar el cupón.', 'error');
+        showNotice(res.data?.message || 'No pudimos aplicar este cupón.', res.data?.status || 'error');
         return;
       }
-      showNotice('¡Cupón aplicado exitosamente!', 'success');
+
+      showNotice(res.data?.message || 'Cupón agregado exitosamente.', res.data?.status || 'success');
       $input.val('');
       updateTotals(res.data);
       fetchCoupons();
+    }).fail(() => {
+      $applyBtn.removeClass('bsc-loading').prop('disabled', false); // BSC-019
+      showNotice('Hubo un problema al validar el cupón. Inténtalo de nuevo.', 'error');
     });
   };
 
-  // ── Remove coupon ────────────────────────────────────────────────────────
   const removeCoupon = (code) => {
     ajaxPost('remove_coupon', { coupon_code: code }, (res) => {
       if (!res.success) {
-        showNotice(res.data?.message || 'No se pudo eliminar el cupón.', 'error');
+        showNotice(res.data?.message || 'No se pudo eliminar el cupón.', res.data?.status || 'error');
         return;
       }
-      showNotice('Cupón eliminado.', 'success');
+
+      showNotice(res.data?.message || 'Cupón eliminado.', res.data?.status || 'success');
       updateTotals(res.data);
       fetchCoupons();
+    }).fail(() => {
+      showNotice('Hubo un problema al eliminar el cupón. Inténtalo de nuevo.', 'error');
     });
   };
 
-  // ── Fetch and render applied coupons ─────────────────────────────────────
   const fetchCoupons = () => {
     ajaxPost('get_applied_coupons', {}, (res) => {
       if (!res.success || !Array.isArray(res.data?.coupons) || res.data.coupons.length === 0) {
@@ -127,18 +159,22 @@ jQuery(function ($) {
     });
   };
 
-  // ── Event bindings ───────────────────────────────────────────────────────
   $input.on('keypress', (e) => {
-    if (e.which === 13) { e.preventDefault(); applyCoupon(); }
+    if (e.which === 13) {
+      e.preventDefault();
+      applyCoupon();
+    }
   });
 
-  $applyBtn.on('click', (e) => { e.preventDefault(); applyCoupon(); });
+  $applyBtn.on('click', (e) => {
+    e.preventDefault();
+    applyCoupon();
+  });
 
   $(document).on('click', '.remove-coupon', function () {
     const code = $(this).closest('li').data('coupon');
     if (code) removeCoupon(code);
   });
 
-  // ── Init ─────────────────────────────────────────────────────────────────
   fetchCoupons();
 });

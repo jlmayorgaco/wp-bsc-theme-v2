@@ -180,9 +180,6 @@ function get_brand_data($product): array {
             Total <strong><?php echo wc_price($summary_total_amount + $summary_shipping_amount - $summary_discounts_amount); ?></strong>
           </h1>
         </div>
-
-
-        <br><br><br><br>
       </div>
 
 
@@ -207,9 +204,9 @@ function get_brand_data($product): array {
           }
           $telefono  = $order->get_billing_phone();
 
-          // Real Bubble Points from user meta (Bubble Points plugin stores them in user_meta)
-          $user_id      = $order->get_user_id();
-          $bubble_points = $user_id ? (int) get_user_meta($user_id, 'bubble_points', true) : 0;
+          $bubble_points = function_exists( 'bsc_get_order_bubble_points_balance' )
+              ? bsc_get_order_bubble_points_balance( $order )
+              : (int) get_user_meta( (int) $order->get_user_id(), 'bsc_bubble_points', true );
       ?>
 
       <ul class="shipping-details__list">

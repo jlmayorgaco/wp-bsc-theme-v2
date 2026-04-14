@@ -116,21 +116,36 @@ jQuery(function ($) {
     }
   }
 
+  window.bscToggleShippingVisibility = toggleShippingVisibility;
+
+  let shippingRefreshTimer = null;
+  function queueShippingSummaryRefresh() {
+    clearTimeout(shippingRefreshTimer);
+    shippingRefreshTimer = setTimeout(() => {
+      if (typeof window.refreshReviewSummary === 'function') {
+        window.refreshReviewSummary();
+      }
+    }, 180);
+  }
+
   // === CITY FIELD AJAX LOADER ===
   function setupCityLoader() {
     $('#billing_state').on('change', function () {
       const state = $(this).val();
+      const country = $('#billing_country').val() || 'CO';
       $.ajax({
         url: bsc_ajax.ajax_url,
         method: 'POST',
-        data: { action: 'bsc_reload_city_fields', billing_state: state, nonce: bsc_ajax.nonce },
+        data: { action: 'bsc_reload_city_fields', billing_country: country, billing_state: state, nonce: bsc_ajax.nonce },
         beforeSend: () => $('#billing_city_field').html('<p>Cargando ciudad…</p>'),
         success: function (response) {
           if (response.success) {
             setTimeout(() => {
               $('#billing_city_field').replaceWith(response.data.html);
+              $(document.body).trigger('city_to_select');
               updateCityPlaceholder();
               toggleShippingVisibility();
+              queueShippingSummaryRefresh();
               $(document.body).trigger('update_checkout');
             }, 300);
           } else {
@@ -145,6 +160,7 @@ jQuery(function ($) {
     // BSC-058: also toggle shipping visibility
     $(document.body).on('change', '#billing_city, #billing_state', function () {
       toggleShippingVisibility();
+      queueShippingSummaryRefresh();
       $(document.body).trigger('update_checkout');
     });
   }

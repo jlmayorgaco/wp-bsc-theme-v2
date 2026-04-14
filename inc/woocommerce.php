@@ -274,9 +274,57 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
+function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
+    $user_id = (int) $order->get_user_id();
+    if ( $user_id <= 0 ) {
+        return 0;
+    }
+
+    if ( function_exists( 'bsc_bp_get_balance' ) ) {
+        return (int) bsc_bp_get_balance( $user_id );
+    }
+
+    if ( class_exists( 'BSC_Bubble_Points' ) && method_exists( 'BSC_Bubble_Points', 'get' ) ) {
+        return (int) BSC_Bubble_Points::get( $user_id );
+    }
+
+    return (int) get_user_meta( $user_id, 'bsc_bubble_points', true );
+}
+
+function bsc_cart_has_free_shipping_coupon(): bool {
+    if ( ! function_exists('WC') || ! WC()->cart ) {
+        return false;
+    }
+
+    foreach ( WC()->cart->get_coupons() as $coupon ) {
+        if ( is_object( $coupon ) && method_exists( $coupon, 'get_free_shipping' ) && $coupon->get_free_shipping() ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function bsc_cart_qualifies_for_free_shipping(): bool {
+    if ( ! function_exists('WC') || ! WC()->cart ) {
+        return false;
+    }
+
+    $subtotal = (float) WC()->cart->get_subtotal();
+    $discount = (float) WC()->cart->get_discount_total();
+    $subtotal_after_discount = max( 0, $subtotal - $discount );
+    $min_amount = (float) get_option('bsc_free_shipping_threshold', 300000); // BSC-064: configurable
+
+    return $subtotal_after_discount >= $min_amount || bsc_cart_has_free_shipping_coupon();
+}
+
 add_filter('woocommerce_package_rates', 'bsc_force_hide_free_shipping_if_under_discount_threshold', 10, 2);
 
 function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $package) {
+    if ( bsc_cart_has_free_shipping_coupon() ) {
+        return $rates;
+    }
+
     $subtotal = WC()->cart->get_subtotal();
     $discount = WC()->cart->get_discount_total();
     $subtotal_after_discount = $subtotal - $discount;
@@ -295,46 +343,431 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
 // BSC-058: removed woocommerce_before_calculate_totals/calculate_shipping() — caused infinite loops
 
 // BSC-058: force correct flat rate based on billing state + city
+add_filter('woocommerce_cart_shipping_packages', 'bsc_force_checkout_shipping_package_destination', 20);
 add_filter('woocommerce_package_rates', 'bsc_force_shipping_by_location', 20, 2);
 function bsc_force_shipping_by_location( array $rates, array $package ): array {
-    $state = $package['destination']['state'] ?? '';
-    $city  = strtolower( trim( $package['destination']['city'] ?? '' ) );
+    $destination = bsc_get_checkout_shipping_destination( $package );
+    $state = $destination['state'];
+    $city  = $destination['city'];
 
-    if ( empty( $state ) || empty( $city ) ) {
+    return bsc_apply_location_shipping_rates( $rates, $state, $city );
+}
+
+add_action('woocommerce_checkout_update_order_review', 'bsc_update_customer_destination_from_checkout_post', 5);
+function bsc_update_customer_destination_from_checkout_post( string $post_data = '' ): void {
+    $posted = [];
+    if ( $post_data !== '' ) {
+        parse_str( $post_data, $posted );
+    }
+
+    bsc_sync_customer_shipping_destination( $posted ?: null );
+}
+
+function bsc_force_checkout_shipping_package_destination( array $packages ): array {
+    $destination = bsc_get_checkout_shipping_destination();
+    if ( ! bsc_checkout_destination_is_complete( $destination ) ) {
+        return $packages;
+    }
+
+    foreach ( $packages as $package_index => $package ) {
+        $package_destination = is_array( $package['destination'] ?? null )
+            ? $package['destination']
+            : [];
+
+        $packages[ $package_index ]['destination'] = array_merge(
+            $package_destination,
+            [
+                'country'  => $destination['country'] ?: 'CO',
+                'state'    => $destination['state'],
+                'city'     => $destination['city'],
+                'postcode' => $destination['postcode'],
+            ]
+        );
+    }
+
+    return $packages;
+}
+
+function bsc_get_checkout_shipping_destination( array $package = [] ): array {
+    $posted_destination = bsc_normalize_checkout_destination( bsc_get_posted_checkout_destination() );
+    if ( bsc_checkout_destination_is_complete( $posted_destination ) ) {
+        return $posted_destination;
+    }
+
+    $package_destination = $package['destination'] ?? [];
+    $package_destination = bsc_normalize_checkout_destination(
+        [
+            'country'  => $package_destination['country'] ?? 'CO',
+            'state'    => $package_destination['state'] ?? '',
+            'city'     => $package_destination['city'] ?? '',
+            'postcode' => $package_destination['postcode'] ?? '',
+        ]
+    );
+
+    if ( bsc_checkout_destination_is_complete( $package_destination ) ) {
+        return $package_destination;
+    }
+
+    $customer_destination = bsc_get_customer_checkout_destination();
+    if ( bsc_checkout_destination_is_complete( $customer_destination ) ) {
+        return $customer_destination;
+    }
+
+    return [
+        'country'  => 'CO',
+        'state'    => '',
+        'city'     => '',
+        'postcode' => '',
+    ];
+}
+
+function bsc_get_posted_checkout_destination( ?array $posted = null ): array {
+    $posted = $posted ?? wp_unslash( $_POST );
+
+    if ( isset( $posted['post_data'] ) && is_string( $posted['post_data'] ) ) {
+        $checkout_post_data = [];
+        parse_str( wp_unslash( $posted['post_data'] ), $checkout_post_data );
+        $posted = array_merge( $checkout_post_data, $posted );
+    }
+
+    $normalized_destination = bsc_normalize_checkout_destination(
+        [
+            'country'  => $posted['s_country'] ?? $posted['country'] ?? 'CO',
+            'state'    => $posted['s_state'] ?? $posted['state'] ?? '',
+            'city'     => $posted['s_city'] ?? $posted['city'] ?? '',
+            'postcode' => $posted['s_postcode'] ?? $posted['postcode'] ?? '',
+        ]
+    );
+
+    if ( bsc_checkout_destination_is_complete( $normalized_destination ) ) {
+        return $normalized_destination;
+    }
+
+    $ship_to_different = ! empty( $posted['ship_to_different_address'] );
+    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] ) && ! empty( $posted['shipping_city'] )
+        ? 'shipping'
+        : 'billing';
+
+    return bsc_normalize_checkout_destination( [
+        'country'  => sanitize_text_field( (string) ( $posted[ "{$prefix}_country" ] ?? 'CO' ) ),
+        'state'    => sanitize_text_field( (string) ( $posted[ "{$prefix}_state" ] ?? '' ) ),
+        'city'     => sanitize_text_field( (string) ( $posted[ "{$prefix}_city" ] ?? '' ) ),
+        'postcode' => sanitize_text_field( (string) ( $posted[ "{$prefix}_postcode" ] ?? '' ) ),
+    ] );
+}
+
+function bsc_get_customer_checkout_destination(): array {
+    if ( ! function_exists('WC') || ! WC()->customer ) {
+        return [
+            'country'  => 'CO',
+            'state'    => '',
+            'city'     => '',
+            'postcode' => '',
+        ];
+    }
+
+    $customer_state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
+    $customer_city = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
+
+    return bsc_normalize_checkout_destination( [
+        'country'  => WC()->customer->get_shipping_country() ?: WC()->customer->get_billing_country() ?: 'CO',
+        'state'    => $customer_state,
+        'city'     => $customer_city,
+        'postcode' => WC()->customer->get_shipping_postcode() ?: WC()->customer->get_billing_postcode(),
+    ] );
+}
+
+function bsc_checkout_destination_is_complete( array $destination ): bool {
+    return trim( (string) ( $destination['state'] ?? '' ) ) !== ''
+        && trim( (string) ( $destination['city'] ?? '' ) ) !== '';
+}
+
+function bsc_normalize_checkout_destination( array $destination ): array {
+    $destination = [
+        'country'  => sanitize_text_field( (string) ( $destination['country'] ?? 'CO' ) ),
+        'state'    => sanitize_text_field( (string) ( $destination['state'] ?? '' ) ),
+        'city'     => sanitize_text_field( (string) ( $destination['city'] ?? '' ) ),
+        'postcode' => sanitize_text_field( (string) ( $destination['postcode'] ?? '' ) ),
+    ];
+
+    $city_location = bsc_lookup_colombia_city_location( $destination['city'] );
+    if ( ! empty( $city_location['state'] ) && ( $destination['state'] === '' || ! empty( $city_location['matched_by_code'] ) ) ) {
+        $destination['state'] = $city_location['state'];
+    }
+
+    return $destination;
+}
+
+function bsc_sync_customer_shipping_destination( ?array $posted = null ): void {
+    if ( ! function_exists('WC') || ! WC()->customer ) {
+        return;
+    }
+
+    $destination = bsc_get_posted_checkout_destination( $posted );
+    if ( $destination['state'] === '' || $destination['city'] === '' ) {
+        return;
+    }
+
+    WC()->customer->set_billing_country( $destination['country'] ?: 'CO' );
+    WC()->customer->set_billing_state( $destination['state'] );
+    WC()->customer->set_billing_city( $destination['city'] );
+    WC()->customer->set_billing_postcode( $destination['postcode'] );
+    WC()->customer->set_shipping_country( $destination['country'] ?: 'CO' );
+    WC()->customer->set_shipping_state( $destination['state'] );
+    WC()->customer->set_shipping_city( $destination['city'] );
+    WC()->customer->set_shipping_postcode( $destination['postcode'] );
+    WC()->customer->save();
+
+    bsc_clear_cached_shipping_packages();
+}
+
+function bsc_clear_cached_shipping_packages(): void {
+    if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
+        return;
+    }
+
+    foreach ( WC()->cart->get_shipping_packages() as $package_index => $package ) {
+        WC()->session->__unset( 'shipping_for_package_' . $package_index );
+    }
+}
+
+function bsc_apply_location_shipping_rates( array $rates, string $state, string $city ): array {
+    if ( trim( $state ) === '' || trim( $city ) === '' ) {
         return $rates;
     }
 
-    $bogota_cities = [ 'bogotá', 'bogota', 'bogota d.c.', 'bogotá d.c.', 'santa fe de bogota', 'santa fe de bogotá' ];
-    $is_bogota     = ( $state === 'CUN' && in_array( $city, $bogota_cities, true ) );
-
-    // BSC-064: configurable Bogotá label identifier
-    $bogota_label_key = strtolower( get_option('bsc_bogota_shipping_label', 'bogot') );
-
-    $has_bogota_rate = false;
-    $has_general_rate = false;
+    $has_free_shipping = false;
     foreach ( $rates as $rate ) {
-        if ( $rate->method_id !== 'flat_rate' ) continue;
-        $label_lower = strtolower( $rate->label );
-        if ( str_contains( $label_lower, $bogota_label_key ) ) $has_bogota_rate  = true;
-        else $has_general_rate = true;
+        if ( $rate->method_id === 'free_shipping' ) {
+            $has_free_shipping = true;
+            break;
+        }
     }
 
-    // Only filter if there are distinct Bogotá vs general flat rates configured
-    if ( ! $has_bogota_rate || ! $has_general_rate ) {
+    if ( $has_free_shipping ) {
+        foreach ( $rates as $rate_id => $rate ) {
+            if ( $rate->method_id === 'flat_rate' ) {
+                unset( $rates[ $rate_id ] );
+            }
+        }
+
+        return $rates;
+    }
+
+    $is_local = bsc_is_bogota_or_cundinamarca_destination( $state, $city );
+    $qualifies_for_free_shipping = bsc_cart_qualifies_for_free_shipping();
+    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? 9000 : 20000 );
+    $target_label = $qualifies_for_free_shipping
+        ? 'Envio gratis'
+        : ( $is_local ? 'Envio Bogota/Cundinamarca' : 'Envio nacional' );
+    $first_flat_rate_id = null;
+    $preferred_flat_rate_id = null;
+
+    foreach ( $rates as $rate_id => $rate ) {
+        if ( $rate->method_id !== 'flat_rate' ) {
+            continue;
+        }
+
+        if ( null === $first_flat_rate_id ) {
+            $first_flat_rate_id = $rate_id;
+        }
+
+        if ( null === $preferred_flat_rate_id && bsc_flat_rate_matches_destination( $rate, $is_local ) ) {
+            $preferred_flat_rate_id = $rate_id;
+        }
+
+        bsc_set_shipping_rate_cost( $rate, $target_cost );
+
+        if ( method_exists( $rate, 'set_label' ) ) {
+            $rate->set_label( $target_label );
+        }
+    }
+
+    $flat_rate_to_keep = $preferred_flat_rate_id ?: $first_flat_rate_id;
+    if ( null === $flat_rate_to_keep ) {
         return $rates;
     }
 
     foreach ( $rates as $rate_id => $rate ) {
-        if ( $rate->method_id !== 'flat_rate' ) continue;
-        $label_lower = strtolower( $rate->label );
-        $is_bogota_rate = str_contains( $label_lower, $bogota_label_key );
-        if ( $is_bogota && ! $is_bogota_rate ) {
-            unset( $rates[ $rate_id ] );
-        } elseif ( ! $is_bogota && $is_bogota_rate ) {
+        if ( $rate->method_id === 'flat_rate' && $rate_id !== $flat_rate_to_keep ) {
             unset( $rates[ $rate_id ] );
         }
     }
+
     return $rates;
+}
+
+function bsc_normalize_shipping_text( string $value ): string {
+    $value = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
+
+    if ( function_exists( 'remove_accents' ) ) {
+        $value = remove_accents( $value );
+    }
+
+    $value = strtolower( trim( $value ) );
+    $value = preg_replace( '/[^a-z0-9]+/', ' ', $value ) ?: '';
+    $value = preg_replace( '/\s+/', ' ', $value ) ?: '';
+
+    return trim( $value );
+}
+
+function bsc_get_colombia_shipping_places(): array {
+    static $colombia_places = null;
+
+    if ( null !== $colombia_places ) {
+        return $colombia_places;
+    }
+
+    $colombia_places = [];
+    $places_file = WP_PLUGIN_DIR . '/wc-departamentos-y-ciudades-colombia/assets/places/CO-cities.php';
+
+    if ( file_exists( $places_file ) ) {
+        global $places;
+
+        if ( ! is_array( $places ?? null ) ) {
+            $places = [];
+        }
+
+        include $places_file;
+
+        if ( isset( $places['CO'] ) && is_array( $places['CO'] ) ) {
+            $colombia_places = $places['CO'];
+        }
+    }
+
+    return $colombia_places;
+}
+
+function bsc_lookup_colombia_city_location( string $city ): array {
+    $city = trim( $city );
+    if ( $city === '' ) {
+        return [];
+    }
+
+    $city_code = '';
+    if ( preg_match( '/\b(\d{8})\b/', $city, $matches ) ) {
+        $city_code = $matches[1];
+    }
+
+    $normalized_city = bsc_normalize_shipping_text( $city );
+
+    foreach ( bsc_get_colombia_shipping_places() as $state => $cities ) {
+        if ( ! is_array( $cities ) ) {
+            continue;
+        }
+
+        foreach ( $cities as $code => $label ) {
+            $code = (string) $code;
+            $label = (string) $label;
+
+            if ( $city_code !== '' && $code === $city_code ) {
+                return [
+                    'state'           => (string) $state,
+                    'city'            => $label,
+                    'code'            => $code,
+                    'matched_by_code' => true,
+                ];
+            }
+
+            if ( $normalized_city !== '' && $normalized_city === bsc_normalize_shipping_text( $label ) ) {
+                return [
+                    'state'           => (string) $state,
+                    'city'            => $label,
+                    'code'            => $code,
+                    'matched_by_code' => false,
+                ];
+            }
+        }
+    }
+
+    return [];
+}
+
+function bsc_shipping_text_contains_any( string $haystack, array $needles ): bool {
+    foreach ( $needles as $needle ) {
+        if ( $needle !== '' && strpos( $haystack, $needle ) !== false ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function bsc_is_bogota_or_cundinamarca_destination( string $state, string $city ): bool {
+    $city_location = bsc_lookup_colombia_city_location( $city );
+    if ( ! empty( $city_location['state'] ) && ( trim( $state ) === '' || ! empty( $city_location['matched_by_code'] ) ) ) {
+        $state = $city_location['state'];
+    }
+
+    $state = bsc_normalize_shipping_text( $state );
+    $city  = bsc_normalize_shipping_text( $city );
+
+    $local_states = [
+        'bog',
+        'bogota',
+        'bogota d c',
+        'bogota dc',
+        'capital district',
+        'cun',
+        'co cun',
+        'cundinamarca',
+        'd c',
+        'dc',
+        'distrito capital',
+    ];
+
+    $bogota_cities = [
+        'bog',
+        'bogota',
+        'bogota d c',
+        'bogota dc',
+        'santa fe de bogota',
+    ];
+
+    return in_array( $state, $local_states, true )
+        || bsc_shipping_text_contains_any( $state, [ 'bogota', 'cundinamarca', 'distrito capital' ] )
+        || in_array( $city, $bogota_cities, true )
+        || bsc_shipping_text_contains_any( $city, [ 'bogota' ] );
+}
+
+function bsc_flat_rate_matches_destination( $rate, bool $is_local ): bool {
+    $label = method_exists( $rate, 'get_label' )
+        ? bsc_normalize_shipping_text( (string) $rate->get_label() )
+        : bsc_normalize_shipping_text( (string) ( $rate->label ?? '' ) );
+
+    $is_local_label = bsc_shipping_text_contains_any( $label, [ 'bogot', 'cundinamarca', 'local' ] );
+
+    if ( $is_local ) {
+        return $is_local_label;
+    }
+
+    return bsc_shipping_text_contains_any( $label, [ 'nacional', 'colombia', 'general' ] ) || ! $is_local_label;
+}
+
+function bsc_set_shipping_rate_cost( $rate, float $target_cost ): void {
+    if ( ! method_exists( $rate, 'set_cost' ) ) {
+        return;
+    }
+
+    $current_cost = method_exists( $rate, 'get_cost' ) ? (float) $rate->get_cost() : 0;
+    $rate->set_cost( $target_cost );
+
+    if ( ! method_exists( $rate, 'get_taxes' ) || ! method_exists( $rate, 'set_taxes' ) ) {
+        return;
+    }
+
+    $taxes = $rate->get_taxes();
+    if ( empty( $taxes ) || ! is_array( $taxes ) ) {
+        return;
+    }
+
+    foreach ( $taxes as $tax_id => $tax ) {
+        $taxes[ $tax_id ] = $current_cost > 0
+            ? wc_format_decimal( (float) $tax * ( $target_cost / $current_cost ) )
+            : 0;
+    }
+
+    $rate->set_taxes( $taxes );
 }
 
 add_filter('default_checkout_billing_country', function() {
