@@ -326,6 +326,7 @@ function bsc_force_hide_free_shipping_if_under_discount_threshold($rates, $packa
 // BSC-058: removed woocommerce_before_calculate_totals/calculate_shipping() — caused infinite loops
 
 // BSC-058: force correct flat rate based on billing state + city
+add_filter('woocommerce_cart_shipping_packages', 'bsc_force_checkout_shipping_package_destination', 20);
 add_filter('woocommerce_package_rates', 'bsc_force_shipping_by_location', 20, 2);
 function bsc_force_shipping_by_location( array $rates, array $package ): array {
     $destination = bsc_get_checkout_shipping_destination( $package );
@@ -345,35 +346,54 @@ function bsc_update_customer_destination_from_checkout_post( string $post_data =
     bsc_sync_customer_shipping_destination( $posted ?: null );
 }
 
+function bsc_force_checkout_shipping_package_destination( array $packages ): array {
+    $destination = bsc_get_checkout_shipping_destination();
+    if ( ! bsc_checkout_destination_is_complete( $destination ) ) {
+        return $packages;
+    }
+
+    foreach ( $packages as $package_index => $package ) {
+        $package_destination = is_array( $package['destination'] ?? null )
+            ? $package['destination']
+            : [];
+
+        $packages[ $package_index ]['destination'] = array_merge(
+            $package_destination,
+            [
+                'country'  => $destination['country'] ?: 'CO',
+                'state'    => $destination['state'],
+                'city'     => $destination['city'],
+                'postcode' => $destination['postcode'],
+            ]
+        );
+    }
+
+    return $packages;
+}
+
 function bsc_get_checkout_shipping_destination( array $package = [] ): array {
-    $posted_destination = bsc_get_posted_checkout_destination();
-    if ( $posted_destination['state'] !== '' && $posted_destination['city'] !== '' ) {
+    $posted_destination = bsc_normalize_checkout_destination( bsc_get_posted_checkout_destination() );
+    if ( bsc_checkout_destination_is_complete( $posted_destination ) ) {
         return $posted_destination;
     }
 
     $package_destination = $package['destination'] ?? [];
-    $state = sanitize_text_field( (string) ( $package_destination['state'] ?? '' ) );
-    $city  = sanitize_text_field( (string) ( $package_destination['city'] ?? '' ) );
+    $package_destination = bsc_normalize_checkout_destination(
+        [
+            'country'  => $package_destination['country'] ?? 'CO',
+            'state'    => $package_destination['state'] ?? '',
+            'city'     => $package_destination['city'] ?? '',
+            'postcode' => $package_destination['postcode'] ?? '',
+        ]
+    );
 
-    if ( $state !== '' && $city !== '' ) {
-        return [
-            'country'  => sanitize_text_field( (string) ( $package_destination['country'] ?? 'CO' ) ),
-            'state'    => $state,
-            'city'     => $city,
-            'postcode' => sanitize_text_field( (string) ( $package_destination['postcode'] ?? '' ) ),
-        ];
+    if ( bsc_checkout_destination_is_complete( $package_destination ) ) {
+        return $package_destination;
     }
 
-    if ( function_exists('WC') && WC()->customer ) {
-        $customer_state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
-        $customer_city = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
-
-        return [
-            'country'  => WC()->customer->get_shipping_country() ?: WC()->customer->get_billing_country() ?: 'CO',
-            'state'    => sanitize_text_field( (string) $customer_state ),
-            'city'     => sanitize_text_field( (string) $customer_city ),
-            'postcode' => sanitize_text_field( (string) ( WC()->customer->get_shipping_postcode() ?: WC()->customer->get_billing_postcode() ) ),
-        ];
+    $customer_destination = bsc_get_customer_checkout_destination();
+    if ( bsc_checkout_destination_is_complete( $customer_destination ) ) {
+        return $customer_destination;
     }
 
     return [
@@ -386,17 +406,79 @@ function bsc_get_checkout_shipping_destination( array $package = [] ): array {
 
 function bsc_get_posted_checkout_destination( ?array $posted = null ): array {
     $posted = $posted ?? wp_unslash( $_POST );
+
+    if ( isset( $posted['post_data'] ) && is_string( $posted['post_data'] ) ) {
+        $checkout_post_data = [];
+        parse_str( wp_unslash( $posted['post_data'] ), $checkout_post_data );
+        $posted = array_merge( $checkout_post_data, $posted );
+    }
+
+    $normalized_destination = bsc_normalize_checkout_destination(
+        [
+            'country'  => $posted['s_country'] ?? $posted['country'] ?? 'CO',
+            'state'    => $posted['s_state'] ?? $posted['state'] ?? '',
+            'city'     => $posted['s_city'] ?? $posted['city'] ?? '',
+            'postcode' => $posted['s_postcode'] ?? $posted['postcode'] ?? '',
+        ]
+    );
+
+    if ( bsc_checkout_destination_is_complete( $normalized_destination ) ) {
+        return $normalized_destination;
+    }
+
     $ship_to_different = ! empty( $posted['ship_to_different_address'] );
     $prefix = $ship_to_different && ! empty( $posted['shipping_state'] ) && ! empty( $posted['shipping_city'] )
         ? 'shipping'
         : 'billing';
 
-    return [
+    return bsc_normalize_checkout_destination( [
         'country'  => sanitize_text_field( (string) ( $posted[ "{$prefix}_country" ] ?? 'CO' ) ),
         'state'    => sanitize_text_field( (string) ( $posted[ "{$prefix}_state" ] ?? '' ) ),
         'city'     => sanitize_text_field( (string) ( $posted[ "{$prefix}_city" ] ?? '' ) ),
         'postcode' => sanitize_text_field( (string) ( $posted[ "{$prefix}_postcode" ] ?? '' ) ),
+    ] );
+}
+
+function bsc_get_customer_checkout_destination(): array {
+    if ( ! function_exists('WC') || ! WC()->customer ) {
+        return [
+            'country'  => 'CO',
+            'state'    => '',
+            'city'     => '',
+            'postcode' => '',
+        ];
+    }
+
+    $customer_state = WC()->customer->get_shipping_state() ?: WC()->customer->get_billing_state();
+    $customer_city = WC()->customer->get_shipping_city() ?: WC()->customer->get_billing_city();
+
+    return bsc_normalize_checkout_destination( [
+        'country'  => WC()->customer->get_shipping_country() ?: WC()->customer->get_billing_country() ?: 'CO',
+        'state'    => $customer_state,
+        'city'     => $customer_city,
+        'postcode' => WC()->customer->get_shipping_postcode() ?: WC()->customer->get_billing_postcode(),
+    ] );
+}
+
+function bsc_checkout_destination_is_complete( array $destination ): bool {
+    return trim( (string) ( $destination['state'] ?? '' ) ) !== ''
+        && trim( (string) ( $destination['city'] ?? '' ) ) !== '';
+}
+
+function bsc_normalize_checkout_destination( array $destination ): array {
+    $destination = [
+        'country'  => sanitize_text_field( (string) ( $destination['country'] ?? 'CO' ) ),
+        'state'    => sanitize_text_field( (string) ( $destination['state'] ?? '' ) ),
+        'city'     => sanitize_text_field( (string) ( $destination['city'] ?? '' ) ),
+        'postcode' => sanitize_text_field( (string) ( $destination['postcode'] ?? '' ) ),
     ];
+
+    $city_location = bsc_lookup_colombia_city_location( $destination['city'] );
+    if ( ! empty( $city_location['state'] ) && ( $destination['state'] === '' || ! empty( $city_location['matched_by_code'] ) ) ) {
+        $destination['state'] = $city_location['state'];
+    }
+
+    return $destination;
 }
 
 function bsc_sync_customer_shipping_destination( ?array $posted = null ): void {
@@ -512,6 +594,78 @@ function bsc_normalize_shipping_text( string $value ): string {
     return trim( $value );
 }
 
+function bsc_get_colombia_shipping_places(): array {
+    static $colombia_places = null;
+
+    if ( null !== $colombia_places ) {
+        return $colombia_places;
+    }
+
+    $colombia_places = [];
+    $places_file = WP_PLUGIN_DIR . '/wc-departamentos-y-ciudades-colombia/assets/places/CO-cities.php';
+
+    if ( file_exists( $places_file ) ) {
+        global $places;
+
+        if ( ! is_array( $places ?? null ) ) {
+            $places = [];
+        }
+
+        include $places_file;
+
+        if ( isset( $places['CO'] ) && is_array( $places['CO'] ) ) {
+            $colombia_places = $places['CO'];
+        }
+    }
+
+    return $colombia_places;
+}
+
+function bsc_lookup_colombia_city_location( string $city ): array {
+    $city = trim( $city );
+    if ( $city === '' ) {
+        return [];
+    }
+
+    $city_code = '';
+    if ( preg_match( '/\b(\d{8})\b/', $city, $matches ) ) {
+        $city_code = $matches[1];
+    }
+
+    $normalized_city = bsc_normalize_shipping_text( $city );
+
+    foreach ( bsc_get_colombia_shipping_places() as $state => $cities ) {
+        if ( ! is_array( $cities ) ) {
+            continue;
+        }
+
+        foreach ( $cities as $code => $label ) {
+            $code = (string) $code;
+            $label = (string) $label;
+
+            if ( $city_code !== '' && $code === $city_code ) {
+                return [
+                    'state'           => (string) $state,
+                    'city'            => $label,
+                    'code'            => $code,
+                    'matched_by_code' => true,
+                ];
+            }
+
+            if ( $normalized_city !== '' && $normalized_city === bsc_normalize_shipping_text( $label ) ) {
+                return [
+                    'state'           => (string) $state,
+                    'city'            => $label,
+                    'code'            => $code,
+                    'matched_by_code' => false,
+                ];
+            }
+        }
+    }
+
+    return [];
+}
+
 function bsc_shipping_text_contains_any( string $haystack, array $needles ): bool {
     foreach ( $needles as $needle ) {
         if ( $needle !== '' && strpos( $haystack, $needle ) !== false ) {
@@ -523,6 +677,11 @@ function bsc_shipping_text_contains_any( string $haystack, array $needles ): boo
 }
 
 function bsc_is_bogota_or_cundinamarca_destination( string $state, string $city ): bool {
+    $city_location = bsc_lookup_colombia_city_location( $city );
+    if ( ! empty( $city_location['state'] ) && ( trim( $state ) === '' || ! empty( $city_location['matched_by_code'] ) ) ) {
+        $state = $city_location['state'];
+    }
+
     $state = bsc_normalize_shipping_text( $state );
     $city  = bsc_normalize_shipping_text( $city );
 

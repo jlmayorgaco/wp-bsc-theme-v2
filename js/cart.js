@@ -299,8 +299,10 @@ function refreshReviewSummary() {
   .done(res => {
     if (res?.success && res?.data?.html) {
       jQuery('#bsc-review-summary').html(res.data.html);
-      // BSC-058: re-apply shipping visibility after DOM replacement (checkout.js defines this)
-      if (typeof toggleShippingVisibility === 'function') toggleShippingVisibility();
+      // BSC-058: re-apply shipping visibility after DOM replacement.
+      if (typeof window.bscToggleShippingVisibility === 'function') {
+        window.bscToggleShippingVisibility();
+      }
     }
   })
   .fail(xhr => console.error('❌ Error al refrescar el resumen del pedido.', xhr?.responseText));

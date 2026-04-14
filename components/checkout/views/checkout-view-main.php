@@ -33,7 +33,7 @@ $bsc_checkout_trust_items = [
 ];
 ?>
 
-<form id="checkout" class="" name="checkout" method="post" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
+<form id="checkout" class="checkout woocommerce-checkout" name="checkout" method="post" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
     <main class="bsc bsc__page bsc__page--dual bsc__page--checkout <?php if (!WC()->cart->is_empty()) echo 'is-visible'; ?>">
 
         <!-- Left panel: billing form + trust signals -->
