@@ -50,7 +50,7 @@ class BSC_MY_ACCOUNT_HEADER {
               $classes = 'menu__item' . ($is_active ? ' is-active' : '');
             ?>
             <li class="<?php echo $classes; ?>">
-              <a href="<?php echo esc_url($link['href']); ?>">
+              <a class="<?php echo $classes; ?>" href="<?php echo esc_url($link['href']); ?>">
                 <span><?php echo esc_html($link['text']); ?></span>
               </a>
             </li>
