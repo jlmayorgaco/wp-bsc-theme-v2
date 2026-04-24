@@ -1,0 +1,457 @@
+// =============================================================================
+// BSC Admin — Order Label Print Styles
+// Template : admin/order-label-print.php
+// Compiled : admin-order-label-print.css  (via sass/admin-order-label-print.scss)
+//
+// HOW TO EDIT
+//   – Change physical size  → $lbl-w / $lbl-h / @page rule below
+//   – Change section heights → $header-h / $claims-h / $obs-h / $footer-h
+//   – Change type scale      → $fs-* variables
+//   – Change colors          → $ink / $bg / $header-bg / $divider
+//   – Change inner padding   → $lbl-pad-x
+// =============================================================================
+
+
+// ── Physical dimensions ───────────────────────────────────────────────────────
+$lbl-w:     100mm;
+$lbl-h:     153mm;
+$lbl-pad-x: 4mm;   // left/right inner margin of every section
+
+// ── Fixed section heights ─────────────────────────────────────────────────────
+// Recipient block fills remaining space: 153 - 35 - 16 - 20 - 28 = 54mm
+$header-h:  35mm;
+$claims-h:  16mm;
+$obs-h:     20mm;
+$footer-h:  28mm;
+
+// ── Colors ────────────────────────────────────────────────────────────────────
+$ink:          #111;
+$ink-muted:    #555;
+$bg:           #fff;
+$header-bg:    #111;
+$header-fg:    #fff;
+$divider:      #ccc;
+$divider-dash: #bbb;
+
+// ── Typography ────────────────────────────────────────────────────────────────
+// pt units are print-safe and unaffected by browser zoom
+$font:             -apple-system, 'Helvetica Neue', Arial, sans-serif;
+$fs-hero:          30pt;  // "delicado"
+$fs-header-sub:    8pt;   // "NO poner peso encima"
+$fs-claim:         6.5pt; // claim labels (100% Original, etc.)
+$fs-contains-lbl:  6pt;   // "Contiene" header
+$fs-contains-val:  6.5pt; // product summary
+$fs-name:          13pt;  // recipient name
+$fs-phone:         11pt;  // recipient phone
+$fs-address:       9.5pt; // street address
+$fs-location:      9pt;   // city / department
+$fs-obs-lbl:       6pt;   // "Observaciones" header
+$fs-obs-val:       7.5pt; // observation text
+$fs-brand:         20pt;  // BSC lockup
+$fs-tagline:       9pt;   // SKIN CARE FIRST (outlined)
+
+
+// @page lives here at top level AND is repeated inside @media print below.
+// The duplication is intentional: top-level catches Firefox/Safari,
+// the @media print copy is what Chrome/Edge actually honours.
+@page {
+  size: #{$lbl-w} #{$lbl-h};
+  margin: 0;
+}
+
+
+// =============================================================================
+// Reset
+// =============================================================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+// =============================================================================
+// Screen: body
+// =============================================================================
+
+body {
+  font-family: $font;
+  background: #e8e8e8;
+  padding: 16px;
+  color: $ink;
+}
+
+
+// =============================================================================
+// Toolbar  (hidden in print)
+// =============================================================================
+
+.bsc-labels-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: $bg;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-width: calc(#{$lbl-w} + 20px);
+
+  &__btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1.5px solid $ink;
+    font-family: $font;
+    line-height: 1;
+
+    &--primary {
+      background: $ink;
+      color: #fff;
+    }
+
+    &--secondary {
+      background: $bg;
+      color: $ink;
+    }
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.4;
+  }
+}
+
+
+// =============================================================================
+// Page wrapper  (one per order, creates page break in print)
+// =============================================================================
+
+.bsc-print-label-page {
+  margin-bottom: 16px;
+}
+
+
+// =============================================================================
+// Label
+// =============================================================================
+
+.bsc-print-label {
+  width: $lbl-w;
+  height: $lbl-h;
+  background: $bg;
+  color: $ink;
+  font-family: $font;
+  overflow: hidden;     // hard-clips content at physical dimensions
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, .18);
+
+
+  // ── 1. Header (black block) ─────────────────────────────────────────
+
+  &__header {
+    background: $header-bg;
+    color: $header-fg;
+    height: $header-h;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 4mm $lbl-pad-x 4mm ($lbl-pad-x - 0.5mm);
+    gap: 3mm;
+  }
+
+  &__header-icon {
+    flex-shrink: 0;
+    width: 18mm;
+    height: 18mm;
+  }
+
+  &__header-copy {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2.5mm;
+  }
+
+  &__header-title {
+    font-size: $fs-hero;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -.5pt;
+    color: $header-fg;
+  }
+
+  &__header-sub {
+    font-size: $fs-header-sub;
+    font-weight: 400;
+    letter-spacing: .3pt;
+    color: $header-fg;
+    line-height: 1.3;
+
+    strong {
+      font-size: $fs-header-sub + 1pt;
+      font-weight: 800;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
+
+  // ── 2. Claims row ───────────────────────────────────────────────────
+
+  &__claims {
+    height: $claims-h;
+    flex-shrink: 0;
+    display: flex;
+    align-items: stretch;
+    padding: 0 $lbl-pad-x;
+    border-bottom: 1px solid $divider;
+  }
+
+  &__claims-group {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  &__claim {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex: 1;
+    height: 100%;
+    padding: 1mm 1.5mm;
+    font-size: $fs-claim;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: .2pt;
+
+    // dashed separator between sibling claims
+    & + & {
+      border-left: 1px dashed $divider-dash;
+    }
+  }
+
+  &__claim-icon {
+    display: block;
+    font-size: 9pt;
+    line-height: 1;
+    margin-bottom: 1.5mm;
+  }
+
+  &__contains {
+    flex-shrink: 0;
+    width: 33mm;
+    padding: 2mm 0 2mm 3mm;
+    border-left: 1px dashed $divider-dash;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  &__contains-label {
+    font-size: $fs-contains-lbl;
+    font-weight: 700;
+    letter-spacing: .6pt;
+    text-transform: uppercase;
+    color: $ink-muted;
+    margin-bottom: 1mm;
+  }
+
+  &__contains-value {
+    font-size: $fs-contains-val;
+    color: $ink;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+
+  // ── 3. Recipient (flex-grow, absorbs remaining height) ──────────────
+
+  &__recipient {
+    flex: 1;
+    min-height: 0;
+    padding: 3mm $lbl-pad-x 2mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5mm;
+    overflow: hidden;
+  }
+
+  &__recipient-name {
+    font-size: $fs-name;
+    font-weight: 800;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+
+  &__recipient-phone {
+    font-size: $fs-phone;
+    font-weight: 600;
+    letter-spacing: .5pt;
+    color: #222;
+  }
+
+  &__recipient-address {
+    font-size: $fs-address;
+    line-height: 1.5;
+    color: #222;
+    word-break: break-word;
+  }
+
+  &__recipient-location {
+    font-size: $fs-location;
+    font-weight: 600;
+    color: #333;
+    letter-spacing: .2pt;
+    text-transform: uppercase;
+    word-break: break-word;
+  }
+
+
+  // ── 4. Observations ─────────────────────────────────────────────────
+
+  &__observations {
+    height: $obs-h;
+    flex-shrink: 0;
+    padding: 2.5mm $lbl-pad-x;
+    border-top: 1px solid $divider;
+    overflow: hidden;
+  }
+
+  &__obs-label {
+    font-size: $fs-obs-lbl;
+    font-weight: 700;
+    letter-spacing: .9pt;
+    text-transform: uppercase;
+    color: $ink-muted;
+    margin-bottom: 1.5mm;
+  }
+
+  &__obs-value {
+    font-size: $fs-obs-val;
+    font-weight: 600;
+    letter-spacing: .8pt;
+    text-transform: uppercase;
+    color: $ink;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+
+  // ── 5. Footer — BSC brand lockup ────────────────────────────────────
+
+  &__footer {
+    height: $footer-h;
+    flex-shrink: 0;
+    border-top: 1px solid $divider;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2mm $lbl-pad-x;
+    gap: 2mm;
+  }
+
+  &__footer-brand {
+    font-size: $fs-brand;
+    font-weight: 900;
+    letter-spacing: 3pt;
+    line-height: 1;
+    color: $ink;
+  }
+
+  &__footer-waves {
+    display: block;
+    width: 38mm;
+    height: auto;
+  }
+
+  &__footer-tagline {
+    display: flex;
+    gap: 4mm;
+    font-size: $fs-tagline;
+    font-weight: 900;
+    letter-spacing: 3pt;
+    -webkit-text-stroke: 1px $ink;
+    color: transparent;
+    line-height: 1;
+  }
+}
+
+
+// =============================================================================
+// Print overrides
+// =============================================================================
+
+@media print {
+  // Repeated here: Chrome/Edge honour @page size only inside @media print
+  @page {
+    size: #{$lbl-w} #{$lbl-h};
+    margin: 0;
+  }
+
+  body {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+  }
+
+  .bsc-labels-toolbar {
+    display: none !important;
+  }
+
+  .bsc-print-label-page {
+    display: block;
+    margin: 0;
+    padding: 0;
+    // Each page wrapper forces a new physical sheet
+    page-break-before: always;
+    break-before: page;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+
+    &:first-child {
+      page-break-before: auto;
+      break-before: auto;
+    }
+
+    &:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+  }
+
+  .bsc-print-label {
+    // Explicit physical dimensions — never rely on % in print
+    width: $lbl-w !important;
+    height: $lbl-h !important;
+    max-width: $lbl-w !important;
+    max-height: $lbl-h !important;
+    box-shadow: none;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  // Force exact colors — critical for the solid black header
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

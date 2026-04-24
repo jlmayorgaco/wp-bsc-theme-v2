@@ -7,6 +7,7 @@
 defined('ABSPATH') || exit;
 
 require_once get_template_directory() . '/admin/class-bsc-orders-table.php';
+require_once get_template_directory() . '/admin/class-bsc-order-labels.php';
 
 // ── Enqueue admin JS only on BSC orders page ──────────────────────────
 add_action( 'admin_enqueue_scripts', function ( string $hook ) {
@@ -51,19 +52,19 @@ function bsc_handle_bulk_export(): void {
         bsc_export_orders_csv( $order_ids );
     } elseif ( $action === 'print_packing' ) {
         bsc_render_packing_view( $order_ids );
+    } elseif ( $action === 'print_order_labels' ) {
+        bsc_render_order_labels( $order_ids );
     }
 }
 
 // ── Status tabs config ─────────────────────────────────────────────────
 function bsc_orders_status_tabs(): array {
     return [
-        ''             => 'Todos',
-        'pending'      => 'Pendiente',
-        'processing'   => 'Procesando',
-        'wc-preparing' => 'Preparando',
-        'wc-shipped'   => 'Enviado',
-        'completed'    => 'Completado',
-        'cancelled'    => 'Cancelado',
+        ''           => 'Todos',
+        'processing' => 'Recibido',
+        'wc-shipped' => 'Enviado',
+        'completed'  => 'Terminado',
+        'cancelled'  => 'Cancelado',
     ];
 }
 
@@ -82,10 +83,10 @@ function bsc_render_orders_page(): void {
     // Status tabs + counts
     $status_tabs = bsc_orders_status_tabs();
     $tab_counts  = [];
+    $all_statuses = ['processing', 'on-hold', 'preparing', 'wc-shipped', 'shipped', 'completed', 'cancelled', 'pending', 'failed', 'refunded'];
     foreach ( $status_tabs as $slug => $label ) {
         if ( $slug === '' ) {
-            // Total across all key statuses
-            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => array_values( array_filter( array_keys( $status_tabs ) ) ) ] ) );
+            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => $all_statuses ] ) );
         } else {
             $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => [ $slug ] ] ) );
         }
@@ -154,12 +155,15 @@ function bsc_render_orders_page(): void {
         <form method="post" id="bsc-orders-form"
               action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
             <?php wp_nonce_field( 'bsc_bulk_export', 'bsc_export_nonce' ); ?>
-            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
+            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
                     ⬇ Exportar CSV
                 </button>
                 <button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
                     🖨 Vista de empaque
+                </button>
+                <button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
+                    🏷 Imprimir con datos (PDF)
                 </button>
                 <span id="bsc-bulk-msg" style="display:none;color:#c0392b;font-size:13px;margin-left:6px">
                     Selecciona al menos un pedido primero.
@@ -181,6 +185,13 @@ function bsc_render_orders_page(): void {
 
             // Vista de empaque → open in new tab so orders page stays visible
             $('#bsc-packing-btn').on('click', function(e) {
+                if (!requireSelection(e)) return;
+                $('#bsc-orders-form').attr('target', '_blank');
+                setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);
+            });
+
+            // Imprimir con datos (PDF) → open in new tab
+            $('#bsc-labels-btn').on('click', function(e) {
                 if (!requireSelection(e)) return;
                 $('#bsc-orders-form').attr('target', '_blank');
                 setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);

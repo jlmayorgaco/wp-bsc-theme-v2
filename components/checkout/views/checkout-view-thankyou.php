@@ -64,23 +64,9 @@ function get_brand_data($product): array {
       <li class="bsc__order-overview__item bsc__order-overview__item--progress" style="width: 325px">
         <div class="bsc__order-overview__title">Estado:</div>
         <div class="bsc__order-overview__content">
-          <?php 
-
-            $status = $order->get_status(); // e.g., 'pending', 'processing', 'completed', etc.
-            $status_map = [
-                'pending'    => BSC_Order_Progress_Bar::PENDING,
-                'processing' => BSC_Order_Progress_Bar::RECEIVED,
-                'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
-                'completed'  => BSC_Order_Progress_Bar::DELIVERED,
-                'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
-                'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-                'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
-                'shipping'   => BSC_Order_Progress_Bar::SHIPPED,
-            ];
-            $mapped_status = $status_map[$status] ?? BSC_Order_Progress_Bar::PENDING;
-            // Render the progress bar
+          <?php
             $bar = new BSC_Order_Progress_Bar();
-            $bar->setStatus($mapped_status);
+            $bar->setStatus(bsc_map_order_status_to_bar($order->get_status()));
             $bar->render();
           ?>
         </div>
@@ -221,7 +207,7 @@ function get_brand_data($product): array {
 
       <?php if ($bubble_points > 0) : ?>
       <hr class="shipping-details__divider">
-      <p class="shipping-details__subtitle">Puntos acumulados</p>
+      <p class="shipping-details__subtitle">Puntos acumulados en esta compra</p>
       <div class="bsc__points">
         <img class="bsc__points__icon" src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc_checkout_points.png" alt="Bubble Points" width="48" height="48" loading="lazy">
         <h3 class="bsc__points__text">¡ <strong><?php echo esc_html($bubble_points); ?></strong> Bubble Points !</h3>

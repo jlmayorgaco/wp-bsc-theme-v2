@@ -1,7 +1,26 @@
 node_modules/**/*
 node_modules/
-vendor/
-vendor/**/*/
+
+# vendor/ — La mayoría ignorada (Composer autoload, etc.)
+# Excepción: Font Awesome y Swiper se sirven local y deben llegar a producción.
+vendor/*
+!vendor/fontawesome/
+vendor/fontawesome/*
+!vendor/fontawesome/all.min.css
+!vendor/webfonts/
+vendor/webfonts/*
+!vendor/webfonts/fa-brands-400.woff2
+!vendor/webfonts/fa-brands-400.ttf
+!vendor/webfonts/fa-regular-400.woff2
+!vendor/webfonts/fa-regular-400.ttf
+!vendor/webfonts/fa-solid-900.woff2
+!vendor/webfonts/fa-solid-900.ttf
+!vendor/webfonts/fa-v4compatibility.woff2
+!vendor/webfonts/fa-v4compatibility.ttf
+!vendor/swiper/
+vendor/swiper/*
+!vendor/swiper/swiper-bundle.min.css
+!vendor/swiper/swiper-bundle.min.js
 
 # BSC-045: backup credentials — never commit
 scripts/backup-config.sh

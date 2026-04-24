@@ -260,11 +260,53 @@ add_action('after_setup_theme', function () {
 
 add_filter('woocommerce_checkout_fields', 'bsc_translate_placeholders');
 function bsc_translate_placeholders($fields) {
-  // País, Departamento, Ciudad, etc.
-  $fields['billing']['billing_state']['placeholder'] = 'Selecciona un departamento…';
-  $fields['billing']['billing_city']['placeholder'] = 'Selecciona una ciudad…';
+  $fields['billing']['billing_state']['placeholder']   = 'Selecciona un departamento…';
+  $fields['billing']['billing_city']['placeholder']    = 'Selecciona una ciudad…';
   $fields['billing']['billing_country']['placeholder'] = 'Selecciona un país…';
+  return $fields;
+}
 
+add_filter('woocommerce_billing_fields', 'bsc_billing_field_placeholders');
+function bsc_billing_field_placeholders($fields) {
+  $map = [
+    'billing_first_name' => 'Tu nombre',
+    'billing_last_name'  => 'Tu apellido',
+    'billing_company'    => 'Empresa (opcional)',
+    'billing_address_1'  => 'Dirección (calle, barrio, número…)',
+    'billing_address_2'  => 'Complemento (apto, piso, torre…)',
+    'billing_postcode'   => 'Código postal',
+    'billing_phone'      => 'Teléfono de contacto',
+    'billing_email'      => 'Correo electrónico',
+    'billing_state'      => 'Selecciona un departamento…',
+    'billing_city'       => 'Selecciona una ciudad…',
+    'billing_country'    => 'Selecciona un país…',
+  ];
+  foreach ( $map as $key => $placeholder ) {
+    if ( isset($fields[$key]) ) {
+      $fields[$key]['placeholder'] = $placeholder;
+    }
+  }
+  return $fields;
+}
+
+add_filter('woocommerce_shipping_fields', 'bsc_shipping_field_placeholders');
+function bsc_shipping_field_placeholders($fields) {
+  $map = [
+    'shipping_first_name' => 'Tu nombre',
+    'shipping_last_name'  => 'Tu apellido',
+    'shipping_company'    => 'Empresa (opcional)',
+    'shipping_address_1'  => 'Dirección (calle, barrio, número…)',
+    'shipping_address_2'  => 'Complemento (apto, piso, torre…)',
+    'shipping_postcode'   => 'Código postal',
+    'shipping_state'      => 'Selecciona un departamento…',
+    'shipping_city'       => 'Selecciona una ciudad…',
+    'shipping_country'    => 'Selecciona un país…',
+  ];
+  foreach ( $map as $key => $placeholder ) {
+    if ( isset($fields[$key]) ) {
+      $fields[$key]['placeholder'] = $placeholder;
+    }
+  }
   return $fields;
 }
 
@@ -830,3 +872,59 @@ add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(arr
     $statuses[] = 'shipped';
     return $statuses;
 });
+
+// ── BSC: Unified WC status → BSC progress bar state map ──────────────
+function bsc_map_order_status_to_bar(string $wc_status): string {
+    require_once get_template_directory() . '/components/orders/order-progress-bar.php';
+    $map = [
+        'processing' => BSC_Order_Progress_Bar::RECEIVED,
+        'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+        'preparing'  => BSC_Order_Progress_Bar::RECEIVED,
+        'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
+        'completed'  => BSC_Order_Progress_Bar::DONE,
+        'pending'    => BSC_Order_Progress_Bar::CANCELLED,
+        'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
+        'failed'     => BSC_Order_Progress_Bar::CANCELLED,
+        'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
+    ];
+    return $map[$wc_status] ?? BSC_Order_Progress_Bar::CANCELLED;
+}
+
+// ── BSC: Auto-archive orders after N days (daily WP cron) ────────────
+add_action('init', 'bsc_schedule_order_archiver');
+function bsc_schedule_order_archiver(): void {
+    if (!wp_next_scheduled('bsc_auto_archive_orders')) {
+        wp_schedule_event(time(), 'daily', 'bsc_auto_archive_orders');
+    }
+}
+
+add_action('bsc_auto_archive_orders', 'bsc_run_order_archiver');
+function bsc_run_order_archiver(): void {
+    $days_shipped   = (int) apply_filters('bsc_auto_archive_days_shipped',   15);
+    $days_cancelled = (int) apply_filters('bsc_auto_archive_days_cancelled',  30);
+
+    $cutoff_shipped   = gmdate('Y-m-d H:i:s', strtotime("-{$days_shipped} days"));
+    $cutoff_cancelled = gmdate('Y-m-d H:i:s', strtotime("-{$days_cancelled} days"));
+
+    $shipped_ids = wc_get_orders([
+        'status'      => ['shipped'],
+        'date_before' => $cutoff_shipped,
+        'limit'       => -1,
+        'return'      => 'ids',
+    ]);
+    foreach ($shipped_ids as $id) {
+        $o = wc_get_order($id);
+        if ($o) $o->update_status('completed', "Auto-archivado tras {$days_shipped} días enviado.");
+    }
+
+    $cancelled_ids = wc_get_orders([
+        'status'      => ['cancelled'],
+        'date_before' => $cutoff_cancelled,
+        'limit'       => -1,
+        'return'      => 'ids',
+    ]);
+    foreach ($cancelled_ids as $id) {
+        $o = wc_get_order($id);
+        if ($o) $o->update_status('completed', "Auto-archivado tras {$days_cancelled} días cancelado.");
+    }
+}

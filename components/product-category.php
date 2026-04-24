@@ -309,6 +309,7 @@ class BSCShopPage
         echo "<section class='bsc__default-subsubcategory'>";
 
         if (is_array($subsubcats) && !empty($subsubcats)) {
+
             echo "<div class='bsc__subsubcategory-links'>";
 
             // Botón "Todos"

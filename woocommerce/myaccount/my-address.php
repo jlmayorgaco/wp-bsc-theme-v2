@@ -70,6 +70,14 @@ $pretty_fields = [
                         $states = WC()->countries->get_states( get_user_meta($customer_id, $type . '_country', true) );
                         if ( is_array($states) && isset($states[$value]) ) $value = $states[$value];
                     }
+                    if ( $key === 'city' && function_exists('bsc_get_colombia_shipping_places') ) {
+                        foreach ( bsc_get_colombia_shipping_places() as $_dept => $cities ) {
+                            if ( is_array($cities) && isset($cities[$value]) ) {
+                                $value = $cities[$value];
+                                break;
+                            }
+                        }
+                    }
 
                     echo '<div style="display:flex">' . '<strong>'. esc_html($label) . '</strong>' . ': ' . esc_html($value) . '</div>';
                 }

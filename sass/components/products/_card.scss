@@ -233,13 +233,27 @@ padding-left: 1px;
   }
 }
 
-
+.bsc__product-card {
+  .full-star{
+    color: var(--color--main);
+    }
+}
 
 @media (max-width: 767px) {
  .bsc__product-card {
     padding: 1rem;
     padding-top: 0px;
+    --bsc--product-w: calc(100vw - 76px);
+    --bsc--product-h: 300px;
  }
+ .bsc__product-card .card__brand .card__brand-name {
+  font-weight: bold;
+  font-style: normal;
+ }
+ .bsc__product-card .card__price {
+  margin-top: 0px;
+  padding-top: 0px;
+}
  .bsc__slider--ultimos_lanzamientos{
   padding-top: 0px !important;
  }

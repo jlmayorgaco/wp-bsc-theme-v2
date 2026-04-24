@@ -159,26 +159,9 @@ class BSC_Orders_Table {
     }
 
     protected function render_progress_bar($order) {
-        if (!class_exists('BSC_Order_Progress_Bar')) {
-            require_once get_template_directory() . '/src/components/BSC_Order_Progress_Bar.php';
-        }
-
-        $wc_status = $order->get_status();
-
-        $status_map = [
-            'pending'    => BSC_Order_Progress_Bar::PENDING,
-            'on-hold'    => BSC_Order_Progress_Bar::PENDING,
-            'processing' => BSC_Order_Progress_Bar::RECEIVED,
-            'completed'  => BSC_Order_Progress_Bar::DELIVERED,
-            'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
-            'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
-            'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-            'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
-        ];
-
-        $mapped_status = $status_map[$wc_status] ?? BSC_Order_Progress_Bar::PENDING;
-
-        $progress = new BSC_Order_Progress_Bar($mapped_status);
+        $progress = new BSC_Order_Progress_Bar(
+            bsc_map_order_status_to_bar($order->get_status())
+        );
         $progress->render();
     }
 }
