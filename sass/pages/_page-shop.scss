@@ -650,3 +650,13 @@ $breakpoint-xl: 1200px;
   border-color: #8ab3c7;
   color: #173642;
 }
+
+
+@media (max-width: 768px) {
+.bsc__description--description-category {
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 20.25px;
+    width: 90%;
+}
+}

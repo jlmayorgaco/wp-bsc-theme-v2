@@ -17,15 +17,16 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     /** Status → badge colors [ bg, text ] */
     private const STATUS_COLORS = [
-        'pending'    => ['#FED7AA', '#7C2D12'],
-        'processing' => ['#BFDBFE', '#1E3A5F'],
-        'preparing'  => ['#E9D5FF', '#4C1D95'],
-        'shipped'    => ['#A7F3D0', '#064E3B'],
-        'completed'  => ['#BBF7D0', '#14532D'],
-        'cancelled'  => ['#FECACA', '#7F1D1D'],
-        'refunded'   => ['#FEE2E2', '#991B1B'],
-        'on-hold'    => ['#E5E7EB', '#374151'],
-        'failed'     => ['#FEE2E2', '#7F1D1D'],
+        // BSC simplified states
+        'processing' => ['#BFDBFE', '#1E3A5F'], // Recibido
+        'on-hold'    => ['#BFDBFE', '#1E3A5F'], // Recibido
+        'preparing'  => ['#BFDBFE', '#1E3A5F'], // Recibido
+        'shipped'    => ['#A7F3D0', '#064E3B'], // Enviado
+        'completed'  => ['#BBF7D0', '#14532D'], // Terminado
+        'cancelled'  => ['#FECACA', '#7F1D1D'], // Cancelado
+        'failed'     => ['#FECACA', '#7F1D1D'], // Cancelado
+        'refunded'   => ['#FECACA', '#7F1D1D'], // Cancelado
+        'pending'    => ['#FECACA', '#7F1D1D'], // Cancelado
     ];
 
     public function __construct( array $query_args = [] ) {
@@ -60,8 +61,9 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     protected function get_bulk_actions(): array {
         return [
-            'export_csv'    => 'Exportar CSV',
-            'print_packing' => 'Vista de empaque',
+            'export_csv'         => 'Exportar CSV',
+            'print_packing'      => 'Vista de empaque',
+            'print_order_labels' => 'Imprimir con datos (PDF)',
         ];
     }
 
@@ -152,15 +154,22 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     public function column_status( $item ): string {
         /** @var WC_Order $item */
-        $raw_status = $item->get_status();             // e.g. "processing", "wc-preparing" without prefix
+        $raw_status = $item->get_status();
         $current    = 'wc-' . $raw_status;
-        $statuses   = wc_get_order_statuses();
+
+        // Simplified BSC states only
+        $bsc_statuses = [
+            'wc-processing' => 'Recibido',
+            'wc-shipped'    => 'Enviado',
+            'wc-completed'  => 'Terminado',
+            'wc-cancelled'  => 'Cancelado',
+        ];
 
         $badge = $this->status_badge( $raw_status );
 
         $html  = $badge . '<br>';
         $html .= '<select class="bsc-status-select" data-order-id="' . esc_attr( $item->get_id() ) . '" style="margin-top:4px;max-width:150px">';
-        foreach ( $statuses as $key => $label ) {
+        foreach ( $bsc_statuses as $key => $label ) {
             $html .= sprintf(
                 '<option value="%s"%s>%s</option>',
                 esc_attr( $key ),
@@ -176,7 +185,18 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
     private function status_badge( string $status ): string {
         $clean  = preg_replace( '/^wc-/', '', $status );
         $colors = self::STATUS_COLORS[ $clean ] ?? [ '#E5E7EB', '#374151' ];
-        $label  = wc_get_order_statuses()[ 'wc-' . $clean ] ?? ucfirst( $clean );
+        $bsc_labels = [
+            'processing' => 'Recibido',
+            'on-hold'    => 'Recibido',
+            'preparing'  => 'Recibido',
+            'shipped'    => 'Enviado',
+            'completed'  => 'Terminado',
+            'cancelled'  => 'Cancelado',
+            'failed'     => 'Cancelado',
+            'refunded'   => 'Cancelado',
+            'pending'    => 'Cancelado',
+        ];
+        $label = $bsc_labels[ $clean ] ?? ucfirst( $clean );
         return sprintf(
             '<span class="bsc-order-badge" style="background:%s;color:%s;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap">%s</span>',
             esc_attr( $colors[0] ),

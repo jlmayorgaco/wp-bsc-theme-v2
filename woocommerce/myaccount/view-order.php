@@ -44,20 +44,8 @@ function get_brand_data($product): array {
         <div class="bsc__order-overview__title">Estado:</div>
         <div class="bsc__order-overview__content">
           <?php
-          $status_map = [
-            'pending'    => BSC_Order_Progress_Bar::PENDING,
-            'processing' => BSC_Order_Progress_Bar::RECEIVED,
-            'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
-            'preparing'  => BSC_Order_Progress_Bar::RECEIVED,  // BSC-032 custom
-            'shipped'    => BSC_Order_Progress_Bar::SHIPPED,   // BSC-032 custom
-            'completed'  => BSC_Order_Progress_Bar::DELIVERED,
-            'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
-            'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-            'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
-          ];
-          $mapped_status = $status_map[$order->get_status()] ?? BSC_Order_Progress_Bar::PENDING;
           $bar = new BSC_Order_Progress_Bar();
-          $bar->setStatus($mapped_status);
+          $bar->setStatus(bsc_map_order_status_to_bar($order->get_status()));
           $bar->render();
           ?>
         </div>
@@ -66,7 +54,7 @@ function get_brand_data($product): array {
 
     <div class="bsc__order-review product-details-and-shipping">
 
-      <div class="bsc__order-review product-details">
+      <div class="bsc__order-review product-details" id="bsc-order-items">
         <?php foreach ($order->get_items() as $item_id => $item):
           $product = $item->get_product();
           $product_name = $item->get_name();
@@ -140,7 +128,7 @@ function get_brand_data($product): array {
           <li><strong>Teléfono:</strong> <?php echo esc_html( $telefono ); ?></li>
         </ul>
         <hr class="shipping-details__divider">
-        <p class="shipping-details__subtitle">Puntos acumulados</p>
+        <p class="shipping-details__subtitle">Puntos acumulados en esta compra</p>
         <div class="bsc__points">
           <img class="bsc__points__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_checkout_points.png" alt="Bubble Points">
           <h3 class="bsc__points__text">¡ <strong><?php echo esc_html( $bubble_points ); ?></strong> Bubble Points !</h3>
@@ -155,3 +143,9 @@ function get_brand_data($product): array {
 </main>
 
 <?php do_action('woocommerce_after_view_order', $order); ?>
+<script>
+if (window.innerWidth < 768) {
+    var el = document.getElementById('bsc-order-items');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>

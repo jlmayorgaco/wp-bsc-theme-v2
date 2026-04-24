@@ -10186,6 +10186,14 @@ button {
   color: #173642;
 }
 
+@media (max-width: 768px) {
+  .bsc__description--description-category {
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 20.25px;
+    width: 90%;
+  }
+}
 .bsc {
   --bsc-spacing-sm: 0.75rem;
   --bsc-spacing-md: 1.5rem;
@@ -14037,9 +14045,23 @@ body.admin-bar .bsc__header--desktop {
   color: #333;
 }
 
+.bsc__product-card .full-star {
+  color: var(--color--main);
+}
+
 @media (max-width: 767px) {
   .bsc__product-card {
     padding: 1rem;
+    padding-top: 0px;
+    --bsc--product-w: calc(100vw - 76px);
+    --bsc--product-h: 300px;
+  }
+  .bsc__product-card .card__brand .card__brand-name {
+    font-weight: bold;
+    font-style: normal;
+  }
+  .bsc__product-card .card__price {
+    margin-top: 0px;
     padding-top: 0px;
   }
   .bsc__slider--ultimos_lanzamientos {
@@ -14995,20 +15017,20 @@ body.admin-bar .bsc__header--desktop {
 }
 
 .bsc__account-title {
-  font-size: 1.75rem;
-  font-weight: bold;
   margin-bottom: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
 }
 
 .bsc__account-form {
-  padding: 3rem 1rem;
   max-width: 1200px;
-  margin: auto;
+  margin: 0 auto;
+  padding: 3rem 1rem;
 }
 
 .bsc__account-grid {
   display: grid;
-  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  grid-template-columns: 1fr 2px 1fr 2px 1fr;
   gap: 20px;
   align-items: flex-start;
 }
@@ -15017,6 +15039,7 @@ body.admin-bar .bsc__header--desktop {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .bsc__field {
@@ -15025,49 +15048,50 @@ body.admin-bar .bsc__header--desktop {
   margin-bottom: 20px;
 }
 .bsc__field label {
-  font-weight: bold;
-  color: #333;
-  letter-spacing: 1px;
   margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 .bsc__field input,
 .bsc__field select {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  border-radius: 8px;
   border: 1px dashed #333;
+  border-radius: 8px;
   background-color: #fff;
   color: #333;
+  font-size: 1rem;
   letter-spacing: 1px;
 }
 .bsc__field input[disabled] {
+  cursor: not-allowed;
   background-color: #eee;
   color: #999;
-  cursor: not-allowed;
 }
 .bsc__field input[type=date] {
   font-family: inherit;
 }
 
 .bsc__account-needs h3 {
-  font-weight: bold;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem;
+  padding: 0;
   color: #333;
   font-size: 16px;
+  font-weight: 700;
   letter-spacing: 1px;
 }
 
 .bsc__account-submit {
-  margin-top: 2rem;
-  text-align: left;
-  width: 100%;
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+  width: 100%;
+  margin-top: 2rem;
+  text-align: left;
 }
 .bsc__account-submit button {
-  margin: 0px 0px;
+  margin: 0;
 }
 
 .bsc__field--need {
@@ -15080,10 +15104,10 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__field--need .bsc__need-wrapper input {
   width: 100%;
+  padding: 0.5rem 0.75rem;
   padding-right: 2.5rem;
   border: 1px dashed #333;
   font-size: 1rem;
-  padding: 0.5rem 0.75rem;
 }
 .bsc__field--need .bsc__need-wrapper .bsc__check-icon {
   position: absolute;
@@ -15093,16 +15117,10 @@ body.admin-bar .bsc__header--desktop {
   pointer-events: none;
 }
 
-.bsc__account-needs h3 {
-  font-weight: bold;
-  padding: 0px;
-  margin: 0px;
-}
-
 .bsc__need {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   margin-bottom: 20px;
 }
 .bsc__need .bsc__need-icon {
@@ -15112,11 +15130,12 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__need .bsc__need-input {
   flex: 1;
-  border: 1px dashed #333;
+  min-width: 0;
   padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  font-family: inherit;
+  border: 1px dashed #333;
   background-color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
 }
 
 .bsc__need-input::placeholder {
@@ -15125,16 +15144,130 @@ body.admin-bar .bsc__header--desktop {
 }
 
 .bsc__vl {
-  width: 1px;
-  background-color: #999;
-  height: auto;
-  margin: 0px;
-  opacity: 0.5;
+  display: block;
   width: 2px;
   height: 100%;
-  display: block;
+  margin: 0;
+  background-color: #999;
+  opacity: 0.5;
 }
 
+/* Tablet */
+@media (max-width: 992px) {
+  .bsc__account-section {
+    padding: 2.5rem 1.5rem;
+  }
+  .bsc__account-form {
+    padding: 2.5rem 1rem;
+  }
+  .bsc__account-grid {
+    grid-template-columns: 1fr 2px 1fr;
+    gap: 18px;
+  }
+  /* Oculta el segundo divisor y deja solo 2 columnas */
+  .bsc__account-grid > .bsc__vl:nth-of-type(2) {
+    display: none;
+  }
+  /* Hace que la tercera columna baje completa */
+  .bsc__account-grid > .bsc__account-col:nth-of-type(3) {
+    grid-column: 1/-1;
+    margin-top: 8px;
+  }
+}
+/* Mobile */
+@media (max-width: 768px) {
+  .bsc__account-section {
+    padding: 2rem 1rem;
+  }
+  .bsc__account-title {
+    margin-bottom: 1.5rem;
+    font-size: 1.45rem;
+    line-height: 1.2;
+  }
+  .bsc__account-form {
+    padding: 2rem 0.75rem;
+  }
+  .bsc__account-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .bsc__vl {
+    display: none;
+  }
+  .bsc__account-col {
+    gap: 4px;
+  }
+  .bsc__field {
+    margin-bottom: 16px;
+  }
+  .bsc__field label {
+    font-size: 0.92rem;
+    letter-spacing: 0.6px;
+  }
+  .bsc__field input,
+  .bsc__field select {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+  .bsc__account-needs h3 {
+    margin-bottom: 0.75rem;
+    font-size: 15px;
+  }
+  .bsc__need {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .bsc__need .bsc__need-icon {
+    width: 22px;
+    height: 22px;
+    margin-top: 0.5rem;
+  }
+  .bsc__need .bsc__need-input {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+  .bsc__field--need .bsc__need-wrapper .bsc__check-icon {
+    left: auto;
+    right: 0.75rem;
+    width: 18px;
+    height: 18px;
+  }
+  .bsc__field--need .bsc__need-wrapper input {
+    padding-right: 2.25rem;
+  }
+  .bsc__account-submit {
+    justify-content: stretch;
+    margin-top: 1.5rem;
+  }
+  .bsc__account-submit button {
+    width: 100%;
+  }
+}
+/* Small mobile */
+@media (max-width: 480px) {
+  .bsc__account-section {
+    padding: 1.5rem 0.75rem;
+  }
+  .bsc__account-form {
+    padding: 1.5rem 0.5rem;
+  }
+  .bsc__account-title {
+    font-size: 1.25rem;
+  }
+  .bsc__field label {
+    font-size: 0.88rem;
+  }
+  .bsc__field input,
+  .bsc__field select {
+    padding: 0.7rem;
+    border-radius: 6px;
+    font-size: 0.92rem;
+  }
+  .bsc__need .bsc__need-input {
+    font-size: 0.92rem;
+  }
+}
 .bsc__product-details-categories {
   display: flex;
   flex-direction: column;
@@ -16436,13 +16569,13 @@ details[open] .bsc__product-detail-category > summary::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
 }
 .trust-item__img img {
   display: block;
-  width: 29px;
-  height: 29px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
 }
 
@@ -16517,6 +16650,10 @@ details[open] .bsc__product-detail-category > summary::after {
     font-size: 12px;
   }
 }
+.bubble-points-nav {
+  padding-top: 2rem;
+}
+
 .profile-points {
   padding: 2rem;
   padding-top: 0px;

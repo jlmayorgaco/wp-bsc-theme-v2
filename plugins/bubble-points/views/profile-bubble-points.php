@@ -10,6 +10,8 @@ $user_id = get_current_user_id();
 $points_by_user =  BSC_Bubble_Points::get($user_id);
 
 ?>
+
+
 <div class="bsc profile-points">
     <div class="profile-points__container">
         <h1 class="profile-points__title">¡ Tienes <strong><?php echo number_format($points_by_user); ?></strong> Bubble Points !</h1>
