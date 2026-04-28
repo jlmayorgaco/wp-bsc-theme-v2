@@ -60,12 +60,54 @@ function bsc_handle_bulk_export(): void {
 // ── Status tabs config ─────────────────────────────────────────────────
 function bsc_orders_status_tabs(): array {
     return [
-        ''           => 'Todos',
-        'processing' => 'Recibido',
-        'wc-shipped' => 'Enviado',
-        'completed'  => 'Terminado',
-        'cancelled'  => 'Cancelado',
+        ''              => [ 'label' => 'Todos',          'statuses' => [] ],
+        'wc-pending'    => [ 'label' => 'Pendiente',      'statuses' => [ 'pending', 'on-hold' ] ],
+        'wc-processing' => [ 'label' => 'Recibido',       'statuses' => [ 'processing' ] ],
+        'wc-preparing'  => [ 'label' => 'En preparación', 'statuses' => [ 'preparing' ] ],
+        'wc-shipped'    => [ 'label' => 'Enviado',        'statuses' => [ 'shipped' ] ],
+        'wc-completed'  => [ 'label' => 'Terminado',      'statuses' => [ 'completed' ] ],
+        'wc-cancelled'  => [ 'label' => 'Cancelado',      'statuses' => [ 'cancelled', 'failed', 'refunded' ] ],
     ];
+}
+
+function bsc_normalize_order_status_slug( string $status ): string {
+    return preg_replace( '/^wc-/', '', $status );
+}
+
+function bsc_normalize_order_statuses( array $statuses ): array {
+    return array_values( array_filter( array_map( 'bsc_normalize_order_status_slug', $statuses ) ) );
+}
+
+function bsc_unarchived_orders_meta_query(): array {
+    return [
+        'relation' => 'OR',
+        [
+            'key'     => '_bsc_archived_at',
+            'compare' => 'NOT EXISTS',
+        ],
+        [
+            'key'     => '_bsc_archived_at',
+            'value'   => '',
+            'compare' => '=',
+        ],
+    ];
+}
+
+function bsc_count_orders_for_statuses( array $statuses ): int {
+    $query_args = [
+        'limit'    => 1,
+        'paginate' => true,
+        'return'   => 'ids',
+        'meta_query' => bsc_unarchived_orders_meta_query(),
+    ];
+
+    if ( ! empty( $statuses ) ) {
+        $query_args['status'] = bsc_normalize_order_statuses( $statuses );
+    }
+
+    $result = wc_get_orders( $query_args );
+
+    return (int) ( $result->total ?? 0 );
 }
 
 // ── Page render ───────────────────────────────────────────────────────
@@ -83,13 +125,18 @@ function bsc_render_orders_page(): void {
     // Status tabs + counts
     $status_tabs = bsc_orders_status_tabs();
     $tab_counts  = [];
-    $all_statuses = ['processing', 'on-hold', 'preparing', 'wc-shipped', 'shipped', 'completed', 'cancelled', 'pending', 'failed', 'refunded'];
-    foreach ( $status_tabs as $slug => $label ) {
-        if ( $slug === '' ) {
-            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => $all_statuses ] ) );
-        } else {
-            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => [ $slug ] ] ) );
-        }
+    $all_statuses = array_values(
+        array_unique(
+            array_merge(
+                [ 'processing', 'on-hold', 'preparing', 'shipped', 'completed', 'cancelled', 'pending', 'failed', 'refunded' ],
+                bsc_normalize_order_statuses( array_keys( BSC_Admin_Orders_Table::STATUS_OPTIONS ) )
+            )
+        )
+    );
+
+    foreach ( $status_tabs as $slug => $config ) {
+        $statuses = $slug === '' ? $all_statuses : (array) ( $config['statuses'] ?? [] );
+        $tab_counts[ $slug ] = bsc_count_orders_for_statuses( $statuses );
     }
 
     // Build query args
@@ -97,7 +144,10 @@ function bsc_render_orders_page(): void {
     if ( $date_start )    $query_args['date_after']  = $date_start . ' 00:00:00';
     if ( $date_end )      $query_args['date_before'] = $date_end   . ' 23:59:59';
     if ( $search )        $query_args['s']           = $search;
-    if ( $active_status ) $query_args['status']      = [ $active_status ];
+    $query_args['meta_query'] = bsc_unarchived_orders_meta_query();
+    if ( $active_status && isset( $status_tabs[ $active_status ] ) ) {
+        $query_args['status'] = bsc_normalize_order_statuses( (array) $status_tabs[ $active_status ]['statuses'] );
+    }
 
     $table = new BSC_Admin_Orders_Table( $query_args );
     $table->prepare_items();
@@ -110,7 +160,7 @@ function bsc_render_orders_page(): void {
 
         <!-- ── Status tabs ── -->
         <nav class="bsc-orders-tabs">
-            <?php foreach ( $status_tabs as $slug => $label ) :
+            <?php foreach ( $status_tabs as $slug => $config ) :
                 $tab_url = $slug
                     ? add_query_arg( 'order_status', $slug, $base_url )
                     : $base_url;
@@ -119,7 +169,7 @@ function bsc_render_orders_page(): void {
             ?>
             <a href="<?php echo esc_url( $tab_url ); ?>"
                class="bsc-orders-tab<?php echo $is_active ? ' bsc-orders-tab--active' : ''; ?>">
-                <?php echo esc_html( $label ); ?>
+                <?php echo esc_html( $config['label'] ); ?>
                 <span class="bsc-tab-count"><?php echo esc_html( $count ); ?></span>
             </a>
             <?php endforeach; ?>
@@ -242,12 +292,12 @@ function bsc_ajax_update_order_status(): void {
 
     $order_id = absint( $_POST['order_id'] ?? 0 );
     $status   = sanitize_text_field( $_POST['status'] ?? '' );
-
-    // Strip wc- prefix if present
-    $status = preg_replace( '/^wc-/', '', $status );
+    $allowed_statuses = array_map( 'bsc_normalize_order_status_slug', array_keys( BSC_Admin_Orders_Table::STATUS_OPTIONS ) );
+    $status = bsc_normalize_order_status_slug( $status );
 
     $order = wc_get_order( $order_id );
     if ( ! $order ) wp_send_json_error( ['message' => 'Pedido no encontrado'] );
+    if ( ! in_array( $status, $allowed_statuses, true ) ) wp_send_json_error( ['message' => 'Estado inválido'] );
 
     $order->update_status( $status, 'Estado actualizado desde BSC Admin.' );
     wp_send_json_success( ['message' => 'Estado actualizado', 'status' => $status] );

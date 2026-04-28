@@ -7,6 +7,7 @@ class BSC_Order_Progress_Bar {
     public const SHIPPED   = 'shipped';
     public const DONE      = 'done';
     public const CANCELLED = 'cancelled';
+    public const REFUNDED  = 'refunded';
 
     private string $status = self::CANCELLED;
 
@@ -15,12 +16,13 @@ class BSC_Order_Progress_Bar {
     }
 
     public function setStatus(string $status): void {
-        $valid = [self::RECEIVED, self::SHIPPED, self::DONE, self::CANCELLED];
+        $valid = [self::RECEIVED, self::SHIPPED, self::DONE, self::CANCELLED, self::REFUNDED];
         $this->status = in_array($status, $valid, true) ? $status : self::CANCELLED;
     }
 
     public function render(): void {
-        if ($this->status === self::CANCELLED) {
+        if ($this->status === self::CANCELLED || $this->status === self::REFUNDED) {
+            $single_label = $this->status === self::REFUNDED ? 'Reembolsado' : 'Cancelado';
             ?>
             <div class="bsc__progress-bar bsc__progress-bar--single">
                 <div class="progress-bar">
@@ -30,7 +32,7 @@ class BSC_Order_Progress_Bar {
                 <div class="labels">
                     <div class="label label--focus">
                         <span class="label__line">|</span>
-                        <span class="label__text">Cancelado</span>
+                        <span class="label__text"><?php echo esc_html($single_label); ?></span>
                     </div>
                 </div>
             </div>
