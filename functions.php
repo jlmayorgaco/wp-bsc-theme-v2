@@ -64,6 +64,11 @@ require_once get_template_directory() . '/includes/class-bsc-roles.php';
 // BSC-036: dual stock class (always loaded — hooks fire on both admin and frontend)
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
 
+// Internal feature modules shipped inside the theme (plugin-like structure)
+foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_module_bootstrap ) {
+	require_once $bsc_module_bootstrap;
+}
+
 // BSC-053: BSC-branded email system (hooks into WooCommerce order status changes)
 if ( class_exists('WooCommerce') ) {
     require_once get_template_directory() . '/emails/bsc-emails.php';

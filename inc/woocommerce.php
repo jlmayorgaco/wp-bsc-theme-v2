@@ -31,7 +31,6 @@ function bsc_2_0_woocommerce_setup() {
 			),
 		)
 	);
-	add_theme_support( 'wc-product-gallery-zoom' );
 	add_theme_support( 'wc-product-gallery-lightbox' );
 	add_theme_support( 'wc-product-gallery-slider' );
 }
@@ -229,10 +228,52 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 
 
     add_action('after_setup_theme', function () {
-    add_theme_support('wc-product-gallery-zoom');
     add_theme_support('wc-product-gallery-lightbox');
     add_theme_support('wc-product-gallery-slider');
     });
+
+/**
+ * BSC-089: Product gallery image sizes tuned for PDP quality/performance balance.
+ *
+ * @param array $size Image size config.
+ * @return array
+ */
+function bsc_woocommerce_single_image_size( $size ) {
+	return array(
+		'width'  => 900,
+		'height' => 900,
+		'crop'   => 0,
+	);
+}
+add_filter( 'woocommerce_get_image_size_single', 'bsc_woocommerce_single_image_size' );
+
+/**
+ * BSC-089: Keep first PDP gallery image eager for faster LCP; others stay lazy.
+ *
+ * @param array        $attr       Image attributes.
+ * @param WP_Post      $attachment Attachment object.
+ * @param string|array $size       Requested image size.
+ * @return array
+ */
+function bsc_product_gallery_image_loading_attrs( $attr, $attachment, $size ) {
+	if ( ! is_product() ) {
+		return $attr;
+	}
+
+	static $gallery_image_count = 0;
+	$gallery_image_count++;
+
+	if ( 1 === $gallery_image_count ) {
+		$attr['loading']       = 'eager';
+		$attr['fetchpriority'] = 'high';
+	} else {
+		$attr['loading'] = 'lazy';
+	}
+
+	$attr['decoding'] = 'async';
+	return $attr;
+}
+add_filter( 'wp_get_attachment_image_attributes', 'bsc_product_gallery_image_loading_attrs', 10, 3 );
 
 
   add_filter('woocommerce_checkout_fields', 'bsc_add_billing_cedula_field');
@@ -316,21 +357,37 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
-function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
-    $user_id = (int) $order->get_user_id();
-    if ( $user_id <= 0 ) {
+function bsc_get_order_bubble_points_earned( WC_Order $order ): int {
+    $stored_points = (int) $order->get_meta( '_bsc_bp_points_awarded', true );
+    if ( $stored_points > 0 ) {
+        return $stored_points;
+    }
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'bsc_points_ledger';
+    $table      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+
+    if ( $table !== $table_name ) {
         return 0;
     }
 
-    if ( function_exists( 'bsc_bp_get_balance' ) ) {
-        return (int) bsc_bp_get_balance( $user_id );
-    }
+    $points = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COALESCE(SUM(delta), 0)
+             FROM {$table_name}
+             WHERE order_id = %d
+               AND reason = %s
+               AND delta > 0",
+            $order->get_id(),
+            'order_complete'
+        )
+    );
 
-    if ( class_exists( 'BSC_Bubble_Points' ) && method_exists( 'BSC_Bubble_Points', 'get' ) ) {
-        return (int) BSC_Bubble_Points::get( $user_id );
-    }
+    return max( 0, (int) $points );
+}
 
-    return (int) get_user_meta( $user_id, 'bsc_bubble_points', true );
+function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
+    return bsc_get_order_bubble_points_earned( $order );
 }
 
 function bsc_cart_has_free_shipping_coupon(): bool {
@@ -879,13 +936,13 @@ function bsc_map_order_status_to_bar(string $wc_status): string {
     $map = [
         'processing' => BSC_Order_Progress_Bar::RECEIVED,
         'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+        'pending'    => BSC_Order_Progress_Bar::RECEIVED,
         'preparing'  => BSC_Order_Progress_Bar::RECEIVED,
         'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
         'completed'  => BSC_Order_Progress_Bar::DONE,
-        'pending'    => BSC_Order_Progress_Bar::CANCELLED,
+        'refunded'   => BSC_Order_Progress_Bar::REFUNDED,
         'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
         'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-        'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
     ];
     return $map[$wc_status] ?? BSC_Order_Progress_Bar::CANCELLED;
 }
@@ -899,6 +956,17 @@ function bsc_schedule_order_archiver(): void {
 }
 
 add_action('bsc_auto_archive_orders', 'bsc_run_order_archiver');
+function bsc_mark_order_archived(WC_Order $order, string $bucket, int $days): void {
+    if ($order->get_meta('_bsc_archived_at', true)) {
+        return;
+    }
+
+    $order->update_meta_data('_bsc_archived_at', gmdate('Y-m-d H:i:s'));
+    $order->update_meta_data('_bsc_archive_bucket', $bucket);
+    $order->save_meta_data();
+    $order->add_order_note(sprintf('Auto-archivado tras %d dias en estado %s.', $days, $bucket));
+}
+
 function bsc_run_order_archiver(): void {
     $days_shipped   = (int) apply_filters('bsc_auto_archive_days_shipped',   15);
     $days_cancelled = (int) apply_filters('bsc_auto_archive_days_cancelled',  30);
@@ -913,8 +981,10 @@ function bsc_run_order_archiver(): void {
         'return'      => 'ids',
     ]);
     foreach ($shipped_ids as $id) {
-        $o = wc_get_order($id);
-        if ($o) $o->update_status('completed', "Auto-archivado tras {$days_shipped} días enviado.");
+        $order = wc_get_order($id);
+        if ($order instanceof WC_Order) {
+            bsc_mark_order_archived($order, 'shipped', $days_shipped);
+        }
     }
 
     $cancelled_ids = wc_get_orders([
@@ -924,7 +994,9 @@ function bsc_run_order_archiver(): void {
         'return'      => 'ids',
     ]);
     foreach ($cancelled_ids as $id) {
-        $o = wc_get_order($id);
-        if ($o) $o->update_status('completed', "Auto-archivado tras {$days_cancelled} días cancelado.");
+        $order = wc_get_order($id);
+        if ($order instanceof WC_Order) {
+            bsc_mark_order_archived($order, 'cancelled', $days_cancelled);
+        }
     }
 }

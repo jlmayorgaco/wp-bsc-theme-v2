@@ -9,6 +9,21 @@ defined('ABSPATH') || exit;
 // ── Register BSC menu pages ────────────────────────────────────────────
 add_action( 'admin_menu', 'bsc_add_admin_menu' );
 
+function bsc_dashboard_count_orders( array $statuses, array $extra_args = [] ): int {
+    $query_args = array_merge(
+        [
+            'status'   => $statuses,
+            'limit'    => 1,
+            'paginate' => true,
+            'return'   => 'ids',
+        ],
+        $extra_args
+    );
+
+    $result = wc_get_orders( $query_args );
+    return (int) ( $result->total ?? 0 );
+}
+
 function bsc_add_admin_menu(): void {
     // Top-level BSC entry (visible to any logged-in admin user)
     add_menu_page(
@@ -215,9 +230,24 @@ function bsc_render_dashboard(): void {
             return $carry + (in_array($o->get_status(), ['processing','completed','preparing','shipped']) ? (float)$o->get_total() : 0);
         }, 0);
 
-        $pending_ids    = wc_get_orders(['status' => ['pending','on-hold'], 'limit' => -1, 'return' => 'ids']);
-        $preparing_ids  = wc_get_orders(['status' => ['processing','wc-preparing'], 'limit' => -1, 'return' => 'ids']);
-        $shipped_ids    = wc_get_orders(['status' => ['wc-shipped'], 'limit' => -1, 'return' => 'ids']);
+        $pending_count   = bsc_dashboard_count_orders(['pending', 'on-hold']);
+        $preparing_count = bsc_dashboard_count_orders(['processing', 'preparing']);
+        $shipped_count   = bsc_dashboard_count_orders([
+            'shipped',
+        ], [
+            'meta_query' => [
+                'relation' => 'OR',
+                [
+                    'key'     => '_bsc_archived_at',
+                    'compare' => 'NOT EXISTS',
+                ],
+                [
+                    'key'     => '_bsc_archived_at',
+                    'value'   => '',
+                    'compare' => '=',
+                ],
+            ],
+        ]);
 
         $recent_orders = wc_get_orders(['limit' => 5, 'orderby' => 'date', 'order' => 'DESC']);
 
@@ -227,9 +257,9 @@ function bsc_render_dashboard(): void {
         $kpis = [
             'ventas_hoy'     => $ventas_hoy,
             'pedidos_hoy'    => count($today_orders),
-            'pendientes'     => count($pending_ids),
-            'preparando'     => count($preparing_ids),
-            'enviados'       => count($shipped_ids),
+            'pendientes'     => $pending_count,
+            'preparando'     => $preparing_count,
+            'enviados'       => $shipped_count,
             'recent_orders'  => array_map(fn($o) => [
                 'id'     => $o->get_id(),
                 'number' => $o->get_order_number(),
