@@ -268,11 +268,85 @@ if (!function_exists('bsc_normalize_header_link')) {
             return $link;
         }
 
+        if (str_starts_with($link, '/product-category/')) {
+            $resolved_term_link = bsc_get_header_taxonomy_link_from_path($link, 'product_cat');
+
+            if ($resolved_term_link !== '') {
+                return $resolved_term_link;
+            }
+        }
+
         if (str_starts_with($link, '/')) {
-            return home_url($link);
+            $resolved_page_link = bsc_get_header_page_link_from_path($link);
+
+            if ($resolved_page_link !== '') {
+                return $resolved_page_link;
+            }
+
+            if (untrailingslashit($link) === '/blog') {
+                $posts_page_id = (int) get_option('page_for_posts');
+
+                if ($posts_page_id > 0) {
+                    $posts_page_link = get_permalink($posts_page_id);
+
+                    if (is_string($posts_page_link) && $posts_page_link !== '') {
+                        return $posts_page_link;
+                    }
+                }
+            }
+
+            return home_url(user_trailingslashit(ltrim($link, '/')));
         }
 
         return $link;
+    }
+}
+
+if (!function_exists('bsc_get_header_taxonomy_link_from_path')) {
+    function bsc_get_header_taxonomy_link_from_path(string $path, string $taxonomy): string {
+        $slug = sanitize_title(wp_basename(untrailingslashit($path)));
+
+        if ($slug === '') {
+            return '';
+        }
+
+        $term = get_term_by('slug', $slug, $taxonomy);
+
+        if (!$term || is_wp_error($term)) {
+            return '';
+        }
+
+        $term_link = get_term_link($term);
+
+        if (is_wp_error($term_link) || !is_string($term_link) || $term_link === '') {
+            return '';
+        }
+
+        return $term_link;
+    }
+}
+
+if (!function_exists('bsc_get_header_page_link_from_path')) {
+    function bsc_get_header_page_link_from_path(string $path): string {
+        $normalized_path = trim((string) wp_parse_url($path, PHP_URL_PATH), '/');
+
+        if ($normalized_path === '') {
+            return '';
+        }
+
+        $page = get_page_by_path($normalized_path);
+
+        if (!$page instanceof WP_Post) {
+            return '';
+        }
+
+        $page_link = get_permalink($page);
+
+        if (!is_string($page_link) || $page_link === '') {
+            return '';
+        }
+
+        return $page_link;
     }
 }
 
