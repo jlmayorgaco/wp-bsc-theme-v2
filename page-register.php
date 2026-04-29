@@ -104,55 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
   </div>
 </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("registerform");
-
-  form.addEventListener("submit", function (e) {
-    let hasError = false;
-
-    const fields = [
-      { id: "nombres", msg: "Por favor ingresa tu nombre completo." },
-      { id: "email", msg: "Por favor ingresa un correo válido." },
-      { id: "password", msg: "Por favor ingresa una contraseña." }
-    ];
-
-    fields.forEach(field => {
-      const input = document.getElementById(field.id);
-      clearError(input, `error_${field.id}`);
-
-      if (input.value.trim() === "") {
-        showError(input, `error_${field.id}`, field.msg);
-        hasError = true;
-      }
-
-      if (field.id === "email" && input.value.trim() !== "") {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(input.value.trim())) {
-          showError(input, `error_${field.id}`, "El correo no tiene un formato válido.");
-          hasError = true;
-        }
-      }
-    });
-
-    if (hasError) e.preventDefault();
-  });
-
-  function showError(input, errorId, message) {
-    input.classList.add("bsc__input--invalid");
-    const errorDiv = document.getElementById(errorId);
-    errorDiv.textContent = message;
-    errorDiv.style.display = "block";
-  }
-
-  function clearError(input, errorId) {
-    input.classList.remove("bsc__input--invalid");
-    const errorDiv = document.getElementById(errorId);
-    errorDiv.textContent = "";
-    errorDiv.style.display = "none";
-  }
-});
-</script>
 
 <?php get_footer(); ?>
 

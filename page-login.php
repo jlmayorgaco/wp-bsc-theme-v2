@@ -70,47 +70,5 @@ $login_error = isset($_GET['login']) && $_GET['login'] === 'failed';
   </div>
 </main>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("loginform");
-  const userLogin = document.getElementById("user_login");
-  const userPass = document.getElementById("user_pass");
-
-  form.addEventListener("submit", function (e) {
-    let hasError = false;
-
-    clearError(userLogin, "error_user_login");
-    clearError(userPass, "error_user_pass");
-
-    if (userLogin.value.trim() === "") {
-      showError(userLogin, "error_user_login", "Por favor ingresa tu correo o usuario.");
-      hasError = true;
-    }
-
-    if (userPass.value.trim() === "") {
-      showError(userPass, "error_user_pass", "Por favor ingresa tu contraseña.");
-      hasError = true;
-    }
-
-    if (hasError) {
-      e.preventDefault();
-    }
-  });
-
-  function showError(input, errorId, message) {
-    input.classList.add("form__input--invalid");
-    const errorDiv = document.getElementById(errorId);
-    errorDiv.textContent = message;
-    errorDiv.style.display = "block";
-  }
-
-  function clearError(input, errorId) {
-    input.classList.remove("form__input--invalid");
-    const errorDiv = document.getElementById(errorId);
-    errorDiv.textContent = "";
-    errorDiv.style.display = "none";
-  }
-});
-</script>
 
 <?php get_footer(); ?>
