@@ -3,6 +3,7 @@ const { expectsStorefront, routes } = require('../helpers/env');
 const {
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
+  gotoProductGridCategory,
   interactWithPrimaryCardAddToCart,
   openFirstProductFromCategory,
 } = require('../helpers/ui');
@@ -66,20 +67,28 @@ test.describe('BSC smoke', () => {
   });
 
   test('category page renders product cards', async ({ page }) => {
-    await gotoAndStabilize(page, expectsStorefront() ? routes.category : routes.groupCategory);
-
     if (expectsStorefront()) {
+      await gotoProductGridCategory(page, [
+        routes.categoryGrid,
+        routes.category,
+        routes.groupCategory,
+      ]);
       await expect(page.locator('.bsc__product-card').first()).toBeVisible();
       return;
     }
 
+    await gotoAndStabilize(page, routes.groupCategory);
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
   test('first PDP opens from category', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for PDP smoke');
 
-    await openFirstProductFromCategory(page, routes.category);
+    await openFirstProductFromCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ]);
 
     await expect(
       page.locator(
@@ -91,7 +100,11 @@ test.describe('BSC smoke', () => {
   test('product card add-to-cart toggles quantity controls and restores CTA at zero', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for cart smoke');
 
-    await gotoAndStabilize(page, routes.category);
+    await gotoProductGridCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ]);
     const { addButton, controls } = await interactWithPrimaryCardAddToCart(page, testInfo.project.name);
     const minusButton = controls.locator('.bsc__qty-minus').first();
 
@@ -104,7 +117,11 @@ test.describe('BSC smoke', () => {
 
   test('checkout page renders', async ({ page }, testInfo) => {
     if (expectsStorefront()) {
-      await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
+      await ensureCheckoutReadyFromCategory(page, [
+        routes.categoryGrid,
+        routes.category,
+        routes.groupCategory,
+      ], testInfo.project.name);
     }
 
     await gotoAndStabilize(page, routes.checkout);
@@ -122,7 +139,11 @@ test.describe('BSC smoke', () => {
   test('checkout coupon toggle opens the coupon form', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for checkout coupon smoke');
 
-    await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
+    await ensureCheckoutReadyFromCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ], testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
 
     const $toggle = page.locator('.showcoupon').first();

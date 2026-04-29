@@ -11,6 +11,12 @@ const routes = {
     process.env.PW_ROUTE_CATEGORY ||
     fixture?.routes?.category ||
     '/product-category/group-skin-care/',
+  categoryGrid:
+    process.env.PW_ROUTE_CATEGORY_GRID ||
+    fixture?.routes?.categoryGrid ||
+    fixture?.routes?.category ||
+    fixture?.routes?.groupCategory ||
+    '/product-category/group-skin-care/',
   groupCategory:
     process.env.PW_ROUTE_GROUP_CATEGORY ||
     fixture?.routes?.groupCategory ||
