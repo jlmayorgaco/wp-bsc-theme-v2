@@ -24,7 +24,7 @@ $login_error = isset($_GET['login']) && $_GET['login'] === 'failed';
           <div class="form__error">Credenciales inválidas. Intenta de nuevo.</div>
         <?php endif; ?>
 
-        <form name="loginform" id="loginform" action="<?php echo esc_url(wp_login_url()); ?>" method="post" class="form">
+        <form name="loginform" id="loginform" action="<?php echo esc_url(wp_login_url()); ?>" method="post" class="form" novalidate>
           <div class="form__field form__field--username">
             <label for="user_login" class="form__label"><strong>Correo o usuario</strong></label>
             <input type="text" name="log" id="user_login" class="form__input" required />
