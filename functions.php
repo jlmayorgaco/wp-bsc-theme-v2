@@ -71,6 +71,7 @@ foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_modu
 
 // BSC-082: shared email helpers + follow-up module
 require_once get_template_directory() . '/emails/bsc-email-helpers.php';
+require_once get_template_directory() . '/emails/bsc-email-previews.php';
 require_once get_template_directory() . '/emails/bsc-followup-emails.php';
 
 // BSC-053: BSC-branded email system (hooks into WooCommerce order status changes)

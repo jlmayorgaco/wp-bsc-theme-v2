@@ -39,11 +39,21 @@ Override them with:
 - `PW_ROUTE_ACCOUNT`
 - `PW_ROUTE_BUBBLE_POINTS`
 - `PW_ROUTE_THANK_YOU`
+- `PW_ROUTE_PRODUCT`
 
-## Authenticated fixture bootstrap
+## Fixture bootstrap
 
-The visual suite can auto-bootstrap a deterministic QA customer and a reusable
-WooCommerce order by calling WordPress through the Local PHP runtime.
+The visual suite can auto-bootstrap deterministic QA data by calling WordPress
+through the Local PHP runtime.
+
+It seeds:
+
+- QA customer credentials
+- QA administrator credentials for preview pages
+- reusable WooCommerce order for thank-you baselines
+- deterministic public visual category
+- deterministic public visual PDP
+- email preview routes
 
 These authenticated baselines are intended to run with:
 
@@ -55,6 +65,8 @@ Auto-discovered defaults:
 - `php.ini`: latest `php.ini` under `%APPDATA%\\Local\\run\\*\\conf\\php`
 - QA account route: WooCommerce `myaccount`
 - Bubble Points route: `/mi-cuenta/bubble-points/`
+- QA category route: fixture `product_cat` archive
+- QA product route: fixture product permalink
 - Thank-you route: fixture order `order-received` URL when `PW_PUBLIC_MODE=storefront`
 
 Optional overrides:
@@ -66,6 +78,7 @@ Optional overrides:
 - `PW_ROUTE_ACCOUNT`
 - `PW_ROUTE_BUBBLE_POINTS`
 - `PW_ROUTE_THANK_YOU`
+- `PW_ROUTE_PRODUCT`
 - `PW_DISABLE_WP_FIXTURE=1`
 
 Without the fixture or explicit auth variables:
@@ -85,6 +98,8 @@ Without the fixture or explicit auth variables:
 ```bash
 npm run test:e2e:smoke
 npm run test:e2e:visual
+npm run test:e2e:visual:public-auth
+npm run test:e2e:visual:emails
 npm run test:e2e:visual:update
 npm run test:e2e:report
 ```
@@ -93,14 +108,16 @@ npm run test:e2e:report
 
 1. Point the suite at the approved environment.
 2. If the approved storefront is visible, run with `PW_PUBLIC_MODE=storefront`.
-2. Ensure the expected products/pages exist.
-3. Run `npm run test:e2e:visual:update`.
+3. Prefer fixture-backed routes for category and PDP baselines.
+4. Run `npm run test:e2e:visual:public-auth`.
+5. Run `npm run test:e2e:visual:emails`.
+6. Run `npm run test:e2e:visual:update` only when intentionally refreshing snapshots.
 4. Review generated snapshots before committing them.
 
 ## Data assumptions
 
-- the category route contains product cards
-- the first product card opens a valid PDP
+- public category and PDP baselines should prefer fixture routes over live catalog order
 - checkout is reachable with the current catalog/cart state
 - public visual baselines require a non-`coming soon` storefront response
 - account, bubble points, and thank-you routes use a reusable QA fixture when the Local PHP runtime is available
+- email preview baselines use reusable QA admin accounts and preview routes from the fixture bootstrap

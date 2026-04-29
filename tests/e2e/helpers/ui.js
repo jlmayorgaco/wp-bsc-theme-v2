@@ -121,9 +121,46 @@ async function loginFromAccount(page, accountPath, email, password) {
   return true;
 }
 
+async function loginToWpAdmin(page, username, password) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await page.goto('/wp-login.php', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('load');
+
+    if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
+      return true;
+    }
+
+    const usernameField = page.locator('#user_login').first();
+    const passwordField = page.locator('#user_pass').first();
+    const submitButton = page.locator('#wp-submit').first();
+
+    if (!(await usernameField.count()) || !(await passwordField.count())) {
+      continue;
+    }
+
+    await usernameField.fill(username);
+    await passwordField.fill(password);
+    await submitButton.click();
+    await page.waitForLoadState('load');
+
+    try {
+      await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    } catch (error) {
+      // Best-effort only.
+    }
+
+    if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 module.exports = {
   gotoAndStabilize,
   loginFromAccount,
+  loginToWpAdmin,
   openFirstProductFromCategory,
   primeFullPage,
 };

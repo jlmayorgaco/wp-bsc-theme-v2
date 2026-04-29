@@ -133,4 +133,6 @@ function loadAuthFixture() {
 
 module.exports = {
   loadAuthFixture,
+  resolvePhpBinary,
+  resolvePhpIni,
 };
