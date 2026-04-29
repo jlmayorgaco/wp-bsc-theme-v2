@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * BSC-031: Admin orders page render + AJAX handlers.
  * BSC-033: bsc_save_tracking â†’ auto status 'shipped' + shipping email.
