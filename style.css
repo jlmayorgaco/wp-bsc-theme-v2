@@ -12548,6 +12548,9 @@ button {
   margin: 0;
   padding: 0;
 }
+.bsc__profile-dropdown ul li.bsc__profile-dropdown-item--hidden {
+  display: none;
+}
 .bsc__profile-dropdown ul li {
   display: flex;
   flex-direction: column;
@@ -13331,6 +13334,10 @@ body.mobile-menu-open .bsc__header--mobile .item--sidebar-btn .mobile-toggle__ic
 }
 .menu__icon > button:hover .icon--normal {
   opacity: 0;
+}
+
+.menu__icon.menu__icon--hidden {
+  display: none;
 }
 
 .bsc__header--desktop {
