@@ -1,3 +1,4 @@
+@use "sass:map";
 @use '../tokens/colors';
 @use '../tokens/columns';
 @use '../tokens/structure';
@@ -19,6 +20,34 @@ $button-font-size: 17px;
 $button-font-weight: 700;
 $button-letter-spacing: 1.5px;
 
+@function bsc-breakpoint($name) {
+  @return map.get(structure.$bsc-breakpoints, $name);
+}
+
+@mixin bsc-respond-max($value) {
+  @media (max-width: $value) {
+    @content;
+  }
+}
+
+@mixin bsc-breakpoint-down($name) {
+  $value: bsc-breakpoint($name);
+
+  @if $value == null {
+    @error "Unknown BSC breakpoint `#{$name}`.";
+  }
+
+  @include bsc-respond-max($value) {
+    @content;
+  }
+}
+
+@mixin bsc-touch-or-tablet {
+  @media (max-width: bsc-breakpoint("tablet")), (hover: none) and (pointer: coarse) {
+    @content;
+  }
+}
+
 @mixin flex-center($justify: center, $align: center) {
   display: flex;
   justify-content: $justify;
@@ -30,6 +59,42 @@ $button-letter-spacing: 1.5px;
   height: $height;
   display: block;
   object-fit: cover;
+}
+
+@mixin bsc-button-base(
+  $bg: #333,
+  $color: #fff,
+  $hover-bg: #fff,
+  $hover-color: #333,
+  $padding: $button-padding,
+  $radius: $button-radius,
+  $outline: false,
+  $font-size: $button-font-size,
+  $height: var(--size--control-h)
+) {
+  display: inline-block;
+  font-family: $font-primary;
+  font-size: $font-size;
+  font-weight: $button-font-weight;
+  letter-spacing: $button-letter-spacing;
+  text-align: center;
+  text-decoration: none;
+  padding: $padding;
+  border-radius: $radius;
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+  height: $height;
+  overflow: hidden;
+  line-height: 1;
+  border: if($outline, 1px solid $color, none);
+
+  background-color: if($outline, transparent, $bg);
+  color: $color;
+
+  &:hover {
+    background-color: $hover-bg;
+    color: $hover-color;
+  }
 }
 
 @mixin bsc-button(
@@ -80,13 +145,11 @@ $button-letter-spacing: 1.5px;
   );
 }
 
-.bsc__button--floating{
-      margin: 1em auto;
-    display: block;
-    width: fit-content;
+.bsc__button--floating {
+  margin: 1em auto;
+  display: block;
+  width: fit-content;
 }
-
-
 
 @mixin button {
   border: none;
@@ -98,4 +161,169 @@ $button-letter-spacing: 1.5px;
 @mixin clickable {
   cursor: pointer;
   user-select: none;
+}
+
+@mixin bsc-title-base(
+  $align: center,
+  $padding-top: 80px,
+  $padding-bottom: 20px,
+  $margin: 0 auto
+) {
+  display: block;
+  width: fit-content;
+  margin: $margin;
+  color: var(--color--text);
+  text-align: $align;
+  padding-top: $padding-top;
+  padding-bottom: $padding-bottom;
+  @include typography.font-title;
+
+  strong {
+    font-weight: 900;
+  }
+}
+
+@mixin bsc-title-underline(
+  $width: 120px,
+  $height: 20px,
+  $margin-top: 30px,
+  $image-url: '/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png'
+) {
+  &::after {
+    content: '';
+    display: block;
+    width: $width;
+    height: $height;
+    margin: $margin-top auto 0;
+    background-image: url($image-url);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+  }
+}
+
+@mixin bsc-description-base($max-width: 622px) {
+  font-family: typography.$font__heading;
+  color: var(--color--text);
+  font-size: 18px;
+  letter-spacing: 2px;
+  line-height: 29.25px;
+  margin: 0 auto;
+  margin-bottom: 30px;
+  text-rendering: optimizeLegibility;
+  font-weight: 100;
+  max-width: $max-width;
+  text-align: center;
+}
+
+@mixin bsc-price-base($size: 25px, $weight: 900, $spacing: 2px) {
+  font-family: typography.$font__heading;
+  font-size: $size;
+  font-weight: $weight;
+  letter-spacing: $spacing;
+  line-height: 1;
+}
+
+@mixin bsc-field-base($margin-bottom: 20px, $gap: 0.5rem) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+  margin-bottom: $margin-bottom;
+
+  label {
+    color: var(--color--text);
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+}
+
+@mixin bsc-input-base(
+  $padding: 0.75rem,
+  $border: 1px solid var(--color--border),
+  $radius: var(--radius--md),
+  $background: #fff,
+  $color: var(--color--text),
+  $font-size: 1rem,
+  $letter-spacing: 1px
+) {
+  width: 100%;
+  display: block;
+  min-height: var(--size--input-h);
+  padding: $padding;
+  border: $border;
+  border-radius: $radius;
+  background-color: $background;
+  color: $color;
+  font-family: inherit;
+  font-size: $font-size;
+  letter-spacing: $letter-spacing;
+  line-height: 1.2;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: var(--color--muted);
+  }
+}
+
+@mixin bsc-link-reset($color: inherit, $weight: inherit) {
+  color: $color;
+  font-weight: $weight;
+  text-decoration: none;
+
+  &:visited,
+  &:active,
+  &:focus {
+    color: $color;
+  }
+}
+
+@mixin bsc-quantity-controls-base(
+  $height: var(--size--control-h),
+  $button-background: #f3f3f3,
+  $button-border: 1px solid #ccc,
+  $button-radius: 6px
+) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: $height;
+  overflow: hidden;
+
+  button {
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+    padding: 0;
+    background-color: $button-background;
+    border: $button-border;
+    border-radius: $button-radius;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #e0e0e0;
+      border-color: #999;
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  .bsc__qty-value {
+    display: inline-block;
+    min-width: 1.5rem;
+    color: var(--color--text);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 2rem;
+    text-align: center;
+    user-select: none;
+  }
 }

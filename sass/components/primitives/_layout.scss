@@ -1,0 +1,24 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__section {
+  padding-top: var(--space--section-y);
+  padding-bottom: var(--space--section-y);
+}
+
+.bsc__section--tight {
+  padding-top: var(--space--xl);
+  padding-bottom: var(--space--xl);
+}
+
+.bsc__section--flush {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.bsc__section-title {
+  color: var(--color--text);
+  font-family: "Helvetica", sans-serif;
+  font-size: 14px;
+  font-weight: 100;
+  letter-spacing: 1px;
+}

@@ -1,0 +1,20 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__title {
+  @include mixins.bsc-title-base();
+  @include mixins.bsc-title-underline();
+}
+
+.bsc__title--centered {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.bsc__description {
+  @include mixins.bsc-description-base();
+}
+
+.bsc__price {
+  @include mixins.bsc-price-base();
+}
