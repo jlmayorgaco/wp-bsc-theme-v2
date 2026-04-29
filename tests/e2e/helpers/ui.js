@@ -33,6 +33,27 @@ async function waitForImages(page) {
   });
 }
 
+async function primeFullPage(page) {
+  const viewport = page.viewportSize();
+  const viewportHeight = viewport?.height || 900;
+  const documentHeight = await page.evaluate(() =>
+    Math.max(
+      document.body?.scrollHeight || 0,
+      document.documentElement?.scrollHeight || 0
+    )
+  );
+
+  for (let top = 0; top < documentHeight; top += Math.max(200, Math.floor(viewportHeight * 0.8))) {
+    await page.evaluate((scrollTop) => window.scrollTo(0, scrollTop), top);
+    await page.waitForTimeout(75);
+    await waitForImages(page);
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(75);
+  await waitForImages(page);
+}
+
 async function gotoAndStabilize(page, path) {
   await page.goto(path, { waitUntil: 'domcontentloaded' });
   await page.waitForLoadState('load');
@@ -45,6 +66,7 @@ async function gotoAndStabilize(page, path) {
 
   await disableMotion(page);
   await waitForImages(page);
+  await primeFullPage(page);
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
@@ -68,6 +90,7 @@ async function openFirstProductFromCategory(page, categoryPath) {
 
   await disableMotion(page);
   await waitForImages(page);
+  await primeFullPage(page);
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
@@ -102,4 +125,5 @@ module.exports = {
   gotoAndStabilize,
   loginFromAccount,
   openFirstProductFromCategory,
+  primeFullPage,
 };
