@@ -35,6 +35,19 @@ test.describe('BSC visual baseline - gated pages', () => {
     });
   });
 
+  test('account addresses page', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Authenticated visual baselines require PW_PUBLIC_MODE=storefront.');
+    test.skip(!hasAccountAuth(), 'The auth fixture or PW_ACCOUNT_* credentials are required.');
+
+    await loginFromAccount(page, routes.account, auth.email, auth.password);
+    await gotoAndStabilize(page, routes.accountAddresses);
+
+    await expect(page).toHaveScreenshot('account-addresses.png', {
+      animations: 'disabled',
+      fullPage: true,
+    });
+  });
+
   test('thank you page', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Authenticated visual baselines require PW_PUBLIC_MODE=storefront.');
     test.skip(!hasThankYouRoute(), 'The auth fixture or PW_ROUTE_THANK_YOU is required.');

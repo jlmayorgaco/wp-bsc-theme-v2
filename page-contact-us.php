@@ -120,7 +120,7 @@ get_header();
                   <label for="bsc-contact-message">Mensaje</label>
                   <textarea id="bsc-contact-message" name="bsc_message" required placeholder="¿En qué podemos ayudarte?" rows="4"></textarea>
                 </div>
-                <div id="bsc-contact-notice" class="bsc__contact-notice" style="display:none" aria-live="polite"></div>
+                <div id="bsc-contact-notice" class="bsc__contact-notice" aria-live="polite"></div>
                 <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__contact-submit">Enviar mensaje</button>
               </form>
             </div>

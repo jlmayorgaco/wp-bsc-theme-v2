@@ -309,6 +309,7 @@ $container-width: 1200px;
 }
 
 .bc__form-feedback {
+  display: none;
   margin: 0.25rem 0 0;
   padding: 0.85rem 1rem;
   border-radius: 14px;
@@ -328,6 +329,7 @@ $container-width: 1200px;
 }
 
 .bc__form-success {
+  display: none;
   margin-top: 1rem;
 }
 

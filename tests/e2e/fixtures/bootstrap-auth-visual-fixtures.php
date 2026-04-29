@@ -53,6 +53,14 @@ function bsc_playwright_fixture_account_url(): string {
     return wc_get_page_permalink('myaccount') ?: home_url('/mi-cuenta/');
 }
 
+function bsc_playwright_fixture_account_addresses_url(): string {
+    if (function_exists('wc_get_account_endpoint_url')) {
+        return wc_get_account_endpoint_url('edit-address');
+    }
+
+    return home_url('/mi-cuenta/edit-address/');
+}
+
 function bsc_playwright_fixture_bubble_points_url(): string {
     $bubble_points_page = get_page_by_path('mi-cuenta/bubble-points');
 
@@ -415,11 +423,12 @@ $payload = [
         'password' => $password,
     ],
     'routes' => [
-        'account'      => bsc_playwright_fixture_account_url(),
-        'bubblePoints' => bsc_playwright_fixture_bubble_points_url(),
-        'category'     => get_term_link($public_category),
-        'product'      => get_permalink($public_product->get_id()),
-        'thankYou'     => $order->get_checkout_order_received_url(),
+        'account'          => bsc_playwright_fixture_account_url(),
+        'accountAddresses' => bsc_playwright_fixture_account_addresses_url(),
+        'bubblePoints'     => bsc_playwright_fixture_bubble_points_url(),
+        'category'         => get_term_link($public_category),
+        'product'          => get_permalink($public_product->get_id()),
+        'thankYou'         => $order->get_checkout_order_received_url(),
     ],
     'admin' => [
         'username' => $admin_user->user_login,

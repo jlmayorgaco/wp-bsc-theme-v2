@@ -66,6 +66,16 @@
   }
 }
 
+.bsc__address-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+
+  strong {
+    display: inline-block;
+  }
+}
+
 .bsc__address-button {
   display: inline-block;
   margin-top: 0px;

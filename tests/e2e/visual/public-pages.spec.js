@@ -61,4 +61,48 @@ test.describe('BSC visual baseline - public pages', () => {
       fullPage: true,
     });
   });
+
+  test('contact us', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
+
+    await gotoAndStabilize(page, routes.contact);
+
+    await expect(page).toHaveScreenshot('contact-us.png', {
+      animations: 'disabled',
+      fullPage: true,
+    });
+  });
+
+  test('login', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
+
+    await gotoAndStabilize(page, routes.login);
+
+    await expect(page).toHaveScreenshot('login.png', {
+      animations: 'disabled',
+      fullPage: true,
+    });
+  });
+
+  test('register', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
+
+    await gotoAndStabilize(page, routes.register);
+
+    await expect(page).toHaveScreenshot('register.png', {
+      animations: 'disabled',
+      fullPage: true,
+    });
+  });
+
+  test('bubble creators', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
+
+    await gotoAndStabilize(page, routes.bubbleCreators);
+
+    await expect(page).toHaveScreenshot('bubble-creators.png', {
+      animations: 'disabled',
+      fullPage: true,
+    });
+  });
 });

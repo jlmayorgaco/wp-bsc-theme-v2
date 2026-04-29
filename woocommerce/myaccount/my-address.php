@@ -78,7 +78,7 @@ $pretty_fields = [
                         }
                     }
 
-                    echo '<div style="display:flex">' . '<strong>'. esc_html($label) . '</strong>' . ': ' . esc_html($value) . '</div>';
+                    echo '<div class="bsc__address-row"><strong>' . esc_html($label) . '</strong>: ' . esc_html($value) . '</div>';
                 }
 
                 if ( ! $has_any ) {

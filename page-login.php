@@ -45,7 +45,7 @@ $login_error = isset($_GET['login']) && $_GET['login'] === 'failed';
           </div>
 
           <div class="form__field form__field--submit">
-            <input type="submit" name="wp-submit" id="wp-submit" style="padding: 10px 30px; font-size:17px;" class="form__submit btn btn--primary" value="Iniciar sesión" />
+            <input type="submit" name="wp-submit" id="wp-submit" class="form__submit form__submit--auth-cta btn btn--primary" value="Iniciar sesión" />
             <input type="hidden" name="redirect_to" value="<?php echo esc_url(home_url('/mi-cuenta/')); ?>" />
           </div>
 
@@ -53,10 +53,10 @@ $login_error = isset($_GET['login']) && $_GET['login'] === 'failed';
             <a href="<?php echo esc_url(wp_lostpassword_url()); ?>" class="form__link">¿Olvidaste tu contraseña?</a>
           </div>
 
-          <hr style="margin-top: 2em; margin-bottom: 2em; width: 350px; border-width: 1px; border-bottom-color: #cccccc7a;">
+          <hr class="form__divider">
 
           <div class="form__field form__field--submit">
-            <a href="<?php echo esc_url(home_url('/register/')); ?>" style="padding: 10px 30px; font-size:17px;" class="bsc__signin_btn form__submit btn btn--primary">Crear mi cuenta</a>
+            <a href="<?php echo esc_url(home_url('/register/')); ?>" class="bsc__signin_btn form__submit form__submit--auth-cta btn btn--primary">Crear mi cuenta</a>
           </div>
 
           <div class="form__links">
