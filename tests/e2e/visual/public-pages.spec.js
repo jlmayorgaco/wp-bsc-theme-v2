@@ -31,7 +31,12 @@ test.describe('BSC visual baseline - public pages', () => {
   test('product detail', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
-    await openFirstProductFromCategory(page, routes.category);
+    if (routes.product) {
+      await gotoAndStabilize(page, routes.product);
+    } else {
+      await openFirstProductFromCategory(page, routes.category);
+    }
+
     await page.addStyleTag({
       content: `
         .bsc__product-recommendations {

@@ -8,7 +8,13 @@ const publicMode =
 const routes = {
   home: process.env.PW_ROUTE_HOME || '/',
   category:
-    process.env.PW_ROUTE_CATEGORY || '/product-category/group-skin-care/',
+    process.env.PW_ROUTE_CATEGORY ||
+    fixture?.routes?.category ||
+    '/product-category/group-skin-care/',
+  product:
+    process.env.PW_ROUTE_PRODUCT ||
+    fixture?.routes?.product ||
+    '',
   checkout: process.env.PW_ROUTE_CHECKOUT || '/checkout/',
   account:
     process.env.PW_ROUTE_ACCOUNT ||

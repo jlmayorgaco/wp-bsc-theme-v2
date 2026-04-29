@@ -164,6 +164,7 @@ function bsc_render_followup_emails_page(): void {
 						<th>Tipo</th>
 						<th>Trigger</th>
 						<th>Archivo</th>
+						<th>Preview</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -172,6 +173,13 @@ function bsc_render_followup_emails_page(): void {
 							<td><?php echo esc_html( $row['label'] ); ?></td>
 							<td><?php echo esc_html( $row['trigger'] ); ?></td>
 							<td><code><?php echo esc_html( get_template_directory() . '/emails/' . $row['file'] ); ?></code></td>
+							<td>
+								<?php if ( ! empty( $row['slug'] ) && function_exists( 'bsc_get_email_preview_url' ) ) : ?>
+									<a class="button button-secondary" href="<?php echo esc_url( bsc_get_email_preview_url( (string) $row['slug'] ) ); ?>" target="_blank" rel="noopener noreferrer">Preview</a>
+								<?php else : ?>
+									<span class="description">N/D</span>
+								<?php endif; ?>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>

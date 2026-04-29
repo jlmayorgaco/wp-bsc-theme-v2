@@ -78,38 +78,63 @@ function bsc_send_email_from_template( string $to, string $subject, string $temp
 function bsc_get_email_template_manifest(): array {
 	return [
 		[
+			'slug'    => 'welcome',
 			'label'   => 'Usuario nuevo',
 			'trigger' => 'Inmediato al crear cuenta customer',
 			'file'    => 'bsc-welcome-email.php',
 		],
 		[
-			'label'   => 'Recuperar contraseña',
+			'slug'    => 'password-reset',
+			'label'   => 'Recuperar contrasena',
 			'trigger' => 'Inmediato al solicitar reset',
 			'file'    => 'bsc-password-reset-email.php',
 		],
 		[
-			'label'   => 'Cumpleaños',
-			'trigger' => 'Diario, una vez por año',
+			'slug'    => 'birthday',
+			'label'   => 'Cumpleanos',
+			'trigger' => 'Diario, una vez por ano',
 			'file'    => 'bsc-birthday-email.php',
 		],
 		[
-			'label'   => 'Compra',
+			'slug'    => 'order-confirmed',
+			'label'   => 'Compra confirmada',
 			'trigger' => 'Transaccional por estado processing',
 			'file'    => 'bsc-order-confirmed.php',
 		],
 		[
-			'label'   => 'Envío',
-			'trigger' => 'Transaccional al guardar guía / shipped',
+			'slug'    => 'order-preparing',
+			'label'   => 'Pedido en preparacion',
+			'trigger' => 'Transaccional por estado preparing',
+			'file'    => 'bsc-order-preparing.php',
+		],
+		[
+			'slug'    => 'order-shipped',
+			'label'   => 'Envio',
+			'trigger' => 'Transaccional al guardar guia / shipped',
 			'file'    => 'bsc-order-shipped.php',
 		],
 		[
+			'slug'    => 'order-delivered',
+			'label'   => 'Pedido entregado',
+			'trigger' => 'Transaccional por estado completed legitimo',
+			'file'    => 'bsc-order-delivered.php',
+		],
+		[
+			'slug'    => 'order-cancelled',
+			'label'   => 'Pedido cancelado',
+			'trigger' => 'Transaccional por estado cancelled',
+			'file'    => 'bsc-order-cancelled.php',
+		],
+		[
+			'slug'    => 'followup-inactive',
 			'label'   => 'Hace mucho no compras',
-			'trigger' => 'Cron diario según última compra',
+			'trigger' => 'Cron diario segun ultima compra',
 			'file'    => 'bsc-followup-inactive.php',
 		],
 		[
-			'label'   => 'Se te acabó el producto',
-			'trigger' => 'Cron diario según timeout por producto',
+			'slug'    => 'followup-repurchase',
+			'label'   => 'Se te acabo el producto',
+			'trigger' => 'Cron diario segun timeout por producto',
 			'file'    => 'bsc-followup-repurchase.php',
 		],
 	];
