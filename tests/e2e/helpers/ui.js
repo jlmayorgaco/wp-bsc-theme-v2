@@ -160,16 +160,24 @@ async function loginFromAccount(page, loginPath, accountPath, usernameOrEmail, p
   }
 
   if (accountPath) {
-    await gotoAndStabilize(page, accountPath);
-    if (page.url().includes('/login/') || page.url().includes('/wp-login.php')) {
-      throw new Error('Account login did not complete successfully.');
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await gotoAndStabilize(page, accountPath);
+
+      if (!page.url().includes('/login/') && !page.url().includes('/wp-login.php')) {
+        const accountContent = page.locator('.woocommerce-MyAccount-content').first();
+
+        if (await accountContent.count()) {
+          await expect(accountContent).toBeVisible();
+        }
+
+        await waitForImages(page);
+        return true;
+      }
+
+      await page.waitForTimeout(500);
     }
 
-    const accountContent = page.locator('.woocommerce-MyAccount-content').first();
-
-    if (await accountContent.count()) {
-      await expect(accountContent).toBeVisible();
-    }
+    throw new Error('Account login did not complete successfully.');
   }
 
   await waitForImages(page);

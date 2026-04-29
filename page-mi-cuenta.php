@@ -19,20 +19,4 @@ get_header();
   </div>
 </main>
 
-<script>
-/* BSC-020: scroll to content when navigating my-account sub-pages */
-(function () {
-  var path = window.location.pathname;
-  var isDashboard = /\/mi-cuenta\/?$/.test(path);
-  if (isDashboard) return;
-
-  var $content = document.querySelector('.woocommerce-MyAccount-content');
-  if (!$content) return;
-
-  setTimeout(function () {
-    var top = $content.getBoundingClientRect().top + window.scrollY - 80;
-    window.scrollTo({ top: top, behavior: 'smooth' });
-  }, 150);
-})();
-</script>
 <?php get_footer(); ?>
