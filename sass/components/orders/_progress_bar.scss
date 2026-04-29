@@ -49,10 +49,10 @@
         background-color: #e0e0e0;
         }
 
-      // Width modifiers (can be overridden dynamically via inline styles or utilities)
+      // Width modifiers used by the PHP status map.
       &.level--10\%  { width: 10%;  }
-      &.level--33\%  { width: 33.33%; }
-      &.level--66\%  { width: 66.66%; }
+      &.level--33\%  { width: 33%; }
+      &.level--66\%  { width: 66%; }
       &.level--100\% { width: 100%; }
     }
   }

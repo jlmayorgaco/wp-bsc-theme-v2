@@ -57,6 +57,25 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
+  test('checkout coupon toggle opens the coupon form', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for checkout coupon smoke');
+
+    await gotoAndStabilize(page, routes.checkout);
+
+    const $toggle = page.locator('.showcoupon').first();
+    const $form = page.locator('#woocommerce-checkout-form-coupon').first();
+
+    if (!(await $toggle.count()) || !(await $form.count())) {
+      test.skip(true, 'Default Woo coupon toggle is not present in the current checkout variant.');
+    }
+
+    await expect($toggle).toBeVisible();
+    await expect($form).toBeHidden();
+
+    await $toggle.click();
+    await expect($form).toBeVisible();
+  });
+
   test('account route responds', async ({ page }) => {
     await gotoAndStabilize(page, routes.account);
 
