@@ -21,11 +21,12 @@ class BSC_Order_Progress_Bar {
     public function render(): void {
         if ($this->status === self::CANCELLED || $this->status === self::REFUNDED) {
             $single_label = $this->status === self::REFUNDED ? 'Reembolsado' : 'Cancelado';
+            $width_class = 'level--100%';
             ?>
             <div class="bsc__progress-bar bsc__progress-bar--single">
                 <div class="progress-bar">
                     <div class="progress-bar__background"></div>
-                    <div class="progress-bar__level level--gray" style="width: 100%;"></div>
+                    <div class="progress-bar__level level--gray <?php echo esc_attr($width_class); ?>"></div>
                 </div>
                 <div class="labels">
                     <div class="label label--focus">
@@ -44,11 +45,11 @@ class BSC_Order_Progress_Bar {
             self::DONE     => 3,
         ];
 
-        $progress_percent = match ($this->status) {
-            self::RECEIVED => '33%',
-            self::SHIPPED  => '66%',
-            self::DONE     => '100%',
-            default        => '0%',
+        $progress_width_class = match ($this->status) {
+            self::RECEIVED => 'level--33%',
+            self::SHIPPED  => 'level--66%',
+            self::DONE     => 'level--100%',
+            default        => '',
         };
 
         $bar_color_class = ($this->status === self::DONE) ? 'level--blue' : 'level--pink';
@@ -63,7 +64,7 @@ class BSC_Order_Progress_Bar {
         <div class="bsc__progress-bar">
             <div class="progress-bar">
                 <div class="progress-bar__background"></div>
-                <div class="progress-bar__level <?php echo esc_attr($bar_color_class); ?>" style="width: <?php echo esc_attr($progress_percent); ?>;"></div>
+                <div class="progress-bar__level <?php echo esc_attr(trim($bar_color_class . ' ' . $progress_width_class)); ?>"></div>
             </div>
             <div class="labels">
                 <?php foreach ($labels as $label): ?>

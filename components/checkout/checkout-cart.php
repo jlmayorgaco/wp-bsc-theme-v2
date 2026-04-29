@@ -46,7 +46,7 @@ class BSC_Checkout_Cart {
                     <label><span><?= $quantity; ?></span></label>
                 </div>
             </div>
-            <div class="item__col col2" style="position: relative;">
+            <div class="item__col col2">
                 <div class="row">
                     <div class="col_name_brand">
                         <h5 class="item__name">
@@ -64,7 +64,7 @@ class BSC_Checkout_Cart {
                     <button class="bsc__qty-minus quantity-btn decrease"><span>-</span></button>
                     <button class="bsc__qty-plus quantity-btn increase"><span>+</span></button>
                     <button class="delete-btn"><span>x</span></button>
-                    <span class="bsc__qty-value" style="display:none"><?= $quantity; ?></span>
+                    <span class="bsc__qty-value bsc__qty-value--hidden"><?= $quantity; ?></span>
                 </div>
             </div>
         </li>

@@ -61,7 +61,7 @@ function get_brand_data($product): array {
         <div class="bsc__order-overview__content"><?php echo wc_format_datetime($order->get_date_created()); ?></div>
       </li>
 
-      <li class="bsc__order-overview__item bsc__order-overview__item--progress" style="width: 325px">
+      <li class="bsc__order-overview__item bsc__order-overview__item--progress bsc__order-overview__item--progress-fixed">
         <div class="bsc__order-overview__title">Estado:</div>
         <div class="bsc__order-overview__content">
           <?php

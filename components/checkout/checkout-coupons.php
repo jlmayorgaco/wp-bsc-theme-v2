@@ -55,7 +55,7 @@ class BSC_Checkout_Coupon {
     protected function render_applied_coupons(): void {
         if ( ! WC()->cart || ! WC()->cart->get_applied_coupons() ) return;
 
-        echo '<div class="applied-coupons" style="margin-top: 0px;">';
+        echo '<div class="applied-coupons">';
         echo '  <br><hr><br>';
         echo '  <h4>Cupones aplicados:</h4>';
         echo '  <ul id="applied_coupons_list">';
