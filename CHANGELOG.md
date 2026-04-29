@@ -7,6 +7,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ## [Unreleased]
 
+### MVP2 Status - 2026-04-28
+- Branch `MVP2` now includes commit `a195fa0` (`fix(mvp2): harden orders and bubble points flows`).
+- That commit hardened Bubble Points redeem, restored order/admin status semantics, replaced status-mutation archiving with metadata archiving, and reduced expensive order counts in BSC admin.
+- The branch also has an active working-tree changeset tied to tickets `BSC-073` through `BSC-084`; these changes are in validation and not yet frozen as a release slice.
+
 ### Added
 - BSC-029: Custom WP roles `bsc_operator` (edit_orders) y `bsc_employee` (edit_orders + edit_products)
 - BSC-030: Admin menu custom "BSC" con subpáginas: Pedidos, Productos, Venta Presencial, Informes, Configuración

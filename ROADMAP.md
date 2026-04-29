@@ -1,3 +1,49 @@
+Status update - 2026-04-28
+
+Committed today on `MVP2`
+
+- `a195fa0` `fix(mvp2): harden orders and bubble points flows`
+- Bubble Points redeem is now transactional and the module bootstrap is loaded from the theme.
+- Order archiving no longer mutates real WooCommerce statuses to `completed`; archived orders are marked with metadata.
+- Customer/admin status semantics were restored for `pending`, `on-hold`, `preparing`, `shipped`, `completed`, `cancelled`, `failed`, and `refunded`.
+- BSC admin order tabs/counts were reduced from `limit => -1` full scans to paginated counts.
+- Bubble Points shown in order views now represent points for that order instead of user balance.
+
+Today changeset detected in working tree and now tracked in the refactor plan
+
+- `BSC-073` custom order label print size controls
+- `BSC-074` single address card in My Account
+- `BSC-075` category mobile filter + checkout country lock + PDP gallery/touch follow-ups
+- `BSC-076` category mobile filter animation
+- `BSC-077` PDP gallery desktop height alignment
+- `BSC-078` shipping price by department with admin-configured rates
+- `BSC-079` visible locked country dropdown
+- `BSC-080` locked country field styling
+- `BSC-081` per-order Bubble Points total rule
+- `BSC-082` email module and follow-up automation
+- `BSC-083` exact label PDF output
+- `BSC-084` navigation and localization cleanup
+
+How these updates change the roadmap
+
+1. Phase 1 is materially advanced, but not closed:
+- `deploy.php` is still open by explicit decision and remains a release blocker.
+- order integrity, Bubble Points integrity, and status semantics are now partially resolved in code.
+
+2. Phase 2 and Phase 4 have already started in the branch:
+- checkout shipping logic, PDP gallery behavior, category mobile UX, and admin labels are active workstreams.
+
+3. The immediate next gate is no longer "start refactor" but "stabilize and validate today's changeset":
+- split or group the current working tree into bounded ticket commits
+- finish `BSC-082`
+- add baseline tests before broader SCSS/UI refactors continue
+
+Immediate next execution order
+
+1. Validate and commit `BSC-073` to `BSC-081` in bounded slices.
+2. Finish `BSC-082` email module before expanding more UI work.
+3. Start `BSC-MVP2-000` baseline automation with Playwright snapshots on approved screens.
+4. After tests exist, continue the responsive/UI cleanup and design primitives work.
 
 Cómo debe ejecutarse este roadmap
 
