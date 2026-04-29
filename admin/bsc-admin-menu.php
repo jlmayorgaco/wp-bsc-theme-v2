@@ -9,6 +9,25 @@ defined('ABSPATH') || exit;
 // ── Register BSC menu pages ────────────────────────────────────────────
 add_action( 'admin_menu', 'bsc_add_admin_menu' );
 
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_dashboard_assets' );
+
+function bsc_enqueue_dashboard_assets( string $hook ): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( ! in_array( $page, [ 'bsc-dashboard', 'bsc-settings' ], true ) ) {
+        return;
+    }
+
+    $css_path = get_template_directory() . '/admin/bsc-admin-dashboard.css';
+
+    wp_enqueue_style(
+        'bsc-admin-dashboard',
+        get_template_directory_uri() . '/admin/bsc-admin-dashboard.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+}
+
 function bsc_dashboard_count_orders( array $statuses, array $extra_args = [] ): int {
     $query_args = array_merge(
         [
@@ -286,7 +305,7 @@ function bsc_render_dashboard(): void {
     }
     ?>
     <div class="wrap bsc-admin-dashboard">
-        <h1 style="display:flex;align-items:center;gap:12px">
+        <h1 class="bsc-admin-dashboard__title">
             BSC Dashboard
             <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">↺ Actualizar</a>
         </h1>
@@ -299,35 +318,35 @@ function bsc_render_dashboard(): void {
         ?>
 
         <!-- KPI Cards -->
-        <div class="bsc-kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0">
-            <div class="bsc-kpi-card">
-                <div class="bsc-kpi-value"><?php echo wp_kses_post(wc_price($kpis['ventas_hoy'])); ?></div>
-                <div class="bsc-kpi-label">Ventas hoy</div>
+        <div class="bsc-admin-dashboard__grid">
+            <div class="bsc-admin-dashboard__card">
+                <div class="bsc-admin-dashboard__value"><?php echo wp_kses_post(wc_price($kpis['ventas_hoy'])); ?></div>
+                <div class="bsc-admin-dashboard__label">Ventas hoy</div>
             </div>
-            <div class="bsc-kpi-card">
-                <div class="bsc-kpi-value"><?php echo esc_html($kpis['pedidos_hoy']); ?></div>
-                <div class="bsc-kpi-label">Pedidos hoy</div>
+            <div class="bsc-admin-dashboard__card">
+                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pedidos_hoy']); ?></div>
+                <div class="bsc-admin-dashboard__label">Pedidos hoy</div>
             </div>
-            <div class="bsc-kpi-card" style="<?php echo $kpis['pendientes'] > 0 ? 'border-color:#f6ad55;background:#fffaf0' : ''; ?>">
-                <div class="bsc-kpi-value"><?php echo esc_html($kpis['pendientes']); ?></div>
-                <div class="bsc-kpi-label">Pendientes</div>
+            <div class="bsc-admin-dashboard__card<?php echo $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
+                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pendientes']); ?></div>
+                <div class="bsc-admin-dashboard__label">Pendientes</div>
             </div>
-            <div class="bsc-kpi-card">
-                <div class="bsc-kpi-value"><?php echo esc_html($kpis['preparando']); ?></div>
-                <div class="bsc-kpi-label">En preparación</div>
+            <div class="bsc-admin-dashboard__card">
+                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['preparando']); ?></div>
+                <div class="bsc-admin-dashboard__label">En preparación</div>
             </div>
-            <div class="bsc-kpi-card">
-                <div class="bsc-kpi-value"><?php echo esc_html($kpis['enviados']); ?></div>
-                <div class="bsc-kpi-label">Enviados</div>
+            <div class="bsc-admin-dashboard__card">
+                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['enviados']); ?></div>
+                <div class="bsc-admin-dashboard__label">Enviados</div>
             </div>
         </div>
 
         <!-- Bottom panels -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px">
+        <div class="bsc-admin-dashboard__panels">
 
             <!-- Recent orders -->
             <div>
-                <h2 style="font-size:1rem;margin-bottom:8px">Últimos 5 pedidos</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">Últimos 5 pedidos</h2>
                 <table class="wp-list-table widefat striped">
                     <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
                     <tbody>
@@ -339,17 +358,17 @@ function bsc_render_dashboard(): void {
                         <td><?php echo esc_html($ro['status']); ?></td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (empty($kpis['recent_orders'])): ?><tr><td colspan="4" style="text-align:center;color:#888">Sin pedidos.</td></tr><?php endif; ?>
+                    <?php if (empty($kpis['recent_orders'])): ?><tr><td colspan="4" class="bsc-admin-dashboard__empty-row">Sin pedidos.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
-                <p style="margin-top:8px"><a href="<?php echo esc_url(admin_url('admin.php?page=bsc-orders')); ?>" class="button button-primary">Ver todos los pedidos</a></p>
+                <p class="bsc-admin-dashboard__panel-action"><a href="<?php echo esc_url(admin_url('admin.php?page=bsc-orders')); ?>" class="button button-primary">Ver todos los pedidos</a></p>
             </div>
 
             <!-- Low stock alerts -->
             <div>
-                <h2 style="font-size:1rem;margin-bottom:8px">⚠️ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">⚠️ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
                 <?php if ( ! empty($kpis['low_stock_ids']) ): ?>
-                <table class="wp-list-table widefat striped" style="background:#fff5f5;border:1px solid #fc8181">
+                <table class="wp-list-table widefat striped bsc-admin-dashboard__low-stock-table">
                     <thead><tr><th>Producto</th><th>Stock bodega</th><th></th></tr></thead>
                     <tbody>
                     <?php foreach ($kpis['low_stock_ids'] as $pid):
@@ -357,23 +376,18 @@ function bsc_render_dashboard(): void {
                     ?>
                     <tr>
                         <td><?php echo esc_html(get_the_title($pid)); ?></td>
-                        <td style="font-weight:700;color:#c53030"><?php echo esc_html($stock_b); ?></td>
+                        <td class="bsc-admin-dashboard__low-stock-value"><?php echo esc_html($stock_b); ?></td>
                         <td><a href="<?php echo esc_url(admin_url('admin.php?page=bsc-product-edit&id='.$pid)); ?>" class="button button-small">Editar</a></td>
                     </tr>
                     <?php endforeach; ?>
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p style="color:#276749;background:#f0fff4;border:1px solid #9ae6b4;padding:10px 16px;border-radius:6px">✓ Todos los productos tienen stock suficiente.</p>
+                <p class="bsc-admin-dashboard__low-stock-ok">✓ Todos los productos tienen stock suficiente.</p>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-    <style>
-        .bsc-kpi-card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:18px 20px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
-        .bsc-kpi-value { font-size:1.8rem; font-weight:800; color:#222; line-height:1.2; }
-        .bsc-kpi-label { font-size:0.78rem; color:#888; margin-top:4px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
-    </style>
     <?php
 }
 
@@ -413,7 +427,7 @@ function bsc_render_settings_page(): void {
         <form method="post">
             <?php wp_nonce_field('bsc_settings_action', 'bsc_settings_nonce'); ?>
             <table class="form-table">
-                <tr><th colspan="2"><h2 style="margin:0">General</h2></th></tr>
+                <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title">General</h2></th></tr>
                 <tr>
                     <th><label for="bsc_whatsapp_number">Número de WhatsApp</label></th>
                     <td>
@@ -432,7 +446,7 @@ function bsc_render_settings_page(): void {
                     </td>
                 </tr>
 
-                <tr><th colspan="2"><h2 style="margin:16px 0 0">Tienda</h2></th></tr>
+                <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Tienda</h2></th></tr>
                 <tr>
                     <th><label for="bsc_free_shipping_threshold">Umbral de envío gratis (COP)</label></th>
                     <td>
@@ -487,7 +501,7 @@ function bsc_render_settings_page(): void {
                     </td>
                 </tr>
 
-                <tr><th colspan="2"><h2 style="margin:16px 0 0">Emails BSC</h2></th></tr>
+                <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Emails BSC</h2></th></tr>
                 <tr>
                     <th><label for="bsc_email_from_name">Nombre del remitente</label></th>
                     <td>

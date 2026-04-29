@@ -1,0 +1,89 @@
+.bsc-admin-dashboard__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bsc-admin-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.bsc-admin-dashboard__card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.bsc-admin-dashboard__card--warning {
+  border-color: #f6ad55;
+  background: #fffaf0;
+}
+
+.bsc-admin-dashboard__value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #222;
+  line-height: 1.2;
+}
+
+.bsc-admin-dashboard__label {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bsc-admin-dashboard__panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.bsc-admin-dashboard__panel-title {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.bsc-admin-dashboard__empty-row {
+  text-align: center;
+  color: #888;
+}
+
+.bsc-admin-dashboard__panel-action {
+  margin-top: 8px;
+}
+
+.bsc-admin-dashboard__low-stock-table {
+  background: #fff5f5;
+  border: 1px solid #fc8181;
+}
+
+.bsc-admin-dashboard__low-stock-value {
+  font-weight: 700;
+  color: #c53030;
+}
+
+.bsc-admin-dashboard__low-stock-ok {
+  color: #276749;
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  padding: 10px 16px;
+  border-radius: 6px;
+}
+
+.bsc-admin-settings__section-title {
+  margin: 0;
+}
+
+.bsc-admin-settings__section-title--spaced {
+  margin: 16px 0 0;
+}
