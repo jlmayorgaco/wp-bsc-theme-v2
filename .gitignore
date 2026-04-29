@@ -24,3 +24,7 @@ vendor/swiper/*
 
 # BSC-045: backup credentials — never commit
 scripts/backup-config.sh
+
+# Playwright artifacts
+playwright-report/
+test-results/

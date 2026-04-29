@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^6.5.0",
+    "@playwright/test": "^1.59.1",
     "@wordpress/scripts": "^19.2.2",
     "dir-archiver": "^1.1.1",
     "rtlcss": "^3.5.0",
@@ -43,6 +44,12 @@
     "compile:rtl": "rtlcss style.css style-rtl.css",
     "lint:scss": "wp-scripts lint-style 'sass/**/*.scss'",
     "lint:js": "wp-scripts lint-js 'js/*.js'",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test tests/e2e/smoke",
+    "test:e2e:visual": "playwright test tests/e2e/visual",
+    "test:e2e:visual:update": "playwright test tests/e2e/visual --update-snapshots",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
     "bundle": "dir-archiver --src . --dest ../_s.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock"
   }
 }
