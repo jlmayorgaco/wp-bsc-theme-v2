@@ -49,16 +49,38 @@ function bsc_playwright_fixture_admin_password(): string {
     return getenv('PW_ADMIN_PASSWORD') ?: 'VisualAdmin#2026BSC';
 }
 
+function bsc_playwright_fixture_login_url(): string {
+    $login_page = get_page_by_path('login');
+
+    if ($login_page instanceof WP_Post) {
+        return get_permalink($login_page);
+    }
+
+    return home_url('/login/');
+}
+
 function bsc_playwright_fixture_account_url(): string {
-    return wc_get_page_permalink('myaccount') ?: home_url('/mi-cuenta/');
+    $account_page = get_page_by_path('mi-cuenta');
+
+    if ($account_page instanceof WP_Post) {
+        return trailingslashit(get_permalink($account_page));
+    }
+
+    return home_url('/mi-cuenta/');
+}
+
+function bsc_playwright_fixture_account_endpoint_url(string $endpoint, string $value = ''): string {
+    if (function_exists('wc_get_endpoint_url')) {
+        return wc_get_endpoint_url($endpoint, $value, bsc_playwright_fixture_account_url());
+    }
+
+    $path = trim($endpoint . '/' . trim($value, '/'), '/');
+
+    return trailingslashit(home_url('/mi-cuenta/' . $path));
 }
 
 function bsc_playwright_fixture_account_addresses_url(): string {
-    if (function_exists('wc_get_account_endpoint_url')) {
-        return wc_get_account_endpoint_url('edit-address');
-    }
-
-    return home_url('/mi-cuenta/edit-address/');
+    return bsc_playwright_fixture_account_endpoint_url('edit-address');
 }
 
 function bsc_playwright_fixture_bubble_points_url(): string {
@@ -442,16 +464,19 @@ $public_product = $public_catalog['product'];
 $payload = [
     'auth' => [
         'email'    => $email,
+        'username' => $user->user_login,
         'password' => $password,
     ],
     'routes' => [
         'groupCategory'    => trailingslashit(home_url('/product-category/' . bsc_playwright_fixture_visual_group_slug() . '/')),
+        'login'            => bsc_playwright_fixture_login_url(),
         'account'          => bsc_playwright_fixture_account_url(),
         'accountAddresses' => bsc_playwright_fixture_account_addresses_url(),
         'bubblePoints'     => bsc_playwright_fixture_bubble_points_url(),
         'category'         => get_term_link($public_category),
         'product'          => get_permalink($public_product->get_id()),
         'thankYou'         => $order->get_checkout_order_received_url(),
+        'viewOrder'        => bsc_playwright_fixture_account_endpoint_url('view-order', (string) $order->get_id()),
     ],
     'admin' => [
         'username' => $admin_user->user_login,

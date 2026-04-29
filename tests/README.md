@@ -98,6 +98,7 @@ Without the fixture or explicit auth variables:
 ```bash
 npm run test:e2e:smoke
 npm run test:e2e:visual
+npm run test:e2e:visual:auth
 npm run test:e2e:visual:public-auth
 npm run test:e2e:visual:emails
 npm run test:e2e:visual:update
@@ -110,8 +111,9 @@ npm run test:e2e:report
 2. If the approved storefront is visible, run with `PW_PUBLIC_MODE=storefront`.
 3. Prefer fixture-backed routes for category and PDP baselines.
 4. Run `npm run test:e2e:visual:public-auth`.
-5. Run `npm run test:e2e:visual:emails`.
-6. Run `npm run test:e2e:visual:update` only when intentionally refreshing snapshots.
+5. Run `npm run test:e2e:visual:auth` when validating only authenticated gates.
+6. Run `npm run test:e2e:visual:emails`.
+7. Run `npm run test:e2e:visual:update` only when intentionally refreshing snapshots.
 4. Review generated snapshots before committing them.
 
 ## Data assumptions
@@ -121,3 +123,4 @@ npm run test:e2e:report
 - public visual baselines require a non-`coming soon` storefront response
 - account, bubble points, and thank-you routes use a reusable QA fixture when the Local PHP runtime is available
 - email preview baselines use reusable QA admin accounts and preview routes from the fixture bootstrap
+- authenticated visual gates are expected to run with `--workers=1` to avoid local WordPress session/routing flake across parallel projects

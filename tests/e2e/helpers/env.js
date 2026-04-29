@@ -21,7 +21,10 @@ const routes = {
     '',
   checkout: process.env.PW_ROUTE_CHECKOUT || '/checkout/',
   contact: process.env.PW_ROUTE_CONTACT || '/contact-us/',
-  login: process.env.PW_ROUTE_LOGIN || '/login/',
+  login:
+    process.env.PW_ROUTE_LOGIN ||
+    fixture?.routes?.login ||
+    '/login/',
   register: process.env.PW_ROUTE_REGISTER || '/register/',
   bubbleCreators: process.env.PW_ROUTE_BUBBLE_CREATORS || '/bubble-creators/',
   account:
@@ -36,6 +39,10 @@ const routes = {
     process.env.PW_ROUTE_BUBBLE_POINTS ||
     fixture?.routes?.bubblePoints ||
     '/mi-cuenta/bubble-points/',
+  viewOrder:
+    process.env.PW_ROUTE_VIEW_ORDER ||
+    fixture?.routes?.viewOrder ||
+    '',
   thankYou:
     process.env.PW_ROUTE_THANK_YOU ||
     (publicMode === 'storefront' ? fixture?.routes?.thankYou : '') ||
@@ -44,15 +51,20 @@ const routes = {
 
 const auth = {
   email: process.env.PW_ACCOUNT_EMAIL || fixture?.auth?.email || '',
+  username: process.env.PW_ACCOUNT_USERNAME || fixture?.auth?.username || '',
   password: process.env.PW_ACCOUNT_PASSWORD || fixture?.auth?.password || '',
 };
 
 function hasAccountAuth() {
-  return Boolean(auth.email && auth.password);
+  return Boolean((auth.username || auth.email) && auth.password);
 }
 
 function hasThankYouRoute() {
   return Boolean(routes.thankYou);
+}
+
+function hasViewOrderRoute() {
+  return Boolean(routes.viewOrder);
 }
 
 function expectsStorefront() {
@@ -65,6 +77,7 @@ module.exports = {
   fixture,
   hasAccountAuth,
   hasThankYouRoute,
+  hasViewOrderRoute,
   publicMode,
   routes,
 };

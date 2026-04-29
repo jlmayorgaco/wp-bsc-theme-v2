@@ -125,27 +125,51 @@ async function ensureCheckoutReadyFromCategory(page, categoryPath, projectName) 
   await interactWithPrimaryCardAddToCart(page, projectName);
 }
 
-async function loginFromAccount(page, accountPath, email, password) {
-  await gotoAndStabilize(page, accountPath);
+async function loginFromAccount(page, loginPath, accountPath, usernameOrEmail, password) {
+  const redirectTarget = accountPath || loginPath || '/';
+  const wpLoginUrl =
+    '/wp-login.php?redirect_to=' + encodeURIComponent(redirectTarget);
 
-  const usernameField = page.locator('#username, input[name="username"]').first();
-  const passwordField = page.locator('#password, input[name="password"]').first();
-  const loginButton = page
-    .locator('button[name="login"], button[type="submit"], input[name="login"]')
-    .first();
+  await page.goto(wpLoginUrl, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load');
 
-  if (!(await usernameField.count()) || !(await passwordField.count())) {
+  const usernameField = page.locator('#user_login').first();
+  const passwordField = page.locator('#user_pass').first();
+  const loginButton = page.locator('#wp-submit').first();
+
+  if (!(await usernameField.count()) || !(await passwordField.count()) || !(await loginButton.count())) {
     return false;
   }
 
-  await usernameField.fill(email);
+  await usernameField.fill(usernameOrEmail);
   await passwordField.fill(password);
-  await loginButton.click();
+  await Promise.all([
+    page
+      .waitForURL(
+        (url) => !url.pathname.startsWith('/wp-login.php'),
+        { timeout: 15_000 }
+      )
+      .catch(() => null),
+    loginButton.click(),
+  ]);
 
   try {
     await page.waitForLoadState('networkidle', { timeout: 10_000 });
   } catch (error) {
     // Best-effort only.
+  }
+
+  if (accountPath) {
+    await gotoAndStabilize(page, accountPath);
+    if (page.url().includes('/login/') || page.url().includes('/wp-login.php')) {
+      throw new Error('Account login did not complete successfully.');
+    }
+
+    const accountContent = page.locator('.woocommerce-MyAccount-content').first();
+
+    if (await accountContent.count()) {
+      await expect(accountContent).toBeVisible();
+    }
   }
 
   await waitForImages(page);

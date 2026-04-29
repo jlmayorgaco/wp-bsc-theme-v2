@@ -132,38 +132,4 @@ $default_last_name    = $current_user->last_name ? $current_user->last_name : ''
   <?php do_action('woocommerce_edit_account_form_end'); ?>
 </form>
 
-<script>
-(function () {
-  const fullNameEl = document.getElementById('account_full_name');
-  const firstEl    = document.getElementById('account_first_name');
-  const lastEl     = document.getElementById('account_last_name');
-  const displayEl  = document.getElementById('account_display_name');
-
-  if (!fullNameEl || !firstEl || !lastEl || !displayEl) return;
-
-  function syncHidden() {
-    const full = (fullNameEl.value || '').trim();
-    if (!full) return;
-
-    const parts = full.split(/\s+/).filter(Boolean);
-    const first = parts.shift() || full;
-    const last  = (parts.join(' ').trim()) || '-';
-
-    firstEl.value   = first;
-    lastEl.value    = last;
-    displayEl.value = full;
-  }
-
-  // Initial sync on load
-  syncHidden();
-
-  // Sync as user types
-  fullNameEl.addEventListener('input', syncHidden);
-
-  // Ensure synced right before submit
-  const form = fullNameEl.closest('form');
-  if (form) form.addEventListener('submit', syncHidden);
-})();
-</script>
-
 <?php do_action('woocommerce_after_edit_account_form'); ?>
