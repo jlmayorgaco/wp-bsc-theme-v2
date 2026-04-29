@@ -75,7 +75,7 @@ $codes = get_posts([
 
         </div>
 
-        <div class="bsc-ticket__actions"  style="display:none">
+        <div class="bsc-ticket__actions bsc-ticket__actions--hidden">
           <button class="bsc-btn bsc-btn--copy js-copy-coupon" data-code="<?=esc_attr($code);?>" type="button" <?=$disabled;?>>Copiar código</button>
           <?php if ($status !== 'activo'): ?>
             <small class="bsc-ticket__hint">No disponible</small>

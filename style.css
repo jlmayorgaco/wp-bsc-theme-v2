@@ -14133,6 +14133,10 @@ body.admin-bar .bsc__header--desktop {
   border: 1px solid #333;
 }
 
+.bsc__button-add-to-cart--hidden {
+  display: none;
+}
+
 .bsc__signin_btn, .bsc__signup_btn {
   display: inline-block;
   padding: 0.5rem 1rem;
@@ -17563,6 +17567,10 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc-ticket__actions {
   justify-items: end;
   align-content: start;
+}
+
+.bsc-ticket__actions--hidden {
+  display: none;
 }
 
 /* optional: tighten spacing a bit for this order */

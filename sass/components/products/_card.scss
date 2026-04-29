@@ -167,6 +167,10 @@ padding-left: 1px;
       }
   }
 
+  .bsc__button-add-to-cart--hidden {
+    display: none;
+  }
+
   .bsc__signin_btn, .bsc__signup_btn{
             display: inline-block;
         padding: 0.5rem 1rem;

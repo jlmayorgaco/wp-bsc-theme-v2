@@ -82,7 +82,7 @@ jQuery(function ($) {
 
     $btn.siblings('.added_to_cart').remove();
     $btn.parent().append(quantityControls);
-    $btn.hide();
+    $btn.addClass('bsc__button-add-to-cart--hidden');
 
     // a.cart-contents is not rendered in the BSC header — replaceWith is a no-op
     // but kept for forward-compatibility if header ever adds the fragment
@@ -203,7 +203,7 @@ jQuery(function ($) {
         // I-2: Remove cart page table row
         $control.closest('tr').remove();
         // Show add-to-cart button on product cards (tag-agnostic selector)
-        $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).show();
+        $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).removeClass('bsc__button-add-to-cart--hidden');
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
