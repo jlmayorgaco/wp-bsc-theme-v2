@@ -4,6 +4,10 @@
  * Variables: $order (WC_Order)
  */
 defined('ABSPATH') || exit;
+
+$email_whatsapp_url = function_exists( 'bsc_get_email_whatsapp_url' )
+	? bsc_get_email_whatsapp_url()
+	: 'https://wa.me/573156922859';
 ?>
         <!-- View order CTA -->
         <?php if ( isset($order) ) : ?>
@@ -22,7 +26,7 @@ defined('ABSPATH') || exit;
           <td style="background:#f9f9f9;padding:24px 40px;text-align:center;border-top:1px solid #eee">
             <p style="margin:0;font-size:13px;color:#888;line-height:1.6">
               ¿Tienes preguntas? Escríbenos por
-              <a href="https://wa.me/573156922859" style="color:#555;font-weight:600">WhatsApp</a>
+              <a href="<?php echo esc_url( $email_whatsapp_url ); ?>" style="color:#555;font-weight:600">WhatsApp</a>
               o visita nuestras redes sociales.<br>
               <strong style="color:#222">Bubble Skin Care</strong> — K-Beauty Colombia 🌸
             </p>

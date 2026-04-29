@@ -1,8 +1,6 @@
-
 <?php
 
 class BSC_Order_Progress_Bar {
-    // 4 visible states: RECEIVED → SHIPPED → DONE | CANCELLED
     public const RECEIVED  = 'received';
     public const SHIPPED   = 'shipped';
     public const DONE      = 'done';
@@ -40,7 +38,6 @@ class BSC_Order_Progress_Bar {
             return;
         }
 
-        // 3-step bar: Recibido → Enviado → Terminado
         $step_order = [
             self::RECEIVED => 1,
             self::SHIPPED  => 2,
@@ -58,9 +55,9 @@ class BSC_Order_Progress_Bar {
         $active_index    = $step_order[$this->status] ?? 0;
 
         $labels = [
-            ['text' => '¡Recibido!',  'is_active' => $active_index >= 1],
-            ['text' => '¡Enviado!',   'is_active' => $active_index >= 2],
-            ['text' => '¡Terminado!', 'is_active' => $active_index >= 3],
+            ['text' => 'Recibido', 'is_active' => $active_index >= 1],
+            ['text' => 'Enviado', 'is_active' => $active_index >= 2],
+            ['text' => 'Entregado', 'is_active' => $active_index >= 3],
         ];
         ?>
         <div class="bsc__progress-bar">

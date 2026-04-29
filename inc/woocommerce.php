@@ -180,11 +180,11 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_cart_link' ) ) {
 	 */
 	function bsc_2_0_woocommerce_cart_link() {
 		?>
-		<a class="cart-contents" href="<?php echo esc_url( wc_get_cart_url() ); ?>" title="<?php esc_attr_e( 'View your shopping cart', 'bsc-2-0' ); ?>">
+		<a class="cart-contents" href="<?php echo esc_url( wc_get_checkout_url() ); ?>" title="<?php esc_attr_e( 'Ir al checkout', 'bsc-2-0' ); ?>">
 			<?php
 			$item_count_text = sprintf(
 				/* translators: number of items in the mini cart. */
-				_n( '%d item', '%d items', WC()->cart->get_cart_contents_count(), 'bsc-2-0' ),
+				_n( '%d producto', '%d productos', WC()->cart->get_cart_contents_count(), 'bsc-2-0' ),
 				WC()->cart->get_cart_contents_count()
 			);
 			?>
@@ -248,32 +248,32 @@ function bsc_woocommerce_single_image_size( $size ) {
 add_filter( 'woocommerce_get_image_size_single', 'bsc_woocommerce_single_image_size' );
 
 /**
- * BSC-089: Keep first PDP gallery image eager for faster LCP; others stay lazy.
+ * BSC-089: Keep only the real PDP gallery main image eager for faster LCP.
  *
- * @param array        $attr       Image attributes.
- * @param WP_Post      $attachment Attachment object.
- * @param string|array $size       Requested image size.
+ * @param array        $attr          Image attributes.
+ * @param int          $attachment_id Attachment ID.
+ * @param string|array $size          Requested image size.
+ * @param bool         $main_image    Whether this is the main gallery image.
  * @return array
  */
-function bsc_product_gallery_image_loading_attrs( $attr, $attachment, $size ) {
+function bsc_product_gallery_image_loading_attrs( $attr, $attachment_id, $size, $main_image ) {
 	if ( ! is_product() ) {
 		return $attr;
 	}
 
-	static $gallery_image_count = 0;
-	$gallery_image_count++;
-
-	if ( 1 === $gallery_image_count ) {
+	if ( $main_image ) {
 		$attr['loading']       = 'eager';
 		$attr['fetchpriority'] = 'high';
+		$attr['decoding']      = 'sync';
 	} else {
-		$attr['loading'] = 'lazy';
+		$attr['loading']  = 'lazy';
+		$attr['decoding'] = 'async';
+		unset( $attr['fetchpriority'] );
 	}
 
-	$attr['decoding'] = 'async';
 	return $attr;
 }
-add_filter( 'wp_get_attachment_image_attributes', 'bsc_product_gallery_image_loading_attrs', 10, 3 );
+add_filter( 'woocommerce_gallery_image_html_attachment_image_params', 'bsc_product_gallery_image_loading_attrs', 10, 4 );
 
 
   add_filter('woocommerce_checkout_fields', 'bsc_add_billing_cedula_field');
@@ -357,37 +357,16 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
+function bsc_calculate_order_bubble_points( WC_Order $order ): int {
+    return max( 0, (int) floor( (float) $order->get_total() / 1000 ) );
+}
+
 function bsc_get_order_bubble_points_earned( WC_Order $order ): int {
-    $stored_points = (int) $order->get_meta( '_bsc_bp_points_awarded', true );
-    if ( $stored_points > 0 ) {
-        return $stored_points;
-    }
-
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'bsc_points_ledger';
-    $table      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
-
-    if ( $table !== $table_name ) {
-        return 0;
-    }
-
-    $points = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT COALESCE(SUM(delta), 0)
-             FROM {$table_name}
-             WHERE order_id = %d
-               AND reason = %s
-               AND delta > 0",
-            $order->get_id(),
-            'order_complete'
-        )
-    );
-
-    return max( 0, (int) $points );
+    return bsc_calculate_order_bubble_points( $order );
 }
 
 function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
-    return bsc_get_order_bubble_points_earned( $order );
+    return bsc_calculate_order_bubble_points( $order );
 }
 
 function bsc_cart_has_free_shipping_coupon(): bool {
@@ -464,7 +443,7 @@ function bsc_update_customer_destination_from_checkout_post( string $post_data =
 
 function bsc_force_checkout_shipping_package_destination( array $packages ): array {
     $destination = bsc_get_checkout_shipping_destination();
-    if ( ! bsc_checkout_destination_is_complete( $destination ) ) {
+    if ( ! bsc_checkout_destination_has_rate_context( $destination ) ) {
         return $packages;
     }
 
@@ -489,7 +468,7 @@ function bsc_force_checkout_shipping_package_destination( array $packages ): arr
 
 function bsc_get_checkout_shipping_destination( array $package = [] ): array {
     $posted_destination = bsc_normalize_checkout_destination( bsc_get_posted_checkout_destination() );
-    if ( bsc_checkout_destination_is_complete( $posted_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $posted_destination ) ) {
         return $posted_destination;
     }
 
@@ -503,12 +482,12 @@ function bsc_get_checkout_shipping_destination( array $package = [] ): array {
         ]
     );
 
-    if ( bsc_checkout_destination_is_complete( $package_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $package_destination ) ) {
         return $package_destination;
     }
 
     $customer_destination = bsc_get_customer_checkout_destination();
-    if ( bsc_checkout_destination_is_complete( $customer_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $customer_destination ) ) {
         return $customer_destination;
     }
 
@@ -543,7 +522,7 @@ function bsc_get_posted_checkout_destination( ?array $posted = null ): array {
     }
 
     $ship_to_different = ! empty( $posted['ship_to_different_address'] );
-    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] ) && ! empty( $posted['shipping_city'] )
+    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] )
         ? 'shipping'
         : 'billing';
 
@@ -581,9 +560,13 @@ function bsc_checkout_destination_is_complete( array $destination ): bool {
         && trim( (string) ( $destination['city'] ?? '' ) ) !== '';
 }
 
+function bsc_checkout_destination_has_rate_context( array $destination ): bool {
+    return trim( (string) ( $destination['state'] ?? '' ) ) !== '';
+}
+
 function bsc_normalize_checkout_destination( array $destination ): array {
     $destination = [
-        'country'  => sanitize_text_field( (string) ( $destination['country'] ?? 'CO' ) ),
+        'country'  => 'CO',
         'state'    => sanitize_text_field( (string) ( $destination['state'] ?? '' ) ),
         'city'     => sanitize_text_field( (string) ( $destination['city'] ?? '' ) ),
         'postcode' => sanitize_text_field( (string) ( $destination['postcode'] ?? '' ) ),
@@ -603,18 +586,22 @@ function bsc_sync_customer_shipping_destination( ?array $posted = null ): void {
     }
 
     $destination = bsc_get_posted_checkout_destination( $posted );
-    if ( $destination['state'] === '' || $destination['city'] === '' ) {
+    if ( ! bsc_checkout_destination_has_rate_context( $destination ) ) {
         return;
     }
 
     WC()->customer->set_billing_country( $destination['country'] ?: 'CO' );
     WC()->customer->set_billing_state( $destination['state'] );
-    WC()->customer->set_billing_city( $destination['city'] );
     WC()->customer->set_billing_postcode( $destination['postcode'] );
     WC()->customer->set_shipping_country( $destination['country'] ?: 'CO' );
     WC()->customer->set_shipping_state( $destination['state'] );
-    WC()->customer->set_shipping_city( $destination['city'] );
     WC()->customer->set_shipping_postcode( $destination['postcode'] );
+
+    if ( $destination['city'] !== '' ) {
+        WC()->customer->set_billing_city( $destination['city'] );
+        WC()->customer->set_shipping_city( $destination['city'] );
+    }
+
     WC()->customer->save();
 
     bsc_clear_cached_shipping_packages();
@@ -631,7 +618,7 @@ function bsc_clear_cached_shipping_packages(): void {
 }
 
 function bsc_apply_location_shipping_rates( array $rates, string $state, string $city ): array {
-    if ( trim( $state ) === '' || trim( $city ) === '' ) {
+    if ( trim( $state ) === '' ) {
         return $rates;
     }
 
@@ -655,7 +642,9 @@ function bsc_apply_location_shipping_rates( array $rates, string $state, string 
 
     $is_local = bsc_is_bogota_or_cundinamarca_destination( $state, $city );
     $qualifies_for_free_shipping = bsc_cart_qualifies_for_free_shipping();
-    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? 9000 : 20000 );
+    $bogota_cost = (float) bsc_get_bogota_shipping_price();
+    $other_cost  = (float) bsc_get_other_shipping_price();
+    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? $bogota_cost : $other_cost );
     $target_label = $qualifies_for_free_shipping
         ? 'Envio gratis'
         : ( $is_local ? 'Envio Bogota/Cundinamarca' : 'Envio nacional' );
@@ -694,6 +683,14 @@ function bsc_apply_location_shipping_rates( array $rates, string $state, string 
     }
 
     return $rates;
+}
+
+function bsc_get_bogota_shipping_price(): int {
+    return max( 0, (int) get_option( 'bsc_bogota_shipping_price', 10000 ) );
+}
+
+function bsc_get_other_shipping_price(): int {
+    return max( 0, (int) get_option( 'bsc_other_shipping_price', 17000 ) );
 }
 
 function bsc_normalize_shipping_text( string $value ): string {
@@ -875,6 +872,26 @@ add_filter('default_checkout_billing_country', function() {
 add_filter('default_checkout_shipping_country', function() {
   return 'CO';
 });
+
+function bsc_limit_wc_countries_to_colombia( array $countries ): array {
+    if ( is_admin() && ! wp_doing_ajax() ) {
+        return $countries;
+    }
+
+    return [
+        'CO' => $countries['CO'] ?? 'Colombia',
+    ];
+}
+add_filter( 'woocommerce_countries_allowed_countries', 'bsc_limit_wc_countries_to_colombia', 20 );
+add_filter( 'woocommerce_countries_shipping_countries', 'bsc_limit_wc_countries_to_colombia', 20 );
+
+function bsc_force_checkout_posted_countries_to_colombia( array $data ): array {
+    $data['billing_country']  = 'CO';
+    $data['shipping_country'] = 'CO';
+
+    return $data;
+}
+add_filter( 'woocommerce_checkout_posted_data', 'bsc_force_checkout_posted_countries_to_colombia', 20 );
 
 // ── BSC-032: Custom order statuses ────────────────────────────────────
 add_action('init', 'bsc_register_order_statuses');

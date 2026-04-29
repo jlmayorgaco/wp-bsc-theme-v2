@@ -80,6 +80,17 @@ function bsc_render_product_edit_page(): void {
         update_post_meta( $product_id, '_stock_tienda', $stock_tienda );
         update_post_meta( $product_id, '_envio_tipo', $envio_tipo );
 
+        // Repurchase follow-up timeout override (BSC-082)
+        $repurchase_days_raw = isset( $_POST['_bsc_repurchase_days'] )
+            ? trim( (string) wp_unslash( $_POST['_bsc_repurchase_days'] ) )
+            : '';
+
+        if ( $repurchase_days_raw === '' ) {
+            delete_post_meta( $product_id, '_bsc_repurchase_days' );
+        } else {
+            update_post_meta( $product_id, '_bsc_repurchase_days', max( 1, intval( $repurchase_days_raw ) ) );
+        }
+
         // Redirect back to products list
         wp_safe_redirect( admin_url('admin.php?page=bsc-products&saved=1') );
         exit;
@@ -91,6 +102,10 @@ function bsc_render_product_edit_page(): void {
     $gallery    = $product->get_gallery_image_ids();
     $thumbnail_id = get_post_thumbnail_id( $product_id );
     $thumbnail_src = $thumbnail_id ? wp_get_attachment_image_src($thumbnail_id, 'medium')[0] : '';
+    $repurchase_days = (string) get_post_meta( $product_id, '_bsc_repurchase_days', true );
+    $default_repurchase_days = function_exists( 'bsc_get_followup_email_setting' )
+        ? (int) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' )
+        : 30;
 
     $all_cats     = get_terms(['taxonomy'=>'product_cat','hide_empty'=>false,'orderby'=>'name']);
     $current_cats = wp_get_object_terms($product_id, 'product_cat', ['fields'=>'ids']);
@@ -241,6 +256,24 @@ function bsc_render_product_edit_page(): void {
                                 <option value="tienda" <?php selected($stock['envio_tipo'],'tienda'); ?>>Tienda (showroom)</option>
                                 <option value="ambos" <?php selected($stock['envio_tipo'],'ambos'); ?>>Ambos</option>
                             </select>
+                        </label>
+                    </div>
+
+                    <div class="postbox" style="padding:16px 20px;margin-bottom:16px">
+                        <h2 style="margin:0 0 12px;font-size:1rem;border-bottom:1px solid #eee;padding-bottom:8px">Emails de seguimiento</h2>
+
+                        <label style="display:block">
+                            <span style="font-weight:600;display:block;margin-bottom:4px">Días para recompra</span>
+                            <input type="number"
+                                   min="1"
+                                   step="1"
+                                   name="_bsc_repurchase_days"
+                                   value="<?php echo esc_attr( $repurchase_days ); ?>"
+                                   placeholder="<?php echo esc_attr( (string) $default_repurchase_days ); ?>"
+                                   style="width:120px">
+                            <span style="display:block;margin-top:4px;font-size:12px;color:#666">
+                                Déjalo vacío para usar el valor global del módulo Emails: <?php echo esc_html( (string) $default_repurchase_days ); ?> días.
+                            </span>
                         </label>
                     </div>
 

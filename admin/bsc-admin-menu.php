@@ -118,7 +118,17 @@ function bsc_add_admin_menu(): void {
         'bsc_render_coupons_page'
     );
 
-    // 9. Control de Acceso — role × page matrix
+    // 9. Emails — admin only
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Emails BSC', 'bsc-2-0' ),
+        __( 'Emails', 'bsc-2-0' ),
+        'manage_options',
+        'bsc-followup-emails',
+        'bsc_render_followup_emails_page'
+    );
+
+    // 10. Control de Acceso — role × page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -128,7 +138,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 10. Configuración — admin only (always last)
+    // 11. Configuración — admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Configuración BSC', 'bsc-2-0' ),
@@ -203,6 +213,7 @@ require_once get_template_directory() . '/admin/bsc-showroom-page.php';
 require_once get_template_directory() . '/admin/bsc-products-page.php';      // BSC-062
 require_once get_template_directory() . '/admin/bsc-product-edit-page.php';  // BSC-065
 require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // BSC-066
+require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
 // ── Page render functions ──────────────────────────────────────────────
@@ -386,6 +397,8 @@ function bsc_render_settings_page(): void {
         update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', $_POST['bsc_whatsapp_number'] ?? '573156922859'));
         update_option('bsc_contact_email',             sanitize_email($_POST['bsc_contact_email'] ?? ''));
         update_option('bsc_free_shipping_threshold',   max(0, intval($_POST['bsc_free_shipping_threshold'] ?? 300000)));
+        update_option('bsc_bogota_shipping_price',     max(0, intval($_POST['bsc_bogota_shipping_price'] ?? 10000)));
+        update_option('bsc_other_shipping_price',      max(0, intval($_POST['bsc_other_shipping_price'] ?? 17000)));
         update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá'));
         update_option('bsc_default_max_products_slider', max(1, intval($_POST['bsc_default_max_products_slider'] ?? 5)));
         update_option('bsc_email_from_name',           sanitize_text_field($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care'));
@@ -436,6 +449,24 @@ function bsc_render_settings_page(): void {
                             value="<?php echo esc_attr(get_option('bsc_bogota_shipping_label','Bogotá')); ?>"
                             class="regular-text">
                         <p class="description">Texto que identifica la tarifa de Bogotá en WooCommerce Envíos (debe coincidir con el label de la zona).</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="bsc_bogota_shipping_price">Tarifa Bogotá/Cundinamarca (COP)</label></th>
+                    <td>
+                        <input type="number" id="bsc_bogota_shipping_price" name="bsc_bogota_shipping_price"
+                            value="<?php echo esc_attr(get_option('bsc_bogota_shipping_price',10000)); ?>"
+                            class="regular-text" min="0" step="1000">
+                        <p class="description">Valor aplicado en checkout para pedidos de Bogotá y Cundinamarca.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="bsc_other_shipping_price">Tarifa resto del país (COP)</label></th>
+                    <td>
+                        <input type="number" id="bsc_other_shipping_price" name="bsc_other_shipping_price"
+                            value="<?php echo esc_attr(get_option('bsc_other_shipping_price',17000)); ?>"
+                            class="regular-text" min="0" step="1000">
+                        <p class="description">Valor aplicado en checkout para destinos fuera de Bogotá y Cundinamarca.</p>
                     </td>
                 </tr>
                 <tr>

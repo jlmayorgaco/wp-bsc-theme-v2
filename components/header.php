@@ -372,6 +372,17 @@
                         <ul class="search-results"></ul>
                     </div>
                 </li>
+                <?php
+                    $my_account_url    = wc_get_page_permalink('myaccount');
+                    $orders_url        = wc_get_account_endpoint_url('orders');
+                    $bubble_points_url = home_url('/mi-cuenta/bubble-points/');
+                    $edit_account_url  = wc_get_account_endpoint_url('edit-account');
+                    $edit_address_url  = wc_get_account_endpoint_url('edit-address');
+                    $logout_url        = wc_logout_url(home_url('/'));
+                    $login_url         = home_url('/login/');
+                    $register_url      = home_url('/register/');
+                    $checkout_url      = wc_get_checkout_url();
+                ?>
                 <?php if (is_user_logged_in()) : ?>
                     <li class="menu__icon icon--profile">
                         <button id="profile-button" aria-haspopup="true" aria-expanded="false">
@@ -382,12 +393,12 @@
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">
                         <ul>
-                            <li style="display:none"><a href="/mi-cuenta/">Mi Perfil</a></li>
-                            <li><hr><a href="/mi-cuenta/orders/">Mis Pedidos</a></li>
-                            <li><hr><a href="/mi-cuenta/bubble-points/">Mis Puntos</a></li>
-                            <li><hr><a href="/mi-cuenta/edit-account/">Mis Datos</a></li>
-                            <li><hr><a href="/mi-cuenta/edit-address/">Mis Direcciones</a></li>
-                            <li><hr><a href="/mi-cuenta/customer-logout/">Cerrar sesión</a></li>
+                            <li style="display:none"><a href="<?php echo esc_url($my_account_url); ?>">Mi perfil</a></li>
+                            <li><hr><a href="<?php echo esc_url($orders_url); ?>">Mis pedidos</a></li>
+                            <li><hr><a href="<?php echo esc_url($bubble_points_url); ?>">Mis puntos</a></li>
+                            <li><hr><a href="<?php echo esc_url($edit_account_url); ?>">Mis datos</a></li>
+                            <li><hr><a href="<?php echo esc_url($edit_address_url); ?>">Mis direcciones</a></li>
+                            <li><hr><a href="<?php echo esc_url($logout_url); ?>">Cerrar sesión</a></li>
                         </ul>
                         </div>
                     </li>
@@ -398,15 +409,15 @@
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">
                         <ul>
-                            <li><a href="/login/">Iniciar sesión</a></li>
-                            <li><hr><a href="/register/">Crear cuenta</a></li>
+                            <li><a href="<?php echo esc_url($login_url); ?>">Iniciar sesión</a></li>
+                            <li><hr><a href="<?php echo esc_url($register_url); ?>">Crear cuenta</a></li>
                         </ul>
                         </div>
                     </li>
                     <?php endif; ?>
 
                 <li class="menu__icon icon--shop" style="display:none">
-                    <a href="/shop/" aria-label="View your shopping cart" title="View your shopping cart">
+                    <a href="<?php echo esc_url($checkout_url); ?>" aria-label="Ir al checkout" title="Ir al checkout">
                         <i aria-hidden="true" class="dlicon shopping_bag-20"></i>
                         <span></span>
                     </a>
@@ -481,7 +492,7 @@
             $profile_url = is_user_logged_in()
                 ? esc_url( wc_get_account_endpoint_url('orders') )
                 : esc_url( home_url('/login/') );
-            $profile_label = is_user_logged_in() ? 'Mis Pedidos' : 'Ingresar';
+            $profile_label = is_user_logged_in() ? 'Mis pedidos' : 'Ingresar';
             ?>
             <a
                 id="profile-button-mobile"
@@ -526,30 +537,41 @@
                 <div class="mobile-nav__title-text">MI CUENTA</div>
             </summary>
             <ul class="mobile-nav__items">
+                <?php
+                    $my_account_url    = wc_get_page_permalink('myaccount');
+                    $orders_url        = wc_get_account_endpoint_url('orders');
+                    $bubble_points_url = home_url('/mi-cuenta/bubble-points/');
+                    $edit_account_url  = wc_get_account_endpoint_url('edit-account');
+                    $edit_address_url  = wc_get_account_endpoint_url('edit-address');
+                    $logout_url        = wc_logout_url(home_url('/'));
+                    $login_url         = home_url('/login/');
+                    $register_url      = home_url('/register/');
+                    $checkout_url      = wc_get_checkout_url();
+                ?>
                 <?php if (is_user_logged_in()) : ?>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="/mi-cuenta/orders/">
-                        <span class="mobile-nav__item-text">Mis Pedidos</span>
+                    <a class="mobile-nav__item-link" href="<?php echo esc_url($orders_url); ?>">
+                        <span class="mobile-nav__item-text">Mis pedidos</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="/mi-cuenta/bubble-points/">
-                        <span class="mobile-nav__item-text">Bubble Points</span>
+                    <a class="mobile-nav__item-link" href="<?php echo esc_url($bubble_points_url); ?>">
+                        <span class="mobile-nav__item-text">Mis puntos</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="/mi-cuenta/customer-logout/">
+                    <a class="mobile-nav__item-link" href="<?php echo esc_url($logout_url); ?>">
                         <span class="mobile-nav__item-text">Cerrar sesión</span>
                     </a>
                 </li>
                 <?php else : ?>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="/login/">
+                    <a class="mobile-nav__item-link" href="<?php echo esc_url($login_url); ?>">
                         <span class="mobile-nav__item-text">Iniciar sesión</span>
                     </a>
                 </li>
                 <li class="mobile-nav__item">
-                    <a class="mobile-nav__item-link" href="/register/">
+                    <a class="mobile-nav__item-link" href="<?php echo esc_url($register_url); ?>">
                         <span class="mobile-nav__item-text">Crear cuenta</span>
                     </a>
                 </li>

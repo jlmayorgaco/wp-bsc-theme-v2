@@ -87,7 +87,7 @@ if (count($repeated_slides) > 0) : ?>
             <div class="slide__hero fade-in">
               <h1 class="hero__title">K-Beauty para tu piel</h1>
               <p class="hero__text">Descubre nuestra selección de skincare coreano</p>
-              <a class="hero__button" href="/shop/">Ver tienda</a>
+              <a class="hero__button" href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>">Ver tienda</a>
             </div>
           </div>
         </div>

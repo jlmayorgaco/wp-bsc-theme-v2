@@ -349,12 +349,11 @@ function bsc_send_shipping_email( int $order_id ): string {
     include get_template_directory() . '/emails/bsc-order-shipped.php';
     $message = ob_get_clean();
 
-    $sent = wp_mail(
-        $to,
-        $subject,
-        $message,
-        [ 'Content-Type: text/html; charset=UTF-8' ]
-    );
+    $headers = function_exists( 'bsc_get_email_headers' )
+        ? bsc_get_email_headers()
+        : [ 'Content-Type: text/html; charset=UTF-8' ];
+
+    $sent = wp_mail( $to, $subject, $message, $headers );
 
     return $sent ? '' : 'wp_mail() devolvió false';
 }
