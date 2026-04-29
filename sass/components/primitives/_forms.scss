@@ -1,0 +1,25 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__form-group {
+  margin-bottom: var(--space--lg);
+}
+
+.bsc__field {
+  @include mixins.bsc-field-base();
+}
+
+.bsc__input,
+.bsc__select,
+.bsc__textarea,
+.bsc__form-input,
+.bsc__form-select,
+.bsc__form-textarea,
+.bsc__form-control {
+  @include mixins.bsc-input-base();
+}
+
+.bsc__textarea,
+.bsc__form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}

@@ -1,0 +1,50 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__button {
+  @include mixins.bsc-button-base(
+    $padding: 0.75rem 1rem,
+    $radius: 20px,
+    $font-size: 1rem,
+    $height: auto
+  );
+}
+
+.bsc__button--outline {
+  @include mixins.bsc-button-base(
+    $bg: transparent,
+    $color: #333,
+    $hover-bg: #333,
+    $hover-color: #fff,
+    $outline: true,
+    $padding: 0.75rem 1rem,
+    $radius: 20px,
+    $font-size: 1rem,
+    $height: auto
+  );
+}
+
+.bsc__button--floating {
+  display: block;
+  width: fit-content;
+  margin: 1em auto;
+}
+
+.bsc__button-add-to-cart {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button-base();
+
+  &:hover {
+    background-color: var(--color--primary);
+    border: 1px solid #333;
+  }
+}
+
+.bsc__signin_btn,
+.bsc__signup_btn {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button-base();
+
+  &:hover {
+    background-color: var(--color--primary);
+  }
+}
