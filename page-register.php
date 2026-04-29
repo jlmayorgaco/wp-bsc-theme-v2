@@ -83,14 +83,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
             <div class="bsc__error-msg" id="error_password"></div>
           </div>
 
-          <div class="bsc__form-field bsc__form-field--submit" style="margin-top:20px">
-            <input type="submit" id="register-submit" class="bsc__button" value="¡Unirme a Bubbles!"  style=" font-size: 17px !important;"/>
+          <div class="bsc__form-field bsc__form-field--submit bsc__form-field--auth-offset">
+            <input type="submit" id="register-submit" class="bsc__button bsc__button--auth-cta" value="¡Unirme a Bubbles!"/>
           </div>
 
-          <hr style="margin-top: 2em; margin-bottom: 2em; width: 350px; border-width: 1px; border-bottom-color: #cccccc7a;">
+          <hr class="bsc__auth-divider">
 
           <div class="bsc__form-field bsc__form-field--submit">
-            <a href="<?php echo esc_url(home_url('/login/')); ?>" style="padding: 10px 30px; font-size:17px;" class="bsc__button">
+            <a href="<?php echo esc_url(home_url('/login/')); ?>" class="bsc__button bsc__button--auth-cta">
               ¡ Ingresar a mi cuenta !
             </a>
           </div>
@@ -155,3 +155,4 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <?php get_footer(); ?>
+

@@ -103,12 +103,12 @@ get_header();
           <textarea id="bc-message" name="mensaje" rows="4" placeholder="¿Qué tipo de contenido creas? ¿Por qué quieres colaborar con BSC?"></textarea>
         </div>
 
-        <p class="bc__form-feedback bc__form-feedback--error" id="bc-form-error" style="display:none;"></p>
+        <p class="bc__form-feedback bc__form-feedback--error" id="bc-form-error"></p>
 
         <button type="submit" class="bc__form-submit" id="bc-form-submit">Enviar solicitud</button>
       </form>
 
-      <div class="bc__form-success" id="bc-form-success" style="display:none;">
+      <div class="bc__form-success" id="bc-form-success">
         <div class="bc__form-success-inner">
           <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_icon_white_heart.png" alt="">
           <p id="bc-form-success-msg"></p>

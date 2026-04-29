@@ -392,9 +392,9 @@
             <form class="home__contact__form" id="bsc-newsletter-form" action="#">
               <input type="email" name="email" id="bsc-newsletter-email" placeholder="Tu e-mail" class="home__contact__input" required>
               <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit" id="bsc-newsletter-submit">
-              <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error" style="display:none;"></p>
+              <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error"></p>
             </form>
-            <div class="home__contact__success" id="bsc-newsletter-success" style="display:none;">
+            <div class="home__contact__success" id="bsc-newsletter-success">
               <p class="home__contact__success-msg" id="bsc-newsletter-success-msg"></p>
             </div>
 
