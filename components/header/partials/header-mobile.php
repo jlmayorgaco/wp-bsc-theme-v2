@@ -21,7 +21,7 @@
         </div>
 
         <div class="header-mobile__nav-center">
-            <a href="/" class="item--logo">
+            <a href="<?php echo esc_url($header_home_url); ?>" class="item--logo">
                 <img
                     class="header-mobile__logo"
                     src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header_mobile.png"

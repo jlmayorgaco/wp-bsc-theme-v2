@@ -1,6 +1,6 @@
 <header class="bsc bsc__header bsc__header--desktop">
     <div class="header__container">
-        <a class="header__image" href="/">
+        <a class="header__image" href="<?php echo esc_url($header_home_url); ?>">
             <img src="<?php echo get_template_directory_uri();?>/images/bsc_logo_header.png">
         </a>
         <div class="header__nav">
