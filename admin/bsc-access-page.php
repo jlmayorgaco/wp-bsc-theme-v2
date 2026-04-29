@@ -2,6 +2,24 @@
 
 define('BSC_ACCESS_CONTROL_OPTION', 'bsc_access_control');
 
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_access_admin_assets' );
+function bsc_enqueue_access_admin_assets(): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-access' !== $page ) {
+        return;
+    }
+
+    $css_path = get_template_directory() . '/admin/bsc-admin-communications.css';
+
+    wp_enqueue_style(
+        'bsc-admin-communications',
+        get_template_directory_uri() . '/admin/bsc-admin-communications.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+}
+
 function bsc_render_access_page(): void {
     // Security Check -  More robust than just checking for manage_options
     if (!current_user_can('manage_options')) {
@@ -41,7 +59,7 @@ function bsc_render_access_page(): void {
     ?>
     <div class="bsc-admin-access">
         <h1>Control de Acceso BSC</h1>
-        <p style="color:#555;max-width:600px">Define qué páginas del panel BSC puede ver cada rol operativo. Administradores y Shop Managers siempre tienen acceso completo.</p>
+        <p class="bsc-admin-access__intro">Define qué páginas del panel BSC puede ver cada rol operativo. Administradores y Shop Managers siempre tienen acceso completo.</p>
 
         <form method="post">
             <?php wp_nonce_field('bsc_access_save', 'bsc_access_nonce'); ?>
@@ -50,14 +68,14 @@ function bsc_render_access_page(): void {
                     <tr>
                         <th>Página</th>
                         <?php foreach ($roles as $role => $label) : ?>
-                            <th style="text-align:center;width:150px"><?php echo esc_html($label); ?></th>
+                            <th class="bsc-admin-access__role-header"><?php echo esc_html($label); ?></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($pages as $page_slug => $page_label) : ?>
                         <tr>
-                            <td><strong><?php echo esc_html($page_label); ?><br><small style="color:#888;font-family:monospace"><?php echo esc_html($page_slug); ?></small></strong></td>
+                            <td><strong><?php echo esc_html($page_label); ?><br><small class="bsc-admin-access__slug"><?php echo esc_html($page_slug); ?></small></strong></td>
                             <?php foreach ($roles as $role => $label) : ?>
                                 <td>
                                     <input type="checkbox"
@@ -78,7 +96,7 @@ function bsc_render_access_page(): void {
                 <strong>Nota:</strong> "Pedidos" está marcado como obligatorio para todos los roles operativos y no se puede desmarcar. Los cambios se aplican inmediatamente al guardar.
             </div>
 
-            <?php submit_button('Guardar control de acceso', 'primary', 'submit', false, ['style' => 'margin-top:16px']); ?>
+            <?php submit_button('Guardar control de acceso', 'primary bsc-admin-access__submit', 'submit', false); ?>
         </form>
     </div>
     <?php

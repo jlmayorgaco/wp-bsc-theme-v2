@@ -4,6 +4,24 @@
  */
 defined( 'ABSPATH' ) || exit;
 
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_followup_admin_assets' );
+function bsc_enqueue_followup_admin_assets(): void {
+	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+	if ( 'bsc-followup-emails' !== $page ) {
+		return;
+	}
+
+	$css_path = get_template_directory() . '/admin/bsc-admin-communications.css';
+
+	wp_enqueue_style(
+		'bsc-admin-communications',
+		get_template_directory_uri() . '/admin/bsc-admin-communications.css',
+		array(),
+		file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+	);
+}
+
 function bsc_render_followup_emails_page(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
@@ -52,7 +70,7 @@ function bsc_render_followup_emails_page(): void {
 
 			<table class="form-table">
 				<tr>
-					<th colspan="2"><h2 style="margin:0">Módulo</h2></th>
+					<th colspan="2"><h2 class="bsc-admin-followup__section-title">Módulo</h2></th>
 				</tr>
 				<tr>
 					<th>Activación general</th>
@@ -65,7 +83,7 @@ function bsc_render_followup_emails_page(): void {
 				</tr>
 
 				<tr>
-					<th colspan="2"><h2 style="margin:16px 0 0">Correos inmediatos</h2></th>
+					<th colspan="2"><h2 class="bsc-admin-followup__section-title bsc-admin-followup__section-title--spaced">Correos inmediatos</h2></th>
 				</tr>
 				<tr>
 					<th>Usuario nuevo</th>
@@ -87,7 +105,7 @@ function bsc_render_followup_emails_page(): void {
 				</tr>
 
 				<tr>
-					<th colspan="2"><h2 style="margin:16px 0 0">Correos de seguimiento</h2></th>
+					<th colspan="2"><h2 class="bsc-admin-followup__section-title bsc-admin-followup__section-title--spaced">Correos de seguimiento</h2></th>
 				</tr>
 				<tr>
 					<th>Cumpleaños</th>
@@ -105,7 +123,7 @@ function bsc_render_followup_emails_page(): void {
 							<input type="checkbox" name="bsc_inactive_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_inactive_email_enabled' ), 1 ); ?>>
 							Activar recordatorio por inactividad
 						</label>
-						<p style="margin:8px 0 0">
+						<p class="bsc-admin-followup__inline-setting">
 							<input type="number" min="1" step="1" name="bsc_inactive_email_days" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_inactive_email_days' ) ); ?>" class="small-text">
 							días desde la última compra
 						</p>
@@ -118,7 +136,7 @@ function bsc_render_followup_emails_page(): void {
 							<input type="checkbox" name="bsc_repurchase_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_repurchase_email_enabled' ), 1 ); ?>>
 							Activar recordatorio de recompra
 						</label>
-						<p style="margin:8px 0 0">
+						<p class="bsc-admin-followup__inline-setting">
 							<input type="number" min="1" step="1" name="bsc_default_repurchase_days" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' ) ); ?>" class="small-text">
 							días por defecto para productos sin override
 						</p>
@@ -132,7 +150,7 @@ function bsc_render_followup_emails_page(): void {
 		</form>
 
 		<?php if ( ! empty( $run_now_summary ) ) : ?>
-			<div class="notice notice-info" style="margin-top:16px">
+			<div class="notice notice-info bsc-admin-followup__notice">
 				<p>
 					Ejecutado: <?php echo esc_html( $run_now_summary['ran_at'] ?? '' ); ?> |
 					Cumpleaños: <?php echo esc_html( (string) ( $run_now_summary['birthday'] ?? 0 ) ); ?> |
@@ -142,7 +160,7 @@ function bsc_render_followup_emails_page(): void {
 			</div>
 		<?php endif; ?>
 
-		<div style="margin-top:24px">
+		<div class="bsc-admin-followup__section">
 			<h2>Última ejecución registrada</h2>
 			<?php if ( ! empty( $last_run ) ) : ?>
 				<p>
@@ -156,9 +174,9 @@ function bsc_render_followup_emails_page(): void {
 			<?php endif; ?>
 		</div>
 
-		<div style="margin-top:24px">
+		<div class="bsc-admin-followup__section">
 			<h2>Templates editables</h2>
-			<table class="widefat striped" style="max-width:980px">
+			<table class="widefat striped bsc-admin-followup__templates-table">
 				<thead>
 					<tr>
 						<th>Tipo</th>
