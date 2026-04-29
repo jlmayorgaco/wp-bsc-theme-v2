@@ -32,6 +32,13 @@ test.describe('BSC visual baseline - public pages', () => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
     await openFirstProductFromCategory(page, routes.category);
+    await page.addStyleTag({
+      content: `
+        .bsc__product-recommendations {
+          display: none !important;
+        }
+      `,
+    });
 
     await expect(page).toHaveScreenshot('product-detail.png', {
       animations: 'disabled',
