@@ -3,6 +3,7 @@ const { expectsStorefront, routes } = require('../helpers/env');
 const {
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
+  gotoProductGridCategory,
   openFirstProductFromCategory,
 } = require('../helpers/ui');
 
@@ -21,7 +22,11 @@ test.describe('BSC visual baseline - public pages', () => {
   test('category', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
-    await gotoAndStabilize(page, routes.category);
+    await gotoProductGridCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ]);
 
     await expect(page).toHaveScreenshot('category.png', {
       animations: 'disabled',
@@ -35,7 +40,11 @@ test.describe('BSC visual baseline - public pages', () => {
     if (routes.product) {
       await gotoAndStabilize(page, routes.product);
     } else {
-      await openFirstProductFromCategory(page, routes.category);
+      await openFirstProductFromCategory(page, [
+        routes.categoryGrid,
+        routes.category,
+        routes.groupCategory,
+      ]);
     }
 
     await page.addStyleTag({
@@ -55,7 +64,11 @@ test.describe('BSC visual baseline - public pages', () => {
   test('checkout', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
-    await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
+    await ensureCheckoutReadyFromCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ], testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
 
     await expect(page).toHaveScreenshot('checkout.png', {

@@ -64,17 +64,12 @@ jQuery(function ($) {
    */
   $(document.body).on('added_to_cart', function (e, fragments, hash, $btn) {
     if ($btn.siblings(SELECTORS.quantityControls).length) return;
-
-    // BUG-H: guard against failed add-to-cart (no fragments → server error)
-    if (!fragments || !fragments['a.cart-contents']) {
-      console.error('BSC: added_to_cart fired without valid fragments — cart operation may have failed.');
-      return;
-    }
+    const safeFragments = fragments || {};
 
     const productId = $btn.data('product_id');
     const quantityControls = `
       <div class="bsc__quantity-controls" data-product_id="${productId}">
-        <button class="bsc__qty-minus">−</button>
+        <button class="bsc__qty-minus">&minus;</button>
         <span class="bsc__qty-value">1</span>
         <button class="bsc__qty-plus">+</button>
       </div>
@@ -84,17 +79,20 @@ jQuery(function ($) {
     $btn.parent().append(quantityControls);
     $btn.addClass('bsc__button-add-to-cart--hidden');
 
-    // a.cart-contents is not rendered in the BSC header — replaceWith is a no-op
+    // a.cart-contents is not rendered in the BSC header; replaceWith is a no-op
     // but kept for forward-compatibility if header ever adds the fragment
-    if (fragments['a.cart-contents']) {
-      $('a.cart-contents').replaceWith(fragments['a.cart-contents']);
+    if (safeFragments['a.cart-contents']) {
+      $('a.cart-contents').replaceWith(safeFragments['a.cart-contents']);
+
+      const updatedCart = $(safeFragments['a.cart-contents']);
+      const rawCount = updatedCart.find('.count').text().match(/\d+/);
+      const count = rawCount ? parseInt(rawCount[0], 10) : 0;
+
+      $(SELECTORS.footerCount).text(count);
+      $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+    } else {
+      refreshCartFragments();
     }
-
-    const updatedCart = $(fragments['a.cart-contents']);
-    const count = parseInt(updatedCart.find('.count').text().match(/\d+/)) || 0;
-
-    $(SELECTORS.footerCount).text(count);
-    $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
 
     // BSC-017: swing animation (mobile floating cart button)
     triggerCartSwing();

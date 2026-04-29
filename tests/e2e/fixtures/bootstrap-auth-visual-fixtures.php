@@ -105,6 +105,24 @@ function bsc_playwright_fixture_visual_parent_slug(): string {
     return 'sk-rutina';
 }
 
+function bsc_playwright_fixture_visual_category_slug(): string {
+    return BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG;
+}
+
+function bsc_playwright_fixture_visual_category_grid_url(): string {
+    return trailingslashit(
+        home_url(
+            '/product-category/'
+            . bsc_playwright_fixture_visual_group_slug()
+            . '/'
+            . bsc_playwright_fixture_visual_parent_slug()
+            . '/'
+            . bsc_playwright_fixture_visual_category_slug()
+            . '/'
+        )
+    );
+}
+
 function bsc_playwright_fixture_visual_products(): array {
     return [
         [
@@ -469,6 +487,7 @@ $payload = [
     ],
     'routes' => [
         'groupCategory'    => trailingslashit(home_url('/product-category/' . bsc_playwright_fixture_visual_group_slug() . '/')),
+        'categoryGrid'     => bsc_playwright_fixture_visual_category_grid_url(),
         'login'            => bsc_playwright_fixture_login_url(),
         'account'          => bsc_playwright_fixture_account_url(),
         'accountAddresses' => bsc_playwright_fixture_account_addresses_url(),

@@ -72,8 +72,28 @@ async function gotoAndStabilize(page, path) {
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
+async function gotoProductGridCategory(page, categoryPaths) {
+  const candidates = Array.isArray(categoryPaths)
+    ? categoryPaths
+    : [categoryPaths];
+
+  const uniqueCandidates = candidates.filter(
+    (candidate, index) => candidate && candidates.indexOf(candidate) === index
+  );
+
+  for (const candidate of uniqueCandidates) {
+    await gotoAndStabilize(page, candidate);
+
+    if (await page.locator('.bsc__product-card').count()) {
+      return candidate;
+    }
+  }
+
+  throw new Error('No product-grid category route rendered BSC product cards.');
+}
+
 async function openFirstProductFromCategory(page, categoryPath) {
-  await gotoAndStabilize(page, categoryPath);
+  await gotoProductGridCategory(page, categoryPath);
 
   const productLink = page
     .locator('.bsc__product-card .card__title a, .bsc__product-card .card__images')
@@ -121,7 +141,7 @@ async function interactWithPrimaryCardAddToCart(page, projectName) {
 }
 
 async function ensureCheckoutReadyFromCategory(page, categoryPath, projectName) {
-  await gotoAndStabilize(page, categoryPath);
+  await gotoProductGridCategory(page, categoryPath);
   await interactWithPrimaryCardAddToCart(page, projectName);
 }
 
@@ -223,6 +243,7 @@ async function loginToWpAdmin(page, username, password) {
 module.exports = {
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
+  gotoProductGridCategory,
   interactWithPrimaryCardAddToCart,
   loginFromAccount,
   loginToWpAdmin,
