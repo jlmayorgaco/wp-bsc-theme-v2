@@ -138,6 +138,10 @@ $menu-title-font: 'Helvetica', sans-serif;
   > button:hover .icon--normal  { opacity: 0; }
 }
 
+.menu__icon.menu__icon--hidden {
+  display: none;
+}
+
 
 
 
@@ -179,4 +183,3 @@ $menu-title-font: 'Helvetica', sans-serif;
     z-index: 999;
   }
 }
-
