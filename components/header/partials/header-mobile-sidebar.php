@@ -82,7 +82,7 @@
     </nav>
 
     <!-- CTA Button -->
-    <a class="sidebar-mobile__button " href="/shop">
+    <a class="sidebar-mobile__button " href="<?php echo esc_url($header_shop_url); ?>">
       <span>¡Ir a la tienda!</span>
     </a>
 

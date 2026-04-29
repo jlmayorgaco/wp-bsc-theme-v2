@@ -7,6 +7,11 @@ require_once get_stylesheet_directory() . '/components/header/header-menu-config
 $headerNav = bsc_build_header_nav();
 
 [
+    'home_url' => $header_home_url,
+    'shop_url' => $header_shop_url,
+] = bsc_get_header_shared_links();
+
+[
     'my_account_url'       => $my_account_url,
     'orders_url'           => $orders_url,
     'bubble_points_url'    => $bubble_points_url,

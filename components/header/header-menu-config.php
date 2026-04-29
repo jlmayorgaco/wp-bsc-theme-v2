@@ -218,18 +218,77 @@ if (!function_exists('bsc_create_header_menu')) {
         $menu->setMenus([]);
 
         if (!empty($config['cover']) && is_array($config['cover'])) {
-            $menu->setCover($config['cover']);
+            $cover = $config['cover'];
+
+            if (!empty($cover['link'])) {
+                $cover['link'] = bsc_normalize_header_link((string) $cover['link']);
+            }
+
+            $menu->setCover($cover);
         }
 
         if (!empty($config['link'])) {
-            $menu->setLink((string) $config['link']);
+            $menu->setLink(bsc_normalize_header_link((string) $config['link']));
         }
 
         foreach (($config['menus'] ?? []) as $section) {
+            if (!empty($section['items']) && is_array($section['items'])) {
+                $section['items'] = array_map(
+                    static function (array $item): array {
+                        if (!empty($item['link'])) {
+                            $item['link'] = bsc_normalize_header_link((string) $item['link']);
+                        }
+
+                        return $item;
+                    },
+                    $section['items']
+                );
+            }
+
             $menu->appendMenu($section);
         }
 
         return $menu;
+    }
+}
+
+if (!function_exists('bsc_normalize_header_link')) {
+    function bsc_normalize_header_link(string $link): string {
+        $link = trim($link);
+
+        if ($link === '' || $link === '#') {
+            return $link;
+        }
+
+        if (preg_match('#^(https?:)?//#i', $link)) {
+            return $link;
+        }
+
+        if (preg_match('#^(mailto:|tel:|javascript:)#i', $link)) {
+            return $link;
+        }
+
+        if (str_starts_with($link, '/')) {
+            return home_url($link);
+        }
+
+        return $link;
+    }
+}
+
+if (!function_exists('bsc_get_header_shared_links')) {
+    function bsc_get_header_shared_links(): array {
+        $home_url = home_url('/');
+        $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : '';
+
+        if (!is_string($shop_url) || $shop_url === '') {
+            $shop_url = home_url('/shop/');
+        }
+
+        return [
+            'home_url' => $home_url,
+            'shop_url' => $shop_url,
+        ];
     }
 }
 
@@ -254,13 +313,15 @@ if (!function_exists('bsc_build_header_nav')) {
 
 if (!function_exists('bsc_get_header_account_links')) {
     function bsc_get_header_account_links(): array {
+        $shared_links = bsc_get_header_shared_links();
+
         return [
             'my_account_url'       => wc_get_page_permalink('myaccount'),
             'orders_url'           => wc_get_account_endpoint_url('orders'),
             'bubble_points_url'    => home_url('/mi-cuenta/bubble-points/'),
             'edit_account_url'     => wc_get_account_endpoint_url('edit-account'),
             'edit_address_url'     => wc_get_account_endpoint_url('edit-address'),
-            'logout_url'           => wc_logout_url(home_url('/')),
+            'logout_url'           => wc_logout_url($shared_links['home_url']),
             'login_url'            => home_url('/login/'),
             'register_url'         => home_url('/register/'),
             'checkout_url'         => wc_get_checkout_url(),
