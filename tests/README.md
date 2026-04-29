@@ -29,7 +29,7 @@ Equivalent shortcut:
 - Category: `/product-category/group-skin-care/`
 - Checkout: `/checkout/`
 - Account: `/mi-cuenta/`
-- Bubble Points: `/bubble-points/`
+- Bubble Points: `/mi-cuenta/bubble-points/`
 
 Override them with:
 
@@ -40,18 +40,39 @@ Override them with:
 - `PW_ROUTE_BUBBLE_POINTS`
 - `PW_ROUTE_THANK_YOU`
 
-## Optional authenticated pages
+## Authenticated fixture bootstrap
 
-To run the logged-in visual flows, provide:
+The visual suite can auto-bootstrap a deterministic QA customer and a reusable
+WooCommerce order by calling WordPress through the Local PHP runtime.
 
+These authenticated baselines are intended to run with:
+
+- `PW_PUBLIC_MODE=storefront`
+
+Auto-discovered defaults:
+
+- PHP binary: latest `php-*` under `%APPDATA%\\Local\\lightning-services`
+- `php.ini`: latest `php.ini` under `%APPDATA%\\Local\\run\\*\\conf\\php`
+- QA account route: WooCommerce `myaccount`
+- Bubble Points route: `/mi-cuenta/bubble-points/`
+- Thank-you route: fixture order `order-received` URL when `PW_PUBLIC_MODE=storefront`
+
+Optional overrides:
+
+- `PW_PHP_BIN`
+- `PW_PHP_INI`
 - `PW_ACCOUNT_EMAIL`
 - `PW_ACCOUNT_PASSWORD`
+- `PW_ROUTE_ACCOUNT`
+- `PW_ROUTE_BUBBLE_POINTS`
+- `PW_ROUTE_THANK_YOU`
+- `PW_DISABLE_WP_FIXTURE=1`
 
-Without those variables:
+Without the fixture or explicit auth variables:
 
-- account visual baseline still runs against the public account route
+- account visual baseline is skipped
 - bubble points visual baseline is skipped
-- thank-you visual baseline is skipped unless `PW_ROUTE_THANK_YOU` is set
+- thank-you visual baseline is skipped unless the suite runs in storefront mode or `PW_ROUTE_THANK_YOU` is set
 
 ## Official viewports
 
@@ -82,4 +103,4 @@ npm run test:e2e:report
 - the first product card opens a valid PDP
 - checkout is reachable with the current catalog/cart state
 - public visual baselines require a non-`coming soon` storefront response
-- account, bubble points, and thank-you routes may require seeded credentials or a known order
+- account, bubble points, and thank-you routes use a reusable QA fixture when the Local PHP runtime is available
