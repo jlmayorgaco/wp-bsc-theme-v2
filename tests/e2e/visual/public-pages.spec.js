@@ -1,6 +1,7 @@
 const { expect, test } = require('@playwright/test');
 const { expectsStorefront, routes } = require('../helpers/env');
 const {
+  ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
   openFirstProductFromCategory,
 } = require('../helpers/ui');
@@ -51,9 +52,10 @@ test.describe('BSC visual baseline - public pages', () => {
     });
   });
 
-  test('checkout', async ({ page }) => {
+  test('checkout', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
+    await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
 
     await expect(page).toHaveScreenshot('checkout.png', {

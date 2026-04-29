@@ -27,7 +27,7 @@ if (!function_exists('wc_create_order')) {
 
 const BSC_PLAYWRIGHT_FIXTURE_META_KEY = '_bsc_playwright_fixture';
 const BSC_PLAYWRIGHT_FIXTURE_META_VALUE = 'auth_visual';
-const BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG = 'qa-visual-skin-care';
+const BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG = 'qa-visual-rutina';
 
 function bsc_playwright_fixture_email(): string {
     return getenv('PW_ACCOUNT_EMAIL') ?: 'qa.visual@bsc.local';
@@ -73,6 +73,14 @@ function bsc_playwright_fixture_bubble_points_url(): string {
 
 function bsc_playwright_fixture_visual_category_description(): string {
     return 'Tu rutina coreana empieza aqui: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dias.';
+}
+
+function bsc_playwright_fixture_visual_group_slug(): string {
+    return 'group-skin-care';
+}
+
+function bsc_playwright_fixture_visual_parent_slug(): string {
+    return 'sk-rutina';
 }
 
 function bsc_playwright_fixture_visual_products(): array {
@@ -122,21 +130,35 @@ function bsc_playwright_fixture_visual_products(): array {
     ];
 }
 
+function bsc_playwright_fixture_visual_parent_term(): WP_Term {
+    $parent = get_term_by('slug', bsc_playwright_fixture_visual_parent_slug(), 'product_cat');
+
+    if (!$parent instanceof WP_Term) {
+        fwrite(STDERR, "Expected fixture parent product category was not found.\n");
+        exit(1);
+    }
+
+    return $parent;
+}
+
 function bsc_playwright_fixture_get_or_create_visual_category(): WP_Term {
+    $parent = bsc_playwright_fixture_visual_parent_term();
     $existing = get_term_by('slug', BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG, 'product_cat');
 
     if ($existing instanceof WP_Term) {
         wp_update_term($existing->term_id, 'product_cat', [
-            'name'        => 'Skin care',
+            'name'        => 'QA Visual Rutina',
             'description' => bsc_playwright_fixture_visual_category_description(),
+            'parent'      => $parent->term_id,
         ]);
 
         return get_term($existing->term_id, 'product_cat');
     }
 
-    $inserted = wp_insert_term('Skin care', 'product_cat', [
+    $inserted = wp_insert_term('QA Visual Rutina', 'product_cat', [
         'slug'        => BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG,
         'description' => bsc_playwright_fixture_visual_category_description(),
+        'parent'      => $parent->term_id,
     ]);
 
     if (is_wp_error($inserted)) {
@@ -423,6 +445,7 @@ $payload = [
         'password' => $password,
     ],
     'routes' => [
+        'groupCategory'    => trailingslashit(home_url('/product-category/' . bsc_playwright_fixture_visual_group_slug() . '/')),
         'account'          => bsc_playwright_fixture_account_url(),
         'accountAddresses' => bsc_playwright_fixture_account_addresses_url(),
         'bubblePoints'     => bsc_playwright_fixture_bubble_points_url(),
