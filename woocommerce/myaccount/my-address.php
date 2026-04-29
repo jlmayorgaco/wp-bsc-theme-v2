@@ -3,8 +3,7 @@ defined( 'ABSPATH' ) || exit;
 
 $customer_id = get_current_user_id();
 $get_addresses = [
-    'billing'  => 'Facturación',
-    'shipping' => 'Entrega de pedidos',
+    'billing' => 'Facturación y Entregas',
 ];
 
 $addresses = [];

@@ -86,10 +86,6 @@
             display: inline-block;
         }
 
-        .social-media-list li:af {
-            display: inline-block;
-        }
-
         .social-media-list a {
             display: inline-block;
             width: 40px;
@@ -132,25 +128,25 @@
     <div class="coming-soon-container">
         <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_FACE.png" alt="Bubbles Skin Care">
         
-        <h1>¡Coming soon!</h1>
+        <h1>¡Volvemos pronto!</h1>
         
-        <p>Nuestra pagina web está en mantenimiento.</p>
+        <p>Nuestra página web está en mantenimiento.</p>
         
-        <p><strong>Contactanos en nuestras redes sociales</strong></p>
+        <p><strong>Contáctanos en nuestras redes sociales</strong></p>
 
         <ul class="social-media-list">
             <li>
-                <a href="https://www.instagram.com/bubbles.skincare/" target="_blank">
+                <a href="https://www.instagram.com/bubbles.skincare/" target="_blank" rel="noopener noreferrer">
                     <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_SOCIAL_INSTAGRAM.png" alt="Instagram">
                 </a>
             </li>
             <li>
-                <a href="<?php echo esc_url( bsc_get_whatsapp_url( 'general' ) ); ?>" target="_blank">
+                <a href="<?php echo esc_url( bsc_get_whatsapp_url( 'general' ) ); ?>" target="_blank" rel="noopener noreferrer">
                     <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_SOCIAL_WHATSAPP.png" alt="WhatsApp">
                 </a>
             </li>
             <li>
-                <a href="https://www.tiktok.com/@bubblesskincare" target="_blank">
+                <a href="https://www.tiktok.com/@bubblesskincare" target="_blank" rel="noopener noreferrer">
                     <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/BSC_COMING_SOON_SOCIAL_TIKTOK.png" alt="TikTok">
                 </a>
             </li>

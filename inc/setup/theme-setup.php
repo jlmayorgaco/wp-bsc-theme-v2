@@ -66,6 +66,8 @@ if (!function_exists('bsc_2_0_content_width')) {
  */
 if (!function_exists('bsc_create_default_pages')) {
     function bsc_create_default_pages() {
+        $shop_url = function_exists('wc_get_page_permalink') ? wc_get_page_permalink('shop') : home_url('/shop/');
+
         $pages = [
             [
                 'slug'     => 'login',
@@ -118,7 +120,7 @@ if (!function_exists('bsc_create_default_pages')) {
             [
                 'slug'    => 'registro-familia-bubbles',
                 'title'   => '¡Bienvenida a la familia Bubbles!',
-                'content' => '<p>Gracias por registrarte. Ya eres parte de la familia Bubbles Skin Care. 🌸</p><p><a href="/shop/">Explorar la tienda</a></p>',
+                'content' => sprintf('<p>Gracias por registrarte. Ya eres parte de la familia Bubbles Skin Care.</p><p><a href="%s">Explorar la tienda</a></p>', esc_url($shop_url)),
             ],
         ];
 

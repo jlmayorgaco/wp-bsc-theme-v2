@@ -3,6 +3,8 @@ defined('ABSPATH') || exit;
 
 $checkout = WC()->checkout();
 $fields   = $checkout->get_checkout_fields();
+$countries = WC()->countries->get_countries();
+$country_label = $countries['CO'] ?? 'Colombia';
 
 $placeholder_map = [
   'billing_first_name'    => 'Nombres',
@@ -24,7 +26,6 @@ $placeholder_map = [
   'order_comments'        => 'Notas del pedido (opcional)',
 ];
 
-// Asignar placeholders y clases
 foreach (['billing', 'shipping'] as $group) {
   if (isset($fields[$group])) {
     foreach ($fields[$group] as $key => &$field) {
@@ -38,11 +39,23 @@ foreach (['billing', 'shipping'] as $group) {
   }
 }
 
-// Agregar class y placeholder a order_comments
 if (isset($fields['order']['order_comments'])) {
   $fields['order']['order_comments']['placeholder'] = $placeholder_map['order_comments'];
   $fields['order']['order_comments']['class'][] = 'bsc__field';
 }
+
+$render_locked_country_field = static function (string $field_id, string $input_name, string $label, string $country_label): void {
+  $locked_select_id = $field_id . '_locked';
+  ?>
+  <p class="form-row form-row-wide bsc__field bsc__field--locked-country" id="<?php echo esc_attr($field_id); ?>_field">
+    <label for="<?php echo esc_attr($locked_select_id); ?>"><?php echo esc_html($label); ?></label>
+    <select id="<?php echo esc_attr($locked_select_id); ?>" class="country_to_state country_select bsc__locked-country-select" disabled="disabled" aria-disabled="true">
+      <option value="CO" selected="selected"><?php echo esc_html($country_label); ?></option>
+    </select>
+    <input type="hidden" name="<?php echo esc_attr($input_name); ?>" id="<?php echo esc_attr($field_id); ?>" value="CO">
+  </p>
+  <?php
+};
 ?>
 <div class="checkout bsc__checkout-form">
   <div class="bsc__checkout-section">
@@ -59,19 +72,8 @@ if (isset($fields['order']['order_comments'])) {
       woocommerce_form_field('billing_email', $fields['billing']['billing_email'], $checkout->get_value('billing_email'));
       woocommerce_form_field('billing_phone', $fields['billing']['billing_phone'], $checkout->get_value('billing_phone'));
 
-      // Set default value to Colombia
-      $fields['billing']['billing_country']['default'] = 'CO';
-      $fields['billing']['billing_country']['custom_attributes'] = [
-        'readonly' => 'readonly'
-      ];
+      $render_locked_country_field('billing_country', 'billing_country', 'Pais', $country_label);
 
-      // Output the country field
-      woocommerce_form_field(
-        'billing_country',
-        $fields['billing']['billing_country'],
-        $checkout->get_value('billing_country') ?: 'CO'
-      );
-      
       echo '<div class="bsc__grid-3">';
         woocommerce_form_field('billing_state', $fields['billing']['billing_state'], $checkout->get_value('billing_state'));
         woocommerce_form_field('billing_city', $fields['billing']['billing_city'], $checkout->get_value('billing_city'));
@@ -80,52 +82,10 @@ if (isset($fields['order']['order_comments'])) {
 
       woocommerce_form_field('billing_address_1', $fields['billing']['billing_address_1'], $checkout->get_value('billing_address_1'));
     ?>
-
-    <div class="bsc__shipping-toggle" style="display:none">
-      <?php
-        woocommerce_form_field('ship_to_different_address', [
-          'type'  => 'checkbox',
-          'label' => '¿Enviar a otra dirección?',
-          'class' => ['form-row-wide'],
-        ], $checkout->get_value('ship_to_different_address'));
-      ?>
-    </div>
-
-    <div class="bsc__shipping-fields" style="display: none;">
-      <h3 class="bsc__section-title">Dirección de envío</h3>
-
-      <?php
-        $fields['shipping']['shipping_country']['custom_attributes'] = ['readonly' => 'readonly'];
-        woocommerce_form_field('shipping_country', $fields['shipping']['shipping_country'], $checkout->get_value('shipping_country'));
-
-        echo '<div class="bsc__grid-3">';
-          woocommerce_form_field('shipping_state', $fields['shipping']['shipping_state'], $checkout->get_value('shipping_state'));
-          woocommerce_form_field('shipping_city', $fields['shipping']['shipping_city'], $checkout->get_value('shipping_city'));
-          woocommerce_form_field('shipping_postcode', $fields['shipping']['shipping_postcode'], $checkout->get_value('shipping_postcode'));
-        echo '</div>';
-
-        woocommerce_form_field('shipping_address_1', $fields['shipping']['shipping_address_1'], $checkout->get_value('shipping_address_1'));
-      ?>
-    </div>
   </div>
 
   <div class="bsc__checkout-section">
     <h2 class="bsc__section-title">Notas del pedido (opcional)</h2>
     <?php woocommerce_form_field('order_comments', $fields['order']['order_comments'], $checkout->get_value('order_comments')); ?>
   </div>
-
 </div>
-
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const toggle = document.querySelector('input[name="ship_to_different_address"]');
-    const shippingSection = document.querySelector('.bsc__shipping-fields');
-    if (toggle && shippingSection) {
-      toggle.addEventListener('change', () => {
-        shippingSection.style.display = toggle.checked ? 'block' : 'none';
-      });
-      shippingSection.style.display = toggle.checked ? 'block' : 'none';
-    }
-  });
-</script>

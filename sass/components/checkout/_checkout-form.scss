@@ -10,6 +10,7 @@
 .bsc__form-input,
 .bsc__form-textarea,
 .bsc__form-select,
+.bsc__locked-country-select,
 #billing_state,
 #billing_state.state_select,
 #billing_city,
@@ -29,6 +30,7 @@
 #billing_state.state_select,
 #billing_city,
 #billing_city.city_select,
+.bsc__locked-country-select,
 #billing_country,
 #shipping_state,
 #shipping_state.state_select,
@@ -52,6 +54,24 @@
   background-size: 5px 5px, 5px 5px;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.bsc__field--locked-country {
+  position: relative;
+}
+
+.bsc__locked-country-select {
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.bsc__locked-country-select:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: var(--bsc-color-text);
+  -webkit-text-fill-color: var(--bsc-color-text);
+  background-color: #fff;
+  border-color: var(--bsc-color-input-border);
 }
 
 // Optional overrides (specific case: order comments)

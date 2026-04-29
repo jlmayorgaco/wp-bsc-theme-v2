@@ -237,7 +237,7 @@
           ],
           [
             'name' => 'Pyunkang Yul',
-            'slug' => 'sk-marca-apieu'
+            'slug' => 'sk-marca-pyunkang-yul'
           ],
           [
             'name' => 'Im From',
