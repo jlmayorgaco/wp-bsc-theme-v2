@@ -114,8 +114,7 @@ class BSC_Products_Card {
             // BSC-003: render the add-to-cart button hidden so JS can show it when qty reaches 0
             echo '<button
                 type="button"
-                class="bsc__button-add-to-cart"
-                style="display:none"
+                class="bsc__button-add-to-cart bsc__button-add-to-cart--hidden"
                 data-quantity="1"
                 data-product_id="' . esc_attr($product_id) . '"
                 data-product_sku=""
