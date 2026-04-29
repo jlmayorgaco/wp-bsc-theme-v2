@@ -21,6 +21,46 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
+  test('header shell renders for the active viewport', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for header smoke');
+
+    await gotoAndStabilize(page, routes.home);
+
+    if (testInfo.project.name === 'desktop') {
+      await expect(page.locator('.bsc__header--desktop .header__image').first()).toBeVisible();
+      await expect(page.locator('.bsc__header--desktop .btn-search-toggle').first()).toBeVisible();
+      await expect(page.locator('.bsc__header--desktop .menu__icon.icon--profile').first()).toBeVisible();
+      return;
+    }
+
+    await expect(page.locator('.bsc__header--mobile').first()).toBeVisible();
+    await expect(page.locator('#mobileMenuToggle').first()).toBeVisible();
+    await expect(page.locator('#mobile-search-btn').first()).toBeVisible();
+    await expect(page.locator('#profile-button-mobile').first()).toBeVisible();
+  });
+
+  test('mobile menu toggles open and closed', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for mobile-nav smoke');
+    test.skip(testInfo.project.name === 'desktop', 'Mobile/tablet-only smoke');
+
+    await gotoAndStabilize(page, routes.home);
+
+    const menuToggle = page.locator('#mobileMenuToggle').first();
+    const mobileSidebar = page.locator('#mobileSidebar').first();
+    const body = page.locator('body');
+
+    await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
+
+    await menuToggle.click();
+    await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(mobileSidebar).toHaveClass(/is-open/);
+    await expect(body).toHaveClass(/mobile-menu-open/);
+
+    await menuToggle.click();
+    await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(mobileSidebar).not.toHaveClass(/is-open/);
+  });
+
   test('category page renders product cards', async ({ page }) => {
     await gotoAndStabilize(page, routes.category);
 
