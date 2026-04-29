@@ -4,6 +4,10 @@
  * BSC: Página de contacto.
  */
 
+$contact_whatsapp_url     = bsc_get_whatsapp_url( 'support' );
+$contact_whatsapp_display = bsc_get_whatsapp_display();
+$contact_shop_url         = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+
 get_header();
 ?>
 
@@ -43,7 +47,7 @@ get_header();
 
               <a
                 class="bsc__contact-item"
-                href="<?php echo esc_url( bsc_get_whatsapp_url( 'support' ) ); ?>"
+                href="<?php echo esc_url( $contact_whatsapp_url ); ?>"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Escribir por WhatsApp a Bubble Skin Care"
@@ -54,7 +58,7 @@ get_header();
 
                 <span class="bsc__contact-item__content">
                   <span class="bsc__contact-item__label">WhatsApp</span>
-                  <span class="bsc__contact-item__value">+57 315 692 2859</span>
+                  <span class="bsc__contact-item__value"><?php echo esc_html( $contact_whatsapp_display ); ?></span>
                 </span>
 
                 <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
@@ -101,7 +105,7 @@ get_header();
             </div>
 
             <div class="bsc__contact-actions">
-              <a class="bsc__contact-btn" href="/shop/">Visitar tienda</a>
+              <a class="bsc__contact-btn" href="<?php echo esc_url( $contact_shop_url ); ?>">Visitar tienda</a>
             </div>
 
             <!-- BSC-008: contact form -->
@@ -143,47 +147,5 @@ get_header();
   </section>
 
 </main>
-
-<script>
-(function($){
-  var $form   = $('#bsc-contact-form');
-  var $submit = $('#bsc-contact-submit');
-  var $notice = $('#bsc-contact-notice');
-
-  function showNotice(msg, isSuccess) {
-    $notice
-      .removeClass('bsc__contact-notice--success bsc__contact-notice--error')
-      .addClass(isSuccess ? 'bsc__contact-notice--success' : 'bsc__contact-notice--error')
-      .text(msg)
-      .show();
-  }
-
-  $form.on('submit', function(e) {
-    e.preventDefault();
-    $notice.hide();
-    $submit.prop('disabled', true).text('Enviando…');
-
-    $.post(bsc_ajax.ajax_url, {
-      action      : 'bsc_contact_form_submit',
-      nonce       : bsc_ajax.nonce,
-      bsc_name    : $('#bsc-contact-name').val(),
-      bsc_email   : $('#bsc-contact-email').val(),
-      bsc_message : $('#bsc-contact-message').val(),
-    }).done(function(res) {
-      if (res && res.success) {
-        $form[0].reset();
-        showNotice(res.data.message, true);
-      } else {
-        var msg = (res && res.data && res.data.message) ? res.data.message : 'Error al enviar. Intenta nuevamente.';
-        showNotice(msg, false);
-      }
-    }).fail(function() {
-      showNotice('Error de conexión. Por favor intenta nuevamente.', false);
-    }).always(function() {
-      $submit.prop('disabled', false).text('Enviar mensaje');
-    });
-  });
-})(jQuery);
-</script>
 
 <?php get_footer(); ?>

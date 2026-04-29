@@ -129,6 +129,28 @@ function bsc_2_0_scripts() {
 		);
 	}
 
+	// Contact form — solo en la landing de contacto
+	if ( is_page_template( 'page-contact-us.php' ) ) {
+		wp_enqueue_script(
+			'bsc-2-0-contact',
+			get_template_directory_uri() . '/js/contact.js',
+			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
+
+	// Bubble Creators form — solo en su landing
+	if ( is_page_template( 'page-bubble-creators.php' ) ) {
+		wp_enqueue_script(
+			'bsc-2-0-creator-apply',
+			get_template_directory_uri() . '/js/creator-apply.js',
+			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
+
 	// Cupones — solo en carrito y checkout
 	if (is_cart() || is_checkout()) {
 		wp_enqueue_script(
