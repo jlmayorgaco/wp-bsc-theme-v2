@@ -1,20 +1,24 @@
 const { expect, test } = require('@playwright/test');
 const { expectsStorefront, routes } = require('../helpers/env');
 const {
+  ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
+  interactWithPrimaryCardAddToCart,
   openFirstProductFromCategory,
 } = require('../helpers/ui');
 
 test.describe('BSC smoke', () => {
-  test('home loads approved shell', async ({ page }) => {
+  test('home loads approved shell', async ({ page }, testInfo) => {
     await gotoAndStabilize(page, routes.home);
 
     await expect(page.locator('body')).toBeVisible();
 
     if (expectsStorefront()) {
-      await expect(
-        page.locator('header, .bsc__header, .site-header').first()
-      ).toBeVisible();
+      if (testInfo.project.name === 'desktop') {
+        await expect(page.locator('.bsc__header--desktop').first()).toBeVisible();
+      } else {
+        await expect(page.locator('.bsc__header--mobile').first()).toBeVisible();
+      }
       return;
     }
 
@@ -62,7 +66,7 @@ test.describe('BSC smoke', () => {
   });
 
   test('category page renders product cards', async ({ page }) => {
-    await gotoAndStabilize(page, routes.category);
+    await gotoAndStabilize(page, expectsStorefront() ? routes.category : routes.groupCategory);
 
     if (expectsStorefront()) {
       await expect(page.locator('.bsc__product-card').first()).toBeVisible();
@@ -84,7 +88,25 @@ test.describe('BSC smoke', () => {
     ).toBeVisible();
   });
 
-  test('checkout page renders', async ({ page }) => {
+  test('product card add-to-cart toggles quantity controls and restores CTA at zero', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for cart smoke');
+
+    await gotoAndStabilize(page, routes.category);
+    const { addButton, controls } = await interactWithPrimaryCardAddToCart(page, testInfo.project.name);
+    const minusButton = controls.locator('.bsc__qty-minus').first();
+
+    await minusButton.click();
+
+    await expect(controls).toBeHidden();
+    await expect(addButton).toBeVisible();
+    await expect(page.locator('.footer__cart-count').first()).toHaveText('0');
+  });
+
+  test('checkout page renders', async ({ page }, testInfo) => {
+    if (expectsStorefront()) {
+      await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
+    }
+
     await gotoAndStabilize(page, routes.checkout);
 
     if (expectsStorefront()) {
@@ -97,9 +119,10 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
-  test('checkout coupon toggle opens the coupon form', async ({ page }) => {
+  test('checkout coupon toggle opens the coupon form', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for checkout coupon smoke');
 
+    await ensureCheckoutReadyFromCategory(page, routes.category, testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
 
     const $toggle = page.locator('.showcoupon').first();

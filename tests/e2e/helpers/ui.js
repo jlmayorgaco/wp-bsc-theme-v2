@@ -1,3 +1,5 @@
+const { expect } = require('@playwright/test');
+
 async function disableMotion(page) {
   await page.addStyleTag({
     content: `
@@ -94,6 +96,35 @@ async function openFirstProductFromCategory(page, categoryPath) {
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
+async function interactWithPrimaryCardAddToCart(page, projectName) {
+  const productCard = page.locator('.bsc__product-card').first();
+  const addButton = productCard.locator('.bsc__button-add-to-cart').first();
+
+  await expect(addButton).toBeVisible();
+  await addButton.scrollIntoViewIfNeeded();
+
+  if (projectName === 'mobile' || projectName === 'tablet') {
+    await addButton.tap();
+  } else {
+    await addButton.click();
+  }
+
+  const controls = productCard.locator('.bsc__quantity-controls').first();
+  await expect(controls).toBeVisible({ timeout: 15000 });
+  await expect(controls.locator('.bsc__qty-value').first()).toHaveText('1');
+
+  return {
+    productCard,
+    addButton,
+    controls,
+  };
+}
+
+async function ensureCheckoutReadyFromCategory(page, categoryPath, projectName) {
+  await gotoAndStabilize(page, categoryPath);
+  await interactWithPrimaryCardAddToCart(page, projectName);
+}
+
 async function loginFromAccount(page, accountPath, email, password) {
   await gotoAndStabilize(page, accountPath);
 
@@ -158,7 +189,9 @@ async function loginToWpAdmin(page, username, password) {
 }
 
 module.exports = {
+  ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
+  interactWithPrimaryCardAddToCart,
   loginFromAccount,
   loginToWpAdmin,
   openFirstProductFromCategory,
