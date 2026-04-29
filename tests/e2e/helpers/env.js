@@ -41,6 +41,14 @@ const routes = {
     process.env.PW_ROUTE_ACCOUNT_ADDRESSES ||
     fixture?.routes?.accountAddresses ||
     '/mi-cuenta/edit-address/',
+  accountEdit:
+    process.env.PW_ROUTE_ACCOUNT_EDIT ||
+    fixture?.routes?.accountEdit ||
+    '/mi-cuenta/edit-account/',
+  accountOrders:
+    process.env.PW_ROUTE_ACCOUNT_ORDERS ||
+    fixture?.routes?.accountOrders ||
+    '/mi-cuenta/orders/',
   bubblePoints:
     process.env.PW_ROUTE_BUBBLE_POINTS ||
     fixture?.routes?.bubblePoints ||
