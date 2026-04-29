@@ -11,9 +11,22 @@ require_once get_template_directory() . '/admin/class-bsc-order-labels.php';
 
 // ── Enqueue admin JS only on BSC orders page ──────────────────────────
 add_action( 'admin_enqueue_scripts', function ( string $hook ) {
-    if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'bsc-orders' ) return;
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-orders' !== $page ) {
+        return;
+    }
 
     $js_path = get_template_directory() . '/js/bsc-admin-orders.js';
+    $css_path = get_template_directory() . '/admin/bsc-admin-orders.css';
+
+    wp_enqueue_style(
+        'bsc-admin-orders',
+        get_template_directory_uri() . '/admin/bsc-admin-orders.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+
     wp_enqueue_script(
         'bsc-admin-orders',
         get_template_directory_uri() . '/js/bsc-admin-orders.js',
@@ -192,7 +205,7 @@ function bsc_render_orders_page(): void {
             <div>
                 <label>Buscar</label>
                 <input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
-                       placeholder="Nombre, email o # de orden" style="width:220px">
+                       placeholder="Nombre, email o # de orden" class="bsc-orders-search-input">
             </div>
             <button type="submit" class="button button-primary">Filtrar</button>
             <?php if ( $date_start || $date_end || $search ) : ?>
@@ -205,82 +218,23 @@ function bsc_render_orders_page(): void {
         <form method="post" id="bsc-orders-form"
               action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
             <?php wp_nonce_field( 'bsc_bulk_export', 'bsc_export_nonce' ); ?>
-            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="bsc-orders-bulk-actions">
                 <button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
-                    ⬇ Exportar CSV
+                    Descargar CSV
                 </button>
                 <button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
-                    🖨 Vista de empaque
+                    Vista de empaque
                 </button>
                 <button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
-                    🏷 Imprimir con datos (PDF)
+                    Imprimir con datos (PDF)
                 </button>
-                <span id="bsc-bulk-msg" style="display:none;color:#c0392b;font-size:13px;margin-left:6px">
+                <span id="bsc-bulk-msg" class="bsc-orders-bulk-message">
                     Selecciona al menos un pedido primero.
                 </span>
             </div>
             <?php $table->display(); ?>
         </form>
-
-        <script>
-        (function($){
-            function requireSelection(e) {
-                if ($('input[name="order_ids[]"]:checked').length === 0) {
-                    e.preventDefault();
-                    $('#bsc-bulk-msg').stop(true).fadeIn(150).delay(3000).fadeOut(400);
-                    return false;
-                }
-                return true;
-            }
-
-            // Vista de empaque → open in new tab so orders page stays visible
-            $('#bsc-packing-btn').on('click', function(e) {
-                if (!requireSelection(e)) return;
-                $('#bsc-orders-form').attr('target', '_blank');
-                setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);
-            });
-
-            // Imprimir con datos (PDF) → open in new tab
-            $('#bsc-labels-btn').on('click', function(e) {
-                if (!requireSelection(e)) return;
-                $('#bsc-orders-form').attr('target', '_blank');
-                setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);
-            });
-
-            // CSV → same tab (browser downloads file, page stays)
-            $('#bsc-csv-btn').on('click', function(e) {
-                if (!requireSelection(e)) return;
-                $('#bsc-orders-form').removeAttr('target');
-            });
-        })(jQuery);
-        </script>
     </div>
-
-    <style>
-        /* ── Status tabs ── */
-        .bsc-orders-tabs { display:flex; gap:2px; flex-wrap:wrap; margin:16px 0 0; border-bottom:2px solid #ddd; }
-        .bsc-orders-tab {
-            display:inline-flex; align-items:center; gap:6px;
-            padding:8px 14px; font-size:13px; color:#555; text-decoration:none;
-            border:1px solid transparent; border-bottom:none; border-radius:4px 4px 0 0;
-            margin-bottom:-2px; background:#f9f9f9;
-        }
-        .bsc-orders-tab:hover { background:#fff; color:#333; }
-        .bsc-orders-tab--active { background:#fff; color:#000; font-weight:600; border-color:#ddd; border-bottom-color:#fff; }
-        .bsc-tab-count { background:#e1e1e1; color:#555; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; }
-        .bsc-orders-tab--active .bsc-tab-count { background:#2271b1; color:#fff; }
-
-        /* ── Filters row ── */
-        .bsc-orders-filters { margin:12px 0 16px; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
-        .bsc-orders-filters label { display:block; font-size:11px; font-weight:600; margin-bottom:3px; text-transform:uppercase; letter-spacing:.3px; color:#555; }
-        .bsc-orders-filters input[type=date], .bsc-orders-filters input[type=search] { padding:5px; }
-
-        /* ── Table ── */
-        .bsc-admin-orders .wp-list-table { font-size:13px; }
-        .bsc-admin-orders .column-tracking input { margin-bottom:4px; }
-        .bsc-admin-orders .column-city { width:90px; }
-        .bsc-admin-orders .column-status { width:170px; }
-    </style>
     <?php
 }
 
