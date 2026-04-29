@@ -122,4 +122,81 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('body')).toBeVisible();
     await expect(page).toHaveURL(/mi-cuenta|my-account|login/i);
   });
+
+  test('contact page exposes dynamic contact CTAs and ajax feedback shell', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for contact smoke');
+
+    await page.route('**/wp-admin/admin-ajax.php*', async (route) => {
+      const request = route.request();
+      const postData = request.postData() || '';
+
+      if (request.method() === 'POST' && postData.includes('action=bsc_contact_form_submit')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: { message: 'Contacto QA OK' },
+          }),
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    await gotoAndStabilize(page, routes.contact);
+
+    const whatsappLink = page.locator('.bsc__contact-item[href*="api.whatsapp.com"]').first();
+    const shopButton = page.locator('.bsc__contact-btn').first();
+    const notice = page.locator('#bsc-contact-notice').first();
+
+    await expect(whatsappLink).toBeVisible();
+    await expect(shopButton).toBeVisible();
+
+    await page.locator('#bsc-contact-name').fill('QA Visual');
+    await page.locator('#bsc-contact-email').fill('qa.visual@bsc.local');
+    await page.locator('#bsc-contact-message').fill('Mensaje de prueba para validar el flujo de contacto.');
+    await page.locator('#bsc-contact-submit').click();
+
+    await expect(notice).toContainText('Contacto QA OK');
+    await expect(page.locator('#bsc-contact-name')).toHaveValue('');
+  });
+
+  test('bubble creators page preserves ajax success flow', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for Bubble Creators smoke');
+
+    await page.route('**/wp-admin/admin-ajax.php*', async (route) => {
+      const request = route.request();
+      const postData = request.postData() || '';
+
+      if (request.method() === 'POST' && postData.includes('action=bsc_creator_apply')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: { message: 'Creator QA OK' },
+          }),
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    await gotoAndStabilize(page, routes.bubbleCreators);
+
+    await expect(page.locator('#bc-creator-form').first()).toBeVisible();
+
+    await page.locator('#bc-name').fill('QA Creator');
+    await page.locator('#bc-email').fill('qa.creator@bsc.local');
+    await page.locator('#bc-instagram').fill('@qa.creator');
+    await page.locator('#bc-tiktok').fill('@qa.creator');
+    await page.locator('#bc-message').fill('Validando el flujo AJAX del formulario Bubble Creators.');
+    await page.locator('#bc-form-submit').click();
+
+    await expect(page.locator('#bc-form-success').first()).toContainText('Creator QA OK');
+    await expect(page.locator('#bc-creator-form').first()).toBeHidden();
+  });
 });
