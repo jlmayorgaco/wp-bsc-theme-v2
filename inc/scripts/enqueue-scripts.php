@@ -162,6 +162,26 @@ function bsc_2_0_scripts() {
 		);
 	}
 
+	if ( is_account_page() && is_wc_endpoint_url( 'edit-account' ) ) {
+		wp_enqueue_script(
+			'bsc-2-0-account-edit',
+			get_template_directory_uri() . '/js/account-edit.js',
+			array(),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
+
+	if ( is_account_page() && is_wc_endpoint_url( 'view-order' ) ) {
+		wp_enqueue_script(
+			'bsc-2-0-account-view-order',
+			get_template_directory_uri() . '/js/account-view-order.js',
+			array(),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
+
 	if (is_singular() && comments_open() && get_option('thread_comments')) {
 		wp_enqueue_script('comment-reply');
 	}
