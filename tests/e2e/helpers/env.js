@@ -26,6 +26,7 @@ const routes = {
     fixture?.routes?.product ||
     '',
   checkout: process.env.PW_ROUTE_CHECKOUT || '/checkout/',
+  shop: process.env.PW_ROUTE_SHOP || '/shop/',
   contact: process.env.PW_ROUTE_CONTACT || '/contact-us/',
   login:
     process.env.PW_ROUTE_LOGIN ||
