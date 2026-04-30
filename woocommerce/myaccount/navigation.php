@@ -28,7 +28,7 @@ do_action( 'woocommerce_before_account_navigation' );
 	$headerMyAccount = new BSC_MY_ACCOUNT_HEADER();
 	$current_route = '';
 
-	if ( is_wc_endpoint_url( 'orders' ) ) {
+	if ( is_wc_endpoint_url( 'orders' ) || is_wc_endpoint_url( 'view-order' ) ) {
 		$current_route = 'orders';
 	} elseif ( is_wc_endpoint_url( 'edit-address' ) ) {
 		$current_route = 'edit-address';
