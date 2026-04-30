@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { openWpAdminPage } = require('../helpers/ui');
 
 async function openAdminProductsPage(page, testInfo) {
   const adminFixture =
@@ -11,23 +11,18 @@ async function openAdminProductsPage(page, testInfo) {
     'The admin fixture is required for product admin smoke coverage.'
   );
 
-  const loggedIn = await loginToWpAdmin(
+  await openWpAdminPage(
     page,
-    adminFixture.username,
-    adminFixture.password
+    adminFixture,
+    '/wp-admin/admin.php?page=bsc-products',
+    async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-admin-products h1').first()).toContainText(
+        'Productos BSC'
+      );
+    }
   );
 
-  expect(loggedIn).toBeTruthy();
-
-  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-products', {
-    maxAttempts: 5,
-    primePage: false,
-    waitForImages: false,
-  });
-
-  await expect(page.locator('.wrap.bsc-admin-products h1').first()).toContainText(
-    'Productos BSC'
-  );
+  return adminFixture;
 }
 
 test.describe('BSC admin products smoke', () => {
@@ -48,22 +43,20 @@ test.describe('BSC admin products smoke', () => {
   });
 
   test('product edit page loads media and category controls', async ({ page }, testInfo) => {
-    await openAdminProductsPage(page, testInfo);
+    const adminFixture = await openAdminProductsPage(page, testInfo);
 
     const editLink = page.locator('a.button.button-small', { hasText: 'Editar' }).first();
     await expect(editLink).toBeVisible();
     const editHref = await editLink.getAttribute('href');
     expect(editHref).toBeTruthy();
-    await gotoAndStabilize(page, editHref, {
-      maxAttempts: 5,
-      primePage: false,
-      waitForImages: false,
+    await openWpAdminPage(page, adminFixture, editHref, async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-admin-product-edit h1').first()).toContainText(
+        'Editar Producto'
+      );
+      await expect(currentPage.locator('#bsc-select-main-image').first()).toBeVisible();
+      await expect(currentPage.locator('#bsc-select-gallery').first()).toBeVisible();
+      await expect(currentPage.locator('#bsc-root-tabs .button').first()).toBeVisible();
+      await expect(currentPage.locator('#bsc-cat-branches').first()).not.toBeEmpty();
     });
-
-    await expect(page.locator('.wrap.bsc-admin-product-edit h1').first()).toContainText('Editar Producto');
-    await expect(page.locator('#bsc-select-main-image').first()).toBeVisible();
-    await expect(page.locator('#bsc-select-gallery').first()).toBeVisible();
-    await expect(page.locator('#bsc-root-tabs .button').first()).toBeVisible();
-    await expect(page.locator('#bsc-cat-branches').first()).not.toBeEmpty();
   });
 });

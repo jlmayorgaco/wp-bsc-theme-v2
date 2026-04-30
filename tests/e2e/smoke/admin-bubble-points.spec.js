@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { openWpAdminPage } = require('../helpers/ui');
 
 async function openBubblePointsAdmin(page, testInfo) {
   test.skip(
@@ -16,21 +16,16 @@ async function openBubblePointsAdmin(page, testInfo) {
     'The admin fixture is required for Bubble Points admin smoke coverage.'
   );
 
-  const loggedIn = await loginToWpAdmin(
+  await openWpAdminPage(
     page,
-    adminFixture.username,
-    adminFixture.password
+    adminFixture,
+    '/wp-admin/admin.php?page=bsc-bubble-points',
+    async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-bp-admin h1').first()).toContainText(
+        'Bubble Points'
+      );
+    }
   );
-
-  expect(loggedIn).toBeTruthy();
-
-  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-bubble-points', {
-    maxAttempts: 5,
-    primePage: false,
-    waitForImages: false,
-  });
-
-  await expect(page.locator('.wrap.bsc-bp-admin h1').first()).toContainText('Bubble Points');
 }
 
 test.describe('Bubble Points admin smoke', () => {

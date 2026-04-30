@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { openWpAdminPage } = require('../helpers/ui');
 
 async function openAdminReportsPage(page, testInfo, tab = 'ventas') {
   const adminFixture =
@@ -11,22 +11,15 @@ async function openAdminReportsPage(page, testInfo, tab = 'ventas') {
     'The admin fixture is required for reports admin smoke coverage.'
   );
 
-  const loggedIn = await loginToWpAdmin(
+  await openWpAdminPage(
     page,
-    adminFixture.username,
-    adminFixture.password
-  );
-
-  expect(loggedIn).toBeTruthy();
-
-  await gotoAndStabilize(page, `/wp-admin/admin.php?page=bsc-reports&tab=${tab}`, {
-    maxAttempts: 5,
-    primePage: false,
-    waitForImages: false,
-  });
-
-  await expect(page.locator('.wrap.bsc-admin-reports h1').first()).toContainText(
-    'Informes BSC'
+    adminFixture,
+    `/wp-admin/admin.php?page=bsc-reports&tab=${tab}`,
+    async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-admin-reports h1').first()).toContainText(
+        'Informes BSC'
+      );
+    }
   );
 }
 
