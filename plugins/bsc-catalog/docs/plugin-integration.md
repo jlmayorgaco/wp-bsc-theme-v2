@@ -30,7 +30,7 @@ Absorb the useful catalog/filtering domain from `wp-bsc-plugin-v1` into the them
 
 ## Integration Rule
 
-`wp-bsc-plugin-v1` is treated as a migration source, not as a second runtime. The theme runtime should only load `plugins/bsc-catalog`.
+`wp-bsc-plugin-v1` is treated as a migration source, not as a second runtime. Once its useful contracts are copied into the theme, the theme runtime should only load `plugins/bsc-catalog`.
 
 ## Directory Mapping
 
@@ -44,3 +44,7 @@ Absorb the useful catalog/filtering domain from `wp-bsc-plugin-v1` into the them
 | `assets/*` generic plugin CSS/JS | Theme asset pipeline | Excluded from runtime |
 | `utilities.php`, `seed/categories.php` procedural importers | Future data/import tooling | Deferred |
 | `shortcuts/*`, `blocks/*`, `apps/*` | No active runtime dependency found | Deferred / review later |
+
+## Source Removal
+
+After the seed contracts were copied into `plugins/bsc-catalog/seed/legacy-plugin`, the physical `wp-bsc-plugin-v1` folder can be removed from the theme workspace without affecting the active runtime.
