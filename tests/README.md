@@ -13,13 +13,12 @@ Override it with:
 
 ## Public mode
 
-By default, the suite assumes guest traffic may be gated by the current
-`coming soon` mode.
+By default, the suite assumes the local QA target is running in storefront mode.
 
-- default: `PW_PUBLIC_MODE=coming-soon`
-- storefront baseline mode: `PW_PUBLIC_MODE=storefront`
+- default: `PW_PUBLIC_MODE=storefront`
+- maintenance-shell override: `PW_PUBLIC_MODE=coming-soon`
 
-Equivalent shortcut:
+Legacy shortcut:
 
 - `PW_EXPECT_STOREFRONT=1`
 
@@ -116,19 +115,20 @@ Notes:
 ## First baseline workflow
 
 1. Point the suite at the approved environment.
-2. If the approved storefront is visible, run with `PW_PUBLIC_MODE=storefront`.
-3. Prefer fixture-backed routes for category and PDP baselines.
-4. Run `npm run test:e2e:visual:public-auth`.
-5. Run `npm run test:e2e:visual:auth` when validating only authenticated gates.
-6. Run `npm run test:e2e:visual:emails`.
-7. Run `npm run test:e2e:visual:update` only when intentionally refreshing snapshots.
-4. Review generated snapshots before committing them.
+2. If the approved storefront is visible, the default commands already target it.
+3. Use `PW_PUBLIC_MODE=coming-soon` only when you intentionally want to validate the maintenance shell.
+4. Prefer fixture-backed routes for category and PDP baselines.
+5. Run `npm run test:e2e:visual:public-auth`.
+6. Run `npm run test:e2e:visual:auth` when validating only authenticated gates.
+7. Run `npm run test:e2e:visual:emails`.
+8. Run `npm run test:e2e:visual:update` only when intentionally refreshing snapshots.
+9. Review generated snapshots before committing them.
 
 ## Data assumptions
 
 - public category and PDP baselines should prefer fixture routes over live catalog order
 - checkout is reachable with the current catalog/cart state
-- public visual baselines require a non-`coming soon` storefront response
+- public visual baselines require a storefront response unless `PW_PUBLIC_MODE=coming-soon` is explicitly requested
 - account, bubble points, and thank-you routes use a reusable QA fixture when the Local PHP runtime is available
 - email preview baselines use reusable QA admin accounts and preview routes from the fixture bootstrap
 - authenticated visual gates are expected to run with `--workers=1` to avoid local WordPress session/routing flake across parallel projects
