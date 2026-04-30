@@ -116,6 +116,8 @@ jQuery(function ($) {
 
   let shippingRefreshTimer = null;
   let isReloadingBillingCity = false;
+  let cityReloadRequest = null;
+  let cityReloadSequence = 0;
 
   function queueShippingSummaryRefresh() {
     clearTimeout(shippingRefreshTimer);
@@ -130,8 +132,13 @@ jQuery(function ($) {
     $(document.body).on('change', '#billing_state', function () {
       const state = $(this).val();
       const country = $('#billing_country').val() || 'CO';
+      const requestSequence = ++cityReloadSequence;
 
-      $.ajax({
+      if (cityReloadRequest && cityReloadRequest.readyState !== 4) {
+        cityReloadRequest.abort();
+      }
+
+      cityReloadRequest = $.ajax({
         url: bsc_ajax.ajax_url,
         method: 'POST',
         data: {
@@ -156,6 +163,10 @@ jQuery(function ($) {
           $(document.body).trigger('update_checkout');
         },
         success: function (response) {
+          if (requestSequence !== cityReloadSequence) {
+            return;
+          }
+
           if (!response.success) {
             isReloadingBillingCity = false;
             showCheckoutNotice('Error al cargar las ciudades. Por favor recarga la pagina.', 'error');
@@ -170,9 +181,18 @@ jQuery(function ($) {
           queueShippingSummaryRefresh();
           $(document.body).trigger('update_checkout');
         },
-        error: () => {
+        error: (_xhr, statusText) => {
+          if (statusText === 'abort' || requestSequence !== cityReloadSequence) {
+            return;
+          }
+
           isReloadingBillingCity = false;
           showCheckoutNotice('Hubo un problema al cargar las ciudades.', 'error');
+        },
+        complete: () => {
+          if (requestSequence === cityReloadSequence) {
+            cityReloadRequest = null;
+          }
         },
       });
     });
