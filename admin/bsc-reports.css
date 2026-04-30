@@ -1,0 +1,290 @@
+.bsc-admin-reports__tabs {
+    margin-bottom: 0;
+}
+
+.bsc-admin-reports__tab-content {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-top: none;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+.bsc-admin-reports__sales-filters {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.bsc-admin-reports__filter-row,
+.bsc-admin-reports__stock-toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.bsc-admin-reports__filter-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.bsc-admin-reports__field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.bsc-admin-reports__date-input,
+.bsc-admin-reports__stock-search-input {
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.bsc-admin-reports__checkbox-group,
+.bsc-admin-reports__filter-actions,
+.bsc-admin-reports__stock-filter-links,
+.bsc-admin-reports__stock-search-wrap {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.bsc-admin-reports__checkbox-group {
+    gap: 8px;
+}
+
+.bsc-admin-reports__checkbox-label,
+.bsc-admin-reports__summary-text,
+.bsc-admin-reports__stock-filter-button,
+.bsc-admin-reports__stock-count,
+.bsc-admin-reports__legend,
+.bsc-admin-reports__footnote,
+.bsc-admin-reports__empty-state,
+.bsc-kpi-label {
+    color: #888;
+}
+
+.bsc-admin-reports__checkbox-label {
+    font-size: 12px;
+}
+
+.bsc-admin-reports__summary-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bsc-admin-reports__summary-text,
+.bsc-admin-reports__stock-count,
+.bsc-admin-reports__footnote {
+    font-size: 12px;
+}
+
+.bsc-kpi-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+}
+
+.bsc-kpi-card {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px 20px;
+    min-width: 130px;
+    text-align: center;
+}
+
+.bsc-kpi-card--warning {
+    border-color: #f6ad55;
+    background: #fffaf0;
+}
+
+.bsc-kpi-card--danger {
+    border-color: #fc8181;
+    background: #fff5f5;
+}
+
+.bsc-kpi-card--muted {
+    color: #666;
+}
+
+.bsc-kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #222;
+    line-height: 1.2;
+}
+
+.bsc-kpi-value--warning {
+    color: #c05621;
+}
+
+.bsc-kpi-value--danger {
+    color: #c53030;
+}
+
+.bsc-kpi-value--compact {
+    font-size: 1rem;
+}
+
+.bsc-kpi-value--muted {
+    color: #555;
+}
+
+.bsc-kpi-label {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bsc-admin-reports__split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.bsc-admin-reports__section-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.bsc-admin-reports__empty-state {
+    font-style: normal;
+}
+
+.bsc-admin-reports__empty-state--stock {
+    font-style: italic;
+}
+
+.bsc-admin-reports__stock-toolbar {
+    justify-content: space-between;
+    margin: 12px 0 10px;
+    gap: 8px;
+}
+
+.bsc-admin-reports__stock-search-input {
+    width: 220px;
+}
+
+.bsc-admin-reports__legend {
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.bsc-admin-reports__legend-chip {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+}
+
+.bsc-admin-reports__legend-chip--danger {
+    background: #fff5f5;
+}
+
+.bsc-admin-reports__legend-chip--warning {
+    background: #fffbeb;
+}
+
+.bsc-admin-reports__legend-chip--low {
+    background: #fffff0;
+}
+
+.bsc-admin-reports__legend-link {
+    font-size: 11px;
+    color: #888;
+}
+
+.bsc-admin-reports__stock-table {
+    font-size: 13px;
+}
+
+.bsc-admin-reports__stock-col-product {
+    width: 35%;
+}
+
+.bsc-admin-reports__stock-col-sku,
+.bsc-admin-reports__stock-col-center {
+    width: 13%;
+}
+
+.bsc-admin-reports__stock-col-total,
+.bsc-admin-reports__stock-col-dispatch {
+    width: 10%;
+}
+
+.bsc-admin-reports__stock-col-actions {
+    width: 6%;
+}
+
+.bsc-admin-reports__stock-col-center,
+.bsc-admin-reports__stock-col-total,
+.bsc-admin-reports__stock-col-dispatch,
+.bsc-admin-reports__table-cell--center {
+    text-align: center;
+}
+
+.bsc-admin-reports__stock-row--zero {
+    background: #fff5f5;
+}
+
+.bsc-admin-reports__stock-row--partial-zero {
+    background: #fffbeb;
+}
+
+.bsc-admin-reports__stock-row--low {
+    background: #fffff0;
+}
+
+.bsc-admin-reports__stock-row--hidden {
+    display: none;
+}
+
+.bsc-admin-reports__table-cell--muted,
+.bsc-admin-reports__table-cell--dispatch {
+    color: #555;
+}
+
+.bsc-admin-reports__table-cell--small {
+    font-size: 12px;
+}
+
+.bsc-admin-reports__table-cell--strong,
+.bsc-admin-reports__stock-value--danger,
+.bsc-admin-reports__stock-value--warning {
+    font-weight: 600;
+}
+
+.bsc-admin-reports__stock-value--danger {
+    color: #c53030;
+    font-weight: 700;
+}
+
+.bsc-admin-reports__stock-value--warning {
+    color: #c05621;
+}
+
+@media (max-width: 960px) {
+    .bsc-admin-reports__split-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bsc-admin-reports__stock-search-input {
+        width: 100%;
+    }
+}

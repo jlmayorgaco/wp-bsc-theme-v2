@@ -7,6 +7,33 @@
  */
 defined('ABSPATH') || exit;
 
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_reports_admin_assets' );
+function bsc_enqueue_reports_admin_assets(): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-reports' !== $page ) {
+        return;
+    }
+
+    $css_path = get_template_directory() . '/admin/bsc-reports.css';
+    $js_path  = get_template_directory() . '/js/admin/bsc-reports.js';
+
+    wp_enqueue_style(
+        'bsc-admin-reports',
+        get_template_directory_uri() . '/admin/bsc-reports.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+
+    wp_enqueue_script(
+        'bsc-admin-reports',
+        get_template_directory_uri() . '/js/admin/bsc-reports.js',
+        array(),
+        file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1',
+        true
+    );
+}
+
 // ── Tab registry (BSC-024) ─────────────────────────────────────────────
 /**
  * To add a new tab: append an entry here and create its callback function.
@@ -70,6 +97,39 @@ function bsc_reports_get_statuses(): array {
     return array_filter($raw, fn($s) => in_array($s, $all, true));
 }
 
+function bsc_reports_get_stock_row_class( object $row, int $threshold ): string {
+    $b = (int) $row->stock_bodega;
+    $t = (int) $row->stock_tienda;
+
+    $classes = [ 'bsc-stock-row', 'bsc-admin-reports__stock-row' ];
+
+    if ( 0 === $b && 0 === $t ) {
+        $classes[] = 'bsc-admin-reports__stock-row--zero';
+    } elseif ( 0 === $b || 0 === $t ) {
+        $classes[] = 'bsc-admin-reports__stock-row--partial-zero';
+    } elseif ( $b < $threshold || $t < $threshold ) {
+        $classes[] = 'bsc-admin-reports__stock-row--low';
+    }
+
+    return implode( ' ', $classes );
+}
+
+function bsc_reports_get_stock_value_class( int $stock, int $threshold ): string {
+    $classes = [
+        'bsc-admin-reports__table-cell',
+        'bsc-admin-reports__table-cell--center',
+        'bsc-admin-reports__stock-value',
+    ];
+
+    if ( 0 === $stock ) {
+        $classes[] = 'bsc-admin-reports__stock-value--danger';
+    } elseif ( $stock < $threshold ) {
+        $classes[] = 'bsc-admin-reports__stock-value--warning';
+    }
+
+    return implode( ' ', $classes );
+}
+
 // ── Main dispatcher (BSC-024) ──────────────────────────────────────────
 function bsc_render_reports_page(): void {
     if ( ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce') ) {
@@ -84,7 +144,7 @@ function bsc_render_reports_page(): void {
     echo '<h1>Informes BSC</h1>';
 
     // WP-native nav tabs
-    echo '<nav class="nav-tab-wrapper" style="margin-bottom:0">';
+    echo '<nav class="nav-tab-wrapper bsc-admin-reports__tabs">';
     foreach ( $tabs as $slug => $tab ) {
         $url   = esc_url( add_query_arg(['page' => 'bsc-reports', 'tab' => $slug], admin_url('admin.php')) );
         $class = $slug === $active_tab ? 'nav-tab nav-tab-active' : 'nav-tab';
@@ -92,22 +152,15 @@ function bsc_render_reports_page(): void {
     }
     echo '</nav>';
 
-    echo '<div class="bsc-tab-content" style="background:#fff;border:1px solid #c3c4c7;border-top:none;padding:20px 24px;margin-bottom:20px">';
+    echo '<div class="bsc-tab-content bsc-admin-reports__tab-content">';
 
     if ( is_callable($tabs[$active_tab]['callback']) ) {
         call_user_func( $tabs[$active_tab]['callback'] );
     } else {
-        echo '<p style="color:#888">Tab no disponible.</p>';
+        echo '<p class="bsc-admin-reports__empty-state">Tab no disponible.</p>';
     }
 
     echo '</div></div>';
-
-    echo '<style>
-        .bsc-kpi-grid  { display:flex; gap:12px; flex-wrap:wrap; margin:16px 0; }
-        .bsc-kpi-card  { background:#f9f9f9; border:1px solid #ddd; border-radius:8px; padding:16px 20px; min-width:130px; text-align:center; }
-        .bsc-kpi-value { font-size:1.5rem; font-weight:800; color:#222; line-height:1.2; }
-        .bsc-kpi-label { font-size:0.75rem; color:#888; margin-top:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
-    </style>';
 }
 
 // ── Tab: Ventas ────────────────────────────────────────────────────────
@@ -204,30 +257,30 @@ function bsc_reports_tab_ventas(): void {
     ?>
 
     <!-- Filters -->
-    <form method="get" style="background:#f9f9f9;border:1px solid #ddd;border-radius:6px;padding:14px 16px;margin-bottom:16px">
+    <form method="get" class="bsc-admin-reports__sales-filters">
         <input type="hidden" name="page"  value="bsc-reports">
         <input type="hidden" name="tab"   value="ventas">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-            <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Desde</label>
-                <input type="date" name="date_start" value="<?php echo esc_attr($date_start); ?>" style="padding:5px">
+        <div class="bsc-admin-reports__filter-row">
+            <div class="bsc-admin-reports__filter-field">
+                <label class="bsc-admin-reports__field-label">Desde</label>
+                <input type="date" name="date_start" value="<?php echo esc_attr($date_start); ?>" class="bsc-admin-reports__date-input">
             </div>
-            <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Hasta</label>
-                <input type="date" name="date_end" value="<?php echo esc_attr($date_end); ?>" style="padding:5px">
+            <div class="bsc-admin-reports__filter-field">
+                <label class="bsc-admin-reports__field-label">Hasta</label>
+                <input type="date" name="date_end" value="<?php echo esc_attr($date_end); ?>" class="bsc-admin-reports__date-input">
             </div>
-            <div>
-                <label style="display:block;font-size:12px;font-weight:600;margin-bottom:3px">Estado</label>
-                <div style="display:flex;gap:8px">
+            <div class="bsc-admin-reports__filter-field">
+                <label class="bsc-admin-reports__field-label">Estado</label>
+                <div class="bsc-admin-reports__checkbox-group">
                     <?php foreach (['completed'=>'Completado','processing'=>'Procesando','wc-preparing'=>'Preparando','wc-shipped'=>'Enviado'] as $slug => $label): ?>
-                    <label style="font-size:12px">
+                    <label class="bsc-admin-reports__checkbox-label">
                         <input type="checkbox" name="statuses[]" value="<?php echo esc_attr($slug); ?>" <?php checked(in_array($slug,$statuses)); ?>>
                         <?php echo esc_html($label); ?>
                     </label>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <div class="bsc-admin-reports__filter-actions">
                 <button type="submit" class="button button-primary">Aplicar</button>
                 <?php foreach (['hoy'=>'Hoy','semana'=>'Semana','mes'=>'Este mes','mes_ant'=>'Mes ant.','anno'=>'Este año'] as $k=>$l): ?>
                 <a href="<?php echo esc_url(add_query_arg(['page'=>'bsc-reports','tab'=>'ventas','preset'=>$k])); ?>" class="button"><?php echo esc_html($l); ?></a>
@@ -236,8 +289,8 @@ function bsc_reports_tab_ventas(): void {
         </div>
     </form>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="color:#666;font-size:13px">
+    <div class="bsc-admin-reports__summary-bar">
+        <span class="bsc-admin-reports__summary-text">
             <?php echo esc_html($date_start); ?> → <?php echo esc_html($date_end); ?>
             &nbsp;|&nbsp;
             <a href="<?php echo esc_url(add_query_arg(['tab'=>'ventas','bsc_clear_report_cache'=>'1'])); ?>">↺ Limpiar caché</a>
@@ -254,9 +307,9 @@ function bsc_reports_tab_ventas(): void {
         <div class="bsc-kpi-card"><div class="bsc-kpi-value"><?php echo wp_kses_post(wc_price($showroom_sales)); ?></div><div class="bsc-kpi-label">Ventas Showroom</div></div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
-        <div>
-            <h2 style="font-size:1rem;margin-bottom:8px">Top 10 productos vendidos</h2>
+    <div class="bsc-admin-reports__split-grid">
+        <div class="bsc-admin-reports__panel">
+            <h2 class="bsc-admin-reports__section-title">Top 10 productos vendidos</h2>
             <?php if ($top_products): ?>
             <table class="wp-list-table widefat fixed striped">
                 <thead><tr><th>#</th><th>Producto</th><th>Uds.</th><th>Total</th></tr></thead>
@@ -271,10 +324,10 @@ function bsc_reports_tab_ventas(): void {
                 <?php endforeach; ?>
                 </tbody>
             </table>
-            <?php else: ?><p style="color:#888">Sin ventas en el período.</p><?php endif; ?>
+            <?php else: ?><p class="bsc-admin-reports__empty-state">Sin ventas en el período.</p><?php endif; ?>
         </div>
-        <div>
-            <h2 style="font-size:1rem;margin-bottom:8px">Desglose por categoría</h2>
+        <div class="bsc-admin-reports__panel">
+            <h2 class="bsc-admin-reports__section-title">Desglose por categoría</h2>
             <?php if ($category_sales): ?>
             <table class="wp-list-table widefat fixed striped">
                 <thead><tr><th>Categoría</th><th>Pedidos</th><th>Total</th></tr></thead>
@@ -288,11 +341,11 @@ function bsc_reports_tab_ventas(): void {
                 <?php endforeach; ?>
                 </tbody>
             </table>
-            <?php else: ?><p style="color:#888">Sin datos de categorías.</p><?php endif; ?>
+            <?php else: ?><p class="bsc-admin-reports__empty-state">Sin datos de categorías.</p><?php endif; ?>
         </div>
     </div>
 
-    <p style="margin-top:1.5rem;color:#888;font-size:12px">Resultados cacheados por 1 hora. Use ↺ Limpiar caché para actualizar.</p>
+    <p class="bsc-admin-reports__footnote">Resultados cacheados por 1 hora. Use ↺ Limpiar caché para actualizar.</p>
     <?php
 }
 
@@ -376,16 +429,6 @@ function bsc_reports_tab_stock(): void {
     };
     $sort_arrow = fn(string $col): string => $col === $sort_col ? ($sort_dir==='ASC'?'↑':'↓') : '';
 
-    // Helper: row background for low/zero stock
-    $row_style = function(object $row) use ($threshold): string {
-        $b = (int) $row->stock_bodega;
-        $t = (int) $row->stock_tienda;
-        if ($b === 0 && $t === 0) return 'background:#fff5f5;';
-        if ($b === 0 || $t === 0) return 'background:#fffbeb;';
-        if ($b < $threshold || $t < $threshold) return 'background:#fffff0;';
-        return '';
-    };
-
     // Filter quick-links
     $filter_links = [
         'all'          => 'Todos',
@@ -394,6 +437,8 @@ function bsc_reports_tab_stock(): void {
         'zero_bodega'  => 'Sin stock bodega',
         'zero_tienda'  => 'Sin stock showcase',
     ];
+    $low_bodega_alert = (int) ($totals['low_bodega_count'] ?? 0) > 0;
+    $zero_bodega_alert = (int) ($totals['zero_bodega_count'] ?? 0) > 0;
     ?>
 
     <!-- KPI summary -->
@@ -410,74 +455,73 @@ function bsc_reports_tab_stock(): void {
             <div class="bsc-kpi-value"><?php echo esc_html($totals['sum_tienda'] ?? 0); ?></div>
             <div class="bsc-kpi-label">Total Showcase</div>
         </div>
-        <div class="bsc-kpi-card" style="<?php echo ($totals['low_bodega_count'] ?? 0) > 0 ? 'border-color:#f6ad55;background:#fffaf0' : ''; ?>">
-            <div class="bsc-kpi-value" style="<?php echo ($totals['low_bodega_count'] ?? 0) > 0 ? 'color:#c05621' : ''; ?>">
+        <div class="bsc-kpi-card<?php echo $low_bodega_alert ? ' bsc-kpi-card--warning' : ''; ?>">
+            <div class="bsc-kpi-value<?php echo $low_bodega_alert ? ' bsc-kpi-value--warning' : ''; ?>">
                 <?php echo esc_html($totals['low_bodega_count'] ?? 0); ?>
             </div>
             <div class="bsc-kpi-label">Stock bodega bajo</div>
         </div>
-        <div class="bsc-kpi-card" style="<?php echo ($totals['zero_bodega_count'] ?? 0) > 0 ? 'border-color:#fc8181;background:#fff5f5' : ''; ?>">
-            <div class="bsc-kpi-value" style="<?php echo ($totals['zero_bodega_count'] ?? 0) > 0 ? 'color:#c53030' : ''; ?>">
+        <div class="bsc-kpi-card<?php echo $zero_bodega_alert ? ' bsc-kpi-card--danger' : ''; ?>">
+            <div class="bsc-kpi-value<?php echo $zero_bodega_alert ? ' bsc-kpi-value--danger' : ''; ?>">
                 <?php echo esc_html($totals['zero_bodega_count'] ?? 0); ?>
             </div>
             <div class="bsc-kpi-label">Sin stock bodega</div>
         </div>
-        <div class="bsc-kpi-card" style="color:#666">
-            <div class="bsc-kpi-value" style="font-size:1rem;color:#555"><?php echo esc_html($threshold); ?></div>
+        <div class="bsc-kpi-card bsc-kpi-card--muted">
+            <div class="bsc-kpi-value bsc-kpi-value--compact bsc-kpi-value--muted"><?php echo esc_html($threshold); ?></div>
             <div class="bsc-kpi-label">Umbral alerta</div>
         </div>
     </div>
 
     <!-- Filter + search bar -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 10px;flex-wrap:wrap;gap:8px">
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <div class="bsc-admin-reports__stock-toolbar">
+        <div class="bsc-admin-reports__stock-filter-links">
             <?php foreach ($filter_links as $fkey => $flabel): ?>
             <?php $furl = esc_url(add_query_arg(['page'=>'bsc-reports','tab'=>'stock','sort'=>$sort_col,'dir'=>strtolower($sort_dir),'stock_filter'=>$fkey], admin_url('admin.php'))); ?>
             <a href="<?php echo $furl; ?>"
-               class="button<?php echo $filter === $fkey ? ' button-primary' : ''; ?>"
-               style="font-size:12px">
+               class="button bsc-admin-reports__stock-filter-button<?php echo $filter === $fkey ? ' button-primary' : ''; ?>">
                 <?php echo esc_html($flabel); ?>
             </a>
             <?php endforeach; ?>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
+        <div class="bsc-admin-reports__stock-search-wrap">
             <input type="text" id="bsc-stock-search" placeholder="Buscar producto o SKU…"
-                   style="padding:5px 8px;border:1px solid #ccc;border-radius:3px;width:220px;font-size:13px">
-            <span id="bsc-stock-count" style="font-size:12px;color:#888"></span>
+                   class="bsc-admin-reports__stock-search-input">
+            <span id="bsc-stock-count" class="bsc-admin-reports__stock-count"></span>
         </div>
     </div>
 
     <!-- Legend -->
-    <p style="font-size:11px;color:#888;margin-bottom:8px">
-        <span style="background:#fff5f5;padding:2px 6px;border-radius:3px;margin-right:6px">Sin stock</span>
-        <span style="background:#fffbeb;padding:2px 6px;border-radius:3px;margin-right:6px">Un tipo vacío</span>
-        <span style="background:#fffff0;padding:2px 6px;border-radius:3px;margin-right:6px">Stock bajo (< <?php echo esc_html($threshold); ?>)</span>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=bsc-settings')); ?>" style="font-size:11px;color:#888">Cambiar umbral ↗</a>
+    <p class="bsc-admin-reports__legend">
+        <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--danger">Sin stock</span>
+        <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--warning">Un tipo vacío</span>
+        <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--low">Stock bajo (< <?php echo esc_html($threshold); ?>)</span>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=bsc-settings')); ?>" class="bsc-admin-reports__legend-link">Cambiar umbral ↗</a>
     </p>
 
     <?php if (empty($products)): ?>
-    <p style="color:#888;font-style:italic">No hay productos que coincidan con el filtro.</p>
+    <p class="bsc-admin-reports__empty-state bsc-admin-reports__empty-state--stock">No hay productos que coincidan con el filtro.</p>
     <?php else: ?>
-    <table id="bsc-stock-table" class="wp-list-table widefat fixed striped" style="font-size:13px">
+    <table id="bsc-stock-table" class="wp-list-table widefat fixed striped bsc-admin-reports__stock-table">
         <thead>
             <tr>
-                <th style="width:35%">
+                <th class="bsc-admin-reports__stock-col-product">
                     <a href="<?php echo $sort_link('title'); ?>">Producto <?php echo $sort_arrow('title'); ?></a>
                 </th>
-                <th style="width:13%">
+                <th class="bsc-admin-reports__stock-col-sku">
                     <a href="<?php echo $sort_link('sku'); ?>">SKU <?php echo $sort_arrow('sku'); ?></a>
                 </th>
-                <th style="width:13%;text-align:center">
+                <th class="bsc-admin-reports__stock-col-center">
                     <a href="<?php echo $sort_link('bodega'); ?>">Bodega <?php echo $sort_arrow('bodega'); ?></a>
                 </th>
-                <th style="width:13%;text-align:center">
+                <th class="bsc-admin-reports__stock-col-center">
                     <a href="<?php echo $sort_link('tienda'); ?>">Showcase <?php echo $sort_arrow('tienda'); ?></a>
                 </th>
-                <th style="width:10%;text-align:center">
+                <th class="bsc-admin-reports__stock-col-total">
                     <a href="<?php echo $sort_link('total'); ?>">Total <?php echo $sort_arrow('total'); ?></a>
                 </th>
-                <th style="width:10%;text-align:center">Despacho</th>
-                <th style="width:6%"></th>
+                <th class="bsc-admin-reports__stock-col-dispatch">Despacho</th>
+                <th class="bsc-admin-reports__stock-col-actions"></th>
             </tr>
         </thead>
         <tbody>
@@ -485,19 +529,17 @@ function bsc_reports_tab_stock(): void {
             $b       = (int) $row->stock_bodega;
             $t       = (int) $row->stock_tienda;
             $edit_url = admin_url('admin.php?page=bsc-product-edit&id=' . $row->ID);
-            $b_style = $b === 0 ? 'color:#c53030;font-weight:700' : ($b < $threshold ? 'color:#c05621;font-weight:600' : '');
-            $t_style = $t === 0 ? 'color:#c53030;font-weight:700' : ($t < $threshold ? 'color:#c05621;font-weight:600' : '');
             $envio_labels = ['bodega'=>'Bodega','tienda'=>'Showcase','ambos'=>'Ambos'];
             ?>
-            <tr style="<?php echo esc_attr($row_style($row)); ?>" class="bsc-stock-row">
+            <tr class="<?php echo esc_attr( bsc_reports_get_stock_row_class($row, $threshold) ); ?>">
                 <td>
                     <a href="<?php echo esc_url($edit_url); ?>"><?php echo esc_html($row->post_title); ?></a>
                 </td>
-                <td style="color:#666;font-size:12px"><?php echo esc_html($row->sku); ?></td>
-                <td style="text-align:center;<?php echo esc_attr($b_style); ?>"><?php echo esc_html($b); ?></td>
-                <td style="text-align:center;<?php echo esc_attr($t_style); ?>"><?php echo esc_html($t); ?></td>
-                <td style="text-align:center;font-weight:600"><?php echo esc_html((int)$row->stock_total); ?></td>
-                <td style="text-align:center;font-size:12px;color:#555">
+                <td class="bsc-admin-reports__table-cell bsc-admin-reports__table-cell--muted bsc-admin-reports__table-cell--small"><?php echo esc_html($row->sku); ?></td>
+                <td class="<?php echo esc_attr( bsc_reports_get_stock_value_class($b, $threshold) ); ?>"><?php echo esc_html($b); ?></td>
+                <td class="<?php echo esc_attr( bsc_reports_get_stock_value_class($t, $threshold) ); ?>"><?php echo esc_html($t); ?></td>
+                <td class="bsc-admin-reports__table-cell bsc-admin-reports__table-cell--center bsc-admin-reports__table-cell--strong"><?php echo esc_html((int)$row->stock_total); ?></td>
+                <td class="bsc-admin-reports__table-cell bsc-admin-reports__table-cell--center bsc-admin-reports__table-cell--small bsc-admin-reports__table-cell--dispatch">
                     <?php echo esc_html($envio_labels[$row->envio_tipo] ?? $row->envio_tipo); ?>
                 </td>
                 <td>
@@ -507,30 +549,9 @@ function bsc_reports_tab_stock(): void {
         <?php endforeach; ?>
         </tbody>
     </table>
-    <p style="color:#888;font-size:12px;margin-top:8px">
+    <p class="bsc-admin-reports__footnote">
         <?php echo esc_html(count($products)); ?> producto(s) mostrados.
     </p>
     <?php endif; ?>
-
-    <script>
-    (function() {
-        var searchInput = document.getElementById('bsc-stock-search');
-        var countEl     = document.getElementById('bsc-stock-count');
-        if (!searchInput) return;
-
-        searchInput.addEventListener('input', function() {
-            var q    = this.value.toLowerCase().trim();
-            var rows = document.querySelectorAll('#bsc-stock-table .bsc-stock-row');
-            var vis  = 0;
-            rows.forEach(function(row) {
-                var text = row.textContent.toLowerCase();
-                var show = !q || text.indexOf(q) !== -1;
-                row.style.display = show ? '' : 'none';
-                if (show) vis++;
-            });
-            countEl.textContent = q ? vis + ' resultado(s)' : '';
-        });
-    })();
-    </script>
     <?php
 }
