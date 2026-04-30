@@ -6,7 +6,9 @@
  */
 defined('ABSPATH') || exit;
 
-// ── Register BSC menu pages ────────────────────────────────────────────
+require_once get_template_directory() . '/admin/bsc-admin-ui.php';
+
+// â”€â”€ Register BSC menu pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_menu', 'bsc_add_admin_menu' );
 
 add_action( 'admin_enqueue_scripts', 'bsc_enqueue_dashboard_assets' );
@@ -55,49 +57,57 @@ function bsc_add_admin_menu(): void {
         3
     );
 
-    // ── BSC-021: Ordered submenu list ────────────────────────────────────
+    // â”€â”€ BSC-021: Ordered submenu list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    // 1. Pedidos — operator + employee + admin
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Pedidos BSC', 'bsc-2-0' ),
-        __( 'Pedidos', 'bsc-2-0' ),
-        'read',
-        'bsc-orders',
-        'bsc_render_orders_page'
-    );
+    // 1. Pedidos â€” operator + employee + admin
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-orders' ) ) {
+        add_submenu_page(
+            'bsc-dashboard',
+            __( 'Pedidos BSC', 'bsc-2-0' ),
+            __( 'Pedidos', 'bsc-2-0' ),
+            'read',
+            'bsc-orders',
+            'bsc_render_orders_page'
+        );
+    }
 
-    // 2. Productos — admin + employee
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Productos BSC', 'bsc-2-0' ),
-        __( 'Productos', 'bsc-2-0' ),
-        'read',
-        'bsc-products',
-        'bsc_render_products_page'
-    );
+    // 2. Productos â€” admin + employee
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-products' ) ) {
+        add_submenu_page(
+            'bsc-dashboard',
+            __( 'Productos BSC', 'bsc-2-0' ),
+            __( 'Productos', 'bsc-2-0' ),
+            'read',
+            'bsc-products',
+            'bsc_render_products_page'
+        );
+    }
 
-    // 3. Informes — admin only
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Informes BSC', 'bsc-2-0' ),
-        __( 'Informes', 'bsc-2-0' ),
-        'read',
-        'bsc-reports',
-        'bsc_render_reports_page'
-    );
+    // 3. Informes â€” admin only
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-reports' ) ) {
+        add_submenu_page(
+            'bsc-dashboard',
+            __( 'Informes BSC', 'bsc-2-0' ),
+            __( 'Informes', 'bsc-2-0' ),
+            'read',
+            'bsc-reports',
+            'bsc_render_reports_page'
+        );
+    }
 
-    // 4. Showcase (Venta Presencial) — operator + employee + admin
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Venta Presencial', 'bsc-2-0' ),
-        __( 'Showcase', 'bsc-2-0' ),
-        'read',
-        'bsc-showroom',
-        'bsc_render_showroom_page'
-    );
+    // 4. Showcase (Venta Presencial) â€” operator + employee + admin
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-showroom' ) ) {
+        add_submenu_page(
+            'bsc-dashboard',
+            __( 'Venta Presencial', 'bsc-2-0' ),
+            __( 'Showcase', 'bsc-2-0' ),
+            'read',
+            'bsc-showroom',
+            'bsc_render_showroom_page'
+        );
+    }
 
-    // 5. Home Favorites — admin only
+    // 5. Home Favorites â€” admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Home Favorites', 'bsc-2-0' ),
@@ -107,7 +117,7 @@ function bsc_add_admin_menu(): void {
         'bsc_home_favorites_settings_page'  // defined in scripts/script_custom_types.php
     );
 
-    // 6. Hero Slides — links to CPT list (show_in_menu=false on the CPT keeps this clean)
+    // 6. Hero Slides â€” links to CPT list (show_in_menu=false on the CPT keeps this clean)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Hero Slides', 'bsc-2-0' ),
@@ -117,7 +127,7 @@ function bsc_add_admin_menu(): void {
         ''
     );
 
-    // 7. Bubble Points — callbacks defined in plugins/bubble-points/admin/admin-menu.php
+    // 7. Bubble Points â€” callbacks defined in plugins/bubble-points/admin/admin-menu.php
     add_submenu_page(
         'bsc-dashboard',
         __( 'Bubble Points', 'bsc-2-0' ),
@@ -127,17 +137,19 @@ function bsc_add_admin_menu(): void {
         'bsc_bp_render_admin_screen'
     );
 
-    // 8. Cupones — WC coupons management
-    add_submenu_page(
-        'bsc-dashboard',
-        __( 'Cupones BSC', 'bsc-2-0' ),
-        __( 'Cupones', 'bsc-2-0' ),
-        'manage_options',
-        'bsc-coupons',
-        'bsc_render_coupons_page'
-    );
+    // 8. Cupones â€” WC coupons management
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) {
+        add_submenu_page(
+            'bsc-dashboard',
+            __( 'Cupones BSC', 'bsc-2-0' ),
+            __( 'Cupones', 'bsc-2-0' ),
+            'read',
+            'bsc-coupons',
+            'bsc_render_coupons_page'
+        );
+    }
 
-    // 9. Emails — admin only
+    // 9. Emails â€” admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Emails BSC', 'bsc-2-0' ),
@@ -147,7 +159,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_followup_emails_page'
     );
 
-    // 10. Control de Acceso — role × page matrix
+    // 10. Control de Acceso â€” role Ã— page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -157,31 +169,33 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 11. Configuración — admin only (always last)
+    // 11. ConfiguraciÃ³n â€” admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
-        __( 'Configuración BSC', 'bsc-2-0' ),
-        __( 'Configuración', 'bsc-2-0' ),
+        __( 'ConfiguraciÃ³n BSC', 'bsc-2-0' ),
+        __( 'ConfiguraciÃ³n', 'bsc-2-0' ),
         'manage_options',
         'bsc-settings',
         'bsc_render_settings_page'
     );
 
-    // ── Hidden pages (no sidebar entry, accessible via direct URL) ────────
-    // Product editor — reachable from Productos table
-    add_submenu_page(
-        null,
-        __( 'Editar Producto — BSC', 'bsc-2-0' ),
-        __( 'Editar Producto', 'bsc-2-0' ),
-        'read',
-        'bsc-product-edit',
-        'bsc_render_product_edit_page'
-    );
+    // â”€â”€ Hidden pages (no sidebar entry, accessible via direct URL) â”€â”€â”€â”€â”€â”€â”€â”€
+    // Product editor â€” reachable from Productos table
+    if ( bsc_current_user_has_bsc_page_access( 'bsc-product-edit' ) ) {
+        add_submenu_page(
+            null,
+            __( 'Editar Producto â€” BSC', 'bsc-2-0' ),
+            __( 'Editar Producto', 'bsc-2-0' ),
+            'read',
+            'bsc-product-edit',
+            'bsc_render_product_edit_page'
+        );
+    }
 
     // Bubble Points settings stub
     add_submenu_page(
         null,
-        __( 'Bubble Points — Ajustes', 'bsc-2-0' ),
+        __( 'Bubble Points â€” Ajustes', 'bsc-2-0' ),
         __( 'Bubble Points Ajustes', 'bsc-2-0' ),
         'manage_options',
         'bsc-bp-settings',
@@ -189,7 +203,7 @@ function bsc_add_admin_menu(): void {
     );
 }
 
-// ── Hide native WP/WC menus for operational roles ─────────────────────
+// â”€â”€ Hide native WP/WC menus for operational roles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_menu', 'bsc_restrict_admin_menus', 999 );
 
 function bsc_restrict_admin_menus(): void {
@@ -225,7 +239,7 @@ function bsc_restrict_admin_menus(): void {
     }
 }
 
-// ── Include page-specific implementations ─────────────────────────────
+// â”€â”€ Include page-specific implementations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 require_once get_template_directory() . '/admin/bsc-orders-page.php';
 require_once get_template_directory() . '/admin/bsc-reports-page.php';
 require_once get_template_directory() . '/admin/bsc-showroom-page.php';
@@ -235,11 +249,11 @@ require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // 
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
-// ── Page render functions ──────────────────────────────────────────────
+// â”€â”€ Page render functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function bsc_render_dashboard(): void {
     if ( ! current_user_can('read') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
+        wp_die( esc_html__( 'No tienes permisos para ver esta pÃ¡gina.', 'bsc-2-0' ) );
     }
 
     // BSC-061: Full KPI dashboard with transient cache (30min)
@@ -307,13 +321,13 @@ function bsc_render_dashboard(): void {
     <div class="wrap bsc-admin-dashboard">
         <h1 class="bsc-admin-dashboard__title">
             BSC Dashboard
-            <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">↺ Actualizar</a>
+            <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">â†º Actualizar</a>
         </h1>
         <?php
         // Handle cache clear
         if ( isset($_GET['bsc_clear_cache']) ) {
             delete_transient('bsc_dashboard_kpis');
-            echo '<div class="notice notice-success is-dismissible"><p>Caché del dashboard limpiada.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>CachÃ© del dashboard limpiada.</p></div>';
         }
         ?>
 
@@ -333,7 +347,7 @@ function bsc_render_dashboard(): void {
             </div>
             <div class="bsc-admin-dashboard__card">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['preparando']); ?></div>
-                <div class="bsc-admin-dashboard__label">En preparación</div>
+                <div class="bsc-admin-dashboard__label">En preparaciÃ³n</div>
             </div>
             <div class="bsc-admin-dashboard__card">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['enviados']); ?></div>
@@ -346,7 +360,7 @@ function bsc_render_dashboard(): void {
 
             <!-- Recent orders -->
             <div>
-                <h2 class="bsc-admin-dashboard__panel-title">Últimos 5 pedidos</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">Ãšltimos 5 pedidos</h2>
                 <table class="wp-list-table widefat striped">
                     <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
                     <tbody>
@@ -366,7 +380,7 @@ function bsc_render_dashboard(): void {
 
             <!-- Low stock alerts -->
             <div>
-                <h2 class="bsc-admin-dashboard__panel-title">⚠️ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">âš ï¸ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
                 <?php if ( ! empty($kpis['low_stock_ids']) ): ?>
                 <table class="wp-list-table widefat striped bsc-admin-dashboard__low-stock-table">
                     <thead><tr><th>Producto</th><th>Stock bodega</th><th></th></tr></thead>
@@ -383,7 +397,7 @@ function bsc_render_dashboard(): void {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p class="bsc-admin-dashboard__low-stock-ok">✓ Todos los productos tienen stock suficiente.</p>
+                <p class="bsc-admin-dashboard__low-stock-ok">âœ“ Todos los productos tienen stock suficiente.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -396,16 +410,16 @@ function bsc_render_dashboard(): void {
 // bsc_render_reports_page() is defined in admin/bsc-reports-page.php
 // bsc_render_product_edit_page() is defined in admin/bsc-product-edit-page.php (BSC-065)
 
-// ── BSC-064: Settings page ────────────────────────────────────────────
+// â”€â”€ BSC-064: Settings page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_settings_page(): void {
     if ( ! current_user_can('manage_options') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
+        wp_die( esc_html__( 'No tienes permisos para ver esta pÃ¡gina.', 'bsc-2-0' ) );
     }
 
     // Handle save
     if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['bsc_settings_nonce']) ) {
         if ( ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['bsc_settings_nonce'])), 'bsc_settings_action' ) ) {
-            wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
+            wp_die( esc_html__( 'Solicitud no vÃ¡lida.', 'bsc-2-0' ) );
         }
 
         update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', $_POST['bsc_whatsapp_number'] ?? '573156922859'));
@@ -413,28 +427,28 @@ function bsc_render_settings_page(): void {
         update_option('bsc_free_shipping_threshold',   max(0, intval($_POST['bsc_free_shipping_threshold'] ?? 300000)));
         update_option('bsc_bogota_shipping_price',     max(0, intval($_POST['bsc_bogota_shipping_price'] ?? 10000)));
         update_option('bsc_other_shipping_price',      max(0, intval($_POST['bsc_other_shipping_price'] ?? 17000)));
-        update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá'));
+        update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'BogotÃ¡'));
         update_option('bsc_default_max_products_slider', max(1, intval($_POST['bsc_default_max_products_slider'] ?? 5)));
         update_option('bsc_email_from_name',           sanitize_text_field($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care'));
         update_option('bsc_email_from_address',        sanitize_email($_POST['bsc_email_from_address'] ?? ''));
         update_option('bsc_low_stock_threshold',       max(0, intval($_POST['bsc_low_stock_threshold'] ?? 3)));
 
-        echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>âœ“ ConfiguraciÃ³n guardada.</p></div>';
     }
     ?>
     <div class="wrap">
-        <h1>Configuración BSC</h1>
+        <h1>ConfiguraciÃ³n BSC</h1>
         <form method="post">
             <?php wp_nonce_field('bsc_settings_action', 'bsc_settings_nonce'); ?>
             <table class="form-table">
                 <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title">General</h2></th></tr>
                 <tr>
-                    <th><label for="bsc_whatsapp_number">Número de WhatsApp</label></th>
+                    <th><label for="bsc_whatsapp_number">NÃºmero de WhatsApp</label></th>
                     <td>
                         <input type="text" id="bsc_whatsapp_number" name="bsc_whatsapp_number"
                             value="<?php echo esc_attr(get_option('bsc_whatsapp_number','573156922859')); ?>"
                             class="regular-text" placeholder="573156922859">
-                        <p class="description">Solo números, con código de país. Ej: 573156922859</p>
+                        <p class="description">Solo nÃºmeros, con cÃ³digo de paÃ­s. Ej: 573156922859</p>
                     </td>
                 </tr>
                 <tr>
@@ -448,39 +462,39 @@ function bsc_render_settings_page(): void {
 
                 <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Tienda</h2></th></tr>
                 <tr>
-                    <th><label for="bsc_free_shipping_threshold">Umbral de envío gratis (COP)</label></th>
+                    <th><label for="bsc_free_shipping_threshold">Umbral de envÃ­o gratis (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_free_shipping_threshold" name="bsc_free_shipping_threshold"
                             value="<?php echo esc_attr(get_option('bsc_free_shipping_threshold',300000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Se oculta el envío gratis si el subtotal (después de descuento) es menor a este valor.</p>
+                        <p class="description">Se oculta el envÃ­o gratis si el subtotal (despuÃ©s de descuento) es menor a este valor.</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_bogota_shipping_label">Label tarifa Bogotá</label></th>
+                    <th><label for="bsc_bogota_shipping_label">Label tarifa BogotÃ¡</label></th>
                     <td>
                         <input type="text" id="bsc_bogota_shipping_label" name="bsc_bogota_shipping_label"
-                            value="<?php echo esc_attr(get_option('bsc_bogota_shipping_label','Bogotá')); ?>"
+                            value="<?php echo esc_attr(get_option('bsc_bogota_shipping_label','BogotÃ¡')); ?>"
                             class="regular-text">
-                        <p class="description">Texto que identifica la tarifa de Bogotá en WooCommerce Envíos (debe coincidir con el label de la zona).</p>
+                        <p class="description">Texto que identifica la tarifa de BogotÃ¡ en WooCommerce EnvÃ­os (debe coincidir con el label de la zona).</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_bogota_shipping_price">Tarifa Bogotá/Cundinamarca (COP)</label></th>
+                    <th><label for="bsc_bogota_shipping_price">Tarifa BogotÃ¡/Cundinamarca (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_bogota_shipping_price" name="bsc_bogota_shipping_price"
                             value="<?php echo esc_attr(get_option('bsc_bogota_shipping_price',10000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Valor aplicado en checkout para pedidos de Bogotá y Cundinamarca.</p>
+                        <p class="description">Valor aplicado en checkout para pedidos de BogotÃ¡ y Cundinamarca.</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_other_shipping_price">Tarifa resto del país (COP)</label></th>
+                    <th><label for="bsc_other_shipping_price">Tarifa resto del paÃ­s (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_other_shipping_price" name="bsc_other_shipping_price"
                             value="<?php echo esc_attr(get_option('bsc_other_shipping_price',17000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Valor aplicado en checkout para destinos fuera de Bogotá y Cundinamarca.</p>
+                        <p class="description">Valor aplicado en checkout para destinos fuera de BogotÃ¡ y Cundinamarca.</p>
                     </td>
                 </tr>
                 <tr>
@@ -520,7 +534,7 @@ function bsc_render_settings_page(): void {
                 </tr>
             </table>
 
-            <?php submit_button('Guardar configuración'); ?>
+            <?php submit_button('Guardar configuraciÃ³n'); ?>
         </form>
     </div>
     <?php

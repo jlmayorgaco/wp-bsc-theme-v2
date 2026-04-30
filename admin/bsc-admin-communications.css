@@ -8,9 +8,23 @@
   width: 150px;
 }
 
+.bsc-admin-access__table td {
+  vertical-align: middle;
+}
+
 .bsc-admin-access__slug {
   color: #888;
   font-family: monospace;
+}
+
+.bsc-admin-access__checkbox-wrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.bsc-admin-access__checkbox-wrap input[disabled] {
+  cursor: not-allowed;
 }
 
 .bsc-admin-access__submit {
