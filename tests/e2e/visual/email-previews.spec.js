@@ -15,6 +15,41 @@ const previewCases = [
   { slug: 'followup-repurchase', expected: 'Tu rutina puede estar por acabarse' },
 ];
 
+async function ensureEmailPreviewLoaded(page, adminFixture, previewCase) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      const loggedIn = await loginToWpAdmin(
+        page,
+        adminFixture.username,
+        adminFixture.password
+      );
+
+      expect(loggedIn).toBeTruthy();
+
+      await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug], {
+        maxAttempts: 7,
+        primePage: false,
+      });
+
+      const bodyText = await page.locator('body').first().innerText().catch(() => '');
+      if (bodyText.includes(previewCase.expected)) {
+        return;
+      }
+
+      lastError = new Error(`Preview content for ${previewCase.slug} did not render expected text.`);
+    } catch (error) {
+      lastError = error;
+    }
+
+    await page.goto('about:blank').catch(() => null);
+    await page.waitForTimeout(500 * attempt);
+  }
+
+  throw lastError || new Error(`Could not load preview ${previewCase.slug}.`);
+}
+
 test.describe('BSC visual baseline - email previews', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -32,32 +67,7 @@ test.describe('BSC visual baseline - email previews', () => {
         `The preview route for ${previewCase.slug} is not available.`
       );
 
-      let previewLoaded = false;
-
-      for (let attempt = 1; attempt <= 3; attempt += 1) {
-        const loggedIn = await loginToWpAdmin(
-          page,
-          adminFixture.username,
-          adminFixture.password
-        );
-
-        expect(loggedIn).toBeTruthy();
-
-        await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug], {
-          maxAttempts: 5,
-          primePage: false,
-        });
-
-        const bodyText = await page.locator('body').first().innerText().catch(() => '');
-        if (bodyText.includes(previewCase.expected)) {
-          previewLoaded = true;
-          break;
-        }
-
-        await page.waitForTimeout(400 * attempt);
-      }
-
-      expect(previewLoaded).toBeTruthy();
+      await ensureEmailPreviewLoaded(page, adminFixture, previewCase);
 
       const bodyHtml = await page.locator('body').evaluate((node) => node.innerHTML);
       expect(bodyHtml.includes('{{')).toBeFalsy();
