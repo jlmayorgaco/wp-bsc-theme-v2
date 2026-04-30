@@ -14,7 +14,7 @@ if ( ! defined( '_S_VERSION' ) ) {
 // BSC-041: static version constant for production asset versioning (no filemtime I/O per request)
 if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 	// In debug mode keep filemtime so changes are picked up immediately without manual bumps.
-	// In production this is a static string — update it on each deploy to bust browser caches.
+	// In production this is a static string â€” update it on each deploy to bust browser caches.
 	define(
 		'BSC_THEME_VERSION',
 		( defined('WP_DEBUG') && WP_DEBUG )
@@ -23,7 +23,7 @@ if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 	);
 }
 
-// BSC-008: contact form destination — override in wp-config.php if needed
+// BSC-008: contact form destination â€” override in wp-config.php if needed
 if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {
 	define( 'BSC_CONTACT_EMAIL', 'contacto@bubbleskincare.co' );
 }
@@ -42,6 +42,7 @@ require get_template_directory() . '/inc/template-functions.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/functions_bsc.php';
 require_once get_template_directory() . '/inc/bsc-contact-options.php';
+require_once get_template_directory() . '/inc/bsc-url-helpers.php';
 
 // Load Jetpack compatibility file.
 if ( defined( 'JETPACK__VERSION' ) ) {
@@ -58,10 +59,10 @@ if ( is_admin() ) {
 	require_once get_template_directory() . '/inc/admin/product-covers.php';
 }
 
-// BSC-029: custom roles (always loaded — roles must exist for frontend checks too)
+// BSC-029: custom roles (always loaded â€” roles must exist for frontend checks too)
 require_once get_template_directory() . '/includes/class-bsc-roles.php';
 
-// BSC-036: dual stock class (always loaded — hooks fire on both admin and frontend)
+// BSC-036: dual stock class (always loaded â€” hooks fire on both admin and frontend)
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
 
 // Internal feature modules shipped inside the theme (plugin-like structure)
@@ -102,7 +103,7 @@ require_once get_template_directory() . '/inc/ajax/search-actions.php';
 
 
 
-// ── Performance: disable WordPress emoji scripts/styles ───────────────────
+// â”€â”€ Performance: disable WordPress emoji scripts/styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_print_styles', 'print_emoji_styles');
 remove_action('admin_print_scripts', 'print_emoji_detection_script');
@@ -111,27 +112,27 @@ remove_filter('the_content_feed', 'wp_staticize_emoji');
 remove_filter('comment_text_rss', 'wp_staticize_emoji');
 remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
 
-// ── Performance: remove oEmbed / REST API exposure from <head> ─────────────
+// â”€â”€ Performance: remove oEmbed / REST API exposure from <head> â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 remove_action('wp_head', 'wp_oembed_add_discovery_links');
 remove_action('wp_head', 'rest_output_link_wp_head', 10);
 remove_action('wp_head', 'wlwmanifest_link');
 remove_action('wp_head', 'rsd_link');
 remove_action('wp_head', 'wp_generator');
 
-// ── Performance: disable Gutenberg block editor CSS on frontend ────────────
+// â”€â”€ Performance: disable Gutenberg block editor CSS on frontend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('wp-block-library');
     wp_dequeue_style('wp-block-library-theme');
     wp_dequeue_style('wc-blocks-style');
 }, 100);
 
-// ── Security: remove WordPress version from all outputs ───────────────────
+// â”€â”€ Security: remove WordPress version from all outputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_filter('the_generator', '__return_empty_string');
 
-// ── BSC-048: Disable XML-RPC (not used; attack surface reduction) ─────────
+// â”€â”€ BSC-048: Disable XML-RPC (not used; attack surface reduction) â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_filter('xmlrpc_enabled', '__return_false');
 
-// ── BSC-048: Login rate limiting — 5 failures → 15-min block per IP ───────
+// â”€â”€ BSC-048: Login rate limiting â€” 5 failures â†’ 15-min block per IP â”€â”€â”€â”€â”€â”€â”€
 add_action('wp_login_failed', function ( string $username ): void {
     $key   = 'bsc_lf_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
     $fails = (int) get_transient( $key );
@@ -153,7 +154,7 @@ add_filter('authenticate', function ( $user, string $username, string $password 
     return $user;
 }, 30, 3 );
 
-// ── Performance: add preconnect for Google Fonts CDN (used in style.css) ──
+// â”€â”€ Performance: add preconnect for Google Fonts CDN (used in style.css) â”€â”€
 add_action('wp_head', function () {
     echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
     echo '<meta name="robots" content="max-image-preview:large">' . "\n";
@@ -206,3 +207,4 @@ add_action('template_redirect', function () {
         }
     }
 });
+
