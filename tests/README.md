@@ -105,6 +105,14 @@ npm run test:e2e:visual:update
 npm run test:e2e:report
 ```
 
+Notes:
+
+- `npm run test:e2e:smoke` runs with `--workers=1` on purpose. The local
+  WordPress stack behind `bsc.local` is not reliable enough for concurrent
+  admin/auth storefront smoke without transient `502` responses.
+- `npm run test:e2e:visual:emails` also runs with `--workers=1` for the same
+  reason; admin-post preview routes are sensitive to cross-project concurrency.
+
 ## First baseline workflow
 
 1. Point the suite at the approved environment.

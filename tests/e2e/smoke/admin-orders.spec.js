@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { loginToWpAdmin } = require('../helpers/ui');
+const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
 
 async function openAdminOrdersPage(page, testInfo) {
   const adminFixture =
@@ -19,10 +19,10 @@ async function openAdminOrdersPage(page, testInfo) {
 
   expect(loggedIn).toBeTruthy();
 
-  await page.goto('/wp-admin/admin.php?page=bsc-orders', {
-    waitUntil: 'domcontentloaded',
+  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-orders', {
+    primePage: false,
+    waitForImages: false,
   });
-  await page.waitForLoadState('load');
 
   await expect(page.locator('.wrap.bsc-admin-orders h1').first()).toContainText(
     'Pedidos BSC'
