@@ -26,7 +26,7 @@ $order_view->set_logo(
     'Bubble Skin Care'
 );
 $order_view->set_heading(
-    '¡Gracias por tu compra! 🎉',
+    html_entity_decode( '&#161;Gracias por tu compra! &#127881;', ENT_QUOTES, 'UTF-8' ),
     'Tu orden <strong>#' . esc_html( $order->get_order_number() ) . '</strong> ha sido recibida correctamente.'
 );
 $order_view->set_actions(

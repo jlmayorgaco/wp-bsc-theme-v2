@@ -266,6 +266,240 @@ async function interactWithPrimaryCardAddToCart(page, projectName) {
   };
 }
 
+async function selectFirstNonEmptyOption(page, selector) {
+  const field = page.locator(selector).first();
+  await expect(field).toBeVisible();
+
+  const currentValue = await field.inputValue().catch(() => '');
+  if (currentValue) {
+    return currentValue;
+  }
+
+  const optionValue = await field.evaluate((node) => {
+    const option = Array.from(node.options || []).find((candidate) => candidate.value && !candidate.disabled);
+    return option ? option.value : '';
+  });
+
+  if (!optionValue) {
+    throw new Error(`No selectable option found for ${selector}`);
+  }
+
+  await field.selectOption(optionValue);
+  return optionValue;
+}
+
+async function selectCheckoutBillingDestination(page) {
+  await selectFirstNonEmptyOption(page, '#billing_state');
+
+  await page.waitForFunction(() => {
+    const city = document.querySelector('#billing_city');
+    return Boolean(
+      city &&
+      !city.disabled &&
+      Array.from(city.options || []).some((option) => option.value && !option.disabled)
+    );
+  });
+
+  await selectFirstNonEmptyOption(page, '#billing_city');
+
+  const postcode = page.locator('#billing_postcode').first();
+  if ((await postcode.count()) > 0) {
+    await postcode.fill('110111');
+  }
+
+  const address = page.locator('#billing_address_1').first();
+  if ((await address.count()) > 0) {
+    await address.fill('Calle 123 #45-67');
+  }
+
+  await page.evaluate(() => new Promise((resolve) => {
+    const $ = window.jQuery;
+
+    if (!$ || !$('form[name="checkout"]').length) {
+      window.setTimeout(resolve, 250);
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      window.setTimeout(resolve, 250);
+    };
+
+    $(document.body).one('updated_checkout', finish);
+    $(document.body).trigger('update_checkout');
+    window.setTimeout(finish, 4000);
+  }));
+}
+
+async function applyCheckoutCoupon(page, couponCode) {
+  const couponInput = page.locator('#bsc__coupon-input').first();
+  const applyButton = page.locator('#apply_coupon').first();
+
+  await expect(couponInput).toBeVisible();
+  await expect(applyButton).toBeVisible();
+
+  await couponInput.fill(couponCode);
+  const applyResponse = page.waitForResponse(async (response) => {
+    if (!response.url().includes('/wp-admin/admin-ajax.php')) {
+      return false;
+    }
+
+    const postData = response.request().postData() || '';
+    if (!postData.includes('action=apply_coupon')) {
+      return false;
+    }
+
+    try {
+      const payload = await response.json();
+      return Boolean(payload?.success);
+    } catch (error) {
+      return response.ok();
+    }
+  });
+
+  const couponsResponse = page.waitForResponse(async (response) => {
+    if (!response.url().includes('/wp-admin/admin-ajax.php')) {
+      return false;
+    }
+
+    const postData = response.request().postData() || '';
+    if (!postData.includes('action=get_applied_coupons')) {
+      return false;
+    }
+
+    try {
+      const payload = await response.json();
+      return Boolean(payload?.success);
+    } catch (error) {
+      return response.ok();
+    }
+  });
+
+  await applyButton.click();
+  await applyResponse;
+  await couponsResponse;
+}
+
+async function mutateCheckoutCouponDirect(page, action, couponCode) {
+  const response = await page.evaluate(async ({ action, couponCode }) => {
+    const params = new URLSearchParams();
+    params.set('action', action);
+    params.set('nonce', window.bsc_ajax?.nonce || '');
+    params.set('coupon_code', couponCode);
+
+    const result = await fetch(window.bsc_ajax.ajax_url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      credentials: 'same-origin',
+      body: params.toString(),
+    });
+
+    return result.json();
+  }, { action, couponCode });
+
+  if (!response?.success) {
+    throw new Error(`Coupon mutation failed for ${action}`);
+  }
+
+  await page.evaluate(() => new Promise((resolve) => {
+    const $ = window.jQuery;
+
+    if (!$) {
+      if (typeof window.refreshReviewSummary === 'function') {
+        window.refreshReviewSummary();
+      }
+      window.setTimeout(resolve, 400);
+      return;
+    }
+
+    const finish = () => {
+      if (typeof window.refreshReviewSummary === 'function') {
+        const request = window.refreshReviewSummary();
+        if (request && typeof request.always === 'function') {
+          request.always(() => resolve());
+          return;
+        }
+      }
+
+      window.setTimeout(resolve, 400);
+    };
+
+    if ($('form[name=\"checkout\"]').length) {
+      $(document.body).one('updated_checkout', finish);
+      $(document.body).trigger('update_checkout');
+      window.setTimeout(finish, 4000);
+      return;
+    }
+
+    finish();
+  }));
+
+  return response;
+}
+
+async function applyCheckoutCouponDirect(page, couponCode) {
+  return mutateCheckoutCouponDirect(page, 'apply_coupon', couponCode);
+}
+
+async function removeCheckoutCoupon(page, couponCode) {
+  const couponItem = page.locator('.applied-coupon-item').filter({
+    hasText: new RegExp(couponCode, 'i'),
+  }).first();
+
+  await expect(couponItem).toBeVisible();
+
+  const removeResponse = page.waitForResponse(async (response) => {
+    if (!response.url().includes('/wp-admin/admin-ajax.php')) {
+      return false;
+    }
+
+    const postData = response.request().postData() || '';
+    if (!postData.includes('action=remove_coupon')) {
+      return false;
+    }
+
+    try {
+      const payload = await response.json();
+      return Boolean(payload?.success);
+    } catch (error) {
+      return response.ok();
+    }
+  });
+
+  const couponsResponse = page.waitForResponse(async (response) => {
+    if (!response.url().includes('/wp-admin/admin-ajax.php')) {
+      return false;
+    }
+
+    const postData = response.request().postData() || '';
+    if (!postData.includes('action=get_applied_coupons')) {
+      return false;
+    }
+
+    try {
+      const payload = await response.json();
+      return Boolean(payload?.success);
+    } catch (error) {
+      return response.ok();
+    }
+  });
+
+  await couponItem.locator('.remove-coupon').click();
+  await removeResponse;
+  await couponsResponse;
+}
+
+async function removeCheckoutCouponDirect(page, couponCode) {
+  return mutateCheckoutCouponDirect(page, 'remove_coupon', couponCode);
+}
+
 async function ensureCheckoutReadyFromCategory(page, categoryPath, projectName) {
   await gotoProductGridCategory(page, categoryPath);
   await interactWithPrimaryCardAddToCart(page, projectName);
@@ -443,6 +677,8 @@ async function openWpAdminPopup(page, triggerSelector, verifyReady, options = {}
 }
 
 module.exports = {
+  applyCheckoutCoupon,
+  applyCheckoutCouponDirect,
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
   gotoProductGridCategory,
@@ -453,4 +689,7 @@ module.exports = {
   openWpAdminPopup,
   openFirstProductFromCategory,
   primeFullPage,
+  removeCheckoutCoupon,
+  removeCheckoutCouponDirect,
+  selectCheckoutBillingDestination,
 };

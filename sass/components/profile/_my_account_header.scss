@@ -1,8 +1,4 @@
-@mixin mq($max) {
-  @media (max-width: $max) {
-    @content;
-  }
-}
+@use "../../mixins/mixins" as mixins;
 
 .bsc__my-account-header {
   text-align: center;
@@ -30,74 +26,51 @@
     list-style: none;
   }
 
-  .menu__item {
-   
-    a {
-      text-decoration: none;
+  .menu__link {
+    display: block;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #333;
+    color: #333;
+    background-color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+
+    &:hover,
+    &:focus {
+      background-color: #fdf4c6;
       color: #333;
-      
-       border: 1px solid #333;
-      padding: 0.5rem 1.25rem;
-      font-weight: 500;
-      font-size: 1rem;
-      letter-spacing: 1px;
-      background-color: white;
-      transition: all 0.2s ease;
-      
-      &:hover{
-        background-color: #c7e7f1;
-        background-color: #fdf4c6;
-      }
-
-    &.is-active {
-          background-color: #fdf4c6; // amarillo pastel
-          font-weight: bold;
-        }
-
     }
 
-   
+    &.is-active {
+      background-color: #fdf4c6;
+      font-weight: 700;
+    }
   }
-
-
-
 }
 
-  $bp-mobile: 480px;
-  @include mq($bp-mobile) {
-
-    
+@include mixins.bsc-breakpoint-down("phone") {
   .bsc__my-account-header {
-    
+    padding-top: 0;
+    padding-bottom: 0;
 
-      text-align: center;
-  padding-bottom: 0px;
-  padding-top: 0px;
-
-  .header__name {
-
-  }
-
-  .bsc__title {
-    padding-bottom: 0px;
-  }
+    .bsc__title {
+      padding-bottom: 0;
+    }
 
     .menu__items {
       width: 100%;
       padding: 5px 15px;
     }
-      .menu__item {
-        width: 100%;
-      }
-      .menu__item a{
-        display: block;
-        width: 100%;
-      }
- 
 
+    .menu__item {
+      width: 100%;
+    }
 
-} 
-
-
+    .menu__link {
+      width: 100%;
+    }
+  }
 }
-

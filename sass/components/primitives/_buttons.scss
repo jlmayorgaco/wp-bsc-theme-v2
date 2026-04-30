@@ -23,6 +23,17 @@
   );
 }
 
+
+.bsc__button--compact-pill {
+  @include mixins.bsc-button-base(
+    $padding: 0.65rem 1.45rem,
+    $radius: 30px,
+    $font-size: 0.95rem,
+    $height: auto
+  );
+}
+
+
 .bsc__button--floating {
   display: block;
   width: fit-content;
@@ -48,3 +59,4 @@
     background-color: var(--color--primary);
   }
 }
+
