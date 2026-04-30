@@ -382,6 +382,52 @@ function bsc_playwright_fixture_pick_product(): WC_Product {
     return $products[0];
 }
 
+function bsc_playwright_fixture_get_or_create_coupon( array $definition ): WC_Coupon {
+    $code = wc_format_coupon_code( (string) $definition['code'] );
+    $coupon = new WC_Coupon( $code );
+
+    if ( ! $coupon->get_id() ) {
+        $coupon = new WC_Coupon();
+    }
+
+    $coupon->set_code( $code );
+    $coupon->set_description( (string) ( $definition['description'] ?? 'Playwright fixture coupon' ) );
+    $coupon->set_discount_type( (string) $definition['discount_type'] );
+    $coupon->set_amount( (string) $definition['amount'] );
+    $coupon->set_individual_use( false );
+    $coupon->set_free_shipping( ! empty( $definition['free_shipping'] ) );
+    $coupon->set_date_expires( new WC_DateTime( '2027-12-31 23:59:59', new DateTimeZone( 'America/Bogota' ) ) );
+    $coupon->save();
+
+    if ( $coupon->get_id() ) {
+        update_post_meta( $coupon->get_id(), BSC_PLAYWRIGHT_FIXTURE_META_KEY, 'coupon_fixture' );
+    }
+
+    return new WC_Coupon( $coupon->get_id() );
+}
+
+function bsc_playwright_fixture_seed_coupons(): array {
+    $fixed_coupon = bsc_playwright_fixture_get_or_create_coupon( [
+        'code'          => 'QA10OFF',
+        'discount_type' => 'fixed_cart',
+        'amount'        => '10000',
+        'description'   => 'Fixture fixed-cart coupon for checkout smoke.',
+    ] );
+
+    $free_shipping_coupon = bsc_playwright_fixture_get_or_create_coupon( [
+        'code'          => 'QAFREESHIP',
+        'discount_type' => 'fixed_cart',
+        'amount'        => '1',
+        'free_shipping' => true,
+        'description'   => 'Fixture free-shipping coupon for checkout smoke.',
+    ] );
+
+    return [
+        'fixed'        => $fixed_coupon->get_code(),
+        'freeShipping' => $free_shipping_coupon->get_code(),
+    ];
+}
+
 function bsc_playwright_fixture_existing_order(int $user_id): ?WC_Order {
     $orders = wc_get_orders([
         'customer_id' => $user_id,
@@ -486,6 +532,7 @@ $order = bsc_playwright_fixture_get_or_create_order((int) $user->ID);
 $public_catalog = bsc_playwright_fixture_seed_public_visual_catalog();
 $public_category = $public_catalog['category'];
 $public_product = $public_catalog['product'];
+$coupons = bsc_playwright_fixture_seed_coupons();
 
 $payload = [
     'auth' => [
@@ -519,6 +566,7 @@ $payload = [
         'number' => $order->get_order_number(),
         'status' => $order->get_status(),
     ],
+    'coupons' => $coupons,
 ];
 
 echo wp_json_encode($payload, JSON_UNESCAPED_SLASHES);

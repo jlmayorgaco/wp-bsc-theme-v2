@@ -1,7 +1,7 @@
 <?php
 /**
  * Template Name: Contacto
- * BSC: Página de contacto.
+ * BSC: Pagina de contacto.
  */
 
 $contact_whatsapp_url     = bsc_get_whatsapp_url( 'support' );
@@ -22,7 +22,7 @@ get_header();
       </div>
 
       <h1 class="bsc__static-hero__title">Contacto</h1>
-      <p class="bsc__static-hero__subtitle">Estamos aquí para ayudarte 🌸</p>
+      <p class="bsc__static-hero__subtitle">Estamos aqu&iacute; para ayudarte &#127800;</p>
     </div>
   </section>
 
@@ -35,7 +35,7 @@ get_header();
           <div class="bsc__contact-col bsc__contact-col--content">
             <span class="bsc__contact-eyebrow">Bubble Skin Care</span>
 
-            <h2 class="bsc__contact-heading">Escríbenos</h2>
+            <h2 class="bsc__contact-heading">Escr&iacute;benos</h2>
 
             <p class="bsc__contact-text">
               Si tienes dudas sobre productos, pedidos, rutinas o colaboraciones,
@@ -61,7 +61,7 @@ get_header();
                   <span class="bsc__contact-item__value"><?php echo esc_html( $contact_whatsapp_display ); ?></span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
               <a
@@ -80,7 +80,7 @@ get_header();
                   <span class="bsc__contact-item__value">@bubbles.skincare</span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
               <a
@@ -99,7 +99,7 @@ get_header();
                   <span class="bsc__contact-item__value">@bubblesskincare</span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
             </div>
@@ -108,24 +108,23 @@ get_header();
               <a class="bsc__contact-btn" href="<?php echo esc_url( $contact_shop_url ); ?>">Visitar tienda</a>
             </div>
 
-            <!-- BSC-008: contact form -->
             <div class="bsc__contact-form-wrap">
-              <h3 class="bsc__contact-form-heading">Envíanos un mensaje</h3>
+              <h3 class="bsc__contact-form-heading">Env&iacute;anos un mensaje</h3>
               <form id="bsc-contact-form" class="bsc__contact-form" novalidate>
                 <div class="bsc__contact-field">
                   <label for="bsc-contact-name">Nombre</label>
                   <input type="text" id="bsc-contact-name" name="bsc_name" required placeholder="Tu nombre" autocomplete="name">
                 </div>
                 <div class="bsc__contact-field">
-                  <label for="bsc-contact-email">Correo electrónico</label>
+                  <label for="bsc-contact-email">Correo electr&oacute;nico</label>
                   <input type="email" id="bsc-contact-email" name="bsc_email" required placeholder="tucorreo@ejemplo.com" autocomplete="email">
                 </div>
                 <div class="bsc__contact-field">
                   <label for="bsc-contact-message">Mensaje</label>
-                  <textarea id="bsc-contact-message" name="bsc_message" required placeholder="¿En qué podemos ayudarte?" rows="4"></textarea>
+                  <textarea id="bsc-contact-message" name="bsc_message" required placeholder="&iquest;En qu&eacute; podemos ayudarte?" rows="4"></textarea>
                 </div>
                 <div id="bsc-contact-notice" class="bsc__contact-notice" aria-live="polite"></div>
-                <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__contact-submit">Enviar mensaje</button>
+                <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__button--compact-pill bsc__contact-submit">Enviar mensaje</button>
               </form>
             </div>
           </div>

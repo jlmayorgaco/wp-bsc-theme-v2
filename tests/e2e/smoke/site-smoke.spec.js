@@ -1,11 +1,14 @@
 const { expect, test } = require('@playwright/test');
-const { expectsStorefront, routes } = require('../helpers/env');
+const { coupons, expectsStorefront, routes } = require('../helpers/env');
 const {
+  applyCheckoutCouponDirect,
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
   gotoProductGridCategory,
   interactWithPrimaryCardAddToCart,
   openFirstProductFromCategory,
+  removeCheckoutCouponDirect,
+  selectCheckoutBillingDestination,
 } = require('../helpers/ui');
 
 test.describe('BSC smoke', () => {
@@ -184,6 +187,54 @@ test.describe('BSC smoke', () => {
 
     await $toggle.click();
     await expect($form).toBeVisible();
+  });
+
+  test('checkout coupon apply/remove keeps the review summary in sync', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for checkout coupon smoke');
+    test.skip(!coupons.fixed, 'Checkout coupon fixture is required.');
+
+    await ensureCheckoutReadyFromCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ], testInfo.project.name);
+    await gotoAndStabilize(page, routes.checkout);
+
+    const summaryTotal = page.locator('#review-summary__total').first();
+    const initialTotal = ((await summaryTotal.textContent()) || '').trim();
+
+    await applyCheckoutCouponDirect(page, coupons.fixed);
+    await expect.poll(async () => ((await summaryTotal.textContent()) || '').trim()).not.toBe(initialTotal);
+
+    await removeCheckoutCouponDirect(page, coupons.fixed);
+
+    await expect.poll(async () => ((await summaryTotal.textContent()) || '').trim()).toBe(initialTotal);
+  });
+
+  test('checkout shipping summary reacts to destination and free-shipping coupons', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for checkout shipping smoke');
+    test.skip(!coupons.freeShipping, 'Free-shipping coupon fixture is required.');
+
+    await ensureCheckoutReadyFromCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ], testInfo.project.name);
+    await gotoAndStabilize(page, routes.checkout);
+
+    await selectCheckoutBillingDestination(page);
+
+    const shippingValue = page.locator('#review-summary__shipping').first();
+
+    await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).not.toBe('');
+    await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).not.toContain('Gratis');
+
+    await applyCheckoutCouponDirect(page, coupons.freeShipping);
+
+    await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).toContain('Gratis');
+
+    await removeCheckoutCouponDirect(page, coupons.freeShipping);
+    await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).not.toContain('Gratis');
   });
 
   test('shop landing renders grouped category cards', async ({ page }) => {

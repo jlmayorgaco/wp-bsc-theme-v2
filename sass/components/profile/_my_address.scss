@@ -4,22 +4,19 @@
 }
 
 .bsc__address-container {
-    display: flex;
-    /* display: grid; */
-    /* grid-template-columns: 1fr 1fr; */
-    gap: 2rem;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
 
-    img{
-      max-width: 300px !important;
-    }
+  img {
+    max-width: 300px !important;
+  }
 }
 
 .bsc__address-illustration {
   text-align: center;
   height: 100%;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -34,15 +31,15 @@
 .bsc__address-card {
   border-left: 1px dashed #999;
   padding-left: 2rem;
-    color: #333;
+  color: #333;
 }
 
 .bsc__address-card h3 {
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 0.15rem;
-    color: #333;
-    letter-spacing: 1px;
+  color: #333;
+  letter-spacing: 1px;
 }
 
 .bsc__address-subtitle {
@@ -54,7 +51,7 @@
 }
 
 .bsc__address-content {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
   color: #333;
   letter-spacing: 1px;
   margin-top: 25px;
@@ -77,16 +74,9 @@
 }
 
 .bsc__address-button {
-  display: inline-block;
-  margin-top: 0px;
-  background: #333;
-  color: #fff;
+  margin-top: 0;
   border: 1px solid #333;
-  border-radius: 2rem;
-  padding: 0.5rem 1.5rem;
-  text-decoration: none;
-  font-weight: bold;
-  transition: background 0.3s;
+  padding: 0.5rem 1.45rem;
 
   &:hover {
     border-color: #333;
@@ -95,123 +85,112 @@
   }
 }
 
+.bsc__shipping-address {
+  display: block;
+  width: 740px;
+  margin: 0 auto;
 
-    .bsc__shipping-address{
-      display: block;
-      width: 740px;
-      margin: 0 auto;
+  h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+    padding-bottom: 22px;
+    color: #333;
+    letter-spacing: 1px;
+    text-align: center;
+    width: 100%;
+    margin: 0 auto;
+  }
 
+  .input-text {
+    color: #333;
+  }
 
+  .button--save-profile {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding-top: 20px;
 
-      h2{
-          font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 0.15rem;
-
-      padding-bottom: 22px;
-        color: #333;
-        letter-spacing: 1px;
-        text-align:center;
-        width: 100%;
-        margin: 0 auto;
-      }
-
-      .input-text {
-        color:#333;
-      }
-
-      .button--save-profile{
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: flex-end;
-
-        padding-top: 20px;
-        button{
-          margin: 10px 0px;
-        }
-      }
+    button {
+      margin: 10px 0;
     }
-
-
+  }
+}
 
 @media (max-width: 768px) {
+  .bsc__address-wrapper {
+    padding: 2rem 0.5rem;
+    background: #fff;
+  }
 
+  .bsc__address-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
 
-      .bsc__address-wrapper {
-        padding: 2rem 0.5rem;
-        background: #fff;
-      }
+  .bsc__address-content {
+    width: 100%;
+  }
 
-      .bsc__address-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0px;
-      }
-      .bsc__address-content{
-        width: 100%;
-      }
+  .bsc__address-card {
+    border: none;
+    padding-left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 
-      .bsc__address-card{
-        border: none;
-        padding-left: 0px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items:center; 
-        width: 100%;
-        &:last-child{
-          padding-top: 30px;
-        }
-      }
-      .bsc__address-card h3{
-        font-size: 18px;
-        margin-bottom: 0px;
-      }
-        .bsc__address-subtitle{
-          font-size: 18px;
-          margin-bottom: 0px;
-        }
-      .bsc__address-illustration {
-        text-align: center;
-        height: 100%;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-
-        img {
-          max-width: 100%;
-          height: auto;
-        }
-      }
-
-
-    .bsc__shipping-address{
-      display: block;
-      width: 100%;
+    &:last-child {
       padding-top: 30px;
-      margin: 0 auto;
-
-
     }
+  }
 
-    .button--save-profile{
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center !important;
-        justify-content: center !important;
-        padding-top: 0px !important;
-      }
+  .bsc__address-card h3 {
+    font-size: 18px;
+    margin-bottom: 0;
+  }
 
+  .bsc__address-subtitle {
+    font-size: 18px;
+    margin-bottom: 0;
+  }
 
-      .bsc__account-container{
-        padding-bottom: 0px;
-      }
+  .bsc__address-illustration {
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
 
-      
+  .bsc__shipping-address {
+    display: block;
+    width: 100%;
+    padding-top: 30px;
+    margin: 0 auto;
+  }
+
+  .button--save-profile {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-top: 0 !important;
+  }
+
+  .bsc__account-container {
+    padding-bottom: 0;
+  }
 }

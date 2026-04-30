@@ -1,4 +1,4 @@
-const { loadAuthFixture } = require('./wp-fixture');
+﻿const { loadAuthFixture } = require('./wp-fixture');
 
 const fixture = loadAuthFixture();
 const publicMode = process.env.PW_PUBLIC_MODE || 'storefront';
@@ -75,6 +75,12 @@ const auth = {
   password: process.env.PW_ACCOUNT_PASSWORD || fixture?.auth?.password || '',
 };
 
+const coupons = {
+  fixed: process.env.PW_COUPON_FIXED || fixture?.coupons?.fixed || '',
+  freeShipping:
+    process.env.PW_COUPON_FREE_SHIPPING || fixture?.coupons?.freeShipping || '',
+};
+
 function hasAccountAuth() {
   return Boolean((auth.username || auth.email) && auth.password);
 }
@@ -93,6 +99,7 @@ function expectsStorefront() {
 
 module.exports = {
   auth,
+  coupons,
   expectsStorefront,
   fixture,
   hasAccountAuth,
