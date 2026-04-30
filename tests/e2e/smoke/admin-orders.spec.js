@@ -62,4 +62,26 @@ test.describe('BSC admin orders smoke', () => {
 
     await popup.close();
   });
+
+  test('order labels view opens in a new tab for a selected order', async ({ page }, testInfo) => {
+    await openAdminOrdersPage(page, testInfo);
+
+    const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
+    await expect(firstCheckbox).toBeVisible();
+    await firstCheckbox.check();
+
+    const popupPromise = page.waitForEvent('popup');
+    await page.locator('#bsc-labels-btn').click();
+    const popup = await popupPromise;
+
+    await popup.waitForLoadState('domcontentloaded');
+    await popup.waitForLoadState('load');
+
+    await expect(popup.locator('body.bsc-order-label-print').first()).toBeVisible();
+    await expect(popup.locator('.bsc-labels-toolbar').first()).toBeVisible();
+    await expect(popup.locator('.bsc-print-label').first()).toBeVisible();
+    await expect(popup.locator('[data-bsc-label-action=\"download-pdf\"]').first()).toBeVisible();
+
+    await popup.close();
+  });
 });
