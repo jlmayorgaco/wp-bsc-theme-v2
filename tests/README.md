@@ -109,6 +109,10 @@ Notes:
 - `npm run test:e2e:smoke` runs with `--workers=1` on purpose. The local
   WordPress stack behind `bsc.local` is not reliable enough for concurrent
   admin/auth storefront smoke without transient `502` responses.
+- `npm run test:e2e:visual` also runs each suite sequentially with `--workers=1`.
+  Public, header, authenticated, and email preview baselines are intentionally
+  split because the local stack is prone to session and preview-route flake
+  when they run together.
 - `npm run test:e2e:visual:emails` also runs with `--workers=1` for the same
   reason; admin-post preview routes are sensitive to cross-project concurrency.
 
