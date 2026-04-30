@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { loginToWpAdmin } = require('../helpers/ui');
+const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
 
 async function openAdminProductsPage(page, testInfo) {
   const adminFixture =
@@ -19,10 +19,10 @@ async function openAdminProductsPage(page, testInfo) {
 
   expect(loggedIn).toBeTruthy();
 
-  await page.goto('/wp-admin/admin.php?page=bsc-products', {
-    waitUntil: 'domcontentloaded',
+  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-products', {
+    primePage: false,
+    waitForImages: false,
   });
-  await page.waitForLoadState('load');
 
   await expect(page.locator('.wrap.bsc-admin-products h1').first()).toContainText(
     'Productos BSC'
@@ -53,9 +53,10 @@ test.describe('BSC admin products smoke', () => {
     await expect(editLink).toBeVisible();
     const editHref = await editLink.getAttribute('href');
     expect(editHref).toBeTruthy();
-    await page.goto(editHref, { waitUntil: 'domcontentloaded' });
-
-    await page.waitForLoadState('load');
+    await gotoAndStabilize(page, editHref, {
+      primePage: false,
+      waitForImages: false,
+    });
 
     await expect(page.locator('.wrap.bsc-admin-product-edit h1').first()).toContainText('Editar Producto');
     await expect(page.locator('#bsc-select-main-image').first()).toBeVisible();

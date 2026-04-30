@@ -1,5 +1,11 @@
 const { expect } = require('@playwright/test');
 
+const TRANSIENT_ERROR_MARKERS = [
+  '502 Bad Gateway',
+  '504 Gateway Timeout',
+  'Error establishing a database connection',
+];
+
 async function disableMotion(page) {
   await page.addStyleTag({
     content: `
@@ -56,8 +62,7 @@ async function primeFullPage(page) {
   await waitForImages(page);
 }
 
-async function gotoAndStabilize(page, path) {
-  await page.goto(path, { waitUntil: 'domcontentloaded' });
+async function waitForSettledLoad(page) {
   await page.waitForLoadState('load');
 
   try {
@@ -65,11 +70,121 @@ async function gotoAndStabilize(page, path) {
   } catch (error) {
     // Some WordPress pages keep background activity; best-effort only.
   }
+}
 
-  await disableMotion(page);
-  await waitForImages(page);
-  await primeFullPage(page);
-  await page.evaluate(() => window.scrollTo(0, 0));
+async function isTransientGatewayPage(page) {
+  const body = page.locator('body').first();
+
+  if (!(await body.count())) {
+    return false;
+  }
+
+  const bodyText = await body.innerText().catch(() => '');
+
+  return TRANSIENT_ERROR_MARKERS.some((marker) => bodyText.includes(marker));
+}
+
+async function gotoAndStabilize(page, path, options = {}) {
+  const maxAttempts = Math.max(1, options.maxAttempts || 3);
+  const shouldPrimePage = options.primePage !== false;
+  const shouldWaitForImages = options.waitForImages !== false;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await page.goto(path, { waitUntil: 'domcontentloaded' });
+      await waitForSettledLoad(page);
+
+      if (await isTransientGatewayPage(page)) {
+        throw new Error(`Transient gateway page detected at ${path}`);
+      }
+
+      await disableMotion(page);
+      if (shouldWaitForImages) {
+        await waitForImages(page);
+      }
+
+      if (shouldPrimePage) {
+        await primeFullPage(page);
+        await page.evaluate(() => window.scrollTo(0, 0));
+      }
+
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt >= maxAttempts) {
+        break;
+      }
+
+      await page.waitForTimeout(750 * attempt);
+    }
+  }
+
+  throw lastError || new Error(`Navigation failed for ${path}`);
+}
+
+async function hasVisibleLoginForm(page) {
+  const usernameField = page.locator('#user_login').first();
+  const passwordField = page.locator('#user_pass').first();
+  const submitButton = page.locator('#wp-submit').first();
+
+  return (
+    (await usernameField.count()) > 0 &&
+    (await passwordField.count()) > 0 &&
+    (await submitButton.count()) > 0
+  );
+}
+
+async function submitLoginForm(page, usernameOrEmail, password, redirectTarget = '') {
+  const usernameField = page.locator('#user_login').first();
+  const passwordField = page.locator('#user_pass').first();
+  const loginButton = page.locator('#wp-submit').first();
+  const redirectField = page.locator('input[name="redirect_to"]').first();
+
+  await usernameField.fill(usernameOrEmail);
+  await passwordField.fill(password);
+
+  if (redirectTarget && (await redirectField.count())) {
+    await redirectField.evaluate((node, value) => {
+      node.value = value;
+      node.setAttribute('value', value);
+    }, redirectTarget);
+  }
+
+  await Promise.all([
+    page
+      .waitForURL(
+        (url) =>
+          !url.pathname.startsWith('/wp-login.php') &&
+          !url.pathname.endsWith('/login/'),
+        { timeout: 15_000 }
+      )
+      .catch(() => null),
+    loginButton.click(),
+  ]);
+
+  await waitForSettledLoad(page);
+}
+
+async function isAuthenticatedAccountView(page) {
+  if (page.url().includes('/wp-login.php') || page.url().includes('/login/')) {
+    return false;
+  }
+
+  if ((await isTransientGatewayPage(page))) {
+    return false;
+  }
+
+  const accountContent = page.locator('.woocommerce-MyAccount-content').first();
+  const logoutLink = page.locator('a[href*="customer-logout"], a[href*="logout"]').first();
+
+  if ((await accountContent.count()) > 0) {
+    await expect(accountContent).toBeVisible();
+    return true;
+  }
+
+  return (await logoutLink.count()) > 0;
 }
 
 async function gotoProductGridCategory(page, categoryPaths) {
@@ -150,87 +265,75 @@ async function loginFromAccount(page, loginPath, accountPath, usernameOrEmail, p
   const wpLoginUrl =
     '/wp-login.php?redirect_to=' + encodeURIComponent(redirectTarget);
 
-  await page.goto(wpLoginUrl, { waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('load');
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await gotoAndStabilize(page, wpLoginUrl, {
+      primePage: false,
+      waitForImages: false,
+    });
 
-  const usernameField = page.locator('#user_login').first();
-  const passwordField = page.locator('#user_pass').first();
-  const loginButton = page.locator('#wp-submit').first();
+    if (!(await hasVisibleLoginForm(page))) {
+      return false;
+    }
 
-  if (!(await usernameField.count()) || !(await passwordField.count()) || !(await loginButton.count())) {
-    return false;
-  }
+    await submitLoginForm(page, usernameOrEmail, password, redirectTarget);
 
-  await usernameField.fill(usernameOrEmail);
-  await passwordField.fill(password);
-  await Promise.all([
-    page
-      .waitForURL(
-        (url) => !url.pathname.startsWith('/wp-login.php'),
-        { timeout: 15_000 }
-      )
-      .catch(() => null),
-    loginButton.click(),
-  ]);
-
-  try {
-    await page.waitForLoadState('networkidle', { timeout: 10_000 });
-  } catch (error) {
-    // Best-effort only.
-  }
-
-  if (accountPath) {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (accountPath) {
       await gotoAndStabilize(page, accountPath);
 
-      if (!page.url().includes('/login/') && !page.url().includes('/wp-login.php')) {
-        const accountContent = page.locator('.woocommerce-MyAccount-content').first();
-
-        if (await accountContent.count()) {
-          await expect(accountContent).toBeVisible();
-        }
-
+      if (await isAuthenticatedAccountView(page)) {
         await waitForImages(page);
         return true;
       }
-
-      await page.waitForTimeout(500);
+    } else {
+      await waitForImages(page);
+      return true;
     }
 
-    throw new Error('Account login did not complete successfully.');
+    if (loginPath) {
+      await gotoAndStabilize(page, loginPath, {
+        primePage: false,
+        waitForImages: false,
+      });
+
+      if (await hasVisibleLoginForm(page)) {
+        await submitLoginForm(page, usernameOrEmail, password, redirectTarget);
+
+        if (accountPath) {
+          await gotoAndStabilize(page, accountPath);
+
+          if (await isAuthenticatedAccountView(page)) {
+            await waitForImages(page);
+            return true;
+          }
+        } else {
+          await waitForImages(page);
+          return true;
+        }
+      }
+    }
+
+    await page.waitForTimeout(500 * (attempt + 1));
   }
 
-  await waitForImages(page);
-  return true;
+  throw new Error('Account login did not complete successfully.');
 }
 
 async function loginToWpAdmin(page, username, password) {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    await page.goto('/wp-login.php', { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('load');
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await gotoAndStabilize(page, '/wp-login.php', {
+      primePage: false,
+      waitForImages: false,
+    });
 
     if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
       return true;
     }
 
-    const usernameField = page.locator('#user_login').first();
-    const passwordField = page.locator('#user_pass').first();
-    const submitButton = page.locator('#wp-submit').first();
-
-    if (!(await usernameField.count()) || !(await passwordField.count())) {
+    if (!(await hasVisibleLoginForm(page))) {
       continue;
     }
 
-    await usernameField.fill(username);
-    await passwordField.fill(password);
-    await submitButton.click();
-    await page.waitForLoadState('load');
-
-    try {
-      await page.waitForLoadState('networkidle', { timeout: 10_000 });
-    } catch (error) {
-      // Best-effort only.
-    }
+    await submitLoginForm(page, username, password, '/wp-admin/');
 
     if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
       return true;
