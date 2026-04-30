@@ -54,7 +54,7 @@ add_action('admin_init', function() {
     if ( ! isset($_GET['page']) || $_GET['page'] !== 'bsc-reports' ) return;
     if ( ! isset($_GET['bsc_export_csv']) ) return;
     if ( ! current_user_can('manage_options') && ! current_user_can('manage_woocommerce') ) wp_die('Sin permisos.');
-    if ( ! wp_verify_nonce( sanitize_text_field($_GET['bsc_export_nonce'] ?? ''), 'bsc_reports_export' ) ) wp_die('Nonce inv?lido.');
+    if ( ! wp_verify_nonce( sanitize_text_field($_GET['bsc_export_nonce'] ?? ''), 'bsc_reports_export' ) ) wp_die('Nonce inválido.');
 
     $date_start = sanitize_text_field( $_GET['date_start'] ?? gmdate('Y-m-01') );
     $date_end   = sanitize_text_field( $_GET['date_end']   ?? gmdate('Y-m-d') );
@@ -496,9 +496,9 @@ function bsc_reports_tab_stock(): void {
     <!-- Legend -->
     <p class="bsc-admin-reports__legend">
         <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--danger">Sin stock</span>
-        <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--warning">Un tipo vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­o</span>
+        <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--warning">Un tipo vacío</span>
         <span class="bsc-admin-reports__legend-chip bsc-admin-reports__legend-chip--low">Stock bajo (< <?php echo esc_html($threshold); ?>)</span>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=bsc-settings')); ?>" class="bsc-admin-reports__legend-link">Cambiar umbral ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</a>
+        <a href="<?php echo esc_url(admin_url('admin.php?page=bsc-settings')); ?>" class="bsc-admin-reports__legend-link">Cambiar umbral →</a>
     </p>
 
     <?php if (empty($products)): ?>

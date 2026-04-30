@@ -20,14 +20,14 @@ function bsc_ajax_update_product_stock(): void {
     $meta_key = $type === 'tienda' ? '_stock_tienda' : '_stock_bodega';
 
     if (!$product_id || get_post_type($product_id) !== 'product') {
-        wp_send_json_error(['message' => 'Producto invÃ¡lido'], 400);
+        wp_send_json_error(['message' => 'Producto inválido'], 400);
     }
 
     $old_value = (int) get_post_meta($product_id, $meta_key, true);
     update_post_meta($product_id, $meta_key, $value);
 
     if (class_exists('BSC_Stock') && $old_value !== $value) {
-        BSC_Stock::adjust($product_id, $type, $value - $old_value, 'EdiciÃ³n inline BSC Products');
+        BSC_Stock::adjust($product_id, $type, $value - $old_value, 'Edición inline BSC Products');
         update_post_meta($product_id, $meta_key, $value);
     }
 
@@ -46,7 +46,7 @@ function bsc_ajax_update_product_stocks(): void {
     $tienda = max(0, intval($_POST['tienda'] ?? 0));
 
     if (!$product_id || get_post_type($product_id) !== 'product') {
-        wp_send_json_error(['message' => 'Producto invÃ¡lido'], 400);
+        wp_send_json_error(['message' => 'Producto inválido'], 400);
     }
 
     $current_bodega = (int) get_post_meta($product_id, '_stock_bodega', true);
@@ -54,11 +54,11 @@ function bsc_ajax_update_product_stocks(): void {
 
     if (class_exists('BSC_Stock')) {
         if ($current_bodega !== $bodega) {
-            BSC_Stock::adjust($product_id, 'bodega', $bodega - $current_bodega, 'EdiciÃ³n inline BSC Products');
+            BSC_Stock::adjust($product_id, 'bodega', $bodega - $current_bodega, 'Edición inline BSC Products');
         }
 
         if ($current_tienda !== $tienda) {
-            BSC_Stock::adjust($product_id, 'tienda', $tienda - $current_tienda, 'EdiciÃ³n inline BSC Products');
+            BSC_Stock::adjust($product_id, 'tienda', $tienda - $current_tienda, 'Edición inline BSC Products');
         }
     } else {
         update_post_meta($product_id, '_stock_bodega', $bodega);
@@ -86,7 +86,7 @@ function bsc_ajax_adjust_stock(): void {
     $reason = sanitize_text_field(wp_unslash($_POST['reason'] ?? ''));
 
     if (!$product_id || get_post_type($product_id) !== 'product') {
-        wp_send_json_error(['message' => 'Producto invÃ¡lido'], 400);
+        wp_send_json_error(['message' => 'Producto inválido'], 400);
     }
 
     $new_stock = BSC_Stock::adjust($product_id, $type, $delta, $reason);
@@ -102,14 +102,14 @@ function bsc_ajax_get_stock_log(): void {
 
     $product_id = absint($_GET['product_id'] ?? 0);
     if (!$product_id) {
-        wp_send_json_error(['message' => 'Producto invÃ¡lido'], 400);
+        wp_send_json_error(['message' => 'Producto inválido'], 400);
     }
 
     $log = BSC_Stock::get_log($product_id);
     $enriched = array_map(static function (array $entry): array {
         $entry['username'] = $entry['user_id']
-            ? (get_userdata($entry['user_id'])->display_name ?? 'â€”')
-            : 'â€”';
+            ? (get_userdata($entry['user_id'])->display_name ?? '—')
+            : '—';
         return $entry;
     }, $log);
 
@@ -152,14 +152,14 @@ function bsc_enqueue_products_page_assets(string $hook): void {
             'loadError'          => 'No se pudo cargar el historial.',
             'saved'              => 'Stock guardado.',
             'saveError'          => 'No se pudo guardar el stock.',
-            'connectionError'    => 'Error de conexiÃ³n. Intenta de nuevo.',
+            'connectionError'    => 'Error de conexión. Intenta de nuevo.',
         ],
     ]);
 }
 
 function bsc_render_products_page(): void {
     if (!current_user_can('manage_options') && !current_user_can('edit_products')) {
-        wp_die(esc_html__('No tienes permisos para ver esta pÃ¡gina.', 'bsc-2-0'));
+        wp_die(esc_html__('No tienes permisos para ver esta página.', 'bsc-2-0'));
     }
 
     $search = sanitize_text_field($_GET['s'] ?? '');
