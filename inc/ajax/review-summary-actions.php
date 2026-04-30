@@ -1,7 +1,7 @@
 <?php
 defined('ABSPATH') || exit;
 
-
+require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
 
 add_action('wp_ajax_bsc_get_review_summary', 'bsc_get_review_summary');
 add_action('wp_ajax_nopriv_bsc_get_review_summary', 'bsc_get_review_summary');

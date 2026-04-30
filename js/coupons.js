@@ -98,25 +98,26 @@
       return;
     }
 
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(data, key);
     const { subtotal, subtotal_after_discounted, shipping_total, cart_total, cart_count } = data;
 
-    if (subtotal && $(selectors.subtotal).length) {
+    if (hasOwn('subtotal') && $(selectors.subtotal).length) {
       $(selectors.subtotal).html(subtotal);
     }
 
-    if (subtotal_after_discounted && $(selectors.discounted).length) {
+    if (hasOwn('subtotal_after_discounted') && $(selectors.discounted).length) {
       $(selectors.discounted).html(subtotal_after_discounted);
     }
 
-    if (shipping_total && $(selectors.shipping).length) {
+    if (hasOwn('shipping_total') && $(selectors.shipping).length) {
       $(selectors.shipping).html(shipping_total);
     }
 
-    if (cart_total && $(selectors.total).length) {
+    if (hasOwn('cart_total') && $(selectors.total).length) {
       $(selectors.total).html('<strong>' + cart_total + '</strong>');
     }
 
-    if (cart_count !== undefined && $(selectors.cartCount).length) {
+    if (hasOwn('cart_count') && $(selectors.cartCount).length) {
       $(selectors.cartCount).text(cart_count);
     }
   }

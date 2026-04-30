@@ -1,6 +1,8 @@
 <?php
 defined('ABSPATH') || exit;
 
+require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
+
 add_action( 'wp_ajax_apply_coupon', 'bsc_apply_coupon' );
 add_action( 'wp_ajax_nopriv_apply_coupon', 'bsc_apply_coupon' );
 
@@ -168,45 +170,15 @@ function bsc_get_applied_coupons() {
 }
 
 function bsc_get_coupon_totals_payload(): array {
-    $shipping_total = (float) WC()->cart->get_shipping_total();
-    $shipping_display = $shipping_total <= 0 ? 'Gratis' : wc_price( $shipping_total );
-    $shipping_method_label = bsc_get_coupon_shipping_method_label();
-    $shipping_text = $shipping_method_label !== ''
-        ? $shipping_method_label . ' - ' . $shipping_display
-        : $shipping_display;
+    $summary = bsc_get_checkout_summary_payload();
 
     return [
-        'subtotal'                  => wc_price( WC()->cart->get_subtotal() ),
-        'subtotal_after_discounted' => wc_price( WC()->cart->get_subtotal() - WC()->cart->get_discount_total() ),
-        'shipping_total'            => $shipping_text,
-        'cart_total'                => WC()->cart->get_cart_total(),
-        'cart_count'                => WC()->cart->get_cart_contents_count(),
+        'subtotal'                  => $summary['subtotal_html'],
+        'subtotal_after_discounted' => $summary['subtotal_discounted_html'],
+        'shipping_total'            => $summary['shipping_total_html'],
+        'cart_total'                => $summary['cart_total_html'],
+        'cart_count'                => $summary['cart_count'],
     ];
-}
-
-function bsc_get_coupon_shipping_method_label(): string {
-    if ( ! function_exists( 'WC' ) || ! WC()->session ) {
-        return '';
-    }
-
-    $chosen_methods = WC()->session->get( 'chosen_shipping_methods' );
-    if ( empty( $chosen_methods ) || ! is_array( $chosen_methods ) ) {
-        return '';
-    }
-
-    foreach ( WC()->shipping()->get_packages() as $index => $package ) {
-        if ( empty( $package['rates'] ) || ! isset( $chosen_methods[ $index ] ) ) {
-            continue;
-        }
-
-        foreach ( $package['rates'] as $rate_id => $rate ) {
-            if ( $rate_id === $chosen_methods[ $index ] ) {
-                return (string) $rate->get_label();
-            }
-        }
-    }
-
-    return '';
 }
 
 function bsc_get_coupon_notice_message( string $fallback ): string {
