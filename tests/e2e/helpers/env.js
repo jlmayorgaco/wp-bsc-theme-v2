@@ -26,6 +26,13 @@ const routes = {
   checkout: process.env.PW_ROUTE_CHECKOUT || '/checkout/',
   shop: process.env.PW_ROUTE_SHOP || '/shop/',
   contact: process.env.PW_ROUTE_CONTACT || '/contact-us/',
+  faq: process.env.PW_ROUTE_FAQ || '/faq/',
+  claims: process.env.PW_ROUTE_CLAIMS || '/claims/',
+  cookies: process.env.PW_ROUTE_COOKIES || '/cookies/',
+  copyrights: process.env.PW_ROUTE_COPYRIGHTS || '/copyrights/',
+  policies: process.env.PW_ROUTE_POLICIES || '/policies/',
+  privacy: process.env.PW_ROUTE_PRIVACY || '/privacy/',
+  shippingReturns: process.env.PW_ROUTE_SHIPPING_RETURNS || '/shipping-returns/',
   login:
     process.env.PW_ROUTE_LOGIN ||
     fixture?.routes?.login ||
