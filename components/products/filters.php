@@ -91,8 +91,8 @@ function bsc_render_custom_filters_sidebar() {
     echo '';
     echo '<div class="bsc__filters-price-wrapper">';
 
-    echo "<input class='bsc__filters-range bsc__filters-range--min' type='range' min='0' max='200000' step='1000' name='min_price' id='min_price' value='" . esc_attr($min_price) . "' oninput=\"document.getElementById('min_price_output').value = this.value\">";
-    echo "<input class='bsc__filters-range bsc__filters-range--max' type='range' min='0' max='200000' step='1000' name='max_price' id='max_price' value='" . esc_attr($max_price) . "' oninput=\"document.getElementById('max_price_output').value = this.value\">";
+    echo "<input class='bsc__filters-range bsc__filters-range--min' type='range' min='0' max='200000' step='1000' name='min_price' id='min_price' value='" . esc_attr($min_price) . "'>";
+    echo "<input class='bsc__filters-range bsc__filters-range--max' type='range' min='0' max='200000' step='1000' name='max_price' id='max_price' value='" . esc_attr($max_price) . "'>";
 
     echo '<div class="bsc__filters-price-values">';
     echo '<label class="bsc__filters-price-label"><output class="bsc__filters-price-output" id="min_price_output">' . esc_html($min_price) . '</output>$</label>';
