@@ -14,7 +14,7 @@
 /**
  * Set up the WordPress core custom header feature.
  *
- * @uses bsc_2_0_header_style()
+ * @uses bsc_2_0_enqueue_custom_header_style()
  */
 function bsc_2_0_custom_header_setup() {
 	add_theme_support(
@@ -27,52 +27,26 @@ function bsc_2_0_custom_header_setup() {
 				'width'              => 1000,
 				'height'             => 250,
 				'flex-height'        => true,
-				'wp-head-callback'   => 'bsc_2_0_header_style',
 			)
 		)
 	);
 }
 add_action( 'after_setup_theme', 'bsc_2_0_custom_header_setup' );
 
-if ( ! function_exists( 'bsc_2_0_header_style' ) ) :
-	/**
-	 * Styles the header image and text displayed on the blog.
-	 *
-	 * @see bsc_2_0_custom_header_setup().
-	 */
-	function bsc_2_0_header_style() {
-		$header_text_color = get_header_textcolor();
+/**
+ * Enqueue custom header text styles on the main theme stylesheet.
+ */
+function bsc_2_0_enqueue_custom_header_style() {
+	$header_text_color = get_header_textcolor();
 
-		/*
-		 * If no custom options for text are set, let's bail.
-		 * get_header_textcolor() options: Any hex value, 'blank' to hide text. Default: add_theme_support( 'custom-header' ).
-		 */
-		if ( get_theme_support( 'custom-header', 'default-text-color' ) === $header_text_color ) {
-			return;
-		}
-
-		// If we get this far, we have custom styles. Let's do this.
-		?>
-		<style type="text/css">
-		<?php
-		// Has the text been hidden?
-		if ( ! display_header_text() ) :
-			?>
-			.site-title,
-			.site-description {
-				position: absolute;
-				clip: rect(1px, 1px, 1px, 1px);
-				}
-			<?php
-			// If the user has set a custom color for the text use that.
-		else :
-			?>
-			.site-title a,
-			.site-description {
-				color: #<?php echo esc_attr( $header_text_color ); ?>;
-			}
-		<?php endif; ?>
-		</style>
-		<?php
+	if ( get_theme_support( 'custom-header', 'default-text-color' ) === $header_text_color ) {
+		return;
 	}
-endif;
+
+	$css = ! display_header_text()
+		? '.site-title,.site-description{position:absolute;clip:rect(1px,1px,1px,1px);}'
+		: '.site-title a,.site-description{color:#' . sanitize_hex_color_no_hash( $header_text_color ) . ';}';
+
+	wp_add_inline_style( 'bsc-2-0-style', $css );
+}
+add_action( 'wp_enqueue_scripts', 'bsc_2_0_enqueue_custom_header_style', 20 );
