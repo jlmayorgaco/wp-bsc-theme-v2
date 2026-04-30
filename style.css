@@ -9406,24 +9406,10 @@ button {
   margin: 0;
 }
 .login .login__form .form__submit {
-  background-color: #333;
-  color: #fff;
   width: 100%;
-  padding: 12px;
-  border: none;
-  font-weight: bold;
-  font-size: 1rem;
-  font-family: "Helvetica", sans-serif;
-  letter-spacing: 1px;
-  border-radius: 30px;
-}
-.login .login__form .form__submit:hover {
-  background-color: #f8d7da;
-  color: #333;
 }
 .login .login__form .form__submit--auth-cta {
-  padding: 10px 30px;
-  font-size: 17px;
+  width: 100%;
 }
 .login .login__form .form__divider {
   margin-top: 2em;
@@ -9580,25 +9566,10 @@ button {
 }
 .bsc__auth .bsc__form-container .bsc__button {
   width: 100%;
-  padding: 12px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 30px;
-  font-weight: bold;
-  font-size: 1rem;
-  letter-spacing: 1px;
-  font-family: "Helvetica", sans-serif;
   text-decoration: none;
-  cursor: pointer;
-}
-.bsc__auth .bsc__form-container .bsc__button:hover {
-  background-color: #f8d7da;
-  color: #333;
 }
 .bsc__auth .bsc__form-container .bsc__button--auth-cta {
-  padding: 10px 30px;
-  font-size: 17px !important;
+  width: 100%;
 }
 .bsc__auth .bsc__form-container .bsc__auth-divider {
   margin-top: 2em;
@@ -14209,83 +14180,13 @@ body.admin-bar .bsc__header--desktop {
   justify-content: center;
 }
 
-.bsc__button-add-to-cart {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background-color: var(--color--primary);
-  color: #fff;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: background-color 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  display: inline-block;
-  font-family: "Helvetica", sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-align: center;
-  text-decoration: none;
-  padding: 12px 24px;
-  border-radius: 30px;
-  transition: all 0.25s ease-in-out;
-  cursor: pointer;
-  background-color: #333;
-  color: #fff;
-  height: 45px;
-  overflow: hidden;
-}
-.bsc__button-add-to-cart:hover {
-  background-color: #fff;
-  color: #333;
-}
-.bsc__button-add-to-cart:hover {
-  background-color: var(--color--primary);
-  border: 1px solid #333;
+.bsc__button-add-to-cart,
+.bsc__button-add-to-cart--variable {
+  min-width: 160px;
 }
 
 .bsc__button-add-to-cart--hidden {
   display: none;
-}
-
-.bsc__signin_btn, .bsc__signup_btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background-color: var(--color--primary);
-  color: #fff;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: background-color 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  display: inline-block;
-  font-family: "Helvetica", sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-align: center;
-  text-decoration: none;
-  padding: 12px 24px;
-  border-radius: 30px;
-  transition: all 0.25s ease-in-out;
-  cursor: pointer;
-  background-color: #333;
-  color: #fff;
-  height: 45px;
-  overflow: hidden;
-}
-.bsc__signin_btn:hover, .bsc__signup_btn:hover {
-  background-color: #fff;
-  color: #333;
-}
-.bsc__signin_btn:hover, .bsc__signup_btn:hover {
-  background-color: var(--color--primary);
 }
 
 .bsc__quantity-controls {
