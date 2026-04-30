@@ -14687,6 +14687,9 @@ body.admin-bar .bsc__header--desktop {
 .bsc__progress-bar .progress-bar__level.level--10\% {
   width: 10%;
 }
+.bsc__progress-bar .progress-bar__level.level--50\% {
+  width: 50%;
+}
 .bsc__progress-bar .progress-bar__level.level--33\% {
   width: 33%;
 }
