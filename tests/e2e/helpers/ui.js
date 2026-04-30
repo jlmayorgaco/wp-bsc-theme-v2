@@ -42,6 +42,29 @@ async function waitForImages(page) {
   });
 }
 
+async function waitForStableDocumentHeight(page, samples = 3, intervalMs = 120) {
+  let previousHeight = -1;
+  let stableSamples = 0;
+
+  while (stableSamples < samples) {
+    const currentHeight = await page.evaluate(() =>
+      Math.max(
+        document.body?.scrollHeight || 0,
+        document.documentElement?.scrollHeight || 0
+      )
+    );
+
+    if (currentHeight === previousHeight) {
+      stableSamples += 1;
+    } else {
+      stableSamples = 0;
+      previousHeight = currentHeight;
+    }
+
+    await page.waitForTimeout(intervalMs);
+  }
+}
+
 async function primeFullPage(page) {
   const viewport = page.viewportSize();
   const viewportHeight = viewport?.height || 900;
@@ -211,6 +234,19 @@ async function gotoProductGridCategory(page, categoryPaths) {
     await gotoAndStabilize(page, candidate);
 
     if (await page.locator('.bsc__product-card').count()) {
+      await page.waitForFunction(() => {
+        const cards = Array.from(document.querySelectorAll('.bsc__product-card'));
+        if (!cards.length) {
+          return false;
+        }
+
+        const relevantImages = cards
+          .slice(0, Math.min(cards.length, 8))
+          .flatMap((card) => Array.from(card.querySelectorAll('img')));
+
+        return relevantImages.every((img) => img.complete && img.naturalHeight > 0);
+      });
+      await waitForStableDocumentHeight(page);
       return candidate;
     }
   }
