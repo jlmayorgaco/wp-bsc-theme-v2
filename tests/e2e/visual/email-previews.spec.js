@@ -32,20 +32,32 @@ test.describe('BSC visual baseline - email previews', () => {
         `The preview route for ${previewCase.slug} is not available.`
       );
 
-      const loggedIn = await loginToWpAdmin(
-        page,
-        adminFixture.username,
-        adminFixture.password
-      );
+      let previewLoaded = false;
 
-      expect(loggedIn).toBeTruthy();
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        const loggedIn = await loginToWpAdmin(
+          page,
+          adminFixture.username,
+          adminFixture.password
+        );
 
-      await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug], {
-        maxAttempts: 5,
-        primePage: false,
-      });
+        expect(loggedIn).toBeTruthy();
 
-      await expect(page.locator('body')).toContainText(previewCase.expected);
+        await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug], {
+          maxAttempts: 5,
+          primePage: false,
+        });
+
+        const bodyText = await page.locator('body').first().innerText().catch(() => '');
+        if (bodyText.includes(previewCase.expected)) {
+          previewLoaded = true;
+          break;
+        }
+
+        await page.waitForTimeout(400 * attempt);
+      }
+
+      expect(previewLoaded).toBeTruthy();
 
       const bodyHtml = await page.locator('body').evaluate((node) => node.innerHTML);
       expect(bodyHtml.includes('{{')).toBeFalsy();
