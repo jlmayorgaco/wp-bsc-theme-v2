@@ -141,8 +141,9 @@ Cada producto WooCommerce tiene dos campos de stock independientes del stock nat
 | `_stock_tienda` | Stock disponible en tienda física | Product admin → "BSC Stock Dual" |
 | `_envio_tipo` | `bodega` / `tienda` / `ambos` | Product admin → "BSC Stock Dual" |
 
-- Pedido web procesado → `BSC_Stock::deduct_bodega()` descuenta `_stock_bodega`
-- Venta presencial → `BSC_Stock::deduct_tienda()` descuenta `_stock_tienda`
+- Pedido web procesado: `BSC_Stock::deduct_bodega()` descuenta `_stock_bodega`.
+- Vista de empaque: el operador puede confirmar descuento por item desde `bodega` por defecto o `tienda`/showroom, usando `BSC_Stock::adjust()`.
+- Venta presencial: `BSC_Stock::deduct_tienda()` descuenta `_stock_tienda`.
 - El stock nativo de WooCommerce se mantiene por compatibilidad pero no es la fuente de verdad
 
 ---

@@ -20,11 +20,15 @@ Branch: `MVP2`
 ## 2. Required Gates Before GO
 - `npm run test:e2e:smoke`
 - `npm run test:e2e:visual`
+- `npm run lint`
 - Verify `MVP2_RELEASE_STATUS.md` is current.
 - Manual homepage review on mobile / tablet / desktop.
 - Manual checkout walk-through with seeded cart.
+- Manual cart stress check: rapid +/- taps, decrement to zero, duplicate product rows or variants, and cart badge sync.
 - Manual admin order popup check:
   - packing view
+  - stock source deduction from bodega
+  - stock source deduction from showroom
   - labels / PDF view
 
 ## 3. GO / NO-GO Decision
@@ -58,6 +62,7 @@ Release is `NO-GO` if any of these happen:
 - PDP opens from category.
 - Add-to-cart toggles quantity controls and restores CTA at zero.
 - Checkout renders with cart prepared.
+- Checkout cart +/- reconciles quantity, row total, and floating cart badge after each update.
 - Contact page form shell works.
 - Bubble Creators form shell works.
 
@@ -71,6 +76,7 @@ Release is `NO-GO` if any of these happen:
 ### Admin
 - `BSC > Pedidos` loads.
 - Packing popup opens.
+- Packing popup can deduct one line item from Bodega and another from Showroom, then prevents double deduction on reload.
 - Labels / PDF popup opens.
 - `BSC > Productos` list and edit page load.
 - `BSC > Informes` sales and stock tabs load.

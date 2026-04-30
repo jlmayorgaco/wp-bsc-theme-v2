@@ -28,3 +28,6 @@ scripts/backup-config.sh
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Local review captures
+Videos/
