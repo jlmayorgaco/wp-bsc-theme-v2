@@ -4,6 +4,7 @@ const TRANSIENT_ERROR_MARKERS = [
   '502 Bad Gateway',
   '504 Gateway Timeout',
   'Error establishing a database connection',
+  'There has been a critical error on this website.',
 ];
 
 async function disableMotion(page) {
@@ -77,6 +78,16 @@ async function isTransientGatewayPage(page) {
 
   if (!(await body.count())) {
     return false;
+  }
+
+  const bodyId = await body.getAttribute('id').catch(() => '');
+  if (bodyId === 'error-page') {
+    return true;
+  }
+
+  const errorPage = page.locator('#error-page').first();
+  if ((await errorPage.count()) > 0) {
+    return true;
   }
 
   const bodyText = await body.innerText().catch(() => '');
