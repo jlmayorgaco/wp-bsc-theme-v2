@@ -40,9 +40,37 @@
   margin: 1em auto;
 }
 
+.bsc__button--auth-cta,
+.form__submit--auth-cta,
+.bsc__signin_btn,
+.bsc__signup_btn {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button-base(
+    $padding: 10px 30px,
+    $radius: 30px,
+    $font-size: 17px,
+    $height: auto,
+    $hover-bg: #f8d7da,
+    $hover-color: #333
+  );
+
+  width: 100%;
+}
+
+.bsc__button--product-card,
 .bsc__button-add-to-cart {
   @include mixins.flex-center(center, center);
-  @include mixins.bsc-button-base();
+  @include mixins.bsc-button-base(
+    $bg: var(--color--primary),
+    $hover-bg: var(--color--primary),
+    $hover-color: #fff,
+    $padding: 0.5rem 1rem,
+    $radius: 6px,
+    $font-size: 0.875rem,
+    $height: 45px
+  );
+
+  font-weight: 600;
 
   &:hover {
     background-color: var(--color--primary);
@@ -50,13 +78,7 @@
   }
 }
 
-.bsc__signin_btn,
-.bsc__signup_btn {
-  @include mixins.flex-center(center, center);
-  @include mixins.bsc-button-base();
-
-  &:hover {
-    background-color: var(--color--primary);
-  }
+.bsc__button-add-to-cart--variable {
+  @extend .bsc__button--product-card;
 }
 
