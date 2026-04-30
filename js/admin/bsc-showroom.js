@@ -259,7 +259,7 @@
       .done(function (response) {
         if (response && response.success) {
           showNotice(
-            '? Venta registrada. Pedido <a href="' +
+            'Venta registrada. Pedido <a href="' +
               escapeHtml(response.data.edit_url) +
               '" target="_blank">#' +
               escapeHtml(response.data.order_id) +
@@ -286,7 +286,7 @@
         $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
       })
       .fail(function () {
-        showNotice(strings.connectionError || 'Error de conexion.', 'error');
+        showNotice(strings.connectionError || 'Error de conexión.', 'error');
         $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
       });
   });
