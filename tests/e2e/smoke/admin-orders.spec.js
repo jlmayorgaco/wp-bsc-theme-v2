@@ -45,6 +45,11 @@ test.describe('BSC admin orders smoke', () => {
   });
 
   test('packing view opens in a new tab for a selected order', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile',
+      'Popup-based WP admin order actions are covered on tablet/desktop only.'
+    );
+
     await openAdminOrdersPage(page, testInfo);
 
     const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
@@ -65,6 +70,11 @@ test.describe('BSC admin orders smoke', () => {
   });
 
   test('order labels view opens in a new tab for a selected order', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile',
+      'Popup-based WP admin order actions are covered on tablet/desktop only.'
+    );
+
     await openAdminOrdersPage(page, testInfo);
 
     const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
