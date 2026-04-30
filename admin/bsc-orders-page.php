@@ -37,6 +37,15 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
     wp_localize_script( 'bsc-admin-orders', 'bscOrders', [
         'ajax_url' => admin_url( 'admin-ajax.php' ),
         'nonce'    => wp_create_nonce( 'bsc_admin_orders' ),
+        'strings'  => [
+            'saved'           => 'Elemento guardado',
+            'saving'          => 'Guardando...',
+            'save'            => 'Guardar',
+            'saveError'       => 'Error al actualizar estado',
+            'trackingError'   => 'Error al guardar tracking',
+            'connectionError' => 'Error de conexion. Intenta de nuevo.',
+            'selectFirst'     => 'Selecciona al menos un pedido primero.',
+        ],
     ] );
 } );
 

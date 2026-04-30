@@ -16,15 +16,8 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
     private array $query_args;
 
     public const STATUS_OPTIONS = array(
-        'wc-pending'    => 'Pendiente',
-        'wc-on-hold'    => 'En espera',
         'wc-processing' => 'Recibido',
-        'wc-preparing'  => 'En preparación',
-        'wc-shipped'    => 'Enviado',
         'wc-completed'  => 'Terminado',
-        'wc-cancelled'  => 'Cancelado',
-        'wc-failed'     => 'Fallido',
-        'wc-refunded'   => 'Reembolsado',
     );
 
     public function __construct( array $query_args = array() ) {
@@ -170,10 +163,11 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
     public function column_status( $item ): string {
         /** @var WC_Order $item */
         $raw_status = $item->get_status();
-        $current    = 'wc-' . $raw_status;
-        $html       = $this->status_badge( $raw_status ) . '<br>';
+        $current    = $this->normalize_status_select_value( $raw_status );
+        $html       = $this->status_badge( $raw_status );
 
-        $html .= '<select class="bsc-status-select bsc-status-select--inline" data-order-id="' . esc_attr( $item->get_id() ) . '">';
+        $html .= '<div class="bsc-status-control" data-order-id="' . esc_attr( $item->get_id() ) . '">';
+        $html .= '<select class="bsc-status-select bsc-status-select--inline" data-order-id="' . esc_attr( $item->get_id() ) . '" data-original-status="' . esc_attr( $current ) . '">';
 
         foreach ( self::STATUS_OPTIONS as $key => $label ) {
             $html .= sprintf(
@@ -185,13 +179,25 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
         }
 
         $html .= '</select>';
-        $html .= '<span class="bsc-saved-indicator bsc-saved-indicator--inline">✓</span>';
+        $html .= '<button type="button" class="button button-small bsc-status-save" data-order-id="' . esc_attr( $item->get_id() ) . '" disabled>Guardar</button>';
+        $html .= '<span class="bsc-status-pending" aria-hidden="true">Guardar cambios</span>';
+        $html .= '</div>';
 
         return $html;
     }
 
+    private function normalize_status_select_value( string $status ): string {
+        $clean_status = preg_replace( '/^wc-/', '', $status );
+
+        if ( 'completed' === $clean_status ) {
+            return 'wc-completed';
+        }
+
+        return 'wc-processing';
+    }
+
     private function status_badge( string $status ): string {
-        $clean = preg_replace( '/^wc-/', '', $status );
+        $clean  = preg_replace( '/^wc-/', '', $status );
         $labels = array(
             'pending'    => 'Pendiente',
             'on-hold'    => 'En espera',
@@ -219,9 +225,9 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
         $link = esc_attr( get_post_meta( $id, '_bsc_tracking_link', true ) );
 
         return sprintf(
-            '<input type="text" class="bsc-tracking-code" data-order-id="%1$d" value="%2$s" placeholder="Código de guía">
-             <input type="text" class="bsc-tracking-link" data-order-id="%1$d" value="%3$s" placeholder="URL de seguimiento">
-             <span class="bsc-saved-indicator bsc-saved-indicator--tracking">✓ Guardado</span>',
+            '<input type="text" class="bsc-tracking-code" data-order-id="%1$d" value="%2$s" placeholder="Código de guía">'
+            . '<input type="text" class="bsc-tracking-link" data-order-id="%1$d" value="%3$s" placeholder="URL de seguimiento">'
+            . '<span class="bsc-saved-indicator bsc-saved-indicator--tracking">✓ Guardado</span>',
             $id,
             $code,
             $link
