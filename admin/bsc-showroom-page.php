@@ -1,17 +1,60 @@
 <?php
 /**
- * BSC-037: Showroom sale page — create WC orders from physical store sales,
+ * BSC-037: Showroom sale page - create WC orders from physical store sales,
  * deduct _stock_tienda, mark with _bsc_is_showroom_sale meta.
  */
 defined('ABSPATH') || exit;
 
-// ── Enqueue JS only on showroom page ─────────────────────────────────
-add_action('admin_enqueue_scripts', function (string $hook): void {
-    if (!isset($_GET['page']) || $_GET['page'] !== 'bsc-showroom') return;
-    wp_enqueue_script('jquery-ui-autocomplete'); // bundled in WP admin
-});
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_showroom_admin_assets' );
+function bsc_enqueue_showroom_admin_assets(): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
-// ── Page render ───────────────────────────────────────────────────────
+    if ( 'bsc-showroom' !== $page ) {
+        return;
+    }
+
+    wp_enqueue_script( 'jquery-ui-autocomplete' );
+
+    $css_path = get_template_directory() . '/admin/bsc-showroom.css';
+    $js_path  = get_template_directory() . '/js/admin/bsc-showroom.js';
+
+    wp_enqueue_style(
+        'bsc-showroom-admin',
+        get_template_directory_uri() . '/admin/bsc-showroom.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+
+    wp_enqueue_script(
+        'bsc-showroom-admin',
+        get_template_directory_uri() . '/js/admin/bsc-showroom.js',
+        array( 'jquery', 'jquery-ui-autocomplete' ),
+        file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1',
+        true
+    );
+
+    wp_localize_script(
+        'bsc-showroom-admin',
+        'bscShowroomAdmin',
+        array(
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'bsc_admin_orders' ),
+            'strings' => array(
+                'emptyResults'      => 'Sin resultados.',
+                'selectProduct'     => 'Selecciona un producto primero.',
+                'addProductFirst'   => 'Agrega al menos un producto.',
+                'registering'       => 'Registrando...',
+                'registerSale'      => 'Registrar venta',
+                'connectionError'   => 'Error de conexion.',
+                'unknownError'      => 'desconocido',
+                'anonymousCustomer' => 'Anonimo',
+                'skuLabel'          => 'SKU: ',
+                'storeStockLabel'   => 'Stock tienda: ',
+            ),
+        )
+    );
+}
+
 function bsc_render_showroom_page(): void {
     if (!current_user_can('manage_options') && !current_user_can('edit_orders')) {
         wp_die(esc_html__('No tienes permisos.', 'bsc-2-0'));
@@ -27,77 +70,64 @@ function bsc_render_showroom_page(): void {
     ?>
     <div class="wrap bsc-showroom">
         <h1>Venta Presencial</h1>
-        <p style="color:#666;margin-top:-8px">Registra una venta del showroom. Descuenta <strong>stock en tienda</strong>.</p>
+        <p class="bsc-showroom__intro">Registra una venta del showroom. Descuenta <strong>stock en tienda</strong>.</p>
 
-        <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;margin-top:20px">
-
-            <!-- ── Left: form ── -->
+        <div class="bsc-showroom__layout">
             <div>
-                <div class="bsc-card" style="background:#fff;border:1px solid #ddd;border-radius:10px;padding:24px">
-
-                    <!-- Product search -->
-                    <h3 style="margin-top:0">Productos</h3>
-                    <div style="display:flex;gap:8px;margin-bottom:12px">
-                        <input type="text" id="bsc-product-search"
-                               placeholder="Buscar por nombre o SKU…"
-                               style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px">
-                        <input type="number" id="bsc-product-qty" value="1" min="1"
-                               style="width:70px;padding:8px;border:1px solid #ddd;border-radius:6px;text-align:center">
+                <div class="bsc-card bsc-showroom__card">
+                    <h3 class="bsc-showroom__section-title">Productos</h3>
+                    <div class="bsc-showroom__search-bar">
+                        <input type="text" id="bsc-product-search" placeholder="Buscar por nombre o SKU�" class="bsc-showroom__text-input bsc-showroom__product-search">
+                        <input type="number" id="bsc-product-qty" value="1" min="1" class="bsc-showroom__qty-input">
                         <button type="button" id="bsc-add-product" class="button button-primary">Agregar</button>
                     </div>
-                    <div id="bsc-search-results" style="display:none;border:1px solid #ddd;border-radius:6px;background:#fff;position:relative;z-index:10;max-height:220px;overflow-y:auto"></div>
+                    <div id="bsc-search-results" class="bsc-showroom__search-results bsc-showroom__search-results--hidden"></div>
 
-                    <!-- Cart table -->
-                    <table id="bsc-cart-table" style="width:100%;border-collapse:collapse;margin-top:16px;display:none">
+                    <table id="bsc-cart-table" class="bsc-showroom__cart-table bsc-showroom__cart-table--hidden">
                         <thead>
-                            <tr style="background:#f9f9f9">
-                                <th style="padding:8px 10px;text-align:left;font-size:13px;border-bottom:2px solid #eee">Producto</th>
-                                <th style="padding:8px 10px;text-align:center;font-size:13px;border-bottom:2px solid #eee;width:60px">Qty</th>
-                                <th style="padding:8px 10px;text-align:right;font-size:13px;border-bottom:2px solid #eee;width:90px">Precio</th>
-                                <th style="padding:8px 10px;text-align:right;font-size:13px;border-bottom:2px solid #eee;width:90px">Subtotal</th>
-                                <th style="width:32px;border-bottom:2px solid #eee"></th>
+                            <tr class="bsc-showroom__cart-head-row">
+                                <th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--left">Producto</th>
+                                <th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--center bsc-showroom__cart-head-cell--qty">Qty</th>
+                                <th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--right bsc-showroom__cart-head-cell--price">Precio</th>
+                                <th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--right bsc-showroom__cart-head-cell--subtotal">Subtotal</th>
+                                <th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--actions"></th>
                             </tr>
                         </thead>
                         <tbody id="bsc-cart-body"></tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="3" style="padding:10px;text-align:right;font-weight:700;font-size:15px">Total:</td>
-                                <td style="padding:10px;text-align:right;font-weight:700;font-size:15px" id="bsc-cart-total">$0</td>
+                                <td colspan="3" class="bsc-showroom__cart-total-label">Total:</td>
+                                <td id="bsc-cart-total" class="bsc-showroom__cart-total-value">$0</td>
                                 <td></td>
                             </tr>
                         </tfoot>
                     </table>
-                    <p id="bsc-cart-empty" style="color:#aaa;font-size:13px;text-align:center;padding:16px 0">Agrega productos usando el buscador arriba.</p>
+                    <p id="bsc-cart-empty" class="bsc-showroom__cart-empty">Agrega productos usando el buscador arriba.</p>
 
-                    <hr style="margin:20px 0">
+                    <hr class="bsc-showroom__divider">
 
-                    <!-- Customer info -->
-                    <h3 style="margin-top:0">Datos del cliente</h3>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Nombre</label>
-                            <input type="text" id="bsc-customer-name" placeholder="Cliente anónimo"
-                                   style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box">
+                    <h3 class="bsc-showroom__section-title">Datos del cliente</h3>
+                    <div class="bsc-showroom__customer-grid">
+                        <div class="bsc-showroom__customer-field">
+                            <label class="bsc-showroom__field-label">Nombre</label>
+                            <input type="text" id="bsc-customer-name" placeholder="Cliente an�nimo" class="bsc-showroom__text-input bsc-showroom__customer-input">
                         </div>
-                        <div>
-                            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Teléfono</label>
-                            <input type="text" id="bsc-customer-phone" placeholder="Opcional"
-                                   style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box">
+                        <div class="bsc-showroom__customer-field">
+                            <label class="bsc-showroom__field-label">Tel�fono</label>
+                            <input type="text" id="bsc-customer-phone" placeholder="Opcional" class="bsc-showroom__text-input bsc-showroom__customer-input">
                         </div>
-                        <div style="grid-column:span 2">
-                            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Email</label>
-                            <input type="email" id="bsc-customer-email" placeholder="Opcional"
-                                   style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;box-sizing:border-box">
+                        <div class="bsc-showroom__customer-field bsc-showroom__customer-field--full">
+                            <label class="bsc-showroom__field-label">Email</label>
+                            <input type="email" id="bsc-customer-email" placeholder="Opcional" class="bsc-showroom__text-input bsc-showroom__customer-input">
                         </div>
                     </div>
 
-                    <!-- Payment method -->
-                    <h3>Método de pago</h3>
-                    <div style="display:flex;gap:16px;margin-bottom:20px">
+                    <h3>M�todo de pago</h3>
+                    <div class="bsc-showroom__payment-options">
                         <?php
-                        $methods = ['efectivo' => '💵 Efectivo', 'transferencia' => '🏦 Transferencia', 'tarjeta' => '💳 Tarjeta'];
+                        $methods = ['efectivo' => '?? Efectivo', 'transferencia' => '?? Transferencia', 'tarjeta' => '?? Tarjeta'];
                         foreach ($methods as $val => $label) : ?>
-                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px">
+                        <label class="bsc-showroom__payment-option">
                             <input type="radio" name="bsc-payment" value="<?php echo esc_attr($val); ?>"
                                    <?php checked($val, 'efectivo'); ?>>
                             <?php echo esc_html($label); ?>
@@ -105,39 +135,38 @@ function bsc_render_showroom_page(): void {
                         <?php endforeach; ?>
                     </div>
 
-                    <div id="bsc-showroom-notice" style="display:none;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:14px"></div>
+                    <div id="bsc-showroom-notice" class="bsc-showroom__notice bsc-showroom__notice--hidden"></div>
 
-                    <button type="button" id="bsc-register-sale" class="button button-primary" style="height:40px;font-size:15px;padding:0 24px">
+                    <button type="button" id="bsc-register-sale" class="button button-primary bsc-showroom__submit">
                         Registrar venta
                     </button>
                 </div>
             </div>
 
-            <!-- ── Right: recent sales ── -->
             <div>
-                <div style="background:#fff;border:1px solid #ddd;border-radius:10px;padding:20px">
-                    <h3 style="margin-top:0;font-size:14px;letter-spacing:0.5px;color:#555;text-transform:uppercase">Últimas ventas presenciales</h3>
+                <div class="bsc-showroom__recent-sales">
+                    <h3 class="bsc-showroom__recent-title">�ltimas ventas presenciales</h3>
                     <?php if ($recent_orders) : ?>
-                    <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <table class="bsc-showroom__recent-table">
                         <thead>
-                            <tr style="background:#f9f9f9">
-                                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #eee">#</th>
-                                <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #eee">Cliente</th>
-                                <th style="padding:6px 8px;text-align:right;border-bottom:1px solid #eee">Total</th>
+                            <tr class="bsc-showroom__recent-head-row">
+                                <th class="bsc-showroom__recent-head-cell">#</th>
+                                <th class="bsc-showroom__recent-head-cell">Cliente</th>
+                                <th class="bsc-showroom__recent-head-cell bsc-showroom__recent-head-cell--right">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($recent_orders as $order) :
-                                $name = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()) ?: 'Anónimo';
+                                $name = trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()) ?: 'An�nimo';
                             ?>
                             <tr>
-                                <td style="padding:6px 8px;border-bottom:1px solid #f5f5f5">
+                                <td class="bsc-showroom__recent-cell">
                                     <a href="<?php echo esc_url($order->get_edit_order_url()); ?>" target="_blank">
                                         #<?php echo esc_html($order->get_order_number()); ?>
                                     </a>
                                 </td>
-                                <td style="padding:6px 8px;border-bottom:1px solid #f5f5f5"><?php echo esc_html($name); ?></td>
-                                <td style="padding:6px 8px;border-bottom:1px solid #f5f5f5;text-align:right">
+                                <td class="bsc-showroom__recent-cell"><?php echo esc_html($name); ?></td>
+                                <td class="bsc-showroom__recent-cell bsc-showroom__recent-cell--right">
                                     <?php echo wp_kses_post($order->get_formatted_order_total()); ?>
                                 </td>
                             </tr>
@@ -145,174 +174,14 @@ function bsc_render_showroom_page(): void {
                         </tbody>
                     </table>
                     <?php else : ?>
-                    <p style="color:#aaa;font-size:13px;text-align:center;padding:12px 0">Sin ventas presenciales registradas.</p>
+                    <p class="bsc-showroom__empty-state">Sin ventas presenciales registradas.</p>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-    (function ($) {
-        var cart   = {};   // { product_id: { name, price, qty, stock_tienda } }
-        var nonce  = '<?php echo esc_js(wp_create_nonce('bsc_admin_orders')); ?>';
-        var ajaxUrl = '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
-        var selectedProduct = null;
-
-        // ── Product search ──────────────────────────────────────────
-        var searchTimer;
-        $('#bsc-product-search').on('input', function () {
-            var q = $(this).val().trim();
-            clearTimeout(searchTimer);
-            if (q.length < 2) { $('#bsc-search-results').hide().empty(); return; }
-            searchTimer = setTimeout(function () {
-                $.post(ajaxUrl, { action: 'bsc_showroom_search', nonce: nonce, q: q })
-                  .done(function (res) {
-                    var $results = $('#bsc-search-results').empty();
-                    if (!res.success || !res.data.length) {
-                        $results.html('<div style="padding:10px 14px;color:#888;font-size:13px">Sin resultados.</div>').show();
-                        return;
-                    }
-                    res.data.forEach(function (p) {
-                        var $row = $('<div>').css({padding:'10px 14px', cursor:'pointer', fontSize:'13px', borderBottom:'1px solid #f0f0f0'})
-                            .html('<strong>' + p.name + '</strong> &nbsp;<span style="color:#888">SKU: ' + (p.sku||'—') + '</span> &nbsp;<span style="color:#46b450">Stock tienda: ' + p.stock_tienda + '</span>')
-                            .on('click', function () {
-                                selectedProduct = p;
-                                $('#bsc-product-search').val(p.name);
-                                $results.hide();
-                            })
-                            .on('mouseenter', function () { $(this).css('background','#f5f5f5'); })
-                            .on('mouseleave', function () { $(this).css('background',''); });
-                        $results.append($row);
-                    });
-                    $results.show();
-                });
-            }, 300);
-        });
-
-        $(document).on('click', function (e) {
-            if (!$(e.target).closest('#bsc-product-search, #bsc-search-results').length) {
-                $('#bsc-search-results').hide();
-            }
-        });
-
-        // ── Add to cart ─────────────────────────────────────────────
-        $('#bsc-add-product').on('click', function () {
-            if (!selectedProduct) { showNotice('Selecciona un producto primero.', 'error'); return; }
-            var qty = parseInt($('#bsc-product-qty').val(), 10) || 1;
-            var pid = selectedProduct.id;
-
-            if (cart[pid]) {
-                cart[pid].qty += qty;
-            } else {
-                cart[pid] = { name: selectedProduct.name, price: selectedProduct.price, qty: qty, stock_tienda: selectedProduct.stock_tienda };
-            }
-
-            renderCart();
-            selectedProduct = null;
-            $('#bsc-product-search').val('').focus();
-            $('#bsc-product-qty').val(1);
-        });
-
-        // ── Render cart table ────────────────────────────────────────
-        function renderCart() {
-            var $tbody = $('#bsc-cart-body').empty();
-            var total  = 0;
-            var hasItems = Object.keys(cart).length > 0;
-
-            if (!hasItems) {
-                $('#bsc-cart-table').hide();
-                $('#bsc-cart-empty').show();
-                return;
-            }
-
-            $('#bsc-cart-table').show();
-            $('#bsc-cart-empty').hide();
-
-            $.each(cart, function (pid, item) {
-                var subtotal = item.price * item.qty;
-                total += subtotal;
-                var $row = $('<tr data-pid="' + pid + '">').html(
-                    '<td style="padding:8px 10px;border-bottom:1px solid #f5f5f5">' + item.name + '</td>' +
-                    '<td style="padding:8px 10px;border-bottom:1px solid #f5f5f5;text-align:center">' +
-                        '<input type="number" class="cart-qty" data-pid="' + pid + '" value="' + item.qty + '" min="1" style="width:55px;text-align:center;padding:4px">' +
-                    '</td>' +
-                    '<td style="padding:8px 10px;border-bottom:1px solid #f5f5f5;text-align:right">$' + item.price.toLocaleString('es-CO') + '</td>' +
-                    '<td style="padding:8px 10px;border-bottom:1px solid #f5f5f5;text-align:right">$' + subtotal.toLocaleString('es-CO') + '</td>' +
-                    '<td style="padding:4px 6px;border-bottom:1px solid #f5f5f5;text-align:center"><button class="remove-item button" data-pid="' + pid + '" style="padding:2px 8px">✕</button></td>'
-                );
-                $tbody.append($row);
-            });
-
-            $('#bsc-cart-total').text('$' + total.toLocaleString('es-CO'));
-        }
-
-        // ── Update qty inline ────────────────────────────────────────
-        $(document).on('change', '.cart-qty', function () {
-            var pid = $(this).data('pid');
-            var qty = parseInt($(this).val(), 10) || 1;
-            if (cart[pid]) { cart[pid].qty = qty; renderCart(); }
-        });
-
-        // ── Remove item ──────────────────────────────────────────────
-        $(document).on('click', '.remove-item', function () {
-            delete cart[$(this).data('pid')];
-            renderCart();
-        });
-
-        // ── Register sale ────────────────────────────────────────────
-        $('#bsc-register-sale').on('click', function () {
-            var items = [];
-            $.each(cart, function (pid, item) {
-                items.push({ id: parseInt(pid, 10), qty: item.qty });
-            });
-
-            if (!items.length) { showNotice('Agrega al menos un producto.', 'error'); return; }
-
-            var payment = $('input[name="bsc-payment"]:checked').val();
-            var $btn    = $(this).prop('disabled', true).text('Registrando…');
-
-            $.post(ajaxUrl, {
-                action:         'bsc_register_showroom_sale',
-                nonce:          nonce,
-                items:          JSON.stringify(items),
-                payment_method: payment,
-                customer_name:  $('#bsc-customer-name').val().trim(),
-                customer_phone: $('#bsc-customer-phone').val().trim(),
-                customer_email: $('#bsc-customer-email').val().trim(),
-            })
-            .done(function (res) {
-                if (res.success) {
-                    showNotice('✓ Venta registrada. Pedido <a href="' + res.data.edit_url + '" target="_blank">#' + res.data.order_id + '</a>', 'success');
-                    cart = {};
-                    renderCart();
-                    setTimeout(function () { location.reload(); }, 2000);
-                } else {
-                    showNotice('Error: ' + (res.data.message || 'desconocido'), 'error');
-                    $btn.prop('disabled', false).text('Registrar venta');
-                }
-            })
-            .fail(function () {
-                showNotice('Error de conexión.', 'error');
-                $btn.prop('disabled', false).text('Registrar venta');
-            });
-        });
-
-        // ── Notice helper ────────────────────────────────────────────
-        function showNotice(msg, type) {
-            var bg  = type === 'success' ? '#d7f4d7' : '#fdecea';
-            var col = type === 'success' ? '#276629' : '#b3261e';
-            $('#bsc-showroom-notice')
-                .css({ background: bg, color: col, border: '1px solid ' + (type === 'success' ? '#b5d9bc' : '#f5c2bf') })
-                .html(msg).show();
-        }
-
-    })(jQuery);
-    </script>
     <?php
 }
-
-// ── AJAX: product search for showroom ────────────────────────────────
 add_action('wp_ajax_bsc_showroom_search', 'bsc_ajax_showroom_search');
 function bsc_ajax_showroom_search(): void {
     check_ajax_referer('bsc_admin_orders', 'nonce');
@@ -404,3 +273,4 @@ function bsc_ajax_register_showroom_sale(): void {
         'message'  => 'Venta registrada correctamente',
     ]);
 }
+
