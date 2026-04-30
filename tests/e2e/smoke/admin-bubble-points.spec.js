@@ -25,6 +25,7 @@ async function openBubblePointsAdmin(page, testInfo) {
   expect(loggedIn).toBeTruthy();
 
   await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-bubble-points', {
+    maxAttempts: 5,
     primePage: false,
     waitForImages: false,
   });
