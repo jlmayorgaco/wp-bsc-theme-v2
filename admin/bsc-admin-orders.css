@@ -99,7 +99,7 @@
 }
 
 .bsc-admin-orders .column-status {
-  width: 170px;
+  width: 240px;
 }
 
 .bsc-admin-orders .column-tracking input {
@@ -118,6 +118,64 @@
 .bsc-status-select--inline {
   margin-top: 4px;
   max-width: 150px;
+}
+
+.bsc-status-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.bsc-status-select--inline.is-pending {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px #f59e0b;
+}
+
+.bsc-status-save {
+  min-width: 74px;
+}
+
+.bsc-status-pending {
+  display: none;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bsc-status-pending.is-visible {
+  display: inline-flex;
+}
+
+.bsc-admin-orders-toast {
+  position: fixed;
+  top: 42px;
+  right: 20px;
+  z-index: 99999;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: #1f2937;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.bsc-admin-orders-toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .bsc-tracking-code,

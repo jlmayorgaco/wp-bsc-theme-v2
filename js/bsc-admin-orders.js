@@ -1,6 +1,6 @@
 /**
  * BSC Admin Orders
- * - inline status updates
+ * - explicit status save per row
  * - tracking persistence
  * - guarded bulk actions
  */
@@ -9,6 +9,7 @@
 
   var ajaxUrl = bscOrders.ajax_url;
   var nonce = bscOrders.nonce;
+  var strings = bscOrders.strings || {};
 
   function showSaved($indicator) {
     $indicator.stop(true, true).fadeIn(150, function () {
@@ -31,6 +32,68 @@
     return false;
   }
 
+  function ensureToast() {
+    var $toast = $('#bsc-admin-orders-toast');
+
+    if ($toast.length) {
+      return $toast;
+    }
+
+    $toast = $('<div id="bsc-admin-orders-toast" class="bsc-admin-orders-toast" role="status" aria-live="polite"></div>');
+    $('body').append($toast);
+
+    return $toast;
+  }
+
+  function showToast(message) {
+    var $toast = ensureToast();
+
+    $toast.text(message).addClass('is-visible');
+
+    window.clearTimeout($toast.data('toast-timeout'));
+
+    $toast.data(
+      'toast-timeout',
+      window.setTimeout(function () {
+        $toast.removeClass('is-visible');
+      }, 2200)
+    );
+  }
+
+  function updateStatusBadge($row, status) {
+    var $badge = $row.find('.bsc-order-badge').first();
+    var cleanStatus = String(status || '').replace(/^wc-/, '');
+    var labelMap = {
+      processing: 'Recibido',
+      completed: 'Terminado',
+    };
+
+    if (!$badge.length || !labelMap[cleanStatus]) {
+      return;
+    }
+
+    $badge
+      .removeClass(
+        'bsc-order-badge--pending bsc-order-badge--on-hold bsc-order-badge--processing bsc-order-badge--preparing bsc-order-badge--shipped bsc-order-badge--completed bsc-order-badge--cancelled bsc-order-badge--failed bsc-order-badge--refunded'
+      )
+      .addClass('bsc-order-badge--' + cleanStatus)
+      .text(labelMap[cleanStatus]);
+  }
+
+  function updateStatusPendingState($select) {
+    var currentValue = String($select.val() || '');
+    var originalValue = String($select.attr('data-original-status') || '');
+    var isPending = currentValue !== originalValue;
+    var $control = $select.closest('.bsc-status-control');
+    var $button = $control.find('.bsc-status-save').first();
+    var $badge = $control.find('.bsc-status-pending').first();
+
+    $select.toggleClass('is-pending', isPending);
+    $control.toggleClass('is-pending', isPending);
+    $button.prop('disabled', !isPending);
+    $badge.toggleClass('is-visible', isPending);
+  }
+
   function withNewTabTarget($form, callback) {
     $form.attr('target', '_blank');
     callback();
@@ -41,12 +104,23 @@
   }
 
   $(document).on('change', '.bsc-status-select', function () {
-    var $select = $(this);
+    updateStatusPendingState($(this));
+  });
+
+  $(document).on('click', '.bsc-status-save', function () {
+    var $button = $(this);
+    var $control = $button.closest('.bsc-status-control');
+    var $select = $control.find('.bsc-status-select').first();
     var orderId = $select.data('order-id');
     var status = $select.val();
-    var $indicator = $select.siblings('.bsc-saved-indicator').first();
+    var originalLabel = strings.save || 'Guardar';
+
+    if ($button.prop('disabled')) {
+      return;
+    }
 
     $select.prop('disabled', true);
+    $button.prop('disabled', true).text(strings.saving || 'Guardando...');
 
     $.post(ajaxUrl, {
       action: 'bsc_update_order_status',
@@ -56,18 +130,22 @@
     })
       .done(function (response) {
         if (!response.success) {
-          alert('Error al actualizar estado: ' + ((response.data && response.data.message) || 'desconocido'));
+          alert((strings.saveError || 'Error al actualizar estado') + ': ' + ((response.data && response.data.message) || 'desconocido'));
           return;
         }
 
-        showSaved($indicator);
-        $select.closest('tr').attr('class', 'status-' + response.data.status);
+        $select.attr('data-original-status', 'wc-' + response.data.status);
+        updateStatusPendingState($select);
+        updateStatusBadge($select.closest('tr'), response.data.status);
+        showToast(strings.saved || 'Elemento guardado');
       })
       .fail(function () {
-        alert('Error de conexión al actualizar estado.');
+        alert(strings.connectionError || 'Error de conexion. Intenta de nuevo.');
       })
       .always(function () {
         $select.prop('disabled', false);
+        $button.text(originalLabel);
+        updateStatusPendingState($select);
       });
   });
 
@@ -94,22 +172,14 @@
     })
       .done(function (response) {
         if (!response.success) {
-          alert('Error al guardar tracking: ' + ((response.data && response.data.message) || 'desconocido'));
+          alert((strings.trackingError || 'Error al guardar tracking') + ': ' + ((response.data && response.data.message) || 'desconocido'));
           return;
         }
 
         showSaved($indicator);
-
-        if (trackingCode) {
-          $input
-            .closest('tr')
-            .find('.bsc-status-select')
-            .find('option[value="wc-shipped"]')
-            .prop('selected', true);
-        }
       })
       .fail(function () {
-        alert('Error de conexión al guardar tracking.');
+        alert(strings.connectionError || 'Error de conexion. Intenta de nuevo.');
       })
       .always(function () {
         $cell.find('.bsc-tracking-code, .bsc-tracking-link').prop('disabled', false);
@@ -148,5 +218,11 @@
     }
 
     $('#bsc-orders-form').removeAttr('target');
+  });
+
+  $('#bsc-bulk-msg').text(strings.selectFirst || 'Selecciona al menos un pedido primero.');
+
+  $('.bsc-status-select').each(function () {
+    updateStatusPendingState($(this));
   });
 })(jQuery);
