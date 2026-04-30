@@ -12,6 +12,7 @@ get_header(); ?>
 
 	require_once get_template_directory() . '/components/my-account/my-account-header.php';
 	$headerMyAccount = new BSC_MY_ACCOUNT_HEADER();
+	$headerMyAccount->setCurrentRoute( 'bubble-points' );
 	$headerMyAccount->render();
 
  ?>
