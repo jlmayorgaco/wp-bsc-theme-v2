@@ -16,29 +16,10 @@ if ( $default_height_mm <= 0 ) {
     $default_height_mm = 153;
 }
 
-$build_size_css = static function ( float $width_mm, float $height_mm ): string {
-    $width_mm  = max( 10, round( $width_mm, 2 ) );
-    $height_mm = max( 10, round( $height_mm, 2 ) );
-
-    return "
-@page { size: {$width_mm}mm {$height_mm}mm; margin: 0; }
-.bsc-labels-toolbar { max-width: calc({$width_mm}mm + 20px); }
-.bsc-print-label {
-  width: {$width_mm}mm;
-  height: {$height_mm}mm;
-  max-width: {$width_mm}mm;
-  max-height: {$height_mm}mm;
-}
-@media print {
-  @page { size: {$width_mm}mm {$height_mm}mm; margin: 0; }
-  .bsc-print-label {
-    width: {$width_mm}mm !important;
-    height: {$height_mm}mm !important;
-    max-width: {$width_mm}mm !important;
-    max-height: {$height_mm}mm !important;
-  }
-}";
-};
+$label_print_css_path = get_template_directory() . '/admin-order-label-print.css';
+$label_print_js_path  = get_template_directory() . '/js/admin/bsc-order-label-print.js';
+$label_print_css_url  = trailingslashit( get_template_directory_uri() ) . 'admin-order-label-print.css';
+$label_print_js_url   = trailingslashit( get_template_directory_uri() ) . 'js/admin/bsc-order-label-print.js';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -46,68 +27,28 @@ $build_size_css = static function ( float $width_mm, float $height_mm ): string 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Etiquetas de despacho - BSC</title>
-  <style>
-  <?php
-  $css_file = get_template_directory() . '/admin-order-label-print.css';
-  if ( file_exists( $css_file ) ) {
-      echo file_get_contents( $css_file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-  }
-  ?>
-  .bsc-labels-toolbar__size-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .bsc-labels-toolbar__size-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #444;
-  }
-
-  .bsc-labels-toolbar__size-input {
-    width: 84px;
-    padding: 7px 8px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-    font: inherit;
-    color: #111;
-    background: #fff;
-  }
-
-  .bsc-labels-toolbar__notice {
-    flex-basis: 100%;
-    margin: 0;
-    padding: 10px 12px;
-    border-radius: 6px;
-    background: #fff5da;
-    border: 1px solid #eed28b;
-    color: #6a5313;
-    font-size: 12px;
-    line-height: 1.5;
-  }
-  </style>
-  <style id="bsc-label-dynamic-size"><?php echo $build_size_css( $default_width_mm, $default_height_mm ); ?></style>
+  <link rel="stylesheet" href="<?php echo esc_url( add_query_arg( 'ver', file_exists( $label_print_css_path ) ? (string) filemtime( $label_print_css_path ) : '1', $label_print_css_url ) ); ?>">
+  <style id="bsc-label-dynamic-size"></style>
 </head>
-<body>
+<body
+  class="bsc-order-label-print"
+  data-default-width-mm="<?php echo esc_attr( $default_width_mm ); ?>"
+  data-default-height-mm="<?php echo esc_attr( $default_height_mm ); ?>"
+  data-autoprint="<?php echo $autoprint ? '1' : '0'; ?>">
 
   <div class="bsc-labels-toolbar">
     <button class="bsc-labels-toolbar__btn bsc-labels-toolbar__btn--primary"
             type="button"
-            onclick="window.BSCLabelPrint.downloadPdf()">Descargar PDF exacto</button>
+            data-bsc-label-action="download-pdf">Descargar PDF exacto</button>
     <button class="bsc-labels-toolbar__btn bsc-labels-toolbar__btn--secondary"
             type="button"
-            onclick="window.BSCLabelPrint.print()">Imprimir navegador</button>
+            data-bsc-label-action="print">Imprimir navegador</button>
     <button class="bsc-labels-toolbar__btn bsc-labels-toolbar__btn--secondary"
             type="button"
-            onclick="window.close()">Volver</button>
+            data-bsc-label-action="close-window">Volver</button>
     <button class="bsc-labels-toolbar__btn bsc-labels-toolbar__btn--secondary"
             type="button"
-            onclick="window.BSCLabelPrint.resetSize()">Restablecer medida</button>
+            data-bsc-label-action="reset-size">Restablecer medida</button>
 
     <div class="bsc-labels-toolbar__size-controls" aria-label="Ajuste de tamano de etiqueta">
       <label class="bsc-labels-toolbar__size-field" for="bsc-label-width-mm">
@@ -145,7 +86,7 @@ $build_size_css = static function ( float $width_mm, float $height_mm ): string 
         method="post"
         action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
         target="_blank"
-        style="display:none">
+        class="bsc-labels-toolbar__pdf-form">
     <input type="hidden" name="action" value="bsc_order_labels_pdf">
     <input type="hidden" name="bsc_order_labels_pdf_nonce" value="<?php echo esc_attr( $pdf_export_nonce ); ?>">
     <input type="hidden" id="bsc-label-pdf-width" name="width_mm" value="<?php echo esc_attr( $default_width_mm ); ?>">
@@ -262,108 +203,7 @@ $build_size_css = static function ( float $width_mm, float $height_mm ): string 
   </div>
   <?php endforeach; ?>
 
-  <script>
-  (function () {
-    var defaultWidth = <?php echo wp_json_encode( $default_width_mm ); ?>;
-    var defaultHeight = <?php echo wp_json_encode( $default_height_mm ); ?>;
-    var autoPrint = <?php echo $autoprint ? 'true' : 'false'; ?>;
-    var storageWidthKey = 'bsc-order-label-width-mm';
-    var storageHeightKey = 'bsc-order-label-height-mm';
-    var widthInput = document.getElementById('bsc-label-width-mm');
-    var heightInput = document.getElementById('bsc-label-height-mm');
-    var sizeStyle = document.getElementById('bsc-label-dynamic-size');
-    var pdfWidthInput = document.getElementById('bsc-label-pdf-width');
-    var pdfHeightInput = document.getElementById('bsc-label-pdf-height');
-    var pdfForm = document.getElementById('bsc-label-pdf-export-form');
-
-    function normalizeMm(value, fallbackValue) {
-      var parsed = parseFloat(value);
-      if (!isFinite(parsed) || parsed < 10) {
-        return fallbackValue;
-      }
-
-      return Math.round(parsed * 100) / 100;
-    }
-
-    function buildSizeCss(widthMm, heightMm) {
-      return [
-        '@page { size: ' + widthMm + 'mm ' + heightMm + 'mm; margin: 0; }',
-        '.bsc-labels-toolbar { max-width: calc(' + widthMm + 'mm + 20px); }',
-        '.bsc-print-label {',
-        '  width: ' + widthMm + 'mm;',
-        '  height: ' + heightMm + 'mm;',
-        '  max-width: ' + widthMm + 'mm;',
-        '  max-height: ' + heightMm + 'mm;',
-        '}',
-        '@media print {',
-        '  @page { size: ' + widthMm + 'mm ' + heightMm + 'mm; margin: 0; }',
-        '  .bsc-print-label {',
-        '    width: ' + widthMm + 'mm !important;',
-        '    height: ' + heightMm + 'mm !important;',
-        '    max-width: ' + widthMm + 'mm !important;',
-        '    max-height: ' + heightMm + 'mm !important;',
-        '  }',
-        '}'
-      ].join('\n');
-    }
-
-    function applySize(widthMm, heightMm, persist) {
-      var normalizedWidth = normalizeMm(widthMm, defaultWidth);
-      var normalizedHeight = normalizeMm(heightMm, defaultHeight);
-
-      widthInput.value = normalizedWidth;
-      heightInput.value = normalizedHeight;
-      pdfWidthInput.value = normalizedWidth;
-      pdfHeightInput.value = normalizedHeight;
-      sizeStyle.textContent = buildSizeCss(normalizedWidth, normalizedHeight);
-
-      if (persist) {
-        window.localStorage.setItem(storageWidthKey, String(normalizedWidth));
-        window.localStorage.setItem(storageHeightKey, String(normalizedHeight));
-      }
-    }
-
-    var api = {
-      downloadPdf: function () {
-        applySize(widthInput.value, heightInput.value, true);
-        pdfForm.submit();
-      },
-      print: function () {
-        applySize(widthInput.value, heightInput.value, true);
-        window.print();
-      },
-      resetSize: function () {
-        applySize(defaultWidth, defaultHeight, true);
-      }
-    };
-
-    window.BSCLabelPrint = api;
-
-    widthInput.addEventListener('input', function () {
-      applySize(widthInput.value, heightInput.value, true);
-    });
-
-    heightInput.addEventListener('input', function () {
-      applySize(widthInput.value, heightInput.value, true);
-    });
-
-    window.addEventListener('beforeprint', function () {
-      applySize(widthInput.value, heightInput.value, true);
-    });
-
-    applySize(
-      window.localStorage.getItem(storageWidthKey) || defaultWidth,
-      window.localStorage.getItem(storageHeightKey) || defaultHeight,
-      false
-    );
-
-    if (autoPrint) {
-      window.addEventListener('load', function () {
-        api.print();
-      });
-    }
-  }());
-  </script>
+  <script src="<?php echo esc_url( add_query_arg( 'ver', file_exists( $label_print_js_path ) ? (string) filemtime( $label_print_js_path ) : '1', $label_print_js_url ) ); ?>" defer></script>
 
 </body>
 </html>
