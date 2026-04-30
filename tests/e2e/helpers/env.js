@@ -1,9 +1,7 @@
 const { loadAuthFixture } = require('./wp-fixture');
 
 const fixture = loadAuthFixture();
-const publicMode =
-  process.env.PW_PUBLIC_MODE ||
-  (process.env.PW_EXPECT_STOREFRONT === '1' ? 'storefront' : 'coming-soon');
+const publicMode = process.env.PW_PUBLIC_MODE || 'storefront';
 
 const routes = {
   home: process.env.PW_ROUTE_HOME || '/',
