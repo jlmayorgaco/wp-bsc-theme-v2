@@ -1,15 +1,37 @@
 #!/bin/bash
-# BSC-045: Backup configuration — copy to backup-config.sh and fill in real values.
-# DO NOT commit backup-config.sh — it contains credentials.
+# BSC-148: Backup configuration. Copy to backup-config.sh and fill real values.
+# DO NOT commit backup-config.sh. It contains credentials and recovery-sensitive paths.
 
 DB_HOST="localhost"
 DB_NAME="bsc_production"
 DB_USER="bsc_user"
 DB_PASS="secure_password_here"
 
-WP_ROOT="/var/www/html"                                    # absolute path to WP root
-BACKUP_LOCAL="/backups/bsc"                                # local backup directory
-REMOTE_DEST="user@backup-server:/backups/bsc"              # rsync target (or S3 via rclone)
-RETENTION_DAYS=30                                          # days before old backups are purged
+SITE_NAME="Bubble Skin Care"
+SITE_URL="https://bubbleskincare.co"
+
+WP_ROOT="/var/www/html"
+BACKUP_LOCAL="/backups/bsc"
+REMOTE_DEST="user@backup-server:/backups/bsc"
 LOG_FILE="/var/log/bsc-backup.log"
 ADMIN_EMAIL="admin@bubbleskincare.co"
+
+# Default retention. Can be overridden per backup class below.
+RETENTION_DAYS=30
+DB_RETENTION_DAYS=30
+FULL_RETENTION_DAYS=30
+SYSTEM_RETENTION_DAYS=30
+BUNDLE_RETENTION_DAYS=60
+
+# Email behavior.
+# Keep attachments disabled by default. Large backups should not be delivered by email.
+EMAIL_ATTACH_BACKUP=0
+EMAIL_ATTACH_MAX_MB=10
+
+# WordPress application paths relative to WP_ROOT.
+WORDPRESS_BACKUP_PATHS="wp-config.php wp-content/themes wp-content/plugins wp-content/mu-plugins wp-content/uploads wp-content/languages"
+WORDPRESS_EXCLUDES="wp-content/cache wp-content/upgrade wp-content/ai1wm-backups wp-content/backups node_modules .git"
+
+# VPS/service paths to snapshot for restore.
+SYSTEM_BACKUP_ROOTS="/etc/nginx /etc/apache2 /etc/httpd /etc/letsencrypt /etc/cron.d /var/spool/cron /var/spool/cron/crontabs /etc/systemd/system /etc/ssh /etc/mysql /etc/php"
+SYSTEM_BACKUP_FILES="/etc/crontab /etc/fstab /etc/hosts /etc/environment /etc/passwd /etc/group"

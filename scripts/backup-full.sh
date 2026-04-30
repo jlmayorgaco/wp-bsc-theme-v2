@@ -1,56 +1,64 @@
 #!/bin/bash
-# BSC-045: Weekly full backup (uploads + theme + DB) with remote copy.
-# Usage: bash scripts/backup-full.sh
-# Cron: 0 3 * * 0 /path/to/scripts/backup-full.sh
+# BSC-148: WordPress application backup (wp-config + themes + plugins + uploads) plus DB dump.
 
-CONFIG_FILE="$(dirname "$0")/backup-config.sh"
+set -euo pipefail
 
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "[$(date)] ERROR: backup-config.sh not found at $CONFIG_FILE" >&2
-    exit 1
-fi
-source "$CONFIG_FILE"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=backup-common.sh
+source "${SCRIPT_DIR}/backup-common.sh"
 
-DATE=$(date +%F)
-DEST_DIR="$BACKUP_LOCAL/full"
-DEST_FILE="$DEST_DIR/full-$DATE.tar.gz"
+load_backup_config
 
-mkdir -p "$DEST_DIR"
+DATE="$(date +%F-%H-%M)"
+DEST_DIR="${BACKUP_LOCAL}/full"
+APP_FILE="${DEST_DIR}/full-${DATE}.tar.gz"
+DB_FILE="${DEST_DIR}/full-${DATE}-db.sql.gz"
+MANIFEST_FILE="${DEST_DIR}/full-${DATE}.manifest.txt"
 
-# 1. Archive uploads + theme (excluding node_modules and .git)
-if tar -czf "$DEST_FILE" \
-    --exclude="*/node_modules" \
-    --exclude="*/.git" \
-    -C "$WP_ROOT" \
-    "wp-content/uploads" \
-    "wp-content/themes/wp-bsc-theme-v2"; then
-    echo "[$(date)] OK  Files archived: $DEST_FILE" >> "$LOG_FILE"
-else
-    echo "[$(date)] FAIL File archive failed" >> "$LOG_FILE"
-    exit 1
-fi
+ensure_directory "$DEST_DIR"
 
-# 2. Append DB dump to the same archive
-if mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
-    --single-transaction --quick --lock-tables=false \
-    "$DB_NAME" | gzip > "${DEST_FILE%.tar.gz}-db.sql.gz"; then
-    echo "[$(date)] OK  DB appended for full backup" >> "$LOG_FILE"
-else
-    echo "[$(date)] FAIL DB dump failed during full backup" >> "$LOG_FILE"
-fi
+backup_wordpress_application "$APP_FILE"
+backup_database "$DB_FILE"
 
-# 3. Copy to remote destination
-if command -v rsync &>/dev/null && [ -n "$REMOTE_DEST" ]; then
-    if rsync -az "$DEST_FILE" "${DEST_FILE%.tar.gz}-db.sql.gz" "$REMOTE_DEST/full/" 2>> "$LOG_FILE"; then
-        echo "[$(date)] OK  Remote copy sent to $REMOTE_DEST" >> "$LOG_FILE"
-    else
-        echo "[$(date)] WARN Remote copy failed — local backup retained" >> "$LOG_FILE"
-    fi
-fi
+write_checksum_file "$APP_FILE"
+write_checksum_file "$DB_FILE"
 
-SIZE=$(du -sh "$DEST_FILE" | cut -f1)
-echo "[$(date)] OK  Full backup complete: $DEST_FILE ($SIZE)" >> "$LOG_FILE"
+{
+    echo "site_name=${SITE_NAME}"
+    echo "site_url=${SITE_URL}"
+    echo "created_at=$(date '+%F %T %Z')"
+    echo "wp_root=${WP_ROOT}"
+    echo "db_name=${DB_NAME}"
+    echo
+    echo "[artifacts]"
+    artifact_summary "$APP_FILE"
+    artifact_summary "$DB_FILE"
+} > "$MANIFEST_FILE"
 
-# 4. Purge old full backups
-find "$DEST_DIR" -type f -mtime +"$RETENTION_DAYS" -delete
-echo "[$(date)] INFO Purged full backups older than ${RETENTION_DAYS} days" >> "$LOG_FILE"
+push_remote_artifacts "full" "$APP_FILE" "${APP_FILE}.sha256" "$DB_FILE" "${DB_FILE}.sha256" "$MANIFEST_FILE"
+purge_old_files "$DEST_DIR" "*.tar.gz" "$FULL_RETENTION_DAYS"
+purge_old_files "$DEST_DIR" "*.sql.gz" "$FULL_RETENTION_DAYS"
+purge_old_files "$DEST_DIR" "*.sha256" "$FULL_RETENTION_DAYS"
+purge_old_files "$DEST_DIR" "*.manifest.txt" "$FULL_RETENTION_DAYS"
+
+BODY="$(cat <<EOF
+WordPress application backup completed.
+
+Application artifact:
+$(artifact_summary "$APP_FILE")
+
+Database artifact:
+$(artifact_summary "$DB_FILE")
+
+Includes:
+- wp-config.php
+- themes
+- plugins
+- mu-plugins
+- uploads
+- languages
+EOF
+)"
+
+log_message "OK" "WordPress application backup complete: $APP_FILE"
+send_email "BSC WordPress backup OK" "$BODY"
