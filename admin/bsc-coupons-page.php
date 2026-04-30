@@ -1,6 +1,6 @@
 <?php
 /**
- * BSC-066: BSC Coupons admin page — manage WooCommerce coupons from the BSC menu.
+ * BSC-066: BSC Coupons admin page â€” manage WooCommerce coupons from the BSC menu.
  */
 defined('ABSPATH') || exit;
 
@@ -12,13 +12,15 @@ function bsc_enqueue_coupons_admin_assets(): void {
         return;
     }
 
+    bsc_enqueue_admin_ui_assets();
+
     $css_path = get_template_directory() . '/admin/bsc-coupons.css';
     $js_path  = get_template_directory() . '/js/bsc-admin-coupons.js';
 
     wp_enqueue_style(
         'bsc-admin-coupons',
         get_template_directory_uri() . '/admin/bsc-coupons.css',
-        array(),
+        array( 'bsc-admin-ui' ),
         file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
     );
 
@@ -31,16 +33,16 @@ function bsc_enqueue_coupons_admin_assets(): void {
     );
 }
 
-// ── Handle create / delete ─────────────────────────────────────────────
+// â”€â”€ Handle create / delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_init', 'bsc_coupons_handle_actions' );
 function bsc_coupons_handle_actions(): void {
     if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'bsc-coupons' ) return;
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) return;
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) return;
 
     // Create coupon
     if ( isset( $_POST['bsc_create_coupon_nonce'] ) ) {
         if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_create_coupon_nonce'] ) ), 'bsc_create_coupon' ) ) {
-            wp_die( esc_html__( 'Nonce inválido.', 'bsc-2-0' ) );
+            wp_die( esc_html__( 'Nonce invÃ¡lido.', 'bsc-2-0' ) );
         }
 
         $code          = sanitize_text_field( strtolower( wp_unslash( $_POST['coupon_code'] ?? '' ) ) );
@@ -78,9 +80,9 @@ function bsc_coupons_handle_actions(): void {
     }
 }
 
-// ── Page render ────────────────────────────────────────────────────────
+// â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_coupons_page(): void {
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 
@@ -99,22 +101,22 @@ function bsc_render_coupons_page(): void {
 
         <?php if ( isset( $_GET['bsc_notice'] ) ) : ?>
         <div class="notice notice-success is-dismissible"><p>
-            <?php echo $_GET['bsc_notice'] === 'created' ? 'Cupón creado correctamente.' : 'Cupón eliminado.'; ?>
+            <?php echo $_GET['bsc_notice'] === 'created' ? 'CupÃ³n creado correctamente.' : 'CupÃ³n eliminado.'; ?>
         </p></div>
         <?php endif; ?>
 
-        <!-- ── Create form ── -->
+        <!-- â”€â”€ Create form â”€â”€ -->
         <div class="bsc-coupon-create-panel">
-            <h2>Crear nuevo cupón</h2>
+            <h2>Crear nuevo cupÃ³n</h2>
             <form method="post">
                 <?php wp_nonce_field( 'bsc_create_coupon', 'bsc_create_coupon_nonce' ); ?>
                 <table class="form-table bsc-admin-coupons__form-table">
                     <tr>
-                        <th><label for="coupon_code">Código</label></th>
+                        <th><label for="coupon_code">CÃ³digo</label></th>
                         <td>
                             <input type="text" id="coupon_code" name="coupon_code" class="regular-text bsc-admin-coupons__code-input" required
                                    placeholder="ej: BIENVENIDA20">
-                            <p class="description">El código se guardará en minúsculas.</p>
+                            <p class="description">El cÃ³digo se guardarÃ¡ en minÃºsculas.</p>
                         </td>
                     </tr>
                     <tr>
@@ -132,44 +134,44 @@ function bsc_render_coupons_page(): void {
                         <td><input type="number" id="coupon_amount" name="coupon_amount" step="0.01" min="0" class="small-text" required></td>
                     </tr>
                     <tr>
-                        <th><label for="expiry_date">Fecha de expiración</label></th>
+                        <th><label for="expiry_date">Fecha de expiraciÃ³n</label></th>
                         <td><input type="date" id="expiry_date" name="expiry_date"></td>
                     </tr>
                     <tr>
-                        <th><label for="usage_limit">Límite de usos</label></th>
+                        <th><label for="usage_limit">LÃ­mite de usos</label></th>
                         <td>
                             <input type="number" id="usage_limit" name="usage_limit" min="0" class="small-text" value="0">
-                            <p class="description">0 = sin límite</p>
+                            <p class="description">0 = sin lÃ­mite</p>
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="minimum_amount">Compra mínima (COP)</label></th>
+                        <th><label for="minimum_amount">Compra mÃ­nima (COP)</label></th>
                         <td><input type="number" id="minimum_amount" name="minimum_amount" min="0" step="1000" class="regular-text" value="0"></td>
                     </tr>
                     <tr>
-                        <th><label for="coupon_description">Descripción interna</label></th>
+                        <th><label for="coupon_description">DescripciÃ³n interna</label></th>
                         <td><textarea id="coupon_description" name="coupon_description" class="large-text" rows="2" placeholder="Uso interno, no visible al cliente"></textarea></td>
                     </tr>
                 </table>
-                <?php submit_button( 'Crear cupón', 'primary', 'submit', false ); ?>
+                <?php submit_button( 'Crear cupÃ³n', 'primary', 'submit', false ); ?>
             </form>
         </div>
 
-        <!-- ── Coupons list ── -->
+        <!-- â”€â”€ Coupons list â”€â”€ -->
         <h2 class="bsc-admin-coupons__section-title">Cupones activos</h2>
 
         <?php if ( ! $coupons_query->have_posts() ) : ?>
-            <p class="bsc-admin-coupons__empty">No hay cupones creados todavía.</p>
+            <p class="bsc-admin-coupons__empty">No hay cupones creados todavÃ­a.</p>
         <?php else : ?>
         <table class="wp-list-table widefat fixed striped bsc-coupons-table">
             <thead>
                 <tr>
-                    <th class="bsc-admin-coupons__code-col">Código</th>
+                    <th class="bsc-admin-coupons__code-col">CÃ³digo</th>
                     <th>Tipo</th>
                     <th class="bsc-admin-coupons__value-col">Valor</th>
-                    <th>Descripción</th>
+                    <th>DescripciÃ³n</th>
                     <th class="bsc-admin-coupons__expiry-col">Expira</th>
-                    <th class="bsc-admin-coupons__limit-col">Límite</th>
+                    <th class="bsc-admin-coupons__limit-col">LÃ­mite</th>
                     <th class="bsc-admin-coupons__usage-col">Usos</th>
                     <th class="bsc-admin-coupons__actions-col">Acciones</th>
                 </tr>
@@ -187,8 +189,8 @@ function bsc_render_coupons_page(): void {
                 $value = $coupon->get_discount_type() === 'percent'
                     ? number_format( (float) $coupon->get_amount(), 0 ) . '%'
                     : '$' . number_format( (float) $coupon->get_amount(), 0, ',', '.' );
-                $expiry = $coupon->get_date_expires() ? $coupon->get_date_expires()->date('d/m/Y') : '—';
-                $limit  = $coupon->get_usage_limit() ?: '∞';
+                $expiry = $coupon->get_date_expires() ? $coupon->get_date_expires()->date('d/m/Y') : 'â€”';
+                $limit  = $coupon->get_usage_limit() ?: 'âˆž';
                 $edit_url   = get_edit_post_link( get_the_ID() );
                 $delete_url = add_query_arg([
                     'page'             => 'bsc-coupons',
@@ -206,14 +208,14 @@ function bsc_render_coupons_page(): void {
                 </td>
                 <td><?php echo esc_html( $type_label ); ?></td>
                 <td><strong><?php echo esc_html( $value ); ?></strong></td>
-                <td class="bsc-admin-coupons__description"><?php echo esc_html( $coupon->get_description() ?: '—' ); ?></td>
+                <td class="bsc-admin-coupons__description"><?php echo esc_html( $coupon->get_description() ?: 'â€”' ); ?></td>
                 <td><?php echo esc_html( $expiry ); ?></td>
                 <td><?php echo esc_html( $limit ); ?></td>
                 <td><?php echo esc_html( $coupon->get_usage_count() ); ?></td>
                 <td>
                     <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small" target="_blank">Editar</a>
                     <a href="<?php echo esc_url( $delete_url ); ?>" class="button button-small bsc-admin-coupons__delete"
-                       data-bsc-confirm="¿Eliminar este cupón?">Eliminar</a>
+                       data-bsc-confirm="Â¿Eliminar este cupÃ³n?">Eliminar</a>
                 </td>
             </tr>
             <?php endwhile; wp_reset_postdata(); ?>
