@@ -29,7 +29,7 @@ function bsc_bp_render_user_history_screen($user_id) {
     }
 
     $back_url = admin_url('admin.php?page=bsc-bubble-points');
-    echo '<a href="'.esc_url($back_url).'" class="button" style="margin-bottom:12px;">&larr; '.esc_html__('Back', 'bsc').'</a>';
+    echo '<a href="'.esc_url($back_url).'" class="button bsc-bp-admin__back-link">&larr; '.esc_html__('Back', 'bsc').'</a>';
 
     printf('<h2>%s &mdash; %s</h2>',
         esc_html($user->display_name),
@@ -44,7 +44,7 @@ function bsc_bp_render_user_history_screen($user_id) {
     if (current_user_can('manage_woocommerce') || current_user_can('manage_options')) {
         $action_url = admin_url('admin-post.php'); // form posts here
         ?>
-        <form method="post" action="<?php echo esc_url($action_url); ?>" style="margin:12px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <form method="post" action="<?php echo esc_url($action_url); ?>" class="bsc-bp-history-form">
             <input type="hidden" name="action" value="bsc_bp_manual_adjust">
             <input type="hidden" name="user_id" value="<?php echo (int)$user_id; ?>">
 
@@ -53,11 +53,11 @@ function bsc_bp_render_user_history_screen($user_id) {
             wp_nonce_field( 'bsc_bp_manual_adjust_'.$user_id, '_bsc_bp_nonce' );
             ?>
 
-            <label for="bsc-bp-amount" style="margin-right:4px;"><strong><?php esc_html_e('Amount', 'bsc'); ?></strong></label>
+            <label for="bsc-bp-amount" class="bsc-bp-history-form__label"><strong><?php esc_html_e('Amount', 'bsc'); ?></strong></label>
             <input id="bsc-bp-amount" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" required />
 
-            <label for="bsc-bp-note" style="margin:0 4px;"><strong><?php esc_html_e('Note', 'bsc'); ?></strong></label>
-            <input id="bsc-bp-note" type="text" name="note" placeholder="<?php esc_attr_e('Optional note', 'bsc'); ?>" style="min-width:260px;" />
+            <label for="bsc-bp-note" class="bsc-bp-history-form__label bsc-bp-history-form__label--spaced"><strong><?php esc_html_e('Note', 'bsc'); ?></strong></label>
+            <input id="bsc-bp-note" type="text" name="note" placeholder="<?php esc_attr_e('Optional note', 'bsc'); ?>" class="bsc-bp-history-form__note" />
 
             <button class="button button-primary" type="submit" name="op" value="add"><?php esc_html_e('Add', 'bsc'); ?></button>
             <button class="button" type="submit" name="op" value="reduce"><?php esc_html_e('Reduce', 'bsc'); ?></button>
@@ -133,14 +133,14 @@ function bsc_bp_render_user_history_screen($user_id) {
             printf(
                 '<tr>
                     <td>%s</td>
-                    <td style="color:%s">%s%s</td>
+                    <td class="%s">%s%s</td>
                     <td>%s</td>
                     <td>%s</td>
                     <td>%s</td>
                     <td>%s</td>
                  </tr>',
                 esc_html($date_str),
-                $delta >= 0 ? 'green' : '#b30000',
+                esc_attr( $delta >= 0 ? 'bsc-bp-history__delta bsc-bp-history__delta--positive' : 'bsc-bp-history__delta bsc-bp-history__delta--negative' ),
                 $delta >= 0 ? '+' : '',
                 number_format_i18n($delta),
                 number_format_i18n($balance_af),

@@ -11,12 +11,30 @@ if (!defined('ABSPATH')) exit;
  * Router / main screen: shows either the users list
  * or the per-user history if ?user_id= is present.
  */
+add_action( 'admin_enqueue_scripts', 'bsc_bp_enqueue_admin_assets' );
+function bsc_bp_enqueue_admin_assets(): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-bubble-points' !== $page ) {
+        return;
+    }
+
+    $css_path = get_template_directory() . '/plugins/bubble-points/admin/bsc-bp-admin.css';
+
+    wp_enqueue_style(
+        'bsc-bubble-points-admin',
+        get_template_directory_uri() . '/plugins/bubble-points/admin/bsc-bp-admin.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+}
+
 function bsc_bp_render_admin_screen() {
     if ( ! current_user_can('manage_woocommerce') && ! current_user_can('manage_options') ) {
         wp_die(__('You do not have sufficient permissions.', 'bsc'));
     }
 
-    echo '<div class="wrap"><h1 class="wp-heading-inline">'.esc_html__('Bubble Points', 'bsc').'</h1><hr class="wp-header-end" />';
+    echo '<div class="wrap bsc-bp-admin"><h1 class="wp-heading-inline">'.esc_html__('Bubble Points', 'bsc').'</h1><hr class="wp-header-end" />';
 
     $user_id = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
 
