@@ -36,7 +36,7 @@ if ( $available_gateways ) : ?>
 						<label for="payment_method_<?php echo esc_attr( $gateway->id ); ?>"><?php echo wp_kses_post( $gateway->get_title() ); ?> <?php echo wp_kses_post( $gateway->get_icon() ); ?></label>
 						<?php
 						if ( $gateway->has_fields() || $gateway->get_description() ) {
-							echo '<div class="woocommerce-PaymentBox woocommerce-PaymentBox--' . esc_attr( $gateway->id ) . ' payment_box payment_method_' . esc_attr( $gateway->id ) . '" style="display: none;">';
+							echo '<div class="woocommerce-PaymentBox woocommerce-PaymentBox--' . esc_attr( $gateway->id ) . ' payment_box payment_method_' . esc_attr( $gateway->id ) . ' bsc-payment-box--hidden">';
 							$gateway->payment_fields();
 							echo '</div>';
 						}
