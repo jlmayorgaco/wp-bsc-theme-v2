@@ -186,6 +186,18 @@ test.describe('BSC smoke', () => {
     await expect($form).toBeVisible();
   });
 
+  test('shop landing renders grouped category cards', async ({ page }) => {
+    await gotoAndStabilize(page, routes.shop);
+
+    if (expectsStorefront()) {
+      await expect(page.locator('.bsc-kb-grid--shop').first()).toBeVisible();
+      await expect(page.locator('.bsc-kb-card').first()).toBeVisible();
+      return;
+    }
+
+    await expect(page.locator('.coming-soon-container').first()).toBeVisible();
+  });
+
   test('account route responds', async ({ page }) => {
     await gotoAndStabilize(page, routes.account);
 
