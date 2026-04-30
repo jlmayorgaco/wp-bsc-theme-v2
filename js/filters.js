@@ -1,20 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
   const minInput = document.getElementById('min_price');
   const maxInput = document.getElementById('max_price');
+  const minOutput = document.getElementById('min_price_output');
+  const maxOutput = document.getElementById('max_price_output');
+
+  if (!minInput || !maxInput || !minOutput || !maxOutput) {
+    return;
+  }
+
+  const syncOutputs = () => {
+    minOutput.value = minInput.value;
+    maxOutput.value = maxInput.value;
+  };
 
   minInput.addEventListener('input', () => {
     if (parseInt(minInput.value) > parseInt(maxInput.value)) {
       maxInput.value = minInput.value;
-      document.getElementById('max_price_output').value = minInput.value;
     }
+
+    syncOutputs();
   });
 
   maxInput.addEventListener('input', () => {
     if (parseInt(maxInput.value) < parseInt(minInput.value)) {
       minInput.value = maxInput.value;
-      document.getElementById('min_price_output').value = maxInput.value;
     }
+
+    syncOutputs();
   });
+
+  syncOutputs();
 });
 
 

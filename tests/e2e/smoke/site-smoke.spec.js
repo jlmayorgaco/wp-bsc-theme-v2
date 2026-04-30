@@ -81,6 +81,32 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
+  test('category price ranges sync their visible outputs', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for category filter smoke');
+
+    await gotoProductGridCategory(page, [
+      routes.categoryGrid,
+      routes.category,
+      routes.groupCategory,
+    ]);
+
+    const minInput = page.locator('#min_price').first();
+    const maxInput = page.locator('#max_price').first();
+    const minOutput = page.locator('#min_price_output').first();
+    const maxOutput = page.locator('#max_price_output').first();
+
+    await expect(minInput).toBeVisible();
+    await expect(maxInput).toBeVisible();
+
+    await minInput.fill('45000');
+    await minInput.dispatchEvent('input');
+    await expect(minOutput).toHaveText('45000');
+
+    await maxInput.fill('120000');
+    await maxInput.dispatchEvent('input');
+    await expect(maxOutput).toHaveText('120000');
+  });
+
   test('first PDP opens from category', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for PDP smoke');
 
