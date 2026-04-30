@@ -17,7 +17,7 @@
     <section class="section home__products--section">
           <div class="section__container">
               <h1 class="bsc__title">
-                <strong>Ãšltimos</strong> Lanzamientos
+                <strong>Últimos</strong> Lanzamientos
               </h1>
               <?php 
                 $key = 'ultimos_lanzamientos';
@@ -131,32 +131,32 @@
               </div>
 
               <!--
-              <a class="bsc__button bsc__button--outline bsc__button--floating" href="<?php echo esc_url( bsc_get_shop_url() ); ?>">Â¡Ver todos!</a>
+              <a class="bsc__button bsc__button--outline bsc__button--floating" href="<?php echo esc_url( bsc_get_shop_url() ); ?>">¡Ver todos!</a>
               -->
 
         </div>
     </section>
 
   <?php
-    // ðŸŒ¸ Category showcase (6 blocks)
+    // Category showcase (6 blocks)
     $groups = [
         [
             'slug'  => 'group-skin-care',
             'title' => 'SKIN CARE',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-hair-care',
             'title' => 'HAIR CARE',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-make-up',
             'title' => 'MAKE UP',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ]
         /*,
@@ -164,21 +164,21 @@
             'slug'  => 'dispositivos',
             'title' => 'DISPOSITIVOS',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'inner-beauty',
             'title' => 'INNER BEAUTY',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'spa-kbeauty',
             'title' => 'SPA KBEAUTY',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquÃ­</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dÃ­as !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         */
@@ -268,8 +268,8 @@
           $image_index = $i + 1;
           $image_url   = get_template_directory_uri() . "/images/home_brands/brand_0{$image_index}.png";
 
-          // BSC-006: usar get_term_link() para generar la URL jerÃ¡rquica correcta.
-          // El URL plano /product-category/{slug} tenÃ­a depth=1 y caÃ­a en renderLevel2(),
+          // BSC-006: usar get_term_link() para generar la URL jerárquica correcta.
+          // El URL plano /product-category/{slug} tenía depth=1 y caía en renderLevel2(),
           // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 â†’ renderLevel3().
           $term      = get_term_by('slug', $raw_slug, 'product_cat');
           $term_link = ($term && !is_wp_error($term)) ? get_term_link($term) : null;
@@ -309,14 +309,14 @@
         <div class="front__container">
 
           <div class="about__title">
-            <strong>Bubble</strong> Lover ! Conoce mÃ¡s de nosotros
+            <strong>Bubble</strong> Lover ! Conoce más de nosotros
           </div>
 
           <div class="about__cols">
 
             <div class="about__col">
               <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon1.png" alt="">
-              <h1 class="about__title">EnvÃ­os gratis</h1>
+              <h1 class="about__title">Envíos gratis</h1>
               <h2 class="about__subtitle">Por compras mayores a $300.000</h2>
             </div>
 
@@ -333,7 +333,7 @@
             <div class="about__col">
               <img class="about__icon" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_icon3.png" alt="">
               <h1 class="about__title">Regalito sorpresa</h1>
-              <h2 class="about__subtitle">con el programa de fidelizaciÃ³n</h2>
+              <h2 class="about__subtitle">con el programa de fidelización</h2>
             </div>
 
           </div>
@@ -356,7 +356,7 @@
               >
             </div>
 
-            <!-- BSC-021: blog mockup con badge "PrÃ³ximamente" -->
+            <!-- BSC-021: blog mockup con badge "Próximamente" -->
             <div class="home__contact__blog-row">
               <img
                 class="home__contact__blog-card"
@@ -373,7 +373,7 @@
                 src="<?php echo get_template_directory_uri(); ?>/images/bsc_contact_card_image3.png"
                 alt=""
               >
-              <div class="home__contact__blog-coming-soon">PrÃ³ximamente</div>
+              <div class="home__contact__blog-coming-soon">Próximamente</div>
             </div>
           </div>
 
@@ -386,12 +386,12 @@
             </div>
 
             <p class="home__contact__description">
-              <strong>Ãšnete a la comunidad de BSC</strong> y entÃ©rate antes que nadie de promociones, noticias y lanzamientos exclusivos
+              <strong>Únete a la comunidad de BSC</strong> y entérate antes que nadie de promociones, noticias y lanzamientos exclusivos
             </p>
 
             <form class="home__contact__form" id="bsc-newsletter-form" action="#">
               <input type="email" name="email" id="bsc-newsletter-email" placeholder="Tu e-mail" class="home__contact__input" required>
-              <input type="submit" value="Â¡Quiero Ser Parte !" class="home__contact__submit" id="bsc-newsletter-submit">
+              <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit" id="bsc-newsletter-submit">
               <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error"></p>
             </form>
             <div class="home__contact__success" id="bsc-newsletter-success">

@@ -46,7 +46,7 @@ function bsc_access_managed_pages(): array {
         'bsc-reports'       => 'Informes',
         'bsc-showroom'      => 'Venta presencial',
         'bsc-coupons'       => 'Cupones',
-        'bsc-settings'      => 'ConfiguraciÃ³n',
+        'bsc-settings'      => 'Configuración',
         'bsc-home-favorites'=> 'Home Favorites',
         'bsc-bubble-points' => 'Bubble Points',
         'bsc-followup-emails' => 'Emails',
@@ -183,7 +183,7 @@ function bsc_guard_restricted_admin_pages(): void {
         return;
     }
 
-    wp_die( esc_html__( 'No tienes acceso a esta secciÃ³n.', 'bsc-2-0' ) );
+    wp_die( esc_html__( 'No tienes acceso a esta sección.', 'bsc-2-0' ) );
 }
 
 function bsc_render_access_page(): void {
@@ -198,11 +198,11 @@ function bsc_render_access_page(): void {
     ?>
     <div class="wrap bsc-admin-access">
         <h1>Control de acceso BSC</h1>
-        <p class="bsc-admin-access__intro">Define quÃ© pÃ¡ginas del panel BSC puede ver cada rol operativo. Administradores y Shop Managers mantienen acceso completo.</p>
+        <p class="bsc-admin-access__intro">Define qué páginas del panel BSC puede ver cada rol operativo. Administradores y Shop Managers mantienen acceso completo.</p>
 
         <?php if ( isset( $_GET['bsc_notice'] ) && 'saved' === sanitize_key( wp_unslash( $_GET['bsc_notice'] ) ) ) : ?>
             <div class="bsc-admin-note bsc-admin-note--success">
-                ConfiguraciÃ³n de acceso guardada.
+                Configuración de acceso guardada.
             </div>
         <?php endif; ?>
 
@@ -211,7 +211,7 @@ function bsc_render_access_page(): void {
             <table class="bsc-admin-access__table wp-list-table widefat fixed">
                 <thead>
                     <tr>
-                        <th>PÃ¡gina</th>
+                        <th>Página</th>
                         <?php foreach ( $roles as $role => $label ) : ?>
                             <th class="bsc-admin-access__role-header"><?php echo esc_html( $label ); ?></th>
                         <?php endforeach; ?>
@@ -256,7 +256,7 @@ function bsc_render_access_page(): void {
             </table>
 
             <div class="bsc-admin-note bsc-admin-note--warning">
-                <strong>Nota:</strong> <code>Pedidos</code> estÃ¡ bloqueado para todos los roles operativos. Si un rol pierde acceso a <code>Productos</code>, tambiÃ©n pierde acceso al editor oculto de producto.
+                <strong>Nota:</strong> <code>Pedidos</code> está bloqueado para todos los roles operativos. Si un rol pierde acceso a <code>Productos</code>, también pierde acceso al editor oculto de producto.
             </div>
 
             <?php submit_button( 'Guardar control de acceso', 'primary bsc-admin-access__submit', 'submit', false ); ?>

@@ -172,8 +172,8 @@ function bsc_add_admin_menu(): void {
     // 11. ConfiguraciÃ³n â€” admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
-        __( 'ConfiguraciÃ³n BSC', 'bsc-2-0' ),
-        __( 'ConfiguraciÃ³n', 'bsc-2-0' ),
+        __( 'Configuración BSC', 'bsc-2-0' ),
+        __( 'Configuración', 'bsc-2-0' ),
         'manage_options',
         'bsc-settings',
         'bsc_render_settings_page'
@@ -184,7 +184,7 @@ function bsc_add_admin_menu(): void {
     if ( bsc_current_user_has_bsc_page_access( 'bsc-product-edit' ) ) {
         add_submenu_page(
             null,
-            __( 'Editar Producto â€” BSC', 'bsc-2-0' ),
+            __( 'Editar Producto — BSC', 'bsc-2-0' ),
             __( 'Editar Producto', 'bsc-2-0' ),
             'read',
             'bsc-product-edit',
@@ -195,7 +195,7 @@ function bsc_add_admin_menu(): void {
     // Bubble Points settings stub
     add_submenu_page(
         null,
-        __( 'Bubble Points â€” Ajustes', 'bsc-2-0' ),
+        __( 'Bubble Points — Ajustes', 'bsc-2-0' ),
         __( 'Bubble Points Ajustes', 'bsc-2-0' ),
         'manage_options',
         'bsc-bp-settings',
@@ -253,7 +253,7 @@ require_once get_template_directory() . '/admin/bsc-access-page.php';        // 
 
 function bsc_render_dashboard(): void {
     if ( ! current_user_can('read') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta pÃ¡gina.', 'bsc-2-0' ) );
+        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
     }
 
     // BSC-061: Full KPI dashboard with transient cache (30min)
@@ -321,13 +321,13 @@ function bsc_render_dashboard(): void {
     <div class="wrap bsc-admin-dashboard">
         <h1 class="bsc-admin-dashboard__title">
             BSC Dashboard
-            <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">â†º Actualizar</a>
+            <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">↺ Actualizar</a>
         </h1>
         <?php
         // Handle cache clear
         if ( isset($_GET['bsc_clear_cache']) ) {
             delete_transient('bsc_dashboard_kpis');
-            echo '<div class="notice notice-success is-dismissible"><p>CachÃ© del dashboard limpiada.</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>Caché del dashboard limpiada.</p></div>';
         }
         ?>
 
@@ -347,7 +347,7 @@ function bsc_render_dashboard(): void {
             </div>
             <div class="bsc-admin-dashboard__card">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['preparando']); ?></div>
-                <div class="bsc-admin-dashboard__label">En preparaciÃ³n</div>
+                <div class="bsc-admin-dashboard__label">En preparación</div>
             </div>
             <div class="bsc-admin-dashboard__card">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['enviados']); ?></div>
@@ -360,7 +360,7 @@ function bsc_render_dashboard(): void {
 
             <!-- Recent orders -->
             <div>
-                <h2 class="bsc-admin-dashboard__panel-title">Ãšltimos 5 pedidos</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">Últimos 5 pedidos</h2>
                 <table class="wp-list-table widefat striped">
                     <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
                     <tbody>
@@ -380,7 +380,7 @@ function bsc_render_dashboard(): void {
 
             <!-- Low stock alerts -->
             <div>
-                <h2 class="bsc-admin-dashboard__panel-title">âš ï¸ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">⚠️ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
                 <?php if ( ! empty($kpis['low_stock_ids']) ): ?>
                 <table class="wp-list-table widefat striped bsc-admin-dashboard__low-stock-table">
                     <thead><tr><th>Producto</th><th>Stock bodega</th><th></th></tr></thead>
@@ -397,7 +397,7 @@ function bsc_render_dashboard(): void {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p class="bsc-admin-dashboard__low-stock-ok">âœ“ Todos los productos tienen stock suficiente.</p>
+                <p class="bsc-admin-dashboard__low-stock-ok">✓ Todos los productos tienen stock suficiente.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -413,13 +413,13 @@ function bsc_render_dashboard(): void {
 // â”€â”€ BSC-064: Settings page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_settings_page(): void {
     if ( ! current_user_can('manage_options') ) {
-        wp_die( esc_html__( 'No tienes permisos para ver esta pÃ¡gina.', 'bsc-2-0' ) );
+        wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
     }
 
     // Handle save
     if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['bsc_settings_nonce']) ) {
         if ( ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['bsc_settings_nonce'])), 'bsc_settings_action' ) ) {
-            wp_die( esc_html__( 'Solicitud no vÃ¡lida.', 'bsc-2-0' ) );
+            wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
         }
 
         update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', $_POST['bsc_whatsapp_number'] ?? '573156922859'));
@@ -427,28 +427,28 @@ function bsc_render_settings_page(): void {
         update_option('bsc_free_shipping_threshold',   max(0, intval($_POST['bsc_free_shipping_threshold'] ?? 300000)));
         update_option('bsc_bogota_shipping_price',     max(0, intval($_POST['bsc_bogota_shipping_price'] ?? 10000)));
         update_option('bsc_other_shipping_price',      max(0, intval($_POST['bsc_other_shipping_price'] ?? 17000)));
-        update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'BogotÃ¡'));
+        update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá'));
         update_option('bsc_default_max_products_slider', max(1, intval($_POST['bsc_default_max_products_slider'] ?? 5)));
         update_option('bsc_email_from_name',           sanitize_text_field($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care'));
         update_option('bsc_email_from_address',        sanitize_email($_POST['bsc_email_from_address'] ?? ''));
         update_option('bsc_low_stock_threshold',       max(0, intval($_POST['bsc_low_stock_threshold'] ?? 3)));
 
-        echo '<div class="notice notice-success is-dismissible"><p>âœ“ ConfiguraciÃ³n guardada.</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
     }
     ?>
     <div class="wrap">
-        <h1>ConfiguraciÃ³n BSC</h1>
+        <h1>Configuración BSC</h1>
         <form method="post">
             <?php wp_nonce_field('bsc_settings_action', 'bsc_settings_nonce'); ?>
             <table class="form-table">
                 <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title">General</h2></th></tr>
                 <tr>
-                    <th><label for="bsc_whatsapp_number">NÃºmero de WhatsApp</label></th>
+                    <th><label for="bsc_whatsapp_number">Número de WhatsApp</label></th>
                     <td>
                         <input type="text" id="bsc_whatsapp_number" name="bsc_whatsapp_number"
                             value="<?php echo esc_attr(get_option('bsc_whatsapp_number','573156922859')); ?>"
                             class="regular-text" placeholder="573156922859">
-                        <p class="description">Solo nÃºmeros, con cÃ³digo de paÃ­s. Ej: 573156922859</p>
+                        <p class="description">Solo números, con código de país. Ej: 573156922859</p>
                     </td>
                 </tr>
                 <tr>
@@ -462,39 +462,39 @@ function bsc_render_settings_page(): void {
 
                 <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Tienda</h2></th></tr>
                 <tr>
-                    <th><label for="bsc_free_shipping_threshold">Umbral de envÃ­o gratis (COP)</label></th>
+                    <th><label for="bsc_free_shipping_threshold">Umbral de envío gratis (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_free_shipping_threshold" name="bsc_free_shipping_threshold"
                             value="<?php echo esc_attr(get_option('bsc_free_shipping_threshold',300000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Se oculta el envÃ­o gratis si el subtotal (despuÃ©s de descuento) es menor a este valor.</p>
+                        <p class="description">Se oculta el envío gratis si el subtotal (después de descuento) es menor a este valor.</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_bogota_shipping_label">Label tarifa BogotÃ¡</label></th>
+                    <th><label for="bsc_bogota_shipping_label">Label tarifa Bogotá</label></th>
                     <td>
                         <input type="text" id="bsc_bogota_shipping_label" name="bsc_bogota_shipping_label"
-                            value="<?php echo esc_attr(get_option('bsc_bogota_shipping_label','BogotÃ¡')); ?>"
+                            value="<?php echo esc_attr(get_option('bsc_bogota_shipping_label','Bogotá')); ?>"
                             class="regular-text">
-                        <p class="description">Texto que identifica la tarifa de BogotÃ¡ en WooCommerce EnvÃ­os (debe coincidir con el label de la zona).</p>
+                        <p class="description">Texto que identifica la tarifa de Bogotá en WooCommerce Envíos (debe coincidir con el label de la zona).</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_bogota_shipping_price">Tarifa BogotÃ¡/Cundinamarca (COP)</label></th>
+                    <th><label for="bsc_bogota_shipping_price">Tarifa Bogotá/Cundinamarca (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_bogota_shipping_price" name="bsc_bogota_shipping_price"
                             value="<?php echo esc_attr(get_option('bsc_bogota_shipping_price',10000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Valor aplicado en checkout para pedidos de BogotÃ¡ y Cundinamarca.</p>
+                        <p class="description">Valor aplicado en checkout para pedidos de Bogotá y Cundinamarca.</p>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="bsc_other_shipping_price">Tarifa resto del paÃ­s (COP)</label></th>
+                    <th><label for="bsc_other_shipping_price">Tarifa resto del país (COP)</label></th>
                     <td>
                         <input type="number" id="bsc_other_shipping_price" name="bsc_other_shipping_price"
                             value="<?php echo esc_attr(get_option('bsc_other_shipping_price',17000)); ?>"
                             class="regular-text" min="0" step="1000">
-                        <p class="description">Valor aplicado en checkout para destinos fuera de BogotÃ¡ y Cundinamarca.</p>
+                        <p class="description">Valor aplicado en checkout para destinos fuera de Bogotá y Cundinamarca.</p>
                     </td>
                 </tr>
                 <tr>
@@ -534,7 +534,7 @@ function bsc_render_settings_page(): void {
                 </tr>
             </table>
 
-            <?php submit_button('Guardar configuraciÃ³n'); ?>
+            <?php submit_button('Guardar configuración'); ?>
         </form>
     </div>
     <?php

@@ -58,7 +58,7 @@
         + '<td>' + entry.date + '</td>'
         + '<td>' + entry.type + '</td>'
         + '<td class="' + deltaClass + '">' + delta + '</td>'
-        + '<td>' + entry.before + ' â†’ ' + entry.after + '</td>'
+        + '<td>' + entry.before + ' → ' + entry.after + '</td>'
         + '<td>' + entry.username + '</td>'
         + '<td>' + entry.reason + '</td>'
         + '</tr>';
@@ -66,7 +66,7 @@
 
     return '<table class="wp-list-table widefat bsc-admin-products__history-table">'
       + '<thead><tr>'
-      + '<th>Fecha</th><th>Tipo</th><th>Î”</th><th>Antes â†’ DespuÃ©s</th><th>Usuario</th><th>RazÃ³n</th>'
+      + '<th>Fecha</th><th>Tipo</th><th>Δ</th><th>Antes → Después</th><th>Usuario</th><th>Razón</th>'
       + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
   }
 
@@ -171,7 +171,7 @@
         showToast(strings.saved || 'Stock guardado.', 'success');
       })
       .fail(function () {
-        showToast(strings.connectionError || 'Error de conexiÃ³n. Intenta de nuevo.', 'error');
+        showToast(strings.connectionError || 'Error de conexión. Intenta de nuevo.', 'error');
       })
       .always(function () {
         $saveButton.prop('disabled', false).text('Guardar');
