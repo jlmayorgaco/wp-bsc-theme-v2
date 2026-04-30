@@ -222,10 +222,17 @@ test.describe('BSC smoke', () => {
     ], testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
 
+    const shippingValue = page.locator('#review-summary__shipping').first();
+    const shippingRow = shippingValue.locator('xpath=ancestor::div[contains(@class,"review-summary__row")][1]');
+    const pendingNotice = page.locator('#bsc-shipping-pending-msg').first();
+
+    await expect(pendingNotice).toContainText('Selecciona tu departamento para ver el valor del envio.');
+    await expect(shippingRow).toBeHidden();
+
     await selectCheckoutBillingDestination(page);
 
-    const shippingValue = page.locator('#review-summary__shipping').first();
-
+    await expect(pendingNotice).toHaveCount(0);
+    await expect(shippingRow).toBeVisible();
     await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).not.toBe('');
     await expect.poll(async () => ((await shippingValue.textContent()) || '').trim()).not.toContain('Gratis');
 

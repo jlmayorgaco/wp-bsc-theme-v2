@@ -1,91 +1,69 @@
 <?php
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
+
+require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
 
 class BSC_Checkout_Review_Summary {
 
-    protected $cart;
+	protected $cart;
 
-    public function __construct() {
-        $this->cart = WC()->cart;
-        // I-5: free_shipping filter is already registered globally in inc/woocommerce.php
-        // I-4: calculate_totals() moved to render() — only called once per request
-    }
+	public function __construct() {
+		$this->cart = WC()->cart;
+	}
 
-    public function render(): void {
-        WC()->cart->calculate_shipping();
-        WC()->cart->calculate_totals();
+	public function render(): void {
+		$this->cart->calculate_shipping();
+		$this->cart->calculate_totals();
 
-        
+		$summary        = bsc_get_checkout_summary_payload();
+		$cart_count     = (int) $summary['cart_count'];
+		$item_label     = html_entity_decode( '&iacute;tem', ENT_QUOTES, 'UTF-8' );
+		$shipping_label = html_entity_decode( 'Env&iacute;o', ENT_QUOTES, 'UTF-8' );
+		$count_label    = sprintf(
+			'Subtotal (<span id="review-summary__cart-count">%1$d</span> %2$s%3$s)',
+			$cart_count,
+			$item_label,
+			$cart_count !== 1 ? 's' : ''
+		);
 
-        $cart_count = $this->cart->get_cart_contents_count();
-        $subtotal = $this->cart->get_subtotal();
-        $discount = $this->cart->get_discount_total();
-        $subtotal_discounted = $subtotal - $discount;
+		echo '<div class="bsc bsc__review-summary" id="bsc-review-summary">';
+		echo '  <div class="review-summary__container">';
 
-        $shipping_total = $this->cart->get_shipping_total();
-        $shipping_method_label = $this->get_shipping_method_label();
-        $shipping_display = $shipping_total <= 0 ? 'Gratis' : wc_price($shipping_total);
-        $shipping_text = $shipping_method_label ? "$shipping_method_label – $shipping_display" : $shipping_display;
+		$this->render_row(
+			$count_label,
+			$summary['subtotal_html'],
+			'review-summary__subtotal'
+		);
 
-        $taxes = $this->cart->get_total_tax();
-        $total = $subtotal_discounted + $shipping_total + $taxes;
+		$this->render_row(
+			'Subtotal con descuento',
+			$summary['subtotal_discounted_html'],
+			'review-summary__subtotal-discounted'
+		);
 
-        echo '<div class="bsc bsc__review-summary" id="bsc-review-summary">';
-        echo '  <div class="review-summary__container">';
+		$this->render_row(
+			$shipping_label,
+			$summary['shipping_total_html'],
+			'review-summary__shipping'
+		);
 
-        $this->render_row(
-            "Subtotal (<span id=\"review-summary__cart-count\">$cart_count</span> ítem" . ($cart_count !== 1 ? 's' : '') . ")",
-            wc_price($subtotal),
-            'review-summary__subtotal'
-        );
+		$this->render_row(
+			'Total',
+			'<strong>' . $summary['cart_total_html'] . '</strong>',
+			'review-summary__total',
+			true
+		);
 
-        $this->render_row(
-            "Subtotal con descuento",
-            wc_price($subtotal_discounted),
-            'review-summary__subtotal-discounted'
-        );
+		echo '  </div>';
+		echo '</div>';
+	}
 
-        $this->render_row(
-            "Envío",
-            $shipping_text,
-            'review-summary__shipping'
-        );
+	protected function render_row( string $label, string $value, string $id, bool $highlight = false ): void {
+		$row_class = 'review-summary__row' . ( $highlight ? ' review-summary__row--total' : '' );
 
-        $this->render_row(
-            "Total",
-            "<strong>" . wc_price($total) . "</strong>",
-            'review-summary__total',
-            true
-        );
-
-        echo '  </div>';
-
-
-        echo '</div>';
-    }
-
-    protected function get_shipping_method_label(): string {
-        $chosen_methods = WC()->session->get('chosen_shipping_methods');
-
-        if (!empty($chosen_methods) && is_array($chosen_methods)) {
-            foreach (WC()->shipping()->get_packages() as $i => $package) {
-                foreach ($package['rates'] as $rate_id => $rate) {
-                    if (isset($chosen_methods[$i]) && $rate_id === $chosen_methods[$i]) {
-                        return $rate->get_label();
-                    }
-                }
-            }
-        }
-
-        return '';
-    }
-
-    protected function render_row(string $label, string $value, string $id, bool $highlight = false): void {
-        $row_class = 'review-summary__row' . ($highlight ? ' review-summary__row--total' : '');
-
-        echo "<div class=\"$row_class\">";
-        echo "  <div class=\"review-summary__label\">$label</div>";
-        echo "  <div class=\"review-summary__value\" id=\"$id\">$value</div>";
-        echo "</div>";
-    }
+		echo "<div class=\"$row_class\">";
+		echo "  <div class=\"review-summary__label\">$label</div>";
+		echo "  <div class=\"review-summary__value\" id=\"$id\">$value</div>";
+		echo '</div>';
+	}
 }
