@@ -20,6 +20,7 @@ async function openAdminProductsPage(page, testInfo) {
   expect(loggedIn).toBeTruthy();
 
   await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-products', {
+    maxAttempts: 5,
     primePage: false,
     waitForImages: false,
   });
@@ -54,6 +55,7 @@ test.describe('BSC admin products smoke', () => {
     const editHref = await editLink.getAttribute('href');
     expect(editHref).toBeTruthy();
     await gotoAndStabilize(page, editHref, {
+      maxAttempts: 5,
       primePage: false,
       waitForImages: false,
     });

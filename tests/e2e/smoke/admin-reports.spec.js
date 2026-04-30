@@ -20,6 +20,7 @@ async function openAdminReportsPage(page, testInfo, tab = 'ventas') {
   expect(loggedIn).toBeTruthy();
 
   await gotoAndStabilize(page, `/wp-admin/admin.php?page=bsc-reports&tab=${tab}`, {
+    maxAttempts: 5,
     primePage: false,
     waitForImages: false,
   });

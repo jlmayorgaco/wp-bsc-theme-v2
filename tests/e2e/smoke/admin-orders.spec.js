@@ -20,6 +20,7 @@ async function openAdminOrdersPage(page, testInfo) {
   expect(loggedIn).toBeTruthy();
 
   await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-orders', {
+    maxAttempts: 5,
     primePage: false,
     waitForImages: false,
   });

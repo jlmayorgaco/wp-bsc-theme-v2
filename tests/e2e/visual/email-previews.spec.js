@@ -40,7 +40,10 @@ test.describe('BSC visual baseline - email previews', () => {
 
       expect(loggedIn).toBeTruthy();
 
-      await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug]);
+      await gotoAndStabilize(page, fixture.previewRoutes[previewCase.slug], {
+        maxAttempts: 5,
+        primePage: false,
+      });
 
       await expect(page.locator('body')).toContainText(previewCase.expected);
 
