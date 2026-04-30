@@ -354,6 +354,94 @@ async function loginToWpAdmin(page, username, password) {
   return false;
 }
 
+async function openWpAdminPage(page, adminFixture, path, verifyReady, options = {}) {
+  const maxAttempts = Math.max(1, options.maxAttempts || 4);
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const loggedIn = await loginToWpAdmin(
+        page,
+        adminFixture.username,
+        adminFixture.password
+      );
+
+      expect(loggedIn).toBeTruthy();
+
+      await gotoAndStabilize(page, path, {
+        maxAttempts: 7,
+        primePage: false,
+        waitForImages: false,
+      });
+
+      if (page.url().includes('/wp-login.php')) {
+        throw new Error(`Admin page redirected to login: ${path}`);
+      }
+
+      await verifyReady(page);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt >= maxAttempts) {
+        break;
+      }
+
+      await page.goto('about:blank').catch(() => null);
+      await page.waitForTimeout(500 * attempt);
+    }
+  }
+
+  throw lastError || new Error(`Admin page did not stabilize: ${path}`);
+}
+
+async function openWpAdminPopup(page, triggerSelector, verifyReady, options = {}) {
+  const maxAttempts = Math.max(1, options.maxAttempts || 3);
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let popup = null;
+
+    try {
+      const popupPromise = page.waitForEvent('popup');
+      await page.locator(triggerSelector).click();
+      popup = await popupPromise;
+
+      await popup.waitForURL((url) => url.toString() !== 'about:blank', {
+        timeout: 10_000,
+      });
+      await waitForSettledLoad(popup);
+
+      if (popup.url().includes('/wp-login.php')) {
+        throw new Error(`Admin popup redirected to login: ${popup.url()}`);
+      }
+
+      if (await isTransientGatewayPage(popup)) {
+        throw new Error(`Transient admin popup detected: ${popup.url()}`);
+      }
+
+      await disableMotion(popup);
+
+      await verifyReady(popup);
+      return popup;
+    } catch (error) {
+      lastError = error;
+
+      if (popup) {
+        await popup.close().catch(() => null);
+      }
+
+      if (attempt >= maxAttempts) {
+        break;
+      }
+
+      await page.waitForTimeout(500 * attempt);
+    }
+  }
+
+  throw lastError || new Error(`Admin popup did not stabilize for ${triggerSelector}`);
+}
+
 module.exports = {
   ensureCheckoutReadyFromCategory,
   gotoAndStabilize,
@@ -361,6 +449,8 @@ module.exports = {
   interactWithPrimaryCardAddToCart,
   loginFromAccount,
   loginToWpAdmin,
+  openWpAdminPage,
+  openWpAdminPopup,
   openFirstProductFromCategory,
   primeFullPage,
 };

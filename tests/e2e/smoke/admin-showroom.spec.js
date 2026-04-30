@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { openWpAdminPage } = require('../helpers/ui');
 
 async function openAdminShowroomPage(page, testInfo) {
   const adminFixture =
@@ -11,22 +11,15 @@ async function openAdminShowroomPage(page, testInfo) {
     'The admin fixture is required for showroom admin smoke coverage.'
   );
 
-  const loggedIn = await loginToWpAdmin(
+  await openWpAdminPage(
     page,
-    adminFixture.username,
-    adminFixture.password
-  );
-
-  expect(loggedIn).toBeTruthy();
-
-  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-showroom', {
-    maxAttempts: 5,
-    primePage: false,
-    waitForImages: false,
-  });
-
-  await expect(page.locator('.wrap.bsc-showroom h1').first()).toContainText(
-    'Venta Presencial'
+    adminFixture,
+    '/wp-admin/admin.php?page=bsc-showroom',
+    async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-showroom h1').first()).toContainText(
+        'Venta Presencial'
+      );
+    }
   );
 }
 

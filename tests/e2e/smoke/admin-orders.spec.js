@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { openWpAdminPage, openWpAdminPopup } = require('../helpers/ui');
 
 async function openAdminOrdersPage(page, testInfo) {
   const adminFixture =
@@ -11,22 +11,15 @@ async function openAdminOrdersPage(page, testInfo) {
     'The admin fixture is required for admin smoke coverage.'
   );
 
-  const loggedIn = await loginToWpAdmin(
+  await openWpAdminPage(
     page,
-    adminFixture.username,
-    adminFixture.password
-  );
-
-  expect(loggedIn).toBeTruthy();
-
-  await gotoAndStabilize(page, '/wp-admin/admin.php?page=bsc-orders', {
-    maxAttempts: 5,
-    primePage: false,
-    waitForImages: false,
-  });
-
-  await expect(page.locator('.wrap.bsc-admin-orders h1').first()).toContainText(
-    'Pedidos BSC'
+    adminFixture,
+    '/wp-admin/admin.php?page=bsc-orders',
+    async (currentPage) => {
+      await expect(currentPage.locator('.wrap.bsc-admin-orders h1').first()).toContainText(
+        'Pedidos BSC'
+      );
+    }
   );
 }
 
@@ -55,18 +48,19 @@ test.describe('BSC admin orders smoke', () => {
     const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
     await expect(firstCheckbox).toBeVisible();
     await firstCheckbox.check();
+    await page.locator('#bsc-orders-form').evaluate((form) => form.setAttribute('target', '_blank'));
 
-    const popupPromise = page.waitForEvent('popup');
-    await page.locator('#bsc-packing-btn').click();
-    const popup = await popupPromise;
-
-    await popup.waitForLoadState('domcontentloaded');
-    await popup.waitForLoadState('load');
-
-    await expect(popup.locator('body.bsc-packing-view').first()).toBeVisible();
-    await expect(popup.locator('.bsc-packing-view__order-card').first()).toBeVisible();
+    const popup = await openWpAdminPopup(
+      page,
+      '#bsc-packing-btn',
+      async (currentPopup) => {
+        await expect(currentPopup.locator('body.bsc-packing-view').first()).toBeVisible();
+        await expect(currentPopup.locator('.bsc-packing-view__order-card').first()).toBeVisible();
+      }
+    );
 
     await popup.close();
+    await page.locator('#bsc-orders-form').evaluate((form) => form.removeAttribute('target'));
   });
 
   test('order labels view opens in a new tab for a selected order', async ({ page }, testInfo) => {
@@ -80,19 +74,22 @@ test.describe('BSC admin orders smoke', () => {
     const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
     await expect(firstCheckbox).toBeVisible();
     await firstCheckbox.check();
+    await page.locator('#bsc-orders-form').evaluate((form) => form.setAttribute('target', '_blank'));
 
-    const popupPromise = page.waitForEvent('popup');
-    await page.locator('#bsc-labels-btn').click();
-    const popup = await popupPromise;
-
-    await popup.waitForLoadState('domcontentloaded');
-    await popup.waitForLoadState('load');
-
-    await expect(popup.locator('body.bsc-order-label-print').first()).toBeVisible();
-    await expect(popup.locator('.bsc-labels-toolbar').first()).toBeVisible();
-    await expect(popup.locator('.bsc-print-label').first()).toBeVisible();
-    await expect(popup.locator('[data-bsc-label-action=\"download-pdf\"]').first()).toBeVisible();
+    const popup = await openWpAdminPopup(
+      page,
+      '#bsc-labels-btn',
+      async (currentPopup) => {
+        await expect(currentPopup.locator('body.bsc-order-label-print').first()).toBeVisible();
+        await expect(currentPopup.locator('.bsc-labels-toolbar').first()).toBeVisible();
+        await expect(currentPopup.locator('.bsc-print-label').first()).toBeVisible();
+        await expect(
+          currentPopup.locator('[data-bsc-label-action=\"download-pdf\"]').first()
+        ).toBeVisible();
+      }
+    );
 
     await popup.close();
+    await page.locator('#bsc-orders-form').evaluate((form) => form.removeAttribute('target'));
   });
 });
