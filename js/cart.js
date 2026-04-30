@@ -20,6 +20,19 @@ jQuery(function ($) {
     checkoutItem: '.checkout-cart__item',
   };
 
+  function setControlBusy($control, isBusy) {
+    $control.toggleClass('is-busy', isBusy);
+    $control.find(SELECTORS.plusBtn + ', ' + SELECTORS.minusBtn + ', ' + SELECTORS.deleteBtn)
+      .prop('disabled', isBusy);
+  }
+
+  function syncCartCount(count) {
+    if (count === undefined || count === null) return;
+
+    $(SELECTORS.footerCount).text(count);
+    $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+  }
+
   // BSC-017: floating cart swing animation helper
   function triggerCartSwing() {
     const $cart = $(SELECTORS.footerCart);
@@ -155,62 +168,79 @@ jQuery(function ($) {
     const $control = $btn.closest(SELECTORS.quantityControls + ', .bsc-checkout-cart--controls');
     const $value = $control.find(SELECTORS.quantityValue);
     const productId = $control.data('product_id');
+    const cartItemKey = $control.data('item-key') || $control.closest(SELECTORS.checkoutItem).data('item-key') || '';
+
+    if ($control.data('processing')) return;
 
     let current = parseInt($value.text(), 10);
+    if (Number.isNaN(current)) current = 0;
+
     const isPlus = $btn.hasClass('bsc__qty-plus');
     const newQty = isPlus ? current + 1 : current - 1;
 
     if (newQty < 0) return;
 
-    $value.text(newQty); // optimistic display update
-    $btn.addClass('bsc-loading'); // BSC-019: show spinner on +/- button
+    $value.text(newQty);
+    $btn.addClass('bsc-loading');
+    $control.data('processing', true);
+    setControlBusy($control, true);
 
     $.post(bsc_ajax.ajax_url, {
       action: 'update_cart_quantity',
       product_id: productId,
+      cart_item_key: cartItemKey,
       quantity: isPlus ? 1 : -1,
       nonce: bsc_ajax.nonce,
     }).done((response) => {
-      const cartCount = response?.data?.cart_count;
-      const itemTotal = response?.data?.item_total;
-
-      // Update footer badge â€” source of truth from server
-      if (cartCount !== undefined) {
-        $(SELECTORS.footerCount).text(cartCount);
-        $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cartCount} items`);
+      if (!response?.success) {
+        $value.text(current);
+        return;
       }
 
-      // I-2: Update per-item total in both checkout sidebar and cart page table
+      const cartCount = response?.data?.cart_count;
+      const itemTotal = response?.data?.item_total;
+      const serverQty = response?.data?.new_qty;
+      const serverKey = response?.data?.cart_item_key || cartItemKey;
+      const serverProductId = response?.data?.product_id || productId;
+      const wasRemoved = response?.data?.removed === true;
+
+      syncCartCount(cartCount);
+
+      if (serverQty !== undefined) {
+        $value.text(serverQty);
+      }
+
       if (itemTotal) {
         $control.closest('.checkout-cart__item').find('.item__total').html(itemTotal);
         $control.closest('tr').find('.bsc__cart-subtotal').html(itemTotal);
       }
 
-      // Update visible qty badge in checkout sidebar label
-      $control.closest('.checkout-cart__item').find('label span').text(newQty);
+      $control.closest('.checkout-cart__item').find('label span').text(serverQty || newQty);
 
-      // BSC-017: swing the floating cart button when quantity increases
       if (isPlus) triggerCartSwing();
 
       refreshCartFragments();
       if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
 
-      if (newQty === 0) {
-        // Remove checkout sidebar item
-        $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
-        // I-2: Remove cart page table row
+      if (wasRemoved || newQty === 0) {
+        if (serverKey) {
+          $(".checkout-cart__item[data-item-key=\"" + serverKey + "\"]").remove();
+        } else {
+          $(".checkout-cart__item[data-product_id=\"" + serverProductId + "\"]").remove();
+        }
+
         $control.closest('tr').remove();
-        // Show add-to-cart button on product cards (tag-agnostic selector)
-        $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).removeClass('bsc__button-add-to-cart--hidden');
+        $("[data-product_id=\"" + serverProductId + "\"].bsc__button-add-to-cart").removeClass('bsc__button-add-to-cart--hidden');
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
     }).fail((xhr) => {
-      // Revert optimistic display on server failure
-      console.error('âŒ Update failed:', xhr.responseText);
+      console.error('BSC: cart quantity update failed:', xhr.responseText);
       $value.text(current);
     }).always(() => {
-      $btn.removeClass('bsc-loading'); // BSC-019: remove spinner
+      $btn.removeClass('bsc-loading');
+      $control.data('processing', false);
+      setControlBusy($control, false);
     });
   };
 

@@ -12,6 +12,10 @@ function bsc_ajax_add_to_cart_handler() {
 	$product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['product_id'] ?? 0));
 	$quantity   = empty($_POST['quantity']) ? 1 : wc_stock_amount($_POST['quantity']);
 
+	if ($product_id < 1 || $quantity < 1) {
+		wp_send_json_error(['error' => 'Producto o cantidad inválida.'], 400);
+	}
+
 	$added = WC()->cart->add_to_cart($product_id, $quantity);
 
 	if ($added) {
@@ -33,15 +37,19 @@ function bsc_update_cart_quantity() {
 		wp_send_json_error(['message' => 'Missing required fields'], 400);
 	}
 
-	$product_id = intval($_POST['product_id']);
-	$delta      = intval($_POST['quantity']); // This is the change (+1 or -1)
+	$product_id    = intval($_POST['product_id']);
+	$requested_cart_item_key = isset($_POST['cart_item_key']) ? sanitize_text_field(wp_unslash($_POST['cart_item_key'])) : '';
+	$delta         = intval($_POST['quantity']); // This is the change (+1 or -1)
 
-	if ($product_id < 1) {
-		wp_send_json_error(['message' => 'Invalid product ID'], 400);
+	if ($delta === 0) {
+		wp_send_json_error(['message' => 'Invalid quantity delta'], 400);
 	}
 
 	foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-		if ($cart_item['product_id'] == $product_id) {
+		$is_target_key = $requested_cart_item_key !== '' && $cart_item_key === $requested_cart_item_key;
+		$is_target_product = $requested_cart_item_key === '' && $product_id > 0 && (int) $cart_item['product_id'] === $product_id;
+
+		if ($is_target_key || $is_target_product) {
 			$current_qty = $cart_item['quantity'];
 			$new_qty = $current_qty + $delta;
 
@@ -53,10 +61,17 @@ function bsc_update_cart_quantity() {
 				wp_send_json_success([
 					'message'    => 'Product removed from cart',
 					'cart_count' => WC()->cart->get_cart_contents_count(),
+					'removed'    => true,
+					'cart_item_key' => $cart_item_key,
+					'product_id' => (int) $cart_item['product_id'],
 				]);
 			}
 
-			WC()->cart->set_quantity($cart_item_key, $new_qty);
+			$updated = WC()->cart->set_quantity($cart_item_key, $new_qty, true);
+			if (!$updated) {
+				wp_send_json_error(['message' => 'No se pudo actualizar la cantidad'], 409);
+			}
+
 			WC()->cart->calculate_totals();
 			wc_clear_notices();
 			wp_send_json_success([
@@ -64,6 +79,8 @@ function bsc_update_cart_quantity() {
 				'new_qty'    => $new_qty,
 				'cart_count' => WC()->cart->get_cart_contents_count(),
 				'item_total' => wc_price($new_qty * $cart_item['data']->get_price()),
+				'cart_item_key' => $cart_item_key,
+				'product_id' => (int) $cart_item['product_id'],
 			]);
 		}
 	}
