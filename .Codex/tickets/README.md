@@ -1,20 +1,25 @@
 # BSC Active Ticket Queue
 
-This folder is the active Codex ticket queue. Completed historical tickets should be moved out of the active queue after their delivery commit is accepted.
+This folder is intentionally quiet.
 
-## Active Now
+Completed tickets are removed after their delivery commits are accepted. Use git history, `CHANGELOG.md`, and `MVP2_RELEASE_STATUS.md` for completed work.
 
-- `BSC-158-visible-mojibake-cleanup.md`
-- `BSC-159-checkout-cart-edge-case-hardening.md`
-- `BSC-160-packing-stock-source-deduction.md`
-- `BSC-161-ticket-docs-release-cleanup.md`
+## Create A New Ticket
 
-## Cleanup Rule
+Add one file per active delivery:
 
-If a ticket is already implemented, tested, and represented in the changelog or release notes, remove it from this active queue or archive it outside the active ticket folder. Keep new work ticket-driven and one delivery per ticket.
+```text
+BSC-###-short-title.md
+```
 
-## Current Sweep Notes
+Each ticket must include:
 
-- Older `BSC-058` through `BSC-157` files appear to be completed delivery records from prior MVP2 work.
-- They should not be treated as open implementation work unless a fresh regression is reported.
-- This sweep leaves the historical files in place for traceability and creates a clear active index first.
+- objective
+- context
+- files to inspect
+- implementation plan
+- acceptance criteria
+- manual QA
+- rollback notes
+
+After implementation, validation, commit, and acceptance, delete the ticket file from this folder.

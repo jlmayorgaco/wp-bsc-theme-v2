@@ -218,7 +218,7 @@ coupons → js/coupons.js
 mobile menu → js/mobile-menu.js
 search → js/search.js
 Docs / AI context
-ticket files → .claude/tickets/
+ticket files -> .Codex/tickets/
 reusable instructions → .claude/skills/
 checklists → .claude/checklists/
 module docs → docs/

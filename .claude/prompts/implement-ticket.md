@@ -8,7 +8,7 @@ Complete the assigned ticket safely, minimally, and fully, without introducing u
 ## Mandatory context
 Before doing anything, read:
 1. `CLAUDE.md`
-2. the active ticket file in `.claude/tickets/`
+2. the active ticket file in `.Codex/tickets/`
 3. any directly relevant docs only:
    - `.claude/context/architecture-summary.md`
    - `.claude/context/coding-rules.md`
