@@ -104,7 +104,7 @@ class BSC_BP_List_Table extends WP_List_Table {
         }
     }
 
-    private function column_actions($item) {
+    public function column_actions($item) {
         $user_id     = (int)$item->ID;
         $history_url = admin_url('admin.php?page=bsc-bubble-points&user_id='.$user_id);
 
@@ -119,11 +119,11 @@ class BSC_BP_List_Table extends WP_List_Table {
             <?php esc_html_e('View history', 'bsc'); ?>
         </a>
 
-        <form method="post" action="<?php echo esc_url($action_url); ?>" class="bsc-bp-inline-form" style="display:inline-flex; gap:6px; margin-left:8px; align-items:center;">
+        <form method="post" action="<?php echo esc_url($action_url); ?>" class="bsc-bp-inline-form">
             <input type="hidden" name="user_id" value="<?php echo (int)$user_id; ?>" />
             <label class="screen-reader-text" for="delta-<?php echo (int)$user_id; ?>"><?php esc_html_e('Points delta', 'bsc'); ?></label>
-            <input id="delta-<?php echo (int)$user_id; ?>" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" style="width:110px" required />
-            <input type="text" name="note" placeholder="<?php esc_attr_e('Note', 'bsc'); ?>" style="width:160px" />
+            <input id="delta-<?php echo (int)$user_id; ?>" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" class="bsc-bp-inline-form__amount" required />
+            <input type="text" name="note" placeholder="<?php esc_attr_e('Note', 'bsc'); ?>" class="bsc-bp-inline-form__note" />
             <button class="button button-small" type="submit" name="op" value="add"><?php esc_html_e('Add', 'bsc'); ?></button>
             <button class="button button-small" type="submit" name="op" value="reduce"><?php esc_html_e('Reduce', 'bsc'); ?></button>
         </form>

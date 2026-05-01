@@ -1,22 +1,35 @@
-jQuery(function ($) {
+﻿jQuery(function ($) {
   const selectors = {
-    input:       '#bsc__coupon-input',
-    applyBtn:    '#apply_coupon',
-    couponList:  '#applied_coupons_list',
-    section:     '.applied-coupons',
-    subtotal:    '#review__summary--subtotal',
-    discounted:  '#review__summary--subtotal-discounted',
-    shipping:    '#review__summary--shipping',
-    total:       '#review__summary--total',
-    noticeWrap:  '#bsc__coupon-notice',
+    input: '#bsc__coupon-input',
+    applyBtn: '#apply_coupon',
+    couponList: '#applied_coupons_list',
+    section: '.applied-coupons',
+    subtotal: '#review-summary__subtotal',
+    discounted: '#review-summary__subtotal-discounted',
+    shipping: '#review-summary__shipping',
+    total: '#review-summary__total',
+    cartCount: '#review-summary__cart-count',
+    noticeWrap: '#bsc__coupon-notice',
   };
 
-  const $input         = $(selectors.input);
-  const $applyBtn      = $(selectors.applyBtn);
-  const $couponList    = $(selectors.couponList);
-  const $couponSection = $(selectors.section);
+  const $input = $(selectors.input);
+  const $applyBtn = $(selectors.applyBtn);
+
+  if (!$input.length || !$applyBtn.length) {
+    return;
+  }
 
   let noticeTimer = null;
+  let couponsRequest = null;
+  let couponMutationId = 0;
+
+  function getCouponList() {
+    return $(selectors.couponList).first();
+  }
+
+  function getCouponSection() {
+    return $(selectors.section).first();
+  }
 
   function hideNotice() {
     $(selectors.noticeWrap).removeClass('is-visible');
@@ -26,15 +39,15 @@ jQuery(function ($) {
     let $notice = $(selectors.noticeWrap);
 
     if (!$notice.length) {
-      $notice = $(`
-        <div id="bsc__coupon-notice" class="bsc__coupon-notice" role="status" aria-live="polite" aria-atomic="true">
-          <div class="bsc__coupon-notice-content">
-            <strong class="bsc__coupon-notice-title"></strong>
-            <span class="bsc__coupon-notice-message"></span>
-          </div>
-          <button type="button" class="bsc__coupon-notice-close" aria-label="Cerrar mensaje">Cerrar</button>
-        </div>
-      `);
+      $notice = $(
+        '<div id="bsc__coupon-notice" class="bsc__coupon-notice" role="status" aria-live="polite" aria-atomic="true">' +
+          '<div class="bsc__coupon-notice-content">' +
+            '<strong class="bsc__coupon-notice-title"></strong>' +
+            '<span class="bsc__coupon-notice-message"></span>' +
+          '</div>' +
+          '<button type="button" class="bsc__coupon-notice-close" aria-label="Cerrar mensaje">Cerrar</button>' +
+        '</div>'
+      );
 
       $('body').append($notice);
       $notice.find('.bsc__coupon-notice-close').on('click', hideNotice);
@@ -45,10 +58,10 @@ jQuery(function ($) {
 
   function showNotice(message, type = 'info') {
     const labels = {
-      success: 'Cupón aplicado',
-      error: 'Revisa el cupón',
-      warning: 'Falta el cupón',
-      info: 'Cupón',
+      success: 'Cup\u00f3n aplicado',
+      error: 'Revisa el cup\u00f3n',
+      warning: 'Falta el cup\u00f3n',
+      info: 'Cup\u00f3n',
     };
     const safeType = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
     const $notice = ensureNotice();
@@ -69,82 +82,87 @@ jQuery(function ($) {
   }
 
   function getCouponIconPath() {
-    const themeUri = (window.bsc_ajax && window.bsc_ajax.theme_uri)
+    const themeUri = window.bsc_ajax && window.bsc_ajax.theme_uri
       ? window.bsc_ajax.theme_uri
       : window.location.origin + '/wp-content/themes/wp-bsc-theme-v2';
+
     return themeUri + '/images/bsc_image_coupons.png';
   }
 
-  const ajaxPost = (action, data = {}, callback) => (
-    $.post(bsc_ajax.ajax_url, { action, nonce: bsc_ajax.nonce, ...data }, callback, 'json')
-  );
+  function ajaxPost(action, data = {}, callback) {
+    return $.post(bsc_ajax.ajax_url, { action, nonce: bsc_ajax.nonce, ...data }, callback, 'json');
+  }
 
-  const updateTotals = (data) => {
-    if (!data) return;
-    const { subtotal, subtotal_after_discounted, shipping_total, cart_total } = data;
-    if (subtotal)                  $(selectors.subtotal).html(subtotal);
-    if (subtotal_after_discounted) $(selectors.discounted).html(subtotal_after_discounted);
-    if (shipping_total)            $(selectors.shipping).html(shipping_total);
-    if (cart_total)                $(selectors.total).html(`<strong>${cart_total}</strong>`);
-  };
-
-  const renderCouponItem = (coupon) => {
-    const iconPath = getCouponIconPath();
-    return `
-      <li class="applied-coupon-item" data-coupon="${coupon.code}">
-        <img src="${iconPath}" alt="Cupón" class="coupon-icon" />
-        <strong class="coupon-code">${coupon.code}</strong>
-        <label class="remove-coupon"><span>X</span></label>
-      </li>
-    `;
-  };
-
-  const applyCoupon = () => {
-    const code = $input.val().trim();
-    if (!code) {
-      showNotice('Ingresa un código de cupón para aplicarlo.', 'warning');
+  function updateTotals(data) {
+    if (!data) {
       return;
     }
 
-    $applyBtn.addClass('bsc-loading').prop('disabled', true); // BSC-019
+    const hasOwn = (key) => Object.prototype.hasOwnProperty.call(data, key);
+    const { subtotal, subtotal_after_discounted, shipping_total, cart_total, cart_count } = data;
 
-    ajaxPost('apply_coupon', { coupon_code: code }, (res) => {
-      $applyBtn.removeClass('bsc-loading').prop('disabled', false); // BSC-019
+    if (hasOwn('subtotal') && $(selectors.subtotal).length) {
+      $(selectors.subtotal).html(subtotal);
+    }
 
-      if (!res.success) {
-        showNotice(res.data?.message || 'No pudimos aplicar este cupón.', res.data?.status || 'error');
+    if (hasOwn('subtotal_after_discounted') && $(selectors.discounted).length) {
+      $(selectors.discounted).html(subtotal_after_discounted);
+    }
+
+    if (hasOwn('shipping_total') && $(selectors.shipping).length) {
+      $(selectors.shipping).html(shipping_total);
+    }
+
+    if (hasOwn('cart_total') && $(selectors.total).length) {
+      $(selectors.total).html('<strong>' + cart_total + '</strong>');
+    }
+
+    if (hasOwn('cart_count') && $(selectors.cartCount).length) {
+      $(selectors.cartCount).text(cart_count);
+    }
+  }
+
+  function syncCheckoutState(payload = null) {
+    updateTotals(payload);
+
+    if ($('form[name="checkout"]').length) {
+      $('body').trigger('update_checkout');
+    }
+
+    if (typeof window.refreshReviewSummary === 'function') {
+      return window.refreshReviewSummary();
+    }
+
+    return null;
+  }
+
+  function renderCouponItem(coupon) {
+    const iconPath = getCouponIconPath();
+
+    return (
+      '<li class="applied-coupon-item" data-coupon="' + coupon.code + '">' +
+        '<img src="' + iconPath + '" alt="Cup\u00f3n" class="coupon-icon" />' +
+        '<strong class="coupon-code">' + coupon.code + '</strong>' +
+        '<button type="button" class="remove-coupon bsc__coupon-remove" aria-label="Eliminar cup\u00f3n ' + coupon.code + '"><span aria-hidden="true">X</span></button>' +
+      '</li>'
+    );
+  }
+
+  function fetchCoupons(mutationId = null) {
+    if (couponsRequest && couponsRequest.readyState !== 4) {
+      couponsRequest.abort();
+    }
+
+    couponsRequest = ajaxPost('get_applied_coupons', {}, (res) => {
+      if (mutationId !== null && mutationId !== couponMutationId) {
         return;
       }
 
-      showNotice(res.data?.message || 'Cupón agregado exitosamente.', res.data?.status || 'success');
-      $input.val('');
-      updateTotals(res.data);
-      fetchCoupons();
-    }).fail(() => {
-      $applyBtn.removeClass('bsc-loading').prop('disabled', false); // BSC-019
-      showNotice('Hubo un problema al validar el cupón. Inténtalo de nuevo.', 'error');
-    });
-  };
+      const $couponSection = getCouponSection();
+      const $couponList = getCouponList();
 
-  const removeCoupon = (code) => {
-    ajaxPost('remove_coupon', { coupon_code: code }, (res) => {
-      if (!res.success) {
-        showNotice(res.data?.message || 'No se pudo eliminar el cupón.', res.data?.status || 'error');
-        return;
-      }
-
-      showNotice(res.data?.message || 'Cupón eliminado.', res.data?.status || 'success');
-      updateTotals(res.data);
-      fetchCoupons();
-    }).fail(() => {
-      showNotice('Hubo un problema al eliminar el cupón. Inténtalo de nuevo.', 'error');
-    });
-  };
-
-  const fetchCoupons = () => {
-    ajaxPost('get_applied_coupons', {}, (res) => {
       if (!res.success || !Array.isArray(res.data?.coupons) || res.data.coupons.length === 0) {
-        $couponSection.hide();
+        $couponSection.removeClass('is-visible').hide();
         $couponList.empty();
         return;
       }
@@ -154,26 +172,88 @@ jQuery(function ($) {
         $couponList.append(renderCouponItem(coupon));
       });
 
-      $couponSection.show();
-      $('body').trigger('update_checkout');
+      $couponSection.addClass('is-visible').show();
+    }).always(() => {
+      couponsRequest = null;
     });
-  };
+  }
 
-  $input.on('keypress', (e) => {
-    if (e.which === 13) {
-      e.preventDefault();
+  function applyCoupon() {
+    const code = $input.val().trim();
+
+    if (!code) {
+      showNotice('Ingresa un c\u00f3digo de cup\u00f3n para aplicarlo.', 'warning');
+      return;
+    }
+
+    $applyBtn.addClass('bsc-loading').prop('disabled', true);
+
+    ajaxPost('apply_coupon', { coupon_code: code }, (res) => {
+      $applyBtn.removeClass('bsc-loading').prop('disabled', false);
+
+      if (!res.success) {
+        showNotice(res.data?.message || 'No pudimos aplicar este cup\u00f3n.', res.data?.status || 'error');
+        return;
+      }
+
+      showNotice(res.data?.message || 'Cup\u00f3n agregado exitosamente.', res.data?.status || 'success');
+      $input.val('');
+      couponMutationId += 1;
+      syncCheckoutState(res.data);
+      fetchCoupons(couponMutationId);
+    }).fail(() => {
+      $applyBtn.removeClass('bsc-loading').prop('disabled', false);
+      showNotice('Hubo un problema al validar el cup\u00f3n. Int\u00e9ntalo de nuevo.', 'error');
+    });
+  }
+
+  function removeCoupon(code) {
+    ajaxPost('remove_coupon', { coupon_code: code }, (res) => {
+      if (!res.success) {
+        showNotice(res.data?.message || 'No se pudo eliminar el cup\u00f3n.', res.data?.status || 'error');
+        return;
+      }
+
+      const $couponSection = getCouponSection();
+      const $couponList = getCouponList();
+      const normalizedCode = String(code).toLowerCase();
+      $couponList
+        .find('.applied-coupon-item')
+        .filter(function () {
+          return String($(this).data('coupon')).toLowerCase() === normalizedCode;
+        })
+        .remove();
+
+      if (!$couponList.children().length) {
+        $couponSection.removeClass('is-visible').hide();
+      }
+
+      showNotice(res.data?.message || 'Cup\u00f3n eliminado.', res.data?.status || 'success');
+      couponMutationId += 1;
+      syncCheckoutState(res.data);
+      fetchCoupons(couponMutationId);
+    }).fail(() => {
+      showNotice('Hubo un problema al eliminar el cup\u00f3n. Int\u00e9ntalo de nuevo.', 'error');
+    });
+  }
+
+  $input.on('keypress', (event) => {
+    if (event.which === 13) {
+      event.preventDefault();
       applyCoupon();
     }
   });
 
-  $applyBtn.on('click', (e) => {
-    e.preventDefault();
+  $applyBtn.on('click', (event) => {
+    event.preventDefault();
     applyCoupon();
   });
 
   $(document).on('click', '.remove-coupon', function () {
     const code = $(this).closest('li').data('coupon');
-    if (code) removeCoupon(code);
+    if (code) {
+      removeCoupon(code);
+    }
   });
 
   fetchCoupons();

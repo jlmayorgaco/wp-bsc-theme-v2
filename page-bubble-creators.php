@@ -103,12 +103,12 @@ get_header();
           <textarea id="bc-message" name="mensaje" rows="4" placeholder="¿Qué tipo de contenido creas? ¿Por qué quieres colaborar con BSC?"></textarea>
         </div>
 
-        <p class="bc__form-feedback bc__form-feedback--error" id="bc-form-error" style="display:none;"></p>
+        <p class="bc__form-feedback bc__form-feedback--error" id="bc-form-error"></p>
 
         <button type="submit" class="bc__form-submit" id="bc-form-submit">Enviar solicitud</button>
       </form>
 
-      <div class="bc__form-success" id="bc-form-success" style="display:none;">
+      <div class="bc__form-success" id="bc-form-success">
         <div class="bc__form-success-inner">
           <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_icon_white_heart.png" alt="">
           <p id="bc-form-success-msg"></p>
@@ -118,40 +118,5 @@ get_header();
   </section>
 
 </main>
-
-<script>
-(function($){
-  $('#bc-creator-form').on('submit', function(e) {
-    e.preventDefault();
-    var $btn   = $('#bc-form-submit');
-    var $error = $('#bc-form-error');
-
-    $error.hide().text('');
-    $btn.prop('disabled', true).text('Enviando…');
-
-    $.post(bsc_ajax.ajax_url, {
-      action:    'bsc_creator_apply',
-      nonce:     bsc_ajax.nonce,
-      nombre:    $('#bc-name').val().trim(),
-      email:     $('#bc-email').val().trim(),
-      instagram: $('#bc-instagram').val().trim(),
-      tiktok:    $('#bc-tiktok').val().trim(),
-      mensaje:   $('#bc-message').val().trim()
-    }).done(function(res) {
-      if (res.success) {
-        $('#bc-creator-form').hide();
-        $('#bc-form-success-msg').text(res.data.message);
-        $('#bc-form-success').show();
-      } else {
-        $error.text(res.data.message || 'Hubo un error. Intenta nuevamente.').show();
-        $btn.prop('disabled', false).text('Enviar solicitud');
-      }
-    }).fail(function() {
-      $error.text('Error de conexión. Por favor intenta nuevamente.').show();
-      $btn.prop('disabled', false).text('Enviar solicitud');
-    });
-  });
-})(jQuery);
-</script>
 
 <?php get_footer(); ?>

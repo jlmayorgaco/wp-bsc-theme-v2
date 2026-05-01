@@ -1,0 +1,75 @@
+.bsc-coupon-create-panel {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin: 16px 0;
+  max-width: 800px;
+}
+
+.bsc-coupon-create-panel h2 {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
+.bsc-admin-coupons__form-table {
+  max-width: 700px;
+}
+
+.bsc-admin-coupons__code-input {
+  text-transform: uppercase;
+}
+
+.bsc-admin-coupons__section-title {
+  margin-top: 2rem;
+}
+
+.bsc-admin-coupons__empty {
+  color: #888;
+}
+
+.bsc-admin-coupons__code-col {
+  width: 140px;
+}
+
+.bsc-admin-coupons__value-col {
+  width: 100px;
+}
+
+.bsc-admin-coupons__expiry-col {
+  width: 110px;
+}
+
+.bsc-admin-coupons__limit-col,
+.bsc-admin-coupons__usage-col {
+  width: 80px;
+}
+
+.bsc-admin-coupons__actions-col {
+  width: 120px;
+}
+
+.bsc-admin-coupons__expired {
+  opacity: 0.6;
+}
+
+.bsc-admin-coupons__code {
+  font-family: monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.bsc-admin-coupons__expired-badge {
+  color: #c53030;
+  font-size: 11px;
+}
+
+.bsc-admin-coupons__description {
+  color: #666;
+  font-size: 12px;
+}
+
+.bsc-admin-coupons__delete {
+  color: #c53030;
+  border-color: #c53030;
+}

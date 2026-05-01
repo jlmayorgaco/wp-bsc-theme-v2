@@ -1,18 +1,32 @@
 <?php
 /**
  * BSC-031: Admin orders page render + AJAX handlers.
- * BSC-033: bsc_save_tracking → auto status 'shipped' + shipping email.
+ * BSC-033: bsc_save_tracking â†’ auto status 'shipped' + shipping email.
  * BSC-034: CSV export + packing print view via bulk actions.
  */
 defined('ABSPATH') || exit;
 
 require_once get_template_directory() . '/admin/class-bsc-orders-table.php';
+require_once get_template_directory() . '/admin/class-bsc-order-labels.php';
 
-// ── Enqueue admin JS only on BSC orders page ──────────────────────────
+// â”€â”€ Enqueue admin JS only on BSC orders page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_enqueue_scripts', function ( string $hook ) {
-    if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'bsc-orders' ) return;
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-orders' !== $page ) {
+        return;
+    }
 
     $js_path = get_template_directory() . '/js/bsc-admin-orders.js';
+    $css_path = get_template_directory() . '/admin/bsc-admin-orders.css';
+
+    wp_enqueue_style(
+        'bsc-admin-orders',
+        get_template_directory_uri() . '/admin/bsc-admin-orders.css',
+        array(),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+
     wp_enqueue_script(
         'bsc-admin-orders',
         get_template_directory_uri() . '/js/bsc-admin-orders.js',
@@ -23,10 +37,19 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
     wp_localize_script( 'bsc-admin-orders', 'bscOrders', [
         'ajax_url' => admin_url( 'admin-ajax.php' ),
         'nonce'    => wp_create_nonce( 'bsc_admin_orders' ),
+        'strings'  => [
+            'saved'           => 'Elemento guardado',
+            'saving'          => 'Guardando...',
+            'save'            => 'Guardar',
+            'saveError'       => 'Error al actualizar estado',
+            'trackingError'   => 'Error al guardar tracking',
+            'connectionError' => 'Error de conexion. Intenta de nuevo.',
+            'selectFirst'     => 'Selecciona al menos un pedido primero.',
+        ],
     ] );
 } );
 
-// ── BSC-034: handle bulk export/packing on admin_init ────────────────
+// â”€â”€ BSC-034: handle bulk export/packing on admin_init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Form POSTs back to admin.php?page=bsc-orders (same page).
 // admin_init fires after WooCommerce is ready but before any HTML output.
 add_action( 'admin_init', 'bsc_handle_bulk_export' );
@@ -51,23 +74,65 @@ function bsc_handle_bulk_export(): void {
         bsc_export_orders_csv( $order_ids );
     } elseif ( $action === 'print_packing' ) {
         bsc_render_packing_view( $order_ids );
+    } elseif ( $action === 'print_order_labels' ) {
+        bsc_render_order_labels( $order_ids );
     }
 }
 
-// ── Status tabs config ─────────────────────────────────────────────────
+// â”€â”€ Status tabs config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_orders_status_tabs(): array {
     return [
-        ''             => 'Todos',
-        'pending'      => 'Pendiente',
-        'processing'   => 'Procesando',
-        'wc-preparing' => 'Preparando',
-        'wc-shipped'   => 'Enviado',
-        'completed'    => 'Completado',
-        'cancelled'    => 'Cancelado',
+        ''              => [ 'label' => 'Todos',          'statuses' => [] ],
+        'wc-pending'    => [ 'label' => 'Pendiente',      'statuses' => [ 'pending', 'on-hold' ] ],
+        'wc-processing' => [ 'label' => 'Recibido',       'statuses' => [ 'processing' ] ],
+        'wc-preparing'  => [ 'label' => 'En preparación', 'statuses' => [ 'preparing' ] ],
+        'wc-shipped'    => [ 'label' => 'Enviado',        'statuses' => [ 'shipped' ] ],
+        'wc-completed'  => [ 'label' => 'Terminado',      'statuses' => [ 'completed' ] ],
+        'wc-cancelled'  => [ 'label' => 'Cancelado',      'statuses' => [ 'cancelled', 'failed', 'refunded' ] ],
     ];
 }
 
-// ── Page render ───────────────────────────────────────────────────────
+function bsc_normalize_order_status_slug( string $status ): string {
+    return preg_replace( '/^wc-/', '', $status );
+}
+
+function bsc_normalize_order_statuses( array $statuses ): array {
+    return array_values( array_filter( array_map( 'bsc_normalize_order_status_slug', $statuses ) ) );
+}
+
+function bsc_unarchived_orders_meta_query(): array {
+    return [
+        'relation' => 'OR',
+        [
+            'key'     => '_bsc_archived_at',
+            'compare' => 'NOT EXISTS',
+        ],
+        [
+            'key'     => '_bsc_archived_at',
+            'value'   => '',
+            'compare' => '=',
+        ],
+    ];
+}
+
+function bsc_count_orders_for_statuses( array $statuses ): int {
+    $query_args = [
+        'limit'    => 1,
+        'paginate' => true,
+        'return'   => 'ids',
+        'meta_query' => bsc_unarchived_orders_meta_query(),
+    ];
+
+    if ( ! empty( $statuses ) ) {
+        $query_args['status'] = bsc_normalize_order_statuses( $statuses );
+    }
+
+    $result = wc_get_orders( $query_args );
+
+    return (int) ( $result->total ?? 0 );
+}
+
+// â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_orders_page(): void {
     if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
@@ -82,13 +147,18 @@ function bsc_render_orders_page(): void {
     // Status tabs + counts
     $status_tabs = bsc_orders_status_tabs();
     $tab_counts  = [];
-    foreach ( $status_tabs as $slug => $label ) {
-        if ( $slug === '' ) {
-            // Total across all key statuses
-            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => array_values( array_filter( array_keys( $status_tabs ) ) ) ] ) );
-        } else {
-            $tab_counts[$slug] = count( wc_get_orders( [ 'limit' => -1, 'return' => 'ids', 'status' => [ $slug ] ] ) );
-        }
+    $all_statuses = array_values(
+        array_unique(
+            array_merge(
+                [ 'processing', 'on-hold', 'preparing', 'shipped', 'completed', 'cancelled', 'pending', 'failed', 'refunded' ],
+                bsc_normalize_order_statuses( array_keys( BSC_Admin_Orders_Table::STATUS_OPTIONS ) )
+            )
+        )
+    );
+
+    foreach ( $status_tabs as $slug => $config ) {
+        $statuses = $slug === '' ? $all_statuses : (array) ( $config['statuses'] ?? [] );
+        $tab_counts[ $slug ] = bsc_count_orders_for_statuses( $statuses );
     }
 
     // Build query args
@@ -96,7 +166,10 @@ function bsc_render_orders_page(): void {
     if ( $date_start )    $query_args['date_after']  = $date_start . ' 00:00:00';
     if ( $date_end )      $query_args['date_before'] = $date_end   . ' 23:59:59';
     if ( $search )        $query_args['s']           = $search;
-    if ( $active_status ) $query_args['status']      = [ $active_status ];
+    $query_args['meta_query'] = bsc_unarchived_orders_meta_query();
+    if ( $active_status && isset( $status_tabs[ $active_status ] ) ) {
+        $query_args['status'] = bsc_normalize_order_statuses( (array) $status_tabs[ $active_status ]['statuses'] );
+    }
 
     $table = new BSC_Admin_Orders_Table( $query_args );
     $table->prepare_items();
@@ -107,9 +180,9 @@ function bsc_render_orders_page(): void {
         <h1 class="wp-heading-inline">Pedidos BSC</h1>
         <hr class="wp-header-end">
 
-        <!-- ── Status tabs ── -->
+        <!-- â”€â”€ Status tabs â”€â”€ -->
         <nav class="bsc-orders-tabs">
-            <?php foreach ( $status_tabs as $slug => $label ) :
+            <?php foreach ( $status_tabs as $slug => $config ) :
                 $tab_url = $slug
                     ? add_query_arg( 'order_status', $slug, $base_url )
                     : $base_url;
@@ -118,13 +191,13 @@ function bsc_render_orders_page(): void {
             ?>
             <a href="<?php echo esc_url( $tab_url ); ?>"
                class="bsc-orders-tab<?php echo $is_active ? ' bsc-orders-tab--active' : ''; ?>">
-                <?php echo esc_html( $label ); ?>
+                <?php echo esc_html( $config['label'] ); ?>
                 <span class="bsc-tab-count"><?php echo esc_html( $count ); ?></span>
             </a>
             <?php endforeach; ?>
         </nav>
 
-        <!-- ── Filters ── -->
+        <!-- â”€â”€ Filters â”€â”€ -->
         <form method="get" class="bsc-orders-filters">
             <input type="hidden" name="page" value="bsc-orders">
             <?php if ( $active_status ) : ?>
@@ -141,7 +214,7 @@ function bsc_render_orders_page(): void {
             <div>
                 <label>Buscar</label>
                 <input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
-                       placeholder="Nombre, email o # de orden" style="width:220px">
+                       placeholder="Nombre, email o # de orden" class="bsc-orders-search-input">
             </div>
             <button type="submit" class="button button-primary">Filtrar</button>
             <?php if ( $date_start || $date_end || $search ) : ?>
@@ -149,81 +222,32 @@ function bsc_render_orders_page(): void {
             <?php endif; ?>
         </form>
 
-        <!-- ── Table with bulk export form ── -->
+        <!-- â”€â”€ Table with bulk export form â”€â”€ -->
         <!-- Posts back to this same page; bsc_handle_bulk_export() intercepts in admin_init -->
         <form method="post" id="bsc-orders-form"
               action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
             <?php wp_nonce_field( 'bsc_bulk_export', 'bsc_export_nonce' ); ?>
-            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
+            <div class="bsc-orders-bulk-actions">
                 <button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
-                    ⬇ Exportar CSV
+                    Descargar CSV
                 </button>
                 <button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
-                    🖨 Vista de empaque
+                    Vista de empaque
                 </button>
-                <span id="bsc-bulk-msg" style="display:none;color:#c0392b;font-size:13px;margin-left:6px">
+                <button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
+                    Imprimir con datos (PDF)
+                </button>
+                <span id="bsc-bulk-msg" class="bsc-orders-bulk-message">
                     Selecciona al menos un pedido primero.
                 </span>
             </div>
             <?php $table->display(); ?>
         </form>
-
-        <script>
-        (function($){
-            function requireSelection(e) {
-                if ($('input[name="order_ids[]"]:checked').length === 0) {
-                    e.preventDefault();
-                    $('#bsc-bulk-msg').stop(true).fadeIn(150).delay(3000).fadeOut(400);
-                    return false;
-                }
-                return true;
-            }
-
-            // Vista de empaque → open in new tab so orders page stays visible
-            $('#bsc-packing-btn').on('click', function(e) {
-                if (!requireSelection(e)) return;
-                $('#bsc-orders-form').attr('target', '_blank');
-                setTimeout(function() { $('#bsc-orders-form').removeAttr('target'); }, 300);
-            });
-
-            // CSV → same tab (browser downloads file, page stays)
-            $('#bsc-csv-btn').on('click', function(e) {
-                if (!requireSelection(e)) return;
-                $('#bsc-orders-form').removeAttr('target');
-            });
-        })(jQuery);
-        </script>
     </div>
-
-    <style>
-        /* ── Status tabs ── */
-        .bsc-orders-tabs { display:flex; gap:2px; flex-wrap:wrap; margin:16px 0 0; border-bottom:2px solid #ddd; }
-        .bsc-orders-tab {
-            display:inline-flex; align-items:center; gap:6px;
-            padding:8px 14px; font-size:13px; color:#555; text-decoration:none;
-            border:1px solid transparent; border-bottom:none; border-radius:4px 4px 0 0;
-            margin-bottom:-2px; background:#f9f9f9;
-        }
-        .bsc-orders-tab:hover { background:#fff; color:#333; }
-        .bsc-orders-tab--active { background:#fff; color:#000; font-weight:600; border-color:#ddd; border-bottom-color:#fff; }
-        .bsc-tab-count { background:#e1e1e1; color:#555; border-radius:10px; padding:1px 7px; font-size:11px; font-weight:700; }
-        .bsc-orders-tab--active .bsc-tab-count { background:#2271b1; color:#fff; }
-
-        /* ── Filters row ── */
-        .bsc-orders-filters { margin:12px 0 16px; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
-        .bsc-orders-filters label { display:block; font-size:11px; font-weight:600; margin-bottom:3px; text-transform:uppercase; letter-spacing:.3px; color:#555; }
-        .bsc-orders-filters input[type=date], .bsc-orders-filters input[type=search] { padding:5px; }
-
-        /* ── Table ── */
-        .bsc-admin-orders .wp-list-table { font-size:13px; }
-        .bsc-admin-orders .column-tracking input { margin-bottom:4px; }
-        .bsc-admin-orders .column-city { width:90px; }
-        .bsc-admin-orders .column-status { width:170px; }
-    </style>
     <?php
 }
 
-// ── BSC-031: AJAX — update order status ──────────────────────────────
+// â”€â”€ BSC-031: AJAX â€” update order status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'wp_ajax_bsc_update_order_status', 'bsc_ajax_update_order_status' );
 function bsc_ajax_update_order_status(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
@@ -231,18 +255,18 @@ function bsc_ajax_update_order_status(): void {
 
     $order_id = absint( $_POST['order_id'] ?? 0 );
     $status   = sanitize_text_field( $_POST['status'] ?? '' );
-
-    // Strip wc- prefix if present
-    $status = preg_replace( '/^wc-/', '', $status );
+    $allowed_statuses = array_map( 'bsc_normalize_order_status_slug', array_keys( BSC_Admin_Orders_Table::STATUS_OPTIONS ) );
+    $status = bsc_normalize_order_status_slug( $status );
 
     $order = wc_get_order( $order_id );
     if ( ! $order ) wp_send_json_error( ['message' => 'Pedido no encontrado'] );
+    if ( ! in_array( $status, $allowed_statuses, true ) ) wp_send_json_error( ['message' => 'Estado inválido'] );
 
     $order->update_status( $status, 'Estado actualizado desde BSC Admin.' );
     wp_send_json_success( ['message' => 'Estado actualizado', 'status' => $status] );
 }
 
-// ── BSC-031+033: AJAX — save tracking code/link ───────────────────────
+// â”€â”€ BSC-031+033: AJAX â€” save tracking code/link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'wp_ajax_bsc_save_tracking', 'bsc_ajax_save_tracking' );
 function bsc_ajax_save_tracking(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
@@ -271,7 +295,75 @@ function bsc_ajax_save_tracking(): void {
     wp_send_json_success( ['message' => 'Tracking guardado'] );
 }
 
-// ── BSC-033: Send shipping notification email ─────────────────────────
+add_action( 'wp_ajax_bsc_pack_order_item_stock', 'bsc_ajax_pack_order_item_stock' );
+function bsc_ajax_pack_order_item_stock(): void {
+    check_ajax_referer( 'bsc_packing_stock', 'nonce' );
+
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
+        wp_send_json_error( [ 'message' => 'Sin permisos.' ], 403 );
+    }
+
+    if ( ! class_exists( 'BSC_Stock' ) ) {
+        wp_send_json_error( [ 'message' => 'Modulo de stock no disponible.' ], 500 );
+    }
+
+    $order_id = absint( $_POST['order_id'] ?? 0 );
+    $item_id  = absint( $_POST['item_id'] ?? 0 );
+    $source   = sanitize_key( wp_unslash( $_POST['source'] ?? 'bodega' ) );
+
+    if ( ! in_array( $source, [ 'bodega', 'tienda' ], true ) ) {
+        wp_send_json_error( [ 'message' => 'Origen de stock invalido.' ], 400 );
+    }
+
+    $order = wc_get_order( $order_id );
+    if ( ! $order ) {
+        wp_send_json_error( [ 'message' => 'Pedido no encontrado.' ], 404 );
+    }
+
+    $item = $order->get_item( $item_id );
+    if ( ! $item || ! is_a( $item, 'WC_Order_Item_Product' ) ) {
+        wp_send_json_error( [ 'message' => 'Producto del pedido no encontrado.' ], 404 );
+    }
+
+    if ( $item->get_meta( '_bsc_packed_stock_at', true ) ) {
+        wp_send_json_error( [ 'message' => 'Este producto ya fue descontado para empaque.' ], 409 );
+    }
+
+    $product_id = (int) $item->get_product_id();
+    $quantity   = max( 1, (int) $item->get_quantity() );
+    $new_stock  = BSC_Stock::adjust(
+        $product_id,
+        $source,
+        -$quantity,
+        sprintf( 'Empaque pedido #%s item #%d', $order->get_order_number(), $item_id )
+    );
+
+    $item->update_meta_data( '_bsc_packed_stock_source', $source );
+    $item->update_meta_data( '_bsc_packed_stock_at', current_time( 'mysql' ) );
+    $item->update_meta_data( '_bsc_packed_stock_user_id', get_current_user_id() );
+    $item->save();
+
+    $label = ( 'tienda' === $source ) ? 'showroom' : 'bodega';
+    $order->add_order_note(
+        sprintf(
+            'Stock descontado desde %1$s para %2$s x %3$d.',
+            $label,
+            $item->get_name(),
+            $quantity
+        )
+    );
+
+    wp_send_json_success(
+        [
+            'message'   => 'Stock descontado.',
+            'source'    => $source,
+            'label'     => $label,
+            'new_stock' => $new_stock,
+        ]
+    );
+}
+
+// â”€â”€ BSC-033: Send shipping notification email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_send_shipping_email( int $order_id ): string {
     $order = wc_get_order( $order_id );
     if ( ! $order ) return 'Pedido no encontrado';
@@ -288,17 +380,16 @@ function bsc_send_shipping_email( int $order_id ): string {
     include get_template_directory() . '/emails/bsc-order-shipped.php';
     $message = ob_get_clean();
 
-    $sent = wp_mail(
-        $to,
-        $subject,
-        $message,
-        [ 'Content-Type: text/html; charset=UTF-8' ]
-    );
+    $headers = function_exists( 'bsc_get_email_headers' )
+        ? bsc_get_email_headers()
+        : [ 'Content-Type: text/html; charset=UTF-8' ];
+
+    $sent = wp_mail( $to, $subject, $message, $headers );
 
     return $sent ? '' : 'wp_mail() devolvió false';
 }
 
-// ── BSC-034: CSV export ───────────────────────────────────────────────
+// â”€â”€ BSC-034: CSV export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_export_orders_csv( array $order_ids ): void {
     // Clear any WP output buffers so headers can be sent cleanly
     while ( ob_get_level() > 0 ) {
@@ -345,85 +436,95 @@ function bsc_export_orders_csv( array $order_ids ): void {
     exit;
 }
 
-// ── BSC-034: Packing print view ───────────────────────────────────────
+// â”€â”€ BSC-034: Packing print view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_packing_view( array $order_ids ): void {
-    // Clear any WP output buffers so we control the full response
     while ( ob_get_level() > 0 ) {
         ob_end_clean();
     }
+
     header( 'Content-Type: text/html; charset=UTF-8' );
+
+    $packing_view_css = trailingslashit( get_template_directory_uri() ) . 'admin/bsc-packing-view.css';
+    $packing_view_js  = trailingslashit( get_template_directory_uri() ) . 'admin/bsc-packing-view.js';
+    $packing_nonce    = wp_create_nonce( 'bsc_packing_stock' );
     ?>
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>Vista de Empaque — BSC</title>
-        <style>
-            * { box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 0; padding: 16px; }
-            h1 { font-size: 18px; margin: 0 0 16px; }
-            .order-card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 20px; page-break-inside: avoid; }
-            .order-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-            .order-number { font-size: 16px; font-weight: bold; }
-            .order-status { background: #FFB6C1; color: #000; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
-            .order-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #eee; font-size: 12px; }
-            th { background: #f5f5f5; font-weight: bold; }
-            .total-row td { font-weight: bold; border-top: 2px solid #ccc; }
-            @media print {
-                body { padding: 8px; }
-                .no-print { display: none; }
-                .order-card { border: 1px solid #999; }
-            }
-        </style>
+        <title>Vista de Empaque - BSC</title>
+        <link rel="stylesheet" href="<?php echo esc_url( $packing_view_css ); ?>">
+        <script src="<?php echo esc_url( $packing_view_js ); ?>" defer></script>
     </head>
-    <body>
-        <div class="no-print" style="margin-bottom:16px">
-            <button onclick="window.print()" style="padding:8px 16px;cursor:pointer">🖨 Imprimir</button>
-            <button onclick="window.close()" style="padding:8px 16px;margin-left:8px;cursor:pointer">✕ Cerrar</button>
+    <body class="bsc-packing-view" data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-nonce="<?php echo esc_attr( $packing_nonce ); ?>">
+        <div class="bsc-packing-view__toolbar">
+            <button type="button" id="bsc-packing-print">Imprimir</button>
+            <button type="button" id="bsc-packing-close">Cerrar</button>
         </div>
-        <h1>Vista de Empaque — <?php echo esc_html( gmdate('d/m/Y') ); ?></h1>
+        <h1>Vista de Empaque - <?php echo esc_html( gmdate( 'd/m/Y' ) ); ?></h1>
 
         <?php foreach ( $order_ids as $id ) :
             $order = wc_get_order( $id );
-            if ( ! $order ) continue;
+            if ( ! $order ) {
+                continue;
+            }
             $name = trim( $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name() )
                  ?: trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
             $city    = $order->get_shipping_city() ?: $order->get_billing_city();
             $address = trim( $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2() )
                     ?: $order->get_billing_address_1();
         ?>
-        <div class="order-card">
-            <div class="order-header">
-                <span class="order-number">#<?php echo esc_html( $order->get_order_number() ); ?></span>
-                <span class="order-status"><?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?></span>
+        <div class="bsc-packing-view__order-card">
+            <div class="bsc-packing-view__order-header">
+                <span class="bsc-packing-view__order-number">#<?php echo esc_html( $order->get_order_number() ); ?></span>
+                <span class="bsc-packing-view__order-status"><?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?></span>
             </div>
-            <div class="order-details">
+            <div class="bsc-packing-view__details">
                 <div><strong>Cliente:</strong> <?php echo esc_html( $name ); ?></div>
                 <div><strong>Teléfono:</strong> <?php echo esc_html( $order->get_billing_phone() ); ?></div>
                 <div><strong>Ciudad:</strong> <?php echo esc_html( $city ); ?></div>
-                <div><strong>Fecha:</strong> <?php echo esc_html( $order->get_date_created() ? $order->get_date_created()->date('d/m/Y') : '' ); ?></div>
-                <div style="grid-column:span 2"><strong>Dirección:</strong> <?php echo esc_html( $address ); ?></div>
+                <div><strong>Fecha:</strong> <?php echo esc_html( $order->get_date_created() ? $order->get_date_created()->date( 'd/m/Y' ) : '' ); ?></div>
+                <div class="bsc-packing-view__details-row--full"><strong>Dirección:</strong> <?php echo esc_html( $address ); ?></div>
             </div>
             <table>
                 <thead>
-                    <tr><th>Producto</th><th>SKU</th><th>Qty</th><th>Subtotal</th></tr>
+                    <tr><th>Producto</th><th>SKU</th><th>Qty</th><th>Subtotal</th><th>Stock</th><th>Empaque</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach ( $order->get_items() as $item ) :
-                        $product = $item->get_product();
-                        $sku     = $product ? $product->get_sku() : '';
+                        $product      = $item->get_product();
+                        $product_id   = $product ? (int) $product->get_id() : (int) $item->get_product_id();
+                        $sku          = $product ? $product->get_sku() : '';
+                        $stock        = class_exists( 'BSC_Stock' ) ? BSC_Stock::get_stock( $product_id ) : [ 'bodega' => 0, 'tienda' => 0 ];
+                        $packed_at    = $item->get_meta( '_bsc_packed_stock_at', true );
+                        $packed_source = $item->get_meta( '_bsc_packed_stock_source', true );
+                        $packed_label = ( 'tienda' === $packed_source ) ? 'showroom' : 'bodega';
                     ?>
-                    <tr>
+                    <tr data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-item-id="<?php echo esc_attr( $item->get_id() ); ?>" data-product-id="<?php echo esc_attr( $product_id ); ?>" class="<?php echo $packed_at ? 'is-packed' : ''; ?>">
                         <td><?php echo esc_html( $item->get_name() ); ?></td>
                         <td><?php echo esc_html( $sku ); ?></td>
                         <td><?php echo esc_html( $item->get_quantity() ); ?></td>
                         <td><?php echo wp_kses_post( wc_price( $item->get_total() ) ); ?></td>
+                        <td class="bsc-packing-stock">
+                            Bodega: <?php echo esc_html( (string) ( $stock['bodega'] ?? 0 ) ); ?><br>
+                            Showroom: <?php echo esc_html( (string) ( $stock['tienda'] ?? 0 ) ); ?>
+                        </td>
+                        <td class="bsc-packing-action">
+                            <?php if ( $packed_at ) : ?>
+                                <span class="bsc-packing-packed">Descontado de <?php echo esc_html( $packed_label ); ?></span>
+                            <?php else : ?>
+                                <select class="bsc-packing-source">
+                                    <option value="bodega" selected>Bodega</option>
+                                    <option value="tienda">Showroom</option>
+                                </select>
+                                <button type="button" class="bsc-packing-confirm">Confirmar</button>
+                                <span class="bsc-packing-feedback" aria-live="polite"></span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                     <tr class="total-row">
-                        <td colspan="3">Total</td>
+                        <td colspan="5">Total</td>
                         <td><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></td>
                     </tr>
                 </tbody>

@@ -1,5 +1,8 @@
 @use "../../pages/page-checkout" as checkout;
 
+$checkout-error-color: red;
+$checkout-valid-color: rgb(0, 255, 13);
+
 // -------------------------------------------
 // Form Base Styles
 // -------------------------------------------
@@ -10,6 +13,7 @@
 .bsc__form-input,
 .bsc__form-textarea,
 .bsc__form-select,
+.bsc__locked-country-select,
 #billing_state,
 #billing_state.state_select,
 #billing_city,
@@ -29,6 +33,7 @@
 #billing_state.state_select,
 #billing_city,
 #billing_city.city_select,
+.bsc__locked-country-select,
 #billing_country,
 #shipping_state,
 #shipping_state.state_select,
@@ -52,6 +57,24 @@
   background-size: 5px 5px, 5px 5px;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.bsc__field--locked-country {
+  position: relative;
+}
+
+.bsc__locked-country-select {
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.bsc__locked-country-select:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: var(--bsc-color-text);
+  -webkit-text-fill-color: var(--bsc-color-text);
+  background-color: #fff;
+  border-color: var(--bsc-color-input-border);
 }
 
 // Optional overrides (specific case: order comments)
@@ -114,7 +137,7 @@
   margin-top: 1em;
 }
 
-// Checkbox: ¿Enviar a otra dirección?
+// Checkbox: enviar a otra direccion
 #ship_to_different_address_field label {
   display: block;
 }
@@ -150,45 +173,17 @@
   }
 }
 
-#billing_first_name_field,
-#billing_last_name_field,
-#billing_cedula_field,
-#billing_email_field,
-#billing_phone_field,
-#billing_country_field,
-#billing_state_field,
-#billing_city_field,
-#billing_postcode_field,
-#billing_address_1_field,
-#billing_address_2_field,
-#shipping_country_field,
-#shipping_state_field,
-#shipping_city_field,
-#shipping_postcode_field,
-#order_comments_field {
-  .bsc__field--error {
-    border-bottom: 2px solid red;
-  }
-  .bsc__field--green {
-    border-bottom: 2px solid rgb(0, 255, 13);
-  }
-
-  input,
-  select {
-  }
-}
-
 // Error and success styles for WooCommerce checkout fields
 .bsc__field {
   &--error input,
   &--error select {
-    border: 2px solid red !important;
+    border: 2px solid $checkout-error-color !important;
     border-radius: var(--bsc-radius-sm);
   }
 
   &--valid input,
   &--valid select {
-    border: 2px solid rgb(0, 255, 13) !important;
+    border: 2px solid $checkout-valid-color !important;
     border-radius: var(--bsc-radius-sm);
   }
 
@@ -199,33 +194,6 @@
   }
 }
 
-.bsc__field.has-error input {
-  border: 1px solid red;
-  color: red;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-  &::placeholder {
-    color: red;
-  }
-}
-.bsc__field.has-error .select2-selection {
-  border: 1px solid red;
-  color: red;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-}
-.bsc__field.has-error #billing_state.state_select {
-  border: 1px solid red;
-  color: red;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-}
-.bsc__field.has-error #billing_city.city_select {
-  border: 1px solid red;
-  color: red;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
-}
 @keyframes wiggle {
   0%   { transform: translate(0px, 0px) rotate(0deg); }
   10%  { transform: translate(-2px, 2px) rotate(-1deg); }
@@ -245,16 +213,18 @@
 }
 
 .bsc__field.has-error input,
+.bsc__field.has-error select,
 .bsc__field.has-error .select2-selection,
 .bsc__field.has-error #billing_state.state_select,
-.bsc__field.has-error #billing_city.city_select {
-  border: 1px solid red;
-  color: red;
-  border-bottom-right-radius: 0px;
-  border-bottom-left-radius: 0px;
+.bsc__field.has-error #billing_city.city_select,
+.bsc__field.has-error .bsc__locked-country-select {
+  border: 1px solid $checkout-error-color;
+  color: $checkout-error-color;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
   animation: wiggle 0.4s ease-in-out;
 
   &::placeholder {
-    color: red;
+    color: $checkout-error-color;
   }
 }

@@ -1,8 +1,12 @@
 <?php
 /**
  * Template Name: Contacto
- * BSC: Página de contacto.
+ * BSC: Pagina de contacto.
  */
+
+$contact_whatsapp_url     = bsc_get_whatsapp_url( 'support' );
+$contact_whatsapp_display = bsc_get_whatsapp_display();
+$contact_shop_url         = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
 
 get_header();
 ?>
@@ -18,7 +22,7 @@ get_header();
       </div>
 
       <h1 class="bsc__static-hero__title">Contacto</h1>
-      <p class="bsc__static-hero__subtitle">Estamos aquí para ayudarte 🌸</p>
+      <p class="bsc__static-hero__subtitle">Estamos aqu&iacute; para ayudarte &#127800;</p>
     </div>
   </section>
 
@@ -31,7 +35,7 @@ get_header();
           <div class="bsc__contact-col bsc__contact-col--content">
             <span class="bsc__contact-eyebrow">Bubble Skin Care</span>
 
-            <h2 class="bsc__contact-heading">Escríbenos</h2>
+            <h2 class="bsc__contact-heading">Escr&iacute;benos</h2>
 
             <p class="bsc__contact-text">
               Si tienes dudas sobre productos, pedidos, rutinas o colaboraciones,
@@ -43,7 +47,7 @@ get_header();
 
               <a
                 class="bsc__contact-item"
-                href="<?php echo esc_url( bsc_get_whatsapp_url( 'support' ) ); ?>"
+                href="<?php echo esc_url( $contact_whatsapp_url ); ?>"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Escribir por WhatsApp a Bubble Skin Care"
@@ -54,10 +58,10 @@ get_header();
 
                 <span class="bsc__contact-item__content">
                   <span class="bsc__contact-item__label">WhatsApp</span>
-                  <span class="bsc__contact-item__value">+57 315 692 2859</span>
+                  <span class="bsc__contact-item__value"><?php echo esc_html( $contact_whatsapp_display ); ?></span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
               <a
@@ -76,7 +80,7 @@ get_header();
                   <span class="bsc__contact-item__value">@bubbles.skincare</span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
               <a
@@ -95,33 +99,32 @@ get_header();
                   <span class="bsc__contact-item__value">@bubblesskincare</span>
                 </span>
 
-                <span class="bsc__contact-item__arrow" aria-hidden="true">↗</span>
+                <span class="bsc__contact-item__arrow" aria-hidden="true">&#8599;</span>
               </a>
 
             </div>
 
             <div class="bsc__contact-actions">
-              <a class="bsc__contact-btn" href="/shop/">Visitar tienda</a>
+              <a class="bsc__contact-btn" href="<?php echo esc_url( $contact_shop_url ); ?>">Visitar tienda</a>
             </div>
 
-            <!-- BSC-008: contact form -->
             <div class="bsc__contact-form-wrap">
-              <h3 class="bsc__contact-form-heading">Envíanos un mensaje</h3>
+              <h3 class="bsc__contact-form-heading">Env&iacute;anos un mensaje</h3>
               <form id="bsc-contact-form" class="bsc__contact-form" novalidate>
                 <div class="bsc__contact-field">
                   <label for="bsc-contact-name">Nombre</label>
                   <input type="text" id="bsc-contact-name" name="bsc_name" required placeholder="Tu nombre" autocomplete="name">
                 </div>
                 <div class="bsc__contact-field">
-                  <label for="bsc-contact-email">Correo electrónico</label>
+                  <label for="bsc-contact-email">Correo electr&oacute;nico</label>
                   <input type="email" id="bsc-contact-email" name="bsc_email" required placeholder="tucorreo@ejemplo.com" autocomplete="email">
                 </div>
                 <div class="bsc__contact-field">
                   <label for="bsc-contact-message">Mensaje</label>
-                  <textarea id="bsc-contact-message" name="bsc_message" required placeholder="¿En qué podemos ayudarte?" rows="4"></textarea>
+                  <textarea id="bsc-contact-message" name="bsc_message" required placeholder="&iquest;En qu&eacute; podemos ayudarte?" rows="4"></textarea>
                 </div>
-                <div id="bsc-contact-notice" class="bsc__contact-notice" style="display:none" aria-live="polite"></div>
-                <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__contact-submit">Enviar mensaje</button>
+                <div id="bsc-contact-notice" class="bsc__contact-notice" aria-live="polite"></div>
+                <button type="submit" id="bsc-contact-submit" class="bsc__button bsc__button--compact-pill bsc__contact-submit">Enviar mensaje</button>
               </form>
             </div>
           </div>
@@ -143,47 +146,5 @@ get_header();
   </section>
 
 </main>
-
-<script>
-(function($){
-  var $form   = $('#bsc-contact-form');
-  var $submit = $('#bsc-contact-submit');
-  var $notice = $('#bsc-contact-notice');
-
-  function showNotice(msg, isSuccess) {
-    $notice
-      .removeClass('bsc__contact-notice--success bsc__contact-notice--error')
-      .addClass(isSuccess ? 'bsc__contact-notice--success' : 'bsc__contact-notice--error')
-      .text(msg)
-      .show();
-  }
-
-  $form.on('submit', function(e) {
-    e.preventDefault();
-    $notice.hide();
-    $submit.prop('disabled', true).text('Enviando…');
-
-    $.post(bsc_ajax.ajax_url, {
-      action      : 'bsc_contact_form_submit',
-      nonce       : bsc_ajax.nonce,
-      bsc_name    : $('#bsc-contact-name').val(),
-      bsc_email   : $('#bsc-contact-email').val(),
-      bsc_message : $('#bsc-contact-message').val(),
-    }).done(function(res) {
-      if (res && res.success) {
-        $form[0].reset();
-        showNotice(res.data.message, true);
-      } else {
-        var msg = (res && res.data && res.data.message) ? res.data.message : 'Error al enviar. Intenta nuevamente.';
-        showNotice(msg, false);
-      }
-    }).fail(function() {
-      showNotice('Error de conexión. Por favor intenta nuevamente.', false);
-    }).always(function() {
-      $submit.prop('disabled', false).text('Enviar mensaje');
-    });
-  });
-})(jQuery);
-</script>
 
 <?php get_footer(); ?>

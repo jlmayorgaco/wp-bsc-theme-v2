@@ -1,164 +1,219 @@
-# BSC-046 — Runbook: Restore desde Backup
+# BSC-046 / BSC-148 - Restore runbook
 
-**Versión:** 1.0  
-**Última revisión:** 2026-04-05  
-**RTO estimado:** 30–60 minutos  
-**RPO estimado:** 24 horas (backup diario de DB)
-
----
-
-## Pre-requisitos
-
-- [ ] Acceso SSH al servidor de producción
-- [ ] Credenciales de base de datos (en `backup-config.sh` del servidor)
-- [ ] Acceso al directorio de backups (`/backups/bsc/`) o al servidor remoto
-- [ ] WP-CLI instalado (`wp --info` debe responder)
+Version: 2.0
+Last updated: 2026-04-30
+Estimated RTO: 30-90 minutes
+Estimated RPO: 24 hours minimum
 
 ---
 
-## Escenario 1: Restaurar solo la base de datos
+## Preconditions
 
-Usar cuando el código está bien pero los datos están corruptos o se perdieron.
+- [ ] SSH access to the server
+- [ ] Sudo access if system config must be applied
+- [ ] Database credentials available in `backup-config.sh`
+- [ ] Access to `/backups/bsc/` or the off-site destination
+- [ ] WP-CLI installed
+- [ ] `mysql`, `tar`, and `rsync` available
+
+---
+
+## Restore paths now available
+
+There are four backup classes:
+
+1. DB backup: `/backups/bsc/db/`
+2. WordPress app backup: `/backups/bsc/full/`
+3. VPS state backup: `/backups/bsc/system/`
+4. Recovery bundle: `/backups/bsc/bundles/`
+
+If possible, restore from the recovery bundle first.
+
+---
+
+## Scenario 1: Restore only the database
+
+Use when code and files are fine but data is corrupted or missing.
 
 ```bash
-# 1. Activar modo mantenimiento (evita que usuarios vean el sitio roto)
 wp maintenance-mode activate --path=/var/www/html
-
-# 2. Listar backups disponibles
 ls -lh /backups/bsc/db/
-
-# 3. Restaurar el backup más reciente (reemplazar FECHA con el nombre real)
-gunzip -c /backups/bsc/db/db-FECHA.sql.gz | mysql -u bsc_user -p bsc_production
-
-# 4. Verificar que las tablas están presentes
-mysql -u bsc_user -p bsc_production -e "SHOW TABLES;" | head -20
-
-# 5. Limpiar caché de WordPress
+gunzip -c /backups/bsc/db/db-DATE.sql.gz | mysql -h DB_HOST -u DB_USER -p DB_NAME
+mysql -h DB_HOST -u DB_USER -p DB_NAME -e "SHOW TABLES;" | head -20
 wp cache flush --path=/var/www/html
 wp transient delete --all --path=/var/www/html
-
-# 6. Desactivar modo mantenimiento
 wp maintenance-mode deactivate --path=/var/www/html
 ```
 
 ---
 
-## Escenario 2: Restaurar archivos (uploads + theme)
+## Scenario 2: Restore WordPress application files
 
-Usar cuando se perdieron imágenes, assets o el código del theme.
+Use when WordPress files, uploads, plugins, or theme are damaged.
 
 ```bash
-# 1. Activar modo mantenimiento
+wp maintenance-mode activate --path=/var/www/html
+cd /var/www/html
+ls -lh /backups/bsc/full/
+tar -xzf /backups/bsc/full/full-DATE.tar.gz -C /var/www/html
+chown -R www-data:www-data /var/www/html/wp-content
+chmod -R 755 /var/www/html/wp-content
+find /var/www/html/wp-content -type f -name "*.php" -exec chmod 644 {} \;
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+---
+
+## Scenario 3: Stage a full recovery bundle
+
+Use before any destructive restore so you can inspect the bundle.
+
+```bash
+bash scripts/restore-bundle.sh /backups/bsc/bundles/recovery-bundle-DATE.tar.gz --restore-root /tmp/bsc-restore
+```
+
+That will extract:
+
+- DB archive
+- WordPress archive
+- VPS state snapshot
+- manifest
+- checksums
+
+Review:
+
+- `/tmp/bsc-restore/bundle/bundle-manifest.txt`
+- `/tmp/bsc-restore/system-stage/inventory/`
+
+---
+
+## Scenario 4: Full application restore from bundle
+
+Use when the site must be rebuilt on the same server or on a fresh VPS.
+
+```bash
 wp maintenance-mode activate --path=/var/www/html
 
-# 2. Ir al directorio raíz de WordPress
-cd /var/www/html
+bash scripts/restore-bundle.sh \
+  /backups/bsc/bundles/recovery-bundle-DATE.tar.gz \
+  --restore-root /tmp/bsc-restore \
+  --apply-db \
+  --apply-wordpress \
+  --wp-root /var/www/html
 
-# 3. Listar backups disponibles
-ls -lh /backups/bsc/full/
-
-# 4. Extraer el backup (reemplazar FECHA)
-tar -xzf /backups/bsc/full/full-FECHA.tar.gz
-
-# 5. Ajustar permisos
-chown -R www-data:www-data wp-content/
-chmod -R 755 wp-content/
-find wp-content/ -type f -name "*.php" -exec chmod 644 {} \;
-
-# 6. Desactivar modo mantenimiento
+chown -R www-data:www-data /var/www/html/wp-content
+chmod -R 755 /var/www/html/wp-content
+wp cache flush --path=/var/www/html
+wp rewrite flush --path=/var/www/html
 wp maintenance-mode deactivate --path=/var/www/html
 ```
 
 ---
 
-## Escenario 3: Restauración completa (DB + archivos)
+## Scenario 5: Apply VPS config from staged system snapshot
 
-Usar ante pérdida total o migración de servidor.
+Use only after reviewing the staged files.
 
 ```bash
-# 1. Instalar WordPress limpio en el nuevo servidor
-# 2. Copiar wp-config.php (actualizar DB credentials si es nuevo servidor)
+bash scripts/restore-bundle.sh \
+  /backups/bsc/bundles/recovery-bundle-DATE.tar.gz \
+  --restore-root /tmp/bsc-restore \
+  --apply-system-config
+```
 
-# 3. Restaurar DB
-gunzip -c /backups/bsc/full/full-FECHA-db.sql.gz | mysql -u NEW_USER -p NEW_DB
+This copies the staged `rootfs` overlay into `/`.
 
-# 4. Restaurar archivos
-cd /var/www/html
-tar -xzf /backups/bsc/full/full-FECHA.tar.gz
+Review first:
 
-# 5. Actualizar URLs si el dominio cambió
-wp search-replace 'https://OLD_DOMAIN.co' 'https://bubbleskincare.co' --path=/var/www/html
+- nginx/apache configs
+- SSL paths
+- cron files
+- ssh config
+- php/mysql config
 
-# 6. Ajustar permisos
-chown -R www-data:www-data wp-content/
-chmod -R 755 wp-content/
+After that, validate and restart services as needed:
 
-# 7. Flush rewrite rules
-wp rewrite flush --path=/var/www/html
+```bash
+nginx -t
+systemctl restart nginx
+systemctl restart php8.2-fpm
+systemctl restart mysql
+```
+
+Service names will vary by server.
+
+---
+
+## Scenario 6: Restore on a new VPS
+
+Use after total VPS loss or account loss at the provider.
+
+1. Provision a clean Linux VPS.
+2. Install required runtime:
+   - nginx or apache
+   - PHP
+   - MySQL/MariaDB
+   - WP-CLI
+3. Copy the recovery bundle from off-site storage.
+4. Stage the bundle:
+
+```bash
+bash scripts/restore-bundle.sh /path/to/recovery-bundle-DATE.tar.gz --restore-root /tmp/bsc-restore
+```
+
+5. Review staged inventory and service config.
+6. Apply DB and WordPress.
+7. Apply system config only after validating environment differences.
+8. Update DNS if IP changed.
+9. Validate SSL, cron, email, checkout, and admin access.
+
+---
+
+## Restore in staging first
+
+Always prefer a staging restore drill before production if time allows.
+
+```bash
+rsync -az /backups/bsc/bundles/recovery-bundle-DATE.tar.gz staging:/tmp/
+ssh staging
+bash /var/www/html/wp-content/themes/wp-bsc-theme-v2/scripts/restore-bundle.sh /tmp/recovery-bundle-DATE.tar.gz --restore-root /tmp/bsc-restore
 ```
 
 ---
 
-## Restaurar en staging primero (recomendado)
+## Post-restore validation checklist
 
-**SIEMPRE probar la restauración en staging antes de hacerla en producción.**
-
-```bash
-# Clonar backup en staging
-rsync -az /backups/bsc/full/full-FECHA.tar.gz staging-server:/tmp/
-
-# En el servidor de staging: restaurar y validar
-ssh staging-server
-cd /var/www/staging
-tar -xzf /tmp/full-FECHA.tar.gz
-# ... seguir los pasos del escenario 3 con las credenciales de staging
-```
-
----
-
-## Checklist de validación post-restore
-
-Ejecutar este checklist después de cualquier restauración antes de declarar el sitio operativo:
-
-- [ ] Home carga sin errores (HTTP 200, sin PHP warnings)
-- [ ] El menú de navegación funciona (desktop y mobile)
-- [ ] Se puede agregar un producto al carrito
-- [ ] El carrito muestra los productos correctos
-- [ ] El checkout procesa correctamente (probar con pedido de prueba)
-- [ ] La página de Thank You muestra el resumen del pedido
-- [ ] Las imágenes de productos cargan (no hay 404 en imágenes)
-- [ ] El admin de WordPress (`/wp-admin/`) es accesible
-- [ ] WooCommerce está activo y no muestra errores
-- [ ] Los pedidos históricos aparecen en WooCommerce → Pedidos
-- [ ] El plugin de Bubble Points está activo
-- [ ] El SSL está activo (candado verde en el navegador)
-- [ ] El admin BSC → Pedidos carga correctamente
-- [ ] Enviar un email de prueba desde WooCommerce → Configuración → Emails
+- [ ] Home loads without PHP warnings
+- [ ] Navigation works on desktop and mobile
+- [ ] Product images load
+- [ ] Add-to-cart works
+- [ ] Cart shows correct quantities
+- [ ] Coupon apply/remove works
+- [ ] Shipping totals recalculate correctly
+- [ ] Checkout works
+- [ ] Thank You page renders correctly
+- [ ] `/wp-admin/` works
+- [ ] WooCommerce shows historical orders
+- [ ] SSL is valid
+- [ ] Cron is installed and visible
+- [ ] Backup directories are writable
+- [ ] Transactional email can be sent
+- [ ] BSC admin screens load
 
 ---
 
-## RTO / RPO
+## Operational note
 
-| Métrica | Valor | Descripción |
-|---------|-------|-------------|
-| **RPO** | 24 horas | El backup de DB se ejecuta diariamente a las 2 AM |
-| **RTO** | 30–60 min | Tiempo estimado para restauración completa en producción |
-| **RTO staging** | 15–30 min | Restauración en staging (sin ajuste de DNS) |
+The backup system can inventory domains, listeners, roots, ports, and server config from the VPS.
 
----
+It cannot back up third-party accounts by itself:
 
-## Contactos de emergencia
+- VPS control panel account
+- DNS registrar account
+- CDN/WAF account
+- payment gateway account
+- SMTP provider account
 
-| Rol | Responsabilidad | Contacto |
-|-----|----------------|---------|
-| Dev principal | Acceso al servidor, restauración técnica | Ing. Jorge Luis Mayorga |
-| Admin negocio | Decisión de activar DR, comunicación clientes | Equipo BSC |
-| Hosting | Soporte de servidor si hay fallo de hardware | Soporte del proveedor de hosting |
+Track those in:
 
----
-
-## Notas
-
-- Los backups completos (`full-*.tar.gz`) incluyen el theme y los uploads pero NO `wp-config.php` (contiene credenciales — no se respalda intencionalmente).
-- Si el backup remoto no está disponible, verificar el backup local en `/backups/bsc/`.
-- Después de una restauración de DB, WooCommerce puede pedir que se ejecuten actualizaciones de BD: ir a WooCommerce → Status → Tools → Update database.
+- `docs/dr-inventory-template.md`

@@ -1,3 +1,5 @@
+@use '../../mixins/mixins' as mixins;
+
 // ------------------------------------------- //
 // -- Global Imports ------------------------- //
 // ------------------------------------------- //
@@ -27,6 +29,9 @@ $menu-title-font: 'Helvetica', sans-serif;
 :root {
   --header-search-right: 0px;
   --header-icons-w: 32px;
+  --header-mobile-shell-h: 56px;
+  --header-mobile-search-top: 63px;
+  --header-mobile-sidebar-top: 65px;
 }
 
 
@@ -138,6 +143,10 @@ $menu-title-font: 'Helvetica', sans-serif;
   > button:hover .icon--normal  { opacity: 0; }
 }
 
+.menu__icon.menu__icon--hidden {
+  display: none;
+}
+
 
 
 
@@ -167,7 +176,7 @@ $menu-title-font: 'Helvetica', sans-serif;
 
 
 // Mobile override
-@media (max-width: 950px) {
+@include mixins.bsc-breakpoint-down('nav') {
   .bsc__header--desktop {
     display: none;
   }
@@ -179,4 +188,3 @@ $menu-title-font: 'Helvetica', sans-serif;
     z-index: 999;
   }
 }
-

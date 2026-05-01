@@ -1,0 +1,5 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__quantity-controls {
+  @include mixins.bsc-quantity-controls-base();
+}

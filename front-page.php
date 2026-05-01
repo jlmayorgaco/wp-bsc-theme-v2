@@ -131,32 +131,32 @@
               </div>
 
               <!--
-              <a class="bsc__button bsc__button--outline bsc__button--floating" href="/shop">¡Ver todos!</a>
+              <a class="bsc__button bsc__button--outline bsc__button--floating" href="<?php echo esc_url( bsc_get_shop_url() ); ?>">¡Ver todos!</a>
               -->
 
         </div>
     </section>
 
   <?php
-    // 🌸 Category showcase (6 blocks)
+    // Category showcase (6 blocks)
     $groups = [
         [
             'slug'  => 'group-skin-care',
             'title' => 'SKIN CARE',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-hair-care',
             'title' => 'HAIR CARE',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-make-up',
             'title' => 'MAKE UP',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ]
         /*,
@@ -164,21 +164,21 @@
             'slug'  => 'dispositivos',
             'title' => 'DISPOSITIVOS',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'inner-beauty',
             'title' => 'INNER BEAUTY',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'spa-kbeauty',
             'title' => 'SPA KBEAUTY',
             'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+            'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         */
@@ -237,7 +237,7 @@
           ],
           [
             'name' => 'Pyunkang Yul',
-            'slug' => 'sk-marca-apieu'
+            'slug' => 'sk-marca-pyunkang-yul'
           ],
           [
             'name' => 'Im From',
@@ -270,7 +270,7 @@
 
           // BSC-006: usar get_term_link() para generar la URL jerárquica correcta.
           // El URL plano /product-category/{slug} tenía depth=1 y caía en renderLevel2(),
-          // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 → renderLevel3().
+          // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 â†’ renderLevel3().
           $term      = get_term_by('slug', $raw_slug, 'product_cat');
           $term_link = ($term && !is_wp_error($term)) ? get_term_link($term) : null;
           $brand_url = ($term_link && !is_wp_error($term_link)) ? esc_url($term_link) : '#';
@@ -392,9 +392,9 @@
             <form class="home__contact__form" id="bsc-newsletter-form" action="#">
               <input type="email" name="email" id="bsc-newsletter-email" placeholder="Tu e-mail" class="home__contact__input" required>
               <input type="submit" value="¡Quiero Ser Parte !" class="home__contact__submit" id="bsc-newsletter-submit">
-              <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error" style="display:none;"></p>
+              <p class="home__contact__feedback home__contact__feedback--error" id="bsc-newsletter-error"></p>
             </form>
-            <div class="home__contact__success" id="bsc-newsletter-success" style="display:none;">
+            <div class="home__contact__success" id="bsc-newsletter-success">
               <p class="home__contact__success-msg" id="bsc-newsletter-success-msg"></p>
             </div>
 
@@ -415,4 +415,3 @@
 </main>
 
 <?php get_footer(); ?>
-

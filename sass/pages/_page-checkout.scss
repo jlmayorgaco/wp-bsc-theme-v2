@@ -370,6 +370,11 @@ $order-review-badge-size: 30px;
   }
 }
 
+.bsc__shipping-calculator-form,
+.bsc__checkout-coupon-form {
+  display: none;
+}
+
 // -------------------------------------------
 // Order Overview
 // -------------------------------------------
@@ -389,6 +394,10 @@ $order-review-badge-size: 30px;
 
     &:first-child {
       flex: 1 1 auto;
+    }
+
+    &--progress-fixed {
+      width: 325px;
     }
   }
 

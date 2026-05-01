@@ -309,12 +309,13 @@ class BSCShopPage
         echo "<section class='bsc__default-subsubcategory'>";
 
         if (is_array($subsubcats) && !empty($subsubcats)) {
-            echo "<div class='bsc__subsubcategory-links'>";
+            $filter_items = [
+                [
+                    'slug'  => 'all',
+                    'label' => 'Todos',
+                ],
+            ];
 
-            // Botón "Todos"
-            echo '<button type="button" class="bsc__subsubcategory-link bsc__subsubcategory-link--active" data-filter="all">Todos</button>';
-
-            // Sort subsubcats by slug
             usort($subsubcats, function ($a, $b) {
                 return strnatcmp($a->slug, $b->slug);
             });
@@ -324,10 +325,63 @@ class BSCShopPage
                     continue;
                 }
 
+                $filter_items[] = [
+                    'slug'  => $term->slug,
+                    'label' => $term->name,
+                ];
+            }
+
+            $modal_id = 'bsc-subsubcategory-modal-' . $defaultChild->term_id;
+
+            echo "<div class='bsc__subsubcategory-mobile-toolbar'>";
+            echo '<button type="button" class="bsc__subsubcategory-mobile-trigger" aria-haspopup="dialog" aria-controls="' . esc_attr($modal_id) . '" aria-expanded="false">';
+            echo '<span class="bsc__subsubcategory-mobile-trigger-label">Filter</span>';
+            echo '<span class="bsc__subsubcategory-mobile-count" hidden>1</span>';
+            echo '</button>';
+            echo '<button type="button" class="bsc__subsubcategory-chip" hidden aria-label="Limpiar filtro activo">';
+            echo '<span class="bsc__subsubcategory-chip-label"></span>';
+            echo '<span class="bsc__subsubcategory-chip-close" aria-hidden="true">x</span>';
+            echo '</button>';
+            echo '</div>';
+
+            echo '<div class="bsc__subsubcategory-modal" id="' . esc_attr($modal_id) . '" hidden>';
+            echo '<button type="button" class="bsc__subsubcategory-modal-backdrop" data-filter-close="true" aria-label="Cerrar filtros"></button>';
+            echo '<div class="bsc__subsubcategory-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="' . esc_attr($modal_id . '-title') . '">';
+            echo '<div class="bsc__subsubcategory-modal-header">';
+            echo '<h3 id="' . esc_attr($modal_id . '-title') . '" class="bsc__subsubcategory-modal-title">Filtrar categoria</h3>';
+            echo '<div  class="bsc__subsubcategory-modal-close">';
+            echo '<button type="button" data-filter-close="true" aria-label="Cerrar">x</button>';
+            echo '</div>';
+            echo '</div>';
+            echo '<div class="bsc__subsubcategory-modal-options">';
+
+            foreach ($filter_items as $item) {
+                $active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-modal-option--active' : '';
+
                 printf(
-                    '<button type="button" class="bsc__subsubcategory-link" data-filter="%s">%s</button>',
-                    esc_attr($term->slug),
-                    esc_html($term->name)
+                    '<button type="button" class="bsc__subsubcategory-modal-option%s" data-filter="%s" data-filter-label="%s">%s</button>',
+                    esc_attr($active_class),
+                    esc_attr($item['slug']),
+                    esc_attr($item['label']),
+                    esc_html($item['label'])
+                );
+            }
+
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
+
+            echo "<div class='bsc__subsubcategory-links'>";
+
+            foreach ($filter_items as $item) {
+                $active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-link--active' : '';
+
+                printf(
+                    '<button type="button" class="bsc__subsubcategory-link%s" data-filter="%s" data-filter-label="%s">%s</button>',
+                    esc_attr($active_class),
+                    esc_attr($item['slug']),
+                    esc_attr($item['label']),
+                    esc_html($item['label'])
                 );
             }
 

@@ -14,7 +14,7 @@ if ( ! defined( '_S_VERSION' ) ) {
 // BSC-041: static version constant for production asset versioning (no filemtime I/O per request)
 if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 	// In debug mode keep filemtime so changes are picked up immediately without manual bumps.
-	// In production this is a static string — update it on each deploy to bust browser caches.
+	// In production this is a static string Ã¢â‚¬â€ update it on each deploy to bust browser caches.
 	define(
 		'BSC_THEME_VERSION',
 		( defined('WP_DEBUG') && WP_DEBUG )
@@ -23,7 +23,7 @@ if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 	);
 }
 
-// BSC-008: contact form destination — override in wp-config.php if needed
+// BSC-008: contact form destination Ã¢â‚¬â€ override in wp-config.php if needed
 if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {
 	define( 'BSC_CONTACT_EMAIL', 'contacto@bubbleskincare.co' );
 }
@@ -42,6 +42,8 @@ require get_template_directory() . '/inc/template-functions.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/functions_bsc.php';
 require_once get_template_directory() . '/inc/bsc-contact-options.php';
+require_once get_template_directory() . '/inc/bsc-static-pages.php';
+require_once get_template_directory() . '/inc/bsc-url-helpers.php';
 
 // Load Jetpack compatibility file.
 if ( defined( 'JETPACK__VERSION' ) ) {
@@ -58,11 +60,21 @@ if ( is_admin() ) {
 	require_once get_template_directory() . '/inc/admin/product-covers.php';
 }
 
-// BSC-029: custom roles (always loaded — roles must exist for frontend checks too)
+// BSC-029: custom roles (always loaded Ã¢â‚¬â€ roles must exist for frontend checks too)
 require_once get_template_directory() . '/includes/class-bsc-roles.php';
 
-// BSC-036: dual stock class (always loaded — hooks fire on both admin and frontend)
+// BSC-036: dual stock class (always loaded Ã¢â‚¬â€ hooks fire on both admin and frontend)
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
+
+// Internal feature modules shipped inside the theme (plugin-like structure)
+foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_module_bootstrap ) {
+	require_once $bsc_module_bootstrap;
+}
+
+// BSC-082: shared email helpers + follow-up module
+require_once get_template_directory() . '/emails/bsc-email-helpers.php';
+require_once get_template_directory() . '/emails/bsc-email-previews.php';
+require_once get_template_directory() . '/emails/bsc-followup-emails.php';
 
 // BSC-053: BSC-branded email system (hooks into WooCommerce order status changes)
 if ( class_exists('WooCommerce') ) {
@@ -83,7 +95,6 @@ require_once get_template_directory() . '/scripts/script_custom_types.php';
 require_once get_template_directory() . '/inc/ajax/cart-actions.php';
 require_once get_template_directory() . '/inc/ajax/checkout-actions.php';
 require_once get_template_directory() . '/inc/ajax/coupons-actions.php';
-require_once get_template_directory() . '/inc/ajax/filters-actions.php';
 require_once get_template_directory() . '/inc/ajax/review-summary-actions.php';
 require_once get_template_directory() . '/inc/ajax/newsletter-actions.php';
 require_once get_template_directory() . '/inc/ajax/contact-actions.php';
@@ -92,7 +103,7 @@ require_once get_template_directory() . '/inc/ajax/search-actions.php';
 
 
 
-// ── Performance: disable WordPress emoji scripts/styles ───────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Performance: disable WordPress emoji scripts/styles Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_print_styles', 'print_emoji_styles');
 remove_action('admin_print_scripts', 'print_emoji_detection_script');
@@ -101,27 +112,27 @@ remove_filter('the_content_feed', 'wp_staticize_emoji');
 remove_filter('comment_text_rss', 'wp_staticize_emoji');
 remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
 
-// ── Performance: remove oEmbed / REST API exposure from <head> ─────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Performance: remove oEmbed / REST API exposure from <head> Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 remove_action('wp_head', 'wp_oembed_add_discovery_links');
 remove_action('wp_head', 'rest_output_link_wp_head', 10);
 remove_action('wp_head', 'wlwmanifest_link');
 remove_action('wp_head', 'rsd_link');
 remove_action('wp_head', 'wp_generator');
 
-// ── Performance: disable Gutenberg block editor CSS on frontend ────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Performance: disable Gutenberg block editor CSS on frontend Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_action('wp_enqueue_scripts', function () {
     wp_dequeue_style('wp-block-library');
     wp_dequeue_style('wp-block-library-theme');
     wp_dequeue_style('wc-blocks-style');
 }, 100);
 
-// ── Security: remove WordPress version from all outputs ───────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Security: remove WordPress version from all outputs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_filter('the_generator', '__return_empty_string');
 
-// ── BSC-048: Disable XML-RPC (not used; attack surface reduction) ─────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ BSC-048: Disable XML-RPC (not used; attack surface reduction) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_filter('xmlrpc_enabled', '__return_false');
 
-// ── BSC-048: Login rate limiting — 5 failures → 15-min block per IP ───────
+// Ã¢â€â‚¬Ã¢â€â‚¬ BSC-048: Login rate limiting Ã¢â‚¬â€ 5 failures Ã¢â€ â€™ 15-min block per IP Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 add_action('wp_login_failed', function ( string $username ): void {
     $key   = 'bsc_lf_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
     $fails = (int) get_transient( $key );
@@ -143,7 +154,7 @@ add_filter('authenticate', function ( $user, string $username, string $password 
     return $user;
 }, 30, 3 );
 
-// ── Performance: add preconnect for Google Fonts CDN (used in style.css) ──
+// Ã¢â€â‚¬Ã¢â€â‚¬ Performance: add preconnect for Google Fonts CDN (used in style.css) Ã¢â€â‚¬Ã¢â€â‚¬
 add_action('wp_head', function () {
     echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
     echo '<meta name="robots" content="max-image-preview:large">' . "\n";
@@ -196,3 +207,5 @@ add_action('template_redirect', function () {
         }
     }
 });
+
+

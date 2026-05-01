@@ -19,23 +19,42 @@ $color__border-button-focus: #aaa #bbb #bbb;
 $color__border-input: #ccc;
 $color__border-abbr: #666;
 
-
-
-
 // ---------------------------------------- //
 // -- BSC THEME --------------------------- //
 // ---------------------------------------- //
 
-$color__pink:#F7C0CD;
+$color__pink: #F7C0CD;
+$color__pink-soft: #fdf4f8;
+$color__blue: #c7e7f1;
+$color__yellow-soft: #fdf4c6;
 $color__black: #333333;
+$color__white: #ffffff;
+$color__gray-050: #f9f9f9;
+$color__gray-100: #f3f3f3;
+$color__gray-200: #e0e0e0;
+$color__gray-300: #d1d1d6;
+$color__gray-400: #999999;
+$color__gray-500: #888888;
+$color__gray-600: #555555;
+$color__success: #48bb78;
+$color__danger: #fc8181;
+$color__warning: #ffe066;
 
-.bsc{
+.bsc {
 
-    // Color
-    --color--main: #{$color__pink};
-    --color--text: #{$color__black};
-    --color--blue: #c7e7f1;
+  // Color
+  --color--main: #{$color__pink};
+  --color--text: #{$color__black};
+  --color--blue: #{$color__blue};
+  --color--surface: #{$color__white};
+  --color--surface-soft: #{$color__pink-soft};
+  --color--surface-muted: #{$color__gray-050};
+  --color--border: #{$color__gray-300};
+  --color--muted: #{$color__gray-500};
+  --color--accent-warning: #{$color__yellow-soft};
+  --color--accent-success: #{$color__success};
+  --color--accent-danger: #{$color__danger};
 
-    // Header
-    --size--header-logo-w: 150px;
+  // Header
+  --size--header-logo-w: 150px;
 }

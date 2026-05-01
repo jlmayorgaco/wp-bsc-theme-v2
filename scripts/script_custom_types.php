@@ -52,7 +52,7 @@ function bsc_render_home_slide_fields($post) {
         $value = get_post_meta($post->ID, "_{$name}", true);
         printf(
             '<p><label for="%1$s">%2$s</label><br>
-            <input type="%3$s" name="%1$s" id="%1$s" value="%4$s" style="width:100%%;" /></p>',
+            <input class="regular-text" type="%3$s" name="%1$s" id="%1$s" value="%4$s" /></p>',
             esc_attr($name),
             esc_html($config['label']),
             esc_attr($config['type']),
@@ -139,7 +139,7 @@ function bsc_home_favorites_settings_init() {
             function () use ($key) {
                 $options = get_option('bsc_home_favorites');
                 $value = isset($options[$key]) ? esc_attr($options[$key]) : '';
-                echo "<input type='text' name='bsc_home_favorites[$key]' value='$value' style='width: 100%' placeholder='e.g. BSC:SK:1,BSC:HC:99' />";
+                echo "<input class='regular-text' type='text' name='bsc_home_favorites[$key]' value='$value' placeholder='e.g. BSC:SK:1,BSC:HC:99' />";
             },
             'bsc-home-favorites',
             'bsc_fav_section'

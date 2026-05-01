@@ -1,14 +1,43 @@
 <?php
 /**
- * BSC-066: BSC Coupons admin page — manage WooCommerce coupons from the BSC menu.
+ * BSC-066: BSC Coupons admin page â€” manage WooCommerce coupons from the BSC menu.
  */
 defined('ABSPATH') || exit;
 
-// ── Handle create / delete ─────────────────────────────────────────────
+add_action( 'admin_enqueue_scripts', 'bsc_enqueue_coupons_admin_assets' );
+function bsc_enqueue_coupons_admin_assets(): void {
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+
+    if ( 'bsc-coupons' !== $page ) {
+        return;
+    }
+
+    bsc_enqueue_admin_ui_assets();
+
+    $css_path = get_template_directory() . '/admin/bsc-coupons.css';
+    $js_path  = get_template_directory() . '/js/bsc-admin-coupons.js';
+
+    wp_enqueue_style(
+        'bsc-admin-coupons',
+        get_template_directory_uri() . '/admin/bsc-coupons.css',
+        array( 'bsc-admin-ui' ),
+        file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
+    );
+
+    wp_enqueue_script(
+        'bsc-admin-coupons',
+        get_template_directory_uri() . '/js/bsc-admin-coupons.js',
+        array(),
+        file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1',
+        true
+    );
+}
+
+// â”€â”€ Handle create / delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_init', 'bsc_coupons_handle_actions' );
 function bsc_coupons_handle_actions(): void {
     if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'bsc-coupons' ) return;
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) return;
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) return;
 
     // Create coupon
     if ( isset( $_POST['bsc_create_coupon_nonce'] ) ) {
@@ -51,9 +80,9 @@ function bsc_coupons_handle_actions(): void {
     }
 }
 
-// ── Page render ────────────────────────────────────────────────────────
+// â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_coupons_page(): void {
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 
@@ -76,17 +105,17 @@ function bsc_render_coupons_page(): void {
         </p></div>
         <?php endif; ?>
 
-        <!-- ── Create form ── -->
+        <!-- â”€â”€ Create form â”€â”€ -->
         <div class="bsc-coupon-create-panel">
             <h2>Crear nuevo cupón</h2>
             <form method="post">
                 <?php wp_nonce_field( 'bsc_create_coupon', 'bsc_create_coupon_nonce' ); ?>
-                <table class="form-table" style="max-width:700px">
+                <table class="form-table bsc-admin-coupons__form-table">
                     <tr>
                         <th><label for="coupon_code">Código</label></th>
                         <td>
-                            <input type="text" id="coupon_code" name="coupon_code" class="regular-text" required
-                                   placeholder="ej: BIENVENIDA20" style="text-transform:uppercase">
+                            <input type="text" id="coupon_code" name="coupon_code" class="regular-text bsc-admin-coupons__code-input" required
+                                   placeholder="ej: BIENVENIDA20">
                             <p class="description">El código se guardará en minúsculas.</p>
                         </td>
                     </tr>
@@ -128,23 +157,23 @@ function bsc_render_coupons_page(): void {
             </form>
         </div>
 
-        <!-- ── Coupons list ── -->
-        <h2 style="margin-top:2rem">Cupones activos</h2>
+        <!-- â”€â”€ Coupons list â”€â”€ -->
+        <h2 class="bsc-admin-coupons__section-title">Cupones activos</h2>
 
         <?php if ( ! $coupons_query->have_posts() ) : ?>
-            <p style="color:#888">No hay cupones creados todavía.</p>
+            <p class="bsc-admin-coupons__empty">No hay cupones creados todavía.</p>
         <?php else : ?>
         <table class="wp-list-table widefat fixed striped bsc-coupons-table">
             <thead>
                 <tr>
-                    <th style="width:140px">Código</th>
+                    <th class="bsc-admin-coupons__code-col">Código</th>
                     <th>Tipo</th>
-                    <th style="width:100px">Valor</th>
+                    <th class="bsc-admin-coupons__value-col">Valor</th>
                     <th>Descripción</th>
-                    <th style="width:110px">Expira</th>
-                    <th style="width:80px">Límite</th>
-                    <th style="width:80px">Usos</th>
-                    <th style="width:120px">Acciones</th>
+                    <th class="bsc-admin-coupons__expiry-col">Expira</th>
+                    <th class="bsc-admin-coupons__limit-col">Límite</th>
+                    <th class="bsc-admin-coupons__usage-col">Usos</th>
+                    <th class="bsc-admin-coupons__actions-col">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -170,24 +199,23 @@ function bsc_render_coupons_page(): void {
                 ], admin_url( 'admin.php' ));
                 $is_expired = $coupon->get_date_expires() && $coupon->get_date_expires()->getTimestamp() < time();
             ?>
-            <tr class="<?php echo $is_expired ? 'bsc-coupon-expired' : ''; ?>">
+            <tr class="<?php echo $is_expired ? 'bsc-admin-coupons__expired' : ''; ?>">
                 <td>
-                    <strong style="font-family:monospace;font-size:13px;text-transform:uppercase">
+                    <strong class="bsc-admin-coupons__code">
                         <?php echo esc_html( $coupon->get_code() ); ?>
                     </strong>
-                    <?php if ( $is_expired ) echo '<br><span style="color:#c53030;font-size:11px">Expirado</span>'; ?>
+                    <?php if ( $is_expired ) echo '<br><span class="bsc-admin-coupons__expired-badge">Expirado</span>'; ?>
                 </td>
                 <td><?php echo esc_html( $type_label ); ?></td>
                 <td><strong><?php echo esc_html( $value ); ?></strong></td>
-                <td style="color:#666;font-size:12px"><?php echo esc_html( $coupon->get_description() ?: '—' ); ?></td>
+                <td class="bsc-admin-coupons__description"><?php echo esc_html( $coupon->get_description() ?: '—' ); ?></td>
                 <td><?php echo esc_html( $expiry ); ?></td>
                 <td><?php echo esc_html( $limit ); ?></td>
                 <td><?php echo esc_html( $coupon->get_usage_count() ); ?></td>
                 <td>
                     <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small" target="_blank">Editar</a>
-                    <a href="<?php echo esc_url( $delete_url ); ?>" class="button button-small"
-                       onclick="return confirm('¿Eliminar este cupón?')"
-                       style="color:#c53030;border-color:#c53030">Eliminar</a>
+                    <a href="<?php echo esc_url( $delete_url ); ?>" class="button button-small bsc-admin-coupons__delete"
+                       data-bsc-confirm="¿Eliminar este cupón?">Eliminar</a>
                 </td>
             </tr>
             <?php endwhile; wp_reset_postdata(); ?>
@@ -195,11 +223,5 @@ function bsc_render_coupons_page(): void {
         </table>
         <?php endif; ?>
     </div>
-
-    <style>
-        .bsc-coupon-create-panel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px 24px; margin:16px 0; max-width:800px; }
-        .bsc-coupon-create-panel h2 { margin-top:0; font-size:1rem; }
-        .bsc-coupons-table .bsc-coupon-expired { opacity:.6; }
-    </style>
     <?php
 }

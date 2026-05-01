@@ -1,0 +1,84 @@
+@use "../../mixins/mixins" as mixins;
+
+.bsc__button {
+  @include mixins.bsc-button-base(
+    $padding: 0.75rem 1rem,
+    $radius: 20px,
+    $font-size: 1rem,
+    $height: auto
+  );
+}
+
+.bsc__button--outline {
+  @include mixins.bsc-button-base(
+    $bg: transparent,
+    $color: #333,
+    $hover-bg: #333,
+    $hover-color: #fff,
+    $outline: true,
+    $padding: 0.75rem 1rem,
+    $radius: 20px,
+    $font-size: 1rem,
+    $height: auto
+  );
+}
+
+
+.bsc__button--compact-pill {
+  @include mixins.bsc-button-base(
+    $padding: 0.65rem 1.45rem,
+    $radius: 30px,
+    $font-size: 0.95rem,
+    $height: auto
+  );
+}
+
+
+.bsc__button--floating {
+  display: block;
+  width: fit-content;
+  margin: 1em auto;
+}
+
+.bsc__button--auth-cta,
+.form__submit--auth-cta,
+.bsc__signin_btn,
+.bsc__signup_btn {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button-base(
+    $padding: 10px 30px,
+    $radius: 30px,
+    $font-size: 17px,
+    $height: auto,
+    $hover-bg: #f8d7da,
+    $hover-color: #333
+  );
+
+  width: 100%;
+}
+
+.bsc__button--product-card,
+.bsc__button-add-to-cart {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button-base(
+    $bg: var(--color--primary),
+    $hover-bg: var(--color--primary),
+    $hover-color: #fff,
+    $padding: 0.5rem 1rem,
+    $radius: 6px,
+    $font-size: 0.875rem,
+    $height: 45px
+  );
+
+  font-weight: 600;
+
+  &:hover {
+    background-color: var(--color--primary);
+    border: 1px solid #333;
+  }
+}
+
+.bsc__button-add-to-cart--variable {
+  @extend .bsc__button--product-card;
+}
+

@@ -20,6 +20,19 @@ jQuery(function ($) {
     checkoutItem: '.checkout-cart__item',
   };
 
+  function setControlBusy($control, isBusy) {
+    $control.toggleClass('is-busy', isBusy);
+    $control.find(SELECTORS.plusBtn + ', ' + SELECTORS.minusBtn + ', ' + SELECTORS.deleteBtn)
+      .prop('disabled', isBusy);
+  }
+
+  function syncCartCount(count) {
+    if (count === undefined || count === null) return;
+
+    $(SELECTORS.footerCount).text(count);
+    $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+  }
+
   // BSC-017: floating cart swing animation helper
   function triggerCartSwing() {
     const $cart = $(SELECTORS.footerCart);
@@ -29,7 +42,7 @@ jQuery(function ($) {
 
   /**
    * Add to cart handler
-   * BSC-005: listen to both pointerup (touch/mouse — no 300ms delay) and click
+   * BSC-005: listen to both pointerup (touch/mouse â€” no 300ms delay) and click
    * (keyboard Enter/Space on <button>). The data-processing guard prevents
    * double-firing when both events fire for the same interaction.
    */
@@ -64,17 +77,12 @@ jQuery(function ($) {
    */
   $(document.body).on('added_to_cart', function (e, fragments, hash, $btn) {
     if ($btn.siblings(SELECTORS.quantityControls).length) return;
-
-    // BUG-H: guard against failed add-to-cart (no fragments → server error)
-    if (!fragments || !fragments['a.cart-contents']) {
-      console.error('BSC: added_to_cart fired without valid fragments — cart operation may have failed.');
-      return;
-    }
+    const safeFragments = fragments || {};
 
     const productId = $btn.data('product_id');
     const quantityControls = `
       <div class="bsc__quantity-controls" data-product_id="${productId}">
-        <button class="bsc__qty-minus">−</button>
+        <button class="bsc__qty-minus">&minus;</button>
         <span class="bsc__qty-value">1</span>
         <button class="bsc__qty-plus">+</button>
       </div>
@@ -82,19 +90,22 @@ jQuery(function ($) {
 
     $btn.siblings('.added_to_cart').remove();
     $btn.parent().append(quantityControls);
-    $btn.hide();
+    $btn.addClass('bsc__button-add-to-cart--hidden');
 
-    // a.cart-contents is not rendered in the BSC header — replaceWith is a no-op
+    // a.cart-contents is not rendered in the BSC header; replaceWith is a no-op
     // but kept for forward-compatibility if header ever adds the fragment
-    if (fragments['a.cart-contents']) {
-      $('a.cart-contents').replaceWith(fragments['a.cart-contents']);
+    if (safeFragments['a.cart-contents']) {
+      $('a.cart-contents').replaceWith(safeFragments['a.cart-contents']);
+
+      const updatedCart = $(safeFragments['a.cart-contents']);
+      const rawCount = updatedCart.find('.count').text().match(/\d+/);
+      const count = rawCount ? parseInt(rawCount[0], 10) : 0;
+
+      $(SELECTORS.footerCount).text(count);
+      $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
+    } else {
+      refreshCartFragments();
     }
-
-    const updatedCart = $(fragments['a.cart-contents']);
-    const count = parseInt(updatedCart.find('.count').text().match(/\d+/)) || 0;
-
-    $(SELECTORS.footerCount).text(count);
-    $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
 
     // BSC-017: swing animation (mobile floating cart button)
     triggerCartSwing();
@@ -112,12 +123,12 @@ jQuery(function ($) {
     $.ajax({
       url: '?wc-ajax=get_refreshed_fragments',
       method: 'GET',
-      timeout: 8000, // 8 s timeout — prevents indefinite stall on slow network
+      timeout: 8000, // 8 s timeout â€” prevents indefinite stall on slow network
     })
     .done(function (cart) {
       const rawHtml = cart?.fragments?.['a.cart-contents'];
       if (!rawHtml) {
-        // BSC-004: carrito vacío — WC no devuelve fragmento, poner badge en 0
+        // BSC-004: carrito vacÃ­o â€” WC no devuelve fragmento, poner badge en 0
         $(SELECTORS.footerCount).text('0');
         $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         return;
@@ -142,7 +153,7 @@ jQuery(function ($) {
         });
     })
     .fail(function () {
-      // Timeout or network error — badge already updated from POST response (BSC-004)
+      // Timeout or network error â€” badge already updated from POST response (BSC-004)
       console.warn('BSC: cart fragment refresh failed or timed out.');
     });
   };
@@ -157,62 +168,79 @@ jQuery(function ($) {
     const $control = $btn.closest(SELECTORS.quantityControls + ', .bsc-checkout-cart--controls');
     const $value = $control.find(SELECTORS.quantityValue);
     const productId = $control.data('product_id');
+    const cartItemKey = $control.data('item-key') || $control.closest(SELECTORS.checkoutItem).data('item-key') || '';
+
+    if ($control.data('processing')) return;
 
     let current = parseInt($value.text(), 10);
+    if (Number.isNaN(current)) current = 0;
+
     const isPlus = $btn.hasClass('bsc__qty-plus');
     const newQty = isPlus ? current + 1 : current - 1;
 
     if (newQty < 0) return;
 
-    $value.text(newQty); // optimistic display update
-    $btn.addClass('bsc-loading'); // BSC-019: show spinner on +/- button
+    $value.text(newQty);
+    $btn.addClass('bsc-loading');
+    $control.data('processing', true);
+    setControlBusy($control, true);
 
     $.post(bsc_ajax.ajax_url, {
       action: 'update_cart_quantity',
       product_id: productId,
+      cart_item_key: cartItemKey,
       quantity: isPlus ? 1 : -1,
       nonce: bsc_ajax.nonce,
     }).done((response) => {
-      const cartCount = response?.data?.cart_count;
-      const itemTotal = response?.data?.item_total;
-
-      // Update footer badge — source of truth from server
-      if (cartCount !== undefined) {
-        $(SELECTORS.footerCount).text(cartCount);
-        $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cartCount} items`);
+      if (!response?.success) {
+        $value.text(current);
+        return;
       }
 
-      // I-2: Update per-item total in both checkout sidebar and cart page table
+      const cartCount = response?.data?.cart_count;
+      const itemTotal = response?.data?.item_total;
+      const serverQty = response?.data?.new_qty;
+      const serverKey = response?.data?.cart_item_key || cartItemKey;
+      const serverProductId = response?.data?.product_id || productId;
+      const wasRemoved = response?.data?.removed === true;
+
+      syncCartCount(cartCount);
+
+      if (serverQty !== undefined) {
+        $value.text(serverQty);
+      }
+
       if (itemTotal) {
         $control.closest('.checkout-cart__item').find('.item__total').html(itemTotal);
         $control.closest('tr').find('.bsc__cart-subtotal').html(itemTotal);
       }
 
-      // Update visible qty badge in checkout sidebar label
-      $control.closest('.checkout-cart__item').find('label span').text(newQty);
+      $control.closest('.checkout-cart__item').find('label span').text(serverQty || newQty);
 
-      // BSC-017: swing the floating cart button when quantity increases
       if (isPlus) triggerCartSwing();
 
       refreshCartFragments();
       if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
 
-      if (newQty === 0) {
-        // Remove checkout sidebar item
-        $(`.checkout-cart__item[data-product_id="${productId}"]`).remove();
-        // I-2: Remove cart page table row
+      if (wasRemoved || newQty === 0) {
+        if (serverKey) {
+          $(".checkout-cart__item[data-item-key=\"" + serverKey + "\"]").remove();
+        } else {
+          $(".checkout-cart__item[data-product_id=\"" + serverProductId + "\"]").remove();
+        }
+
         $control.closest('tr').remove();
-        // Show add-to-cart button on product cards (tag-agnostic selector)
-        $(`[data-product_id="${productId}"].bsc__button-add-to-cart`).show();
+        $("[data-product_id=\"" + serverProductId + "\"].bsc__button-add-to-cart").removeClass('bsc__button-add-to-cart--hidden');
         $control.remove();
         $control.siblings('.added_to_cart.wc-forward').remove();
       }
     }).fail((xhr) => {
-      // Revert optimistic display on server failure
-      console.error('❌ Update failed:', xhr.responseText);
+      console.error('BSC: cart quantity update failed:', xhr.responseText);
       $value.text(current);
     }).always(() => {
-      $btn.removeClass('bsc-loading'); // BSC-019: remove spinner
+      $btn.removeClass('bsc-loading');
+      $control.data('processing', false);
+      setControlBusy($control, false);
     });
   };
 
@@ -226,7 +254,7 @@ jQuery(function ($) {
     const $btn = $(this);
     const $item = $btn.closest(SELECTORS.checkoutItem);
     const key = $item.data('item-key');
-    if (!key) return console.error('❌ No item key found');
+    if (!key) return console.error('âŒ No item key found');
 
     $btn.prop('disabled', true).addClass('loading');
 
@@ -259,7 +287,7 @@ jQuery(function ($) {
           $(SELECTORS.footerCount).text(count);
           $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
         } else {
-          // Cart is now empty — WC returns no fragment for empty cart
+          // Cart is now empty â€” WC returns no fragment for empty cart
           $(SELECTORS.footerCount).text('0');
           $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         }
@@ -279,16 +307,24 @@ jQuery(function ($) {
 });
 
 
-// refreshReviewSummary — called directly after cart item removal.
+// refreshReviewSummary â€” called directly after cart item removal.
 // On checkout pages, checkout.js handles this via WC's 'updated_checkout' event.
+let reviewSummaryRequest = null;
+
 function refreshReviewSummary() {
-  if (!window.bsc_ajax || !bsc_ajax.ajax_url) return;
+  if (!window.bsc_ajax || !bsc_ajax.ajax_url || !jQuery('#bsc-review-summary').length) {
+    return null;
+  }
 
   const formData = jQuery('form[name="checkout"]').length
     ? jQuery('form[name="checkout"]').serializeArray()
     : [];
 
-  jQuery.ajax({
+  if (reviewSummaryRequest && reviewSummaryRequest.readyState !== 4) {
+    reviewSummaryRequest.abort();
+  }
+
+  reviewSummaryRequest = jQuery.ajax({
     url: bsc_ajax.ajax_url,
     method: 'POST',
     data: [
@@ -296,14 +332,24 @@ function refreshReviewSummary() {
       { name: 'nonce', value: bsc_ajax.nonce },
     ].concat(formData),
   })
-  .done(res => {
-    if (res?.success && res?.data?.html) {
-      jQuery('#bsc-review-summary').html(res.data.html);
-      // BSC-058: re-apply shipping visibility after DOM replacement.
-      if (typeof window.bscToggleShippingVisibility === 'function') {
-        window.bscToggleShippingVisibility();
+    .done((res) => {
+      if (res?.success && res?.data?.html) {
+        jQuery('#bsc-review-summary').replaceWith(res.data.html);
+        if (typeof window.bscToggleShippingVisibility === 'function') {
+          window.bscToggleShippingVisibility();
+        }
       }
-    }
-  })
-  .fail(xhr => console.error('❌ Error al refrescar el resumen del pedido.', xhr?.responseText));
+    })
+    .fail((xhr, statusText) => {
+      if (statusText !== 'abort') {
+        console.error('âŒ Error al refrescar el resumen del pedido.', xhr?.responseText);
+      }
+    })
+    .always(() => {
+      reviewSummaryRequest = null;
+    });
+
+  return reviewSummaryRequest;
 }
+
+window.refreshReviewSummary = refreshReviewSummary;

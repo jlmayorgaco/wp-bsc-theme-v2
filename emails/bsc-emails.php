@@ -69,10 +69,12 @@ function bsc_send_order_email( int $order_id, string $status, array $extra = [] 
     include $template_path;
     $body = ob_get_clean();
 
-    $headers = [
-        'Content-Type: text/html; charset=UTF-8',
-        'From: Bubble Skin Care <noreply@bubbleskincare.co>',
-    ];
+    $headers = function_exists( 'bsc_get_email_headers' )
+        ? bsc_get_email_headers()
+        : [
+            'Content-Type: text/html; charset=UTF-8',
+            'From: Bubble Skin Care <noreply@bubbleskincare.co>',
+        ];
 
     $sent = wp_mail( $to, $subject, $body, $headers );
 
@@ -92,11 +94,14 @@ function bsc_handle_order_status_email( int $order_id, string $old_status, strin
         return;
     }
 
-    // For shipped status, tracking data may be set already (from bsc_save_tracking)
-    // Avoid duplicate email: bsc_save_tracking fires bsc_send_order_email itself.
-    // We only fire here for non-shipped statuses, or when status changed without tracking flow.
+    // shipped is handled by bsc_save_tracking to include tracking data
     if ( $new_status === 'shipped' ) {
-        return; // handled by bsc_save_tracking in bsc-orders-page.php
+        return;
+    }
+
+    // Auto-archiving a cancelled order → no customer email
+    if ( $new_status === 'completed' && $old_status === 'cancelled' ) {
+        return;
     }
 
     bsc_send_order_email( $order_id, $new_status );

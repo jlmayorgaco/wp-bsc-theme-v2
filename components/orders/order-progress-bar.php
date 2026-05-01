@@ -1,58 +1,46 @@
-
 <?php
-// src/components/BSC_Order_Progress_Bar.php
 
 class BSC_Order_Progress_Bar {
-    // --- Constants for status ---
-    public const PENDING    = 'pending';
-    public const RECEIVED   = 'received';
-    public const SHIPPED    = 'shipped';
-    public const DELIVERED  = 'delivered';
-    public const CANCELLED  = 'cancelled';
+    public const RECEIVED  = 'received';
+    public const SHIPPED   = 'shipped';
+    public const DONE      = 'done';
+    public const CANCELLED = 'cancelled';
+    public const REFUNDED  = 'refunded';
+    public const DISPLAY_STANDARD = 'standard';
+    public const DISPLAY_COMPACT  = 'compact';
 
-    // --- Properties ---
-    private string $status = self::PENDING;
-    private array $statuses = [
-        self::PENDING,
-        self::RECEIVED,
-        self::SHIPPED,
-        self::DELIVERED,
-    ];
+    private string $status = self::CANCELLED;
+    private string $display_mode = self::DISPLAY_STANDARD;
 
-    // --- Constructor ---
-    public function __construct(string $initial_status = self::PENDING) {
+    public function __construct(string $initial_status = self::CANCELLED, string $display_mode = self::DISPLAY_STANDARD) {
         $this->setStatus($initial_status);
+        $this->setDisplayMode($display_mode);
     }
 
-    // --- Set current status ---
     public function setStatus(string $status): void {
-        if (!in_array($status, [
-            self::PENDING,
-            self::RECEIVED,
-            self::SHIPPED,
-            self::DELIVERED,
-            self::CANCELLED
-        ])) {
-            $status = self::PENDING;
-        }
-        $this->status = $status;
+        $valid = [self::RECEIVED, self::SHIPPED, self::DONE, self::CANCELLED, self::REFUNDED];
+        $this->status = in_array($status, $valid, true) ? $status : self::CANCELLED;
     }
 
-    // --- Render progress bar ---
+    public function setDisplayMode(string $display_mode): void {
+        $valid = [self::DISPLAY_STANDARD, self::DISPLAY_COMPACT];
+        $this->display_mode = in_array($display_mode, $valid, true) ? $display_mode : self::DISPLAY_STANDARD;
+    }
+
     public function render(): void {
-        // Special handling for pending and cancelled
-        if ($this->status === self::PENDING || $this->status === self::CANCELLED) {
-            $label_text = $this->status === self::PENDING ? 'Pago Pendiente' : 'Cancelado';
+        if ($this->status === self::CANCELLED || $this->status === self::REFUNDED) {
+            $single_label = $this->status === self::REFUNDED ? 'Reembolsado' : 'Cancelado';
+            $width_class = 'level--100%';
             ?>
             <div class="bsc__progress-bar bsc__progress-bar--single">
                 <div class="progress-bar">
                     <div class="progress-bar__background"></div>
-                    <div class="progress-bar__level level--gray" style="width: 100%;"></div>
+                    <div class="progress-bar__level level--gray <?php echo esc_attr($width_class); ?>"></div>
                 </div>
                 <div class="labels">
                     <div class="label label--focus">
                         <span class="label__line">|</span>
-                        <span class="label__text"><?php echo esc_html($label_text); ?></span>
+                        <span class="label__text"><?php echo esc_html($single_label); ?></span>
                     </div>
                 </div>
             </div>
@@ -60,36 +48,15 @@ class BSC_Order_Progress_Bar {
             return;
         }
 
-        // BSC-032: 3-step bar — RECEIVED → SHIPPED → DELIVERED
-        $step_order = [
-            self::RECEIVED  => 1,
-            self::SHIPPED   => 2,
-            self::DELIVERED => 3,
-        ];
-
-        $progress_percent = match ($this->status) {
-            self::RECEIVED  => '33%',
-            self::SHIPPED   => '66%',
-            self::DELIVERED => '100%',
-            default         => '0%',
-        };
-
-        $bar_color_class = ($this->status === self::DELIVERED) ? 'level--blue' : 'level--pink';
-        $active_index    = $step_order[$this->status] ?? 0;
-
-        $labels = [
-            ['text' => '¡Recibido!',  'is_active' => $active_index >= 1],
-            ['text' => '¡Enviado!',   'is_active' => $active_index >= 2],
-            ['text' => '¡Entregado!', 'is_active' => $active_index >= 3],
-        ];
+        $config = $this->build_progress_config();
         ?>
         <div class="bsc__progress-bar">
             <div class="progress-bar">
                 <div class="progress-bar__background"></div>
-                <div class="progress-bar__level <?php echo esc_attr($bar_color_class); ?>" style="width: <?php echo esc_attr($progress_percent); ?>;"></div>
+                <div class="progress-bar__level <?php echo esc_attr(trim($config['bar_color_class'] . ' ' . $config['progress_width_class'])); ?>"></div>
             </div>
             <div class="labels">
-                <?php foreach ($labels as $label): ?>
+                <?php foreach ($config['labels'] as $label): ?>
                     <div class="label <?php echo $label['is_active'] ? 'label--focus' : 'label--non-focus'; ?>">
                         <span class="label__line">|</span>
                         <span class="label__text"><?php echo esc_html($label['text']); ?></span>
@@ -100,31 +67,45 @@ class BSC_Order_Progress_Bar {
         <?php
     }
 
+    private function build_progress_config(): array {
+        if ($this->display_mode === self::DISPLAY_COMPACT) {
+            $is_done = $this->status === self::DONE;
 
+            return [
+                'progress_width_class' => $is_done ? 'level--100%' : 'level--50%',
+                'bar_color_class'      => $is_done ? 'level--blue' : 'level--pink',
+                'labels'               => [
+                    ['text' => 'Recibido', 'is_active' => true],
+                    ['text' => 'Entregado', 'is_active' => $is_done],
+                ],
+            ];
+        }
 
-
-    private function isStepActive(string $step): bool {
-        $order = [
-            self::PENDING => 0,
+        $step_order = [
             self::RECEIVED => 1,
-            self::SHIPPED => 2,
-            self::DELIVERED => 3,
-            self::CANCELLED => -1,
+            self::SHIPPED  => 2,
+            self::DONE     => 3,
         ];
-        return $order[$step] <= $order[$this->status];
-    }
 
-    private function getLabel(string $status): string {
-        return match ($status) {
-            self::PENDING   => 'Pago Pendiente',
-            self::RECEIVED  => '¡Recibido!',
-            self::SHIPPED   => '¡Enviado!',
-            self::DELIVERED => '¡Entregado!',
-            self::CANCELLED => '¡Cancelado!',
-            default         => $status,
+        $progress_width_class = match ($this->status) {
+            self::RECEIVED => 'level--33%',
+            self::SHIPPED  => 'level--66%',
+            self::DONE     => 'level--100%',
+            default        => '',
         };
+
+        $bar_color_class = ($this->status === self::DONE) ? 'level--blue' : 'level--pink';
+        $active_index    = $step_order[$this->status] ?? 0;
+
+        return [
+            'progress_width_class' => $progress_width_class,
+            'bar_color_class'      => $bar_color_class,
+            'labels'               => [
+                ['text' => 'Recibido', 'is_active' => $active_index >= 1],
+                ['text' => 'Enviado', 'is_active' => $active_index >= 2],
+                ['text' => 'Entregado', 'is_active' => $active_index >= 3],
+            ],
+        ];
     }
 }
-
-
 ?>

@@ -140,54 +140,17 @@ padding-left: 1px;
   .card__button {
     display: flex;
     justify-content: center;
-
-    
   }
 }
-.bsc__button-add-to-cart {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: var(--color--primary);
-        color: #fff;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.875rem;
-        transition: background-color 0.3s ease;
 
-        @include mixins.flex-center(center, center);
-        @include mixins.bsc-button();
+.bsc__button-add-to-cart,
+.bsc__button-add-to-cart--variable {
+  min-width: 160px;
+}
 
-        height: 45px;
-         overflow: hidden;
-
-      &:hover {
-        background-color: var(--color--primary);
-        border:1px solid #333;
-      }
-  }
-
-  .bsc__signin_btn, .bsc__signup_btn{
-            display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: var(--color--primary);
-        color: #fff;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.875rem;
-        transition: background-color 0.3s ease;
-
-        @include mixins.flex-center(center, center);
-        @include mixins.bsc-button();
-
-        height: 45px;
-         overflow: hidden;
-
-      &:hover {
-        background-color: var(--color--primary);
-      }
-  }
+.bsc__button-add-to-cart--hidden {
+  display: none;
+}
 
 
 .bsc__quantity-controls {
@@ -233,13 +196,27 @@ padding-left: 1px;
   }
 }
 
-
+.bsc__product-card {
+  .full-star{
+    color: var(--color--main);
+    }
+}
 
 @media (max-width: 767px) {
  .bsc__product-card {
     padding: 1rem;
     padding-top: 0px;
+    --bsc--product-w: calc(100vw - 76px);
+    --bsc--product-h: 300px;
  }
+ .bsc__product-card .card__brand .card__brand-name {
+  font-weight: bold;
+  font-style: normal;
+ }
+ .bsc__product-card .card__price {
+  margin-top: 0px;
+  padding-top: 0px;
+}
  .bsc__slider--ultimos_lanzamientos{
   padding-top: 0px !important;
  }

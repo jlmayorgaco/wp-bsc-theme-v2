@@ -1,10 +1,53 @@
-.bsc__button{
-    padding: 0.75rem 1rem;
-    border-radius: 20px;
-    background-color: #333;
-    color: #fff;
-    font-weight: 700;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
+﻿@use "../../mixins/mixins" as mixins;
+
+.bsc__button--capsule {
+  @include mixins.bsc-button-base(
+    $padding: 10px 18px,
+    $radius: 30px,
+    $font-size: 15px,
+    $height: 18px
+  );
+
+  display: block;
+  box-sizing: content-box;
+  border: 2px solid transparent;
+  background-color: var(--color--text);
+  color: #fff;
+
+  &:hover,
+  &:focus {
+    border-color: var(--color--text);
+    background-color: #fff;
+    color: #333;
+  }
+}
+
+.bsc__field--floating {
+  position: relative;
+  margin-bottom: 0;
+}
+
+.bsc__field--floating .bsc__input {
+  padding: var(--space--sm) var(--space--md);
+}
+
+.bsc__label--floating {
+  position: absolute;
+  top: 50%;
+  left: var(--space--md);
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition:
+    top 0.2s ease-in-out,
+    transform 0.2s ease-in-out,
+    font-size 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+}
+
+.bsc__field--floating .bsc__input:focus + .bsc__label--floating,
+.bsc__field--floating .bsc__input:not(:placeholder-shown) + .bsc__label--floating {
+  top: calc(0px - var(--space--sm));
+  transform: translateY(-100%) translateX(-18px);
+  font-size: 12px;
+  color: #333;
 }

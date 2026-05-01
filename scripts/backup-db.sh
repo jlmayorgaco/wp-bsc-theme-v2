@@ -1,36 +1,41 @@
 #!/bin/bash
-# BSC-045: Daily database backup with retention and error alerting.
-# Usage: bash scripts/backup-db.sh
-# Cron: 0 2 * * * /path/to/scripts/backup-db.sh
+# BSC-148: Daily database backup with retention, remote copy, checksum, and email report.
 
-CONFIG_FILE="$(dirname "$0")/backup-config.sh"
+set -euo pipefail
 
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo "[$(date)] ERROR: backup-config.sh not found at $CONFIG_FILE" >&2
-    exit 1
-fi
-source "$CONFIG_FILE"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=backup-common.sh
+source "${SCRIPT_DIR}/backup-common.sh"
 
-DATE=$(date +%F-%H-%M)
-DEST_DIR="$BACKUP_LOCAL/db"
-DEST_FILE="$DEST_DIR/db-$DATE.sql.gz"
+load_backup_config
 
-mkdir -p "$DEST_DIR"
+DATE="$(date +%F-%H-%M)"
+DEST_DIR="${BACKUP_LOCAL}/db"
+DEST_FILE="${DEST_DIR}/db-${DATE}.sql.gz"
 
-# Run dump
-if mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
-    --single-transaction --quick --lock-tables=false \
-    "$DB_NAME" | gzip > "$DEST_FILE"; then
-    SIZE=$(du -sh "$DEST_FILE" | cut -f1)
-    echo "[$(date)] OK  DB backup: $DEST_FILE ($SIZE)" >> "$LOG_FILE"
+ensure_directory "$DEST_DIR"
+
+if backup_database "$DEST_FILE"; then
+    write_checksum_file "$DEST_FILE"
+    push_remote_artifacts "db" "$DEST_FILE" "${DEST_FILE}.sha256"
+    purge_old_files "$DEST_DIR" "*.sql.gz" "$DB_RETENTION_DAYS"
+    purge_old_files "$DEST_DIR" "*.sql.gz.sha256" "$DB_RETENTION_DAYS"
+
+    BODY="$(cat <<EOF
+Database backup completed.
+
+Artifact:
+$(artifact_summary "$DEST_FILE")
+
+Database:
+- host: $DB_HOST
+- name: $DB_NAME
+EOF
+)"
+    log_message "OK" "DB backup complete: $DEST_FILE"
+    send_email "BSC DB backup OK" "$BODY"
 else
-    echo "[$(date)] FAIL DB backup failed for $DB_NAME" >> "$LOG_FILE"
-    if command -v mail &>/dev/null; then
-        echo "BSC DB backup FAILED at $(date)" | mail -s "BSC Backup Error" "$ADMIN_EMAIL"
-    fi
+    log_message "FAIL" "DB backup failed for $DB_NAME"
+    send_email "BSC DB backup FAILED" "Database backup failed at $(date). Check ${LOG_FILE}."
     exit 1
 fi
-
-# Purge old backups
-find "$DEST_DIR" -type f -name "*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
-echo "[$(date)] INFO Purged DB backups older than ${RETENTION_DAYS} days" >> "$LOG_FILE"

@@ -227,6 +227,15 @@
     display: block;
     object-fit: contain;
   }
+
+  .bsc__contact-notice {
+    display: none;
+  }
+
+  .bsc__contact-submit {
+    min-width: 0;
+    padding: 0.65rem 1.45rem;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -359,3 +368,4 @@
     }
   }
 }
+

@@ -53,7 +53,7 @@ class BSC_MenuNav {
 		if(count($this->menus) == 0){
 			ob_start();
 
-			echo '<a class="bsc__menu-nav bsc__menu-nav--button" href="'. esc_html($this->link) .'">';
+			echo '<a class="bsc__menu-nav bsc__menu-nav--button" href="'. esc_url($this->link) .'">';
 			echo '<span class="menu-nav__name">' . esc_html($this->name) . '</span>';
 			echo '</a>';
 
@@ -92,7 +92,7 @@ class BSC_MenuNav {
 		}
 
 		if ($this->image) {
-			echo '<a class="bsc__menu-nav-image" href="'. esc_attr($this->link) .'">';
+			echo '<a class="bsc__menu-nav-image" href="'. esc_url($this->link) .'">';
 			echo '<img src="' . esc_url($this->image) . '" alt="' . esc_attr($this->name) . '">';
 			echo '</a>';
 		}

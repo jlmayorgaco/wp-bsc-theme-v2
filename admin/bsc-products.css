@@ -1,0 +1,144 @@
+.bsc-admin-products__filters {
+  margin: 12px 0;
+}
+
+.bsc-admin-products__table {
+  margin-top: 8px;
+}
+
+.bsc-admin-products__col-image {
+  width: 60px;
+}
+
+.bsc-admin-products__col-price {
+  width: 100px;
+}
+
+.bsc-admin-products__col-stock {
+  width: 110px;
+}
+
+.bsc-admin-products__col-status {
+  width: 92px;
+}
+
+.bsc-admin-products__col-actions {
+  width: 230px;
+}
+
+.bsc-admin-products__image {
+  border-radius: 6px;
+  height: 56px;
+  object-fit: cover;
+  width: 56px;
+}
+
+.bsc-admin-products__sku {
+  color: #888;
+  font-size: 11px;
+}
+
+.bsc-admin-products__sale-price {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.bsc-admin-products__stock-input {
+  text-align: center;
+  width: 72px;
+}
+
+.bsc-admin-products__stock-input.is-low {
+  background: #fff5f5;
+  border-color: #e53e3e;
+}
+
+.bsc-admin-products__row-actions {
+  margin-bottom: 8px;
+}
+
+.bsc-admin-products__save-controls {
+  justify-content: flex-start;
+}
+
+.bsc-admin-products__empty {
+  color: #888;
+  padding: 20px;
+  text-align: center;
+}
+
+.bsc-admin-products__pagination {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.bsc-admin-products__pagination-label {
+  color: #666;
+}
+
+.bsc-admin-products__modal {
+  display: none;
+  inset: 0;
+  position: fixed;
+  z-index: 100000;
+}
+
+.bsc-admin-products__modal.is-open {
+  display: block;
+}
+
+.bsc-admin-products__modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  position: absolute;
+}
+
+.bsc-admin-products__modal-dialog {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  left: 50%;
+  max-height: 80vh;
+  max-width: 800px;
+  overflow-y: auto;
+  padding: 24px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+}
+
+.bsc-admin-products__modal-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.bsc-admin-products__modal-title {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.bsc-admin-products__modal-close {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.bsc-admin-products__history-table {
+  margin-top: 0;
+}
+
+.bsc-admin-products__delta {
+  font-weight: 700;
+}
+
+.bsc-admin-products__delta--positive {
+  color: #276749;
+}
+
+.bsc-admin-products__delta--negative {
+  color: #c53030;
+}

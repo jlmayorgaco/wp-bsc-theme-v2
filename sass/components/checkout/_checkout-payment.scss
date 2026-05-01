@@ -74,6 +74,11 @@
     }
 }
 
+.payment_box.bsc-payment-box--hidden,
+.woocommerce-PaymentBox.bsc-payment-box--hidden {
+  display: none;
+}
+
 #place_order{
     font-family: "Helvetica", sans-serif;
   font-size: 15px;

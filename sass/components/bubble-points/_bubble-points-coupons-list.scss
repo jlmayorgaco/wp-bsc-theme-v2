@@ -116,6 +116,10 @@
   align-content: start;
 }
 
+.bsc-ticket__actions--hidden {
+  display: none;
+}
+
 /* optional: tighten spacing a bit for this order */
 .bsc-ticket__row { margin-top: .25rem; }
 /* Wallet grid: 4 columns on large screens */

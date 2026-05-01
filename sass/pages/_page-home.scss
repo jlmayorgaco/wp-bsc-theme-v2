@@ -374,6 +374,11 @@
     }
   }
 
+  .home__contact__feedback,
+  .home__contact__success {
+    display: none;
+  }
+
   .home__contact__final-image {
     width: 325px;
     align-self: center;

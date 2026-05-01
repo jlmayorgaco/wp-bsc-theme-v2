@@ -1,0 +1,1737 @@
+[
+  {
+    "SLUG": "group-skin-care",
+    "PARENT_SLUG": null,
+    "LABEL": "SKIN CARE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "group-hair-care",
+    "PARENT_SLUG": null,
+    "LABEL": "HAIR CARE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "group-make-up",
+    "PARENT_SLUG": null,
+    "LABEL": "MAKE UP",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-tipo-piel",
+    "PARENT_SLUG": "group-skin-care",
+    "LABEL": "sk-tipo-piel",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-tipo-piel-seca",
+    "PARENT_SLUG": "sk-tipo-piel",
+    "LABEL": "Piel seca",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__SKIN_TYPE": {
+      "root": "pieles secas",
+      "desc": "Ideal para piel seca, deshidratada y sensible"
+    }
+  },
+  {
+    "SLUG": "sk-tipo-piel-grasa",
+    "PARENT_SLUG": "sk-tipo-piel",
+    "LABEL": "Piel grasa",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__SKIN_TYPE": {
+      "root": "pieles grasas",
+      "desc": "Ideal para piel grasa y sensible"
+    }
+  },
+  {
+    "SLUG": "sk-tipo-piel-mixta",
+    "PARENT_SLUG": "sk-tipo-piel",
+    "LABEL": "Piel mixta",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__SKIN_TYPE": {
+      "root": "pieles mixtas",
+      "desc": "Ideal para piel mixta y sensible"
+    }
+  },
+  {
+    "SLUG": "sk-tipo-piel-normal",
+    "PARENT_SLUG": "sk-tipo-piel",
+    "LABEL": "Piel normal",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__SKIN_TYPE": {
+      "root": "pieles normales",
+      "desc": "Ideal para piel normal y sensible"
+    }
+  },
+  {
+    "SLUG": "sk-necesidades",
+    "PARENT_SLUG": "group-skin-care",
+    "LABEL": "sk-necesidades",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-acne",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Acné",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-puntos-negros",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Puntos negros",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-machas",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Manchas",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-rojez",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Rojez",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-lineas-finas",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Líneas finas",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-firmeza",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Firmeza",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-resequedad",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Resquedad",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-luminosidad",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Luminosidad",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-textura",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Textura",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-exceso-de-sebo",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Exceso de sebo",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-necesidad-calmar",
+    "PARENT_SLUG": "sk-necesidades",
+    "LABEL": "Calmar",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-rutina",
+    "PARENT_SLUG": "group-skin-care",
+    "LABEL": "sk-rutina",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-rutina-s1-limpiadores-aceitosos",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Limpiadores aceitosos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar sobre piel seca, masajear completamente por 1 minuto aproximadamente. Enjuagar con agua tibia y sin secar la piel, continuar con el limpiador acuoso. No deja la piel grasosa. Usar en rutina pm.",
+    "BSC__RUTINE_STEPS": "1/ Los limpiadores aceitosos coreanos se utilizan como el primer paso de la rutina coreana (doble limpieza)."
+  },
+  {
+    "SLUG": "sk-rutina-s2-limpiadores-acuosos",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Limpiadores acuosos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Sobre manos húmedas aplicar una cantidad del tamaño de una moneda y emulsionar. Masajear sobre la piel húmeda por 1 minuto aproximadamente y enjuagar con agua tibia.",
+    "BSC__RUTINE_STEPS": "2/ Los limpiadores acuosos coreanos se utilizan después del limpiador aceitoso, sobre piel húmeda y antes del tónico."
+  },
+  {
+    "SLUG": "sk-rutina-s3-exfoliantes",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Exfoliantes",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una cantidad adecuada sobre piel seca, dependiendo del formato del exfoliante y retirar completamente con agua tibia de ser necesario. NO es un paso de uso diario.",
+    "BSC__RUTINE_STEPS": "3/ Los exfoliantes coreanos se utilizan 1-3 veces máximo a la semana (dependiendo del tipo de piel y productos que se utilizan en la rutina de skin care) van después de la limpieza."
+  },
+  {
+    "SLUG": "sk-rutina-s4-tonicos",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Tónicos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Después de la limpieza aplicar una cantidad moderada de tónico sobre la piel. Dar ligeras palmaditas para una mejor absorción. Usar en rutina am y pm.",
+    "BSC__RUTINE_STEPS": "4/ Los tónicos coreanos se aplican después de la limpieza y antes de la esencia coreana."
+  },
+  {
+    "SLUG": "sk-rutina-s5-mascarillas-1",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Mascarillas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Con la piel limpia y seca aplicar una capa de mascarilla, evitar el contorno de los ojos y la boca. Dejar actuar entre 5-15 minutos y enjuagar con agua tibia.",
+    "BSC__RUTINE_STEPS": "5/ Las mascarillas coreanas se utilizan 1-3 veces a la semana (dependiendo del tipo de piel) van después de el tónico y antes de la esencia."
+  },
+  {
+    "SLUG": "sk-rutina-s5-mascarillas-2",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Mascarillas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Colocar la sheet mask sobre la piel limpia después del tónico. Dejar actuar 20-30 minutos. Finalizar con pequeños toquecitos, no necesita enjuague y cada mascarilla es de 1 solo uso.",
+    "BSC__RUTINE_STEPS": "5/ Las mascarillas coreanas se utilizan 1-3 veces a la semana (dependiendo del tipo de piel) van después de el tónico y antes de la esencia."
+  },
+  {
+    "SLUG": "sk-rutina-s6-esencias",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Esencias",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Después del tónico aplicar una cantidad moderada de esencia sobre la piel. Dar ligeras palmaditas para una mejor absorción. Usar en rutina am y pm.",
+    "BSC__RUTINE_STEPS": "6/ Las esencias coreanas son literal el corazón de la rutina coreana, se aplican después del tónico y antes del serum."
+  },
+  {
+    "SLUG": "sk-rutina-s7-serums",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Serums",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Después de la esencia aplicar una 3-4 goticas de serum sobre la piel. Dar ligeras palmaditas para una mejor absorción. Usar am y pm.",
+    "BSC__RUTINE_STEPS": "7/ Los serums coreanos se aplican después de la esencia y antes del contorno de ojos."
+  },
+  {
+    "SLUG": "sk-rutina-s8-contorno-de-ojos",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Contorno de ojos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una pequeña cantidad de crema en el área del contorno de ojos y comisuras de la boca. Dar ligeros toquecitos para una mejor absorción. Usar en rutina am y pm.",
+    "BSC__RUTINE_STEPS": "8/ Los contornos de ojos coreanos los aplicas después del serum y antes de la hidratante."
+  },
+  {
+    "SLUG": "sk-rutina-s9-hidratantes",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Hidratantes",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Después del contorno de ojos aplicar una cantidad moderada de hidratante sobre la piel y bajar al cuello. Dar ligeras palmaditas para una mejor absorción. Usar en rutina am y pm.",
+    "BSC__RUTINE_STEPS": "9/ Las hidratantes coreanas se utilizan después del contorno de ojos y antes del protector solar."
+  },
+  {
+    "SLUG": "sk-rutina-s10-protectores-solares-crema",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Protectores solares",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar 2-3 dedos de protector solar y extenderlo sobre todas las áreas expuestas a los rayos solares. Re aplicar cada 2-4 horas según exposición directa al sol.",
+    "BSC__RUTINE_STEPS": "10/ Los protectores solares coreanos se aplican como último paso de la rutina coreana después de la hidratante."
+  },
+  {
+    "SLUG": "sk-rutina-s10-protectores-solares-barrita",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Protectores solares",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar 2-4 capas de protector solar en barra y extenderlo sobre todas las áreas expuestas a los rayos solares. Re aplicar cada 2-4 horas según exposición directa al sol.",
+    "BSC__RUTINE_STEPS": "10/ Los protectores solares coreanos se aplican como último paso de la rutina coreana después de la hidratante."
+  },
+  {
+    "SLUG": "sk-rutina-s11-complemento-c1-aceites-faciales",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Aceites faciales",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar al finalizar toda la rutina de skin care para sellar y retener mejor la humectación en la piel, tambien se puede utilizar para masajes faciales con gua sha, face roller y dispositivos. 3-6 goticas. No necesita enjuague.",
+    "BSC__RUTINE_STEPS": "* Los aceites faciales coreanos se utilizan al finalizar toda la rutina de skin care. Sella todo los activos e ingredientes que aplicaste y potencia la piel rellenita o plumpy. Tambien, se utilizan antes de los masajes faciales con gua sha, face roller o las manos."
+  },
+  {
+    "SLUG": "sk-rutina-s12-complemento-c2-spot",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Spots",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una capa gruesa (rutina pm) y delgada (rutina am) de manera uniforme en el punto con acné como último paso de la rutina sobre piel seca. ",
+    "BSC__RUTINE_STEPS": "* Los spots coreanos son tratamientos puntuales para desinflamar y sanar rapidamente los granitos de acné."
+  },
+  {
+    "SLUG": "sk-rutina-s12-complemento-c3-patches",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Patches",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar 1 parche sobre el granito y en piel completamente seca. Cada parche es de 1 solo uso, se recomienda usar en rutina am para prevenir que se infecte más el grano de acné con la contaminación y que sane mucho más rápido.",
+    "BSC__RUTINE_STEPS": "* Los parches son tratamientos puntuales para desinflamar y prevenir que los granitos de acné. se infecten más durante el día"
+  },
+  {
+    "SLUG": "sk-rutina-s13-complemento-c4-mist-y-brumas",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Mist y brumas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Se puede utilizar durante el día cuando se sienta la piel seca o con falta de humedad, y elasticidad. Incluso sobre piel maquillada. Agite antes de usar.",
+    "BSC__RUTINE_STEPS": "* Los spray / mist / bruma complementan la rutina de skin care y se pueden usar varias veces al día para aportar hidratación a la piel de forma ligera."
+  },
+  {
+    "SLUG": "sk-rutina-s14-complemento-c5-sticks",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Sticks",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar direcatemente sobre la piel y re aplicar cada vez que sea necesario en áreas secas. Puede usarse directamente sobre líneas finas y arruguitas.",
+    "BSC__RUTINE_STEPS": "* Los sticks multi balms son complemento a la rutina de skin care coreana."
+  },
+  {
+    "SLUG": "sk-rutina-s15-complemento-c6-labios",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Labios",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una cantidad adecuada en los labios secos, en la noche se puede utilizar una capa gruesa como mascarilla y en el día más delgada como hidratante de labios.",
+    "BSC__RUTINE_STEPS": "* Las mascarillas de labios hidratan, reparan y previenen la deshidratación."
+  },
+  {
+    "SLUG": "sk-rutina-s16-complemento-c7-inner-beauty",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Inner Beauty",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Se puede tomar directamente del sobre, con agua o tu bebida favorita. 1 stick diario.",
+    "BSC__RUTINE_STEPS": "* Es un suplemento y complemento a la rutina de skin care coreana, se debe tomar 1 stick todos los días."
+  },
+  {
+    "SLUG": "sk-rutina-s17-complemento-c8-accesorios",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Accesorios",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur.",
+    "BSC__RUTINE_STEPS": "*Ideal para tu rutina coreana."
+  },
+  {
+    "SLUG": "sk-rutina-s18-complemento-c9-minis",
+    "PARENT_SLUG": "sk-rutina",
+    "LABEL": "Minis",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur.",
+    "BSC__RUTINE_STEPS": "*Ideal para viajes o para probar productos nuevos."
+  },
+  {
+    "SLUG": "sk-ingredientes",
+    "PARENT_SLUG": "group-skin-care",
+    "LABEL": "sk-ingredientes",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-acido-hialuronico",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Ácido hialurónico",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-centella-asiatica",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Centella asiática",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-mucina-de-caracol",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Mucina de caracol",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-fermentos",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Fermentos",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-aha-bha-pha",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "AHA BHA PHA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-retinol",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Retinol",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-niacinamida",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Niacinamida",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-vitamina-c",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Vitamina C",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-arroz",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Arroz",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-peptidos",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Péptidos",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-te-verde",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Té verde",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-miel",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Miel",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-propoleos",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Propóleos",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-ceramidas",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Ceramidas",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-matcha",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Matcha",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-aloe",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Aloe",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-colageno",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "Colageno",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-ingredient-ginseng",
+    "PARENT_SLUG": "sk-ingredientes",
+    "LABEL": "sk-ingredient-ginseng",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marcas",
+    "PARENT_SLUG": "group-skin-care",
+    "LABEL": "ANUA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-anua",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "A'PIEU",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-apieu",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "AXIS-Y",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-axisy",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BANILA CO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-banila-co",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BEAUTY OF JOSEON",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-beauty-of-joseon",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BENTON",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-benton",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "COSRX",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-cosrx",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "DR. CEURACLE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-dr.ceuracle",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ETUDE HOUSE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-etude-house",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ESFOLIO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-esfolio",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "FRUDIA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-frudia",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "G9 SKIN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-g9-skin",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "GOODAL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-goodal",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "HARUHARU WONDER",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-haruharu-wonder",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "HEIMISH",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-heimish",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "I'M FROM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-im-from",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ISNTREE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-isntree",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "IUNIK",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-iunik",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "JUMISO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-jumiso",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MARY&MAY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-mary&may",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "AHC",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-ahc",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "B.LAB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-b-lab",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BB LAB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-bb-lab",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "CELIMAX",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-celimax",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "KLAVUU",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-klavuu",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MISSHA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-missha",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "NACIFIC",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-nacific",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "NEOGEN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-neogen",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "NUMBUZIN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-numbuzin",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ROUND LAB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-round-lab",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SKIN1004",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-skin-1004",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SOME BY MI",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-some-by-mi",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "TIAM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-tiam",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "TOCOBO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-tocobo",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ELIZAVECCA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-elizavecca",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SKINFOOD",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-skin-food",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "VT COSMETICS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-vt-cosmetics",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "TIRTIR",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-tir-tir",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "PURITO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-purito",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "NATURE KIND",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-nature-kind",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "LANEIGE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-laneige",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "TORRIDEN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-torriden",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BOTO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-boto",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SCINIC",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-scinic",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "APLB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-aplb",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "FRAIJOUR",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-fraijour",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ROUND AROUND",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-round-around",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "COXIR",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-coxir",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MEDICUBE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-medicube",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "FARMSTAY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-farm-stay",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SNP",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-snp",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "TONYMOLY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-tonymoly",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "HOLIKA HOLIKA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-holika-holika",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "HYGGEE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-hyggee",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "KAHI",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-kahi",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "THE FACE SHOP",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-the-face-shop",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MANYO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-manyo",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "OTTIE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-ottie",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ONE THING",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-one-thing",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "PAPARECIPE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-papa-recipe",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "NEEDLY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-needly",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "EUNYUL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-eunyul",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ILLIYOON",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-illiyoon",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "DR. JART",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-dr-jart",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "DEWYTREE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-dewytree",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "DR.G",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-dr-g",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "COS DE BAHA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-cos-de-baha",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SHIMOMENT",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-shimoment",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MILKY DRESS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-milky-dress",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "CIRACLE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-ciracle",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MEDIFLOWER",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-mediflower",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "SWEETEEN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-sweeteen",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "CARE:NEL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-carenel",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "OOTD",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-ootd",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "KLAIRS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-klairs",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BE THE SKIN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-be-the-skin",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MIXSOON",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-mixsoon",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "PETITFÉE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-petitfee",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "JIGOTT",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-jigott",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BIODANCE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-biodance",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "DR. ALTHEA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-dr-althea",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "HAMEL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-hamel",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "KAINE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-kaine",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "LOGICALLY SKIN",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-logically-skin",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "K-SECRET",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-k-secret",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "MAKE P:PREM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-make-prem",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ABIB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-abib",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "BARULAB",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-barulab",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "THE HISTORY OF WHOO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-the-history-of-whoo",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "COMMONLABS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-the-common-labs",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "9 WISHES",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-9-wishes",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "ABOUT ME",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "sk-marca-about-me",
+    "PARENT_SLUG": "sk-marcas",
+    "LABEL": "sk-marca-about-me",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidades",
+    "PARENT_SLUG": "group-hair-care",
+    "LABEL": "hc-necesidades",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-cuero-cabelludo",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Cuero cabelludo",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-oleosidad",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Oleosidad",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-frizz",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Frizz",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-nutricion",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Nutrición",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-ondas-y-crespos",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Ondas y crespos",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-hidratacion",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Hidratación",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-necesidad-reparacion",
+    "PARENT_SLUG": "hc-necesidades",
+    "LABEL": "Reparación",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-rutina",
+    "PARENT_SLUG": "group-hair-care",
+    "LABEL": "hc-rutina",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-rutina-s1-shampoo",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Shampoo",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una cantidad adecuada de Shampoo sobre el cuero cabelludo húmedo y masajear con un cepillo capilar o los dedos. Enjuagar completamente con agua.",
+    "BSC__RUTINE_STEPS": "1/ El shampoo es el primer paso de la rutina capilar coreana, se aplica únicamente en el cuero cabelludo húmedo previamente."
+  },
+  {
+    "SLUG": "hc-rutina-s2-exfoliantes",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Exfoliantes",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar uniformememnte sobre todo el cuero cabelludo húmedo y previamente limpio con Shampoo. Dejar actuar de 3 a 5 minutos y masajear suavemente. Enjuagar completamente con agua.",
+    "BSC__RUTINE_STEPS": "2/ Los exfoliantes capilares coreanos se utilizan sobre cuero cabelludo limpio y húmedo (después del shampoo). 1-2 veces por semana. "
+  },
+  {
+    "SLUG": "hc-rutina-s3-mascarillas",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Mascarillas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar de forma generosa de medios a puntas después del shampoo. Si se desea un tratamiento más intensivo,dejar actuar 10 minutos y enjuagar con agua tibia. Este producto se usa 1-3 veces a la semana.",
+    "BSC__RUTINE_STEPS": "3/ Las mascarillas capilares coreanas van después del shampoo de medios a puntas. Tambien se pueden utilizar como pre-poo (previas al shampoo especialmente en cabellos con frizz)."
+  },
+  {
+    "SLUG": "hc-rutina-s4-acondicionadores",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Acondicionadores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Con el cabello limpio y húmedo (retirar exceso de agua) aplicar únicamente de medios a puntas. Dejar actuar de 2-5 minutos y retirar completamente con agua.",
+    "BSC__RUTINE_STEPS": "4/ Los acondicionadores coreanos van después del shampoo - mascarillas capilares, unicamente de medios a puntas."
+  },
+  {
+    "SLUG": "hc-rutina-s5-tonicos",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Tónicos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar en el cuero cabelludo limpio todos los días. Activar con un cepillo capilar o con los dedos.",
+    "BSC__RUTINE_STEPS": "5/ Los tónicos capilares coreanos se usan sobre cabello limpio en el cuero cabelludo y se activan con masajes suaves."
+  },
+  {
+    "SLUG": "hc-rutina-s6-serums",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Serums",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar en el cuero cabelludo limpio todos los días. Activar con un cepillo capilar o con los dedos.",
+    "BSC__RUTINE_STEPS": "6/ Los serums capilares coreanos se usan sobre cabello limpio en el cuero cabelludo y se activan con masajes suaves."
+  },
+  {
+    "SLUG": "hc-rutina-s7-esencias-leave-in",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Esencias leave in",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Antes de desenredar, aplicar una cantidad moderada de medios a puntas sobre el cabello húmedo y distribuir uniformemente.",
+    "BSC__RUTINE_STEPS": "7/ Los productos leave-in capilares coreanos se usan sobre cabello limpio y húmedo (no empapado)."
+  },
+  {
+    "SLUG": "hc-rutina-s8-sprays",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Sprays",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Mantenga cierta distanca de la cabeza y rocie sobre el cabello limpio.",
+    "BSC__RUTINE_STEPS": "8/ Los spray fijadores capilares coreanos van como último páso de la rutina de hair care."
+  },
+  {
+    "SLUG": "hc-rutina-s9-aceites",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Aceites capilares",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una cantidad moderada de medios a puntas. No requiere enjuague, se recomienda utilizar sobre cabello limpio y seco o semi húmedo.",
+    "BSC__RUTINE_STEPS": "9/ Los aceites capilares coreanos van después de los productos leave-in. Se aplican de medios a puntas."
+  },
+  {
+    "SLUG": "hc-rutina-s10-protectores",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Protectores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Utilizar en el último paso de la rutina capilar para proteger el cabello del sol, contaminación y herramientas de calor.",
+    "BSC__RUTINE_STEPS": "10 / Los protectores capilares es el último paso de la rutina capilar coreana, se utiliza todos los días"
+  },
+  {
+    "SLUG": "hc-rutina-s11-complementos-c1-pestanas",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Pestañas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar sobre las pestañas y cejas (limpias y secas). Usar todos los días.",
+    "BSC__RUTINE_STEPS": "* Aplicar en pestañas limpias y secas."
+  },
+  {
+    "SLUG": "hc-rutina-s12-complementos-c2-cepillos",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Cepillos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur.",
+    "BSC__RUTINE_STEPS": "*Ideal para peinar, masajear tu cuero cabelludo y cabello en los pasos requeridos."
+  },
+  {
+    "SLUG": "hc-rutina-s13-complementos-c3-cushions",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Cushion",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar toquecitos en las áreas del ceuro cabelludo con poco cabello o espacios visibles.",
+    "BSC__RUTINE_STEPS": "* Al finalizar la rutina coreana capilar puedes rellenar los espacios en el cuero cabelludo con el cushion"
+  },
+  {
+    "SLUG": "hc-rutina-s14-complementos-c4-minis",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Minis",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur.",
+    "BSC__RUTINE_STEPS": "*Ideal para viajes o para probar productos nuevos."
+  },
+  {
+    "SLUG": "hc-rutina-s15-complementos-c5-accesorios",
+    "PARENT_SLUG": "hc-rutina",
+    "LABEL": "Accesorios",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur.",
+    "BSC__RUTINE_STEPS": "*Ideal para tu rutina capilar coreana."
+  },
+  {
+    "SLUG": "hc-marca",
+    "PARENT_SLUG": "group-hair-care",
+    "LABEL": "hc-marca",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-cp-1",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "CP-1",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-nard",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "NARD",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-aromatica",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "AROMATICA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-nine-less",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "NINE LESS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-some-by-mi",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "SOME BY MI",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-the-saem",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "THE SAEM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-elizavecca",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "ELIZAVECCA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-mise-en-scene",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "TOSOWOONG",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-tosowoong",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "TOSOWOOND",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-rire",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "RIRE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-around-me",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "AROUND ME",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-medi-heal",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "MEDI-HEAL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-odid",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "ODID",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "hc-marca-masil",
+    "PARENT_SLUG": "hc-marca",
+    "LABEL": "MASIL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-productos",
+    "PARENT_SLUG": "group-make-up",
+    "LABEL": "mk-productos",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-rutina-p1-bb-creams-y-bases",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "BB Cream y bases",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar después de la rutina de skin care para cubrir imperfecciones, rojeces, manchas y proteger la piel de los rayos UVA Y UVB. Puede usarse como retoque del protector solar en el día."
+  },
+  {
+    "SLUG": "mk-rutina-p2-cushions-y-refills",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Cushions y refills",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar después de la rutina de skin care para cubrir imperfecciones, rojeces, manchas y proteger la piel de los rayos UVA Y UVB. Puede usarse como retoque del protector solar en el día."
+  },
+  {
+    "SLUG": "mk-rutina-p3-sombras-y-paletas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Sombras y paletas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Utilizar el dedo o brocha para extender suavemente sobre los parpados o zonas que desee agregar pigmento y luminosidad."
+  },
+  {
+    "SLUG": "mk-rutina-p4-delineadores",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Delineadores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur."
+  },
+  {
+    "SLUG": "mk-rutina-p5-pestaninas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Pestañinas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplica una capa para pestañas llenas y definidas. Agrega otra capa para una apariencia aún más rizada y dramática."
+  },
+  {
+    "SLUG": "mk-rutina-p6-rubores",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Rubores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar en las mejillas, nariz, párpados, labios y áreas que desea aplicar color."
+  },
+  {
+    "SLUG": "mk-rutina-p7-iluminadores",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Iluminadores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar en las mejillas, nariz, párpados, labios y áreas que desea aplicar luminosidad."
+  },
+  {
+    "SLUG": "mk-rutina-p8-correctores",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Correctores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar y difuminar el corrector sobre la zona deseada y fije con polvo o fijador si es necesario."
+  },
+  {
+    "SLUG": "mk-rutina-p9-tintas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Tintas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar desde el interior de los labios y difundir hacia el exterior."
+  },
+  {
+    "SLUG": "mk-rutina-p10-labiales",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Labiales",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar desde el interior de los labios y difundir hacia el exterior."
+  },
+  {
+    "SLUG": "mk-rutina-p11-polvos",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Polvos",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar para sellar el maquillaje o al finalizar la rutina de skin care, controlar el exceso de sebo en el día, como shampoo en seco, sellar tintas de labios y/o manos sudorosas."
+  },
+  {
+    "SLUG": "mk-rutina-p12-complementos-c1-cejas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Cejas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur."
+  },
+  {
+    "SLUG": "mk-rutina-p13-complementos-c2-primers",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Primers",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar una cantidad moderada y extenderla homogéneamente por la piel antes de aplicar base o BB cream. Rellena los poros dilatados para dar una apariencia de piel de porcelana con el maquillaje."
+  },
+  {
+    "SLUG": "mk-rutina-p14-complementos-c3-fijadores",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Fijadores",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Agitar suavemente antes de usar, rocié ligeramente sobre la piel a una distancia de 20-30 cm."
+  },
+  {
+    "SLUG": "mk-rutina-p15-complementos-c4-brochas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Brochas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Importado directamente de Corea del Sur."
+  },
+  {
+    "SLUG": "mk-rutina-p16-complementos-c5-pestanas",
+    "PARENT_SLUG": "mk-productos",
+    "LABEL": "Pestañas",
+    "DESCRIPTION": "",
+    "PICTURE": "",
+    "BSC__HOW_TO_USE": "Aplicar sobre las pestañas limpias y secas."
+  },
+  {
+    "SLUG": "mk-marcas",
+    "PARENT_SLUG": "group-make-up",
+    "LABEL": "mk-marcas",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-clio",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "CLIO",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-etude-house",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "ETUDE HOUSE",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-missha",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "MISSHA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-peripera",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "PERIPERA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-the-saem",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "THE SAEM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-vt-cosmetics",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "VT COSMETICS",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-unleashia",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "UNLEASHIA",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-romand",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "ROM&ND",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-lily-by-red",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "LILY BY RED",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-moonshot",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "MOONSHOT",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-im-unny",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "I'M UNNY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-milk-touch",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "MILK TOUCH",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-peach-c",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "PEACH C",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-house-of-hur",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "HOUSE OF HUR",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-so-natural",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "SO NATURAL",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-im-meme",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "I'M MEME",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-merzy",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "MERZY",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-apieu",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "A'PIEU",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-cologram",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "COLOGRAM",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-the-face-shop",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "THE FACE SHOP",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-heimish",
+    "PARENT_SLUG": "mk-marcas",
+    "LABEL": "HEIMISH",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  },
+  {
+    "SLUG": "mk-marca-holika-holika",
+    "PARENT_SLUG": "",
+    "LABEL": "mk-marca-holika-holika",
+    "DESCRIPTION": "",
+    "PICTURE": ""
+  }
+]

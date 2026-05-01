@@ -31,7 +31,6 @@ function bsc_2_0_woocommerce_setup() {
 			),
 		)
 	);
-	add_theme_support( 'wc-product-gallery-zoom' );
 	add_theme_support( 'wc-product-gallery-lightbox' );
 	add_theme_support( 'wc-product-gallery-slider' );
 }
@@ -181,11 +180,11 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_cart_link' ) ) {
 	 */
 	function bsc_2_0_woocommerce_cart_link() {
 		?>
-		<a class="cart-contents" href="<?php echo esc_url( wc_get_cart_url() ); ?>" title="<?php esc_attr_e( 'View your shopping cart', 'bsc-2-0' ); ?>">
+		<a class="cart-contents" href="<?php echo esc_url( wc_get_checkout_url() ); ?>" title="<?php esc_attr_e( 'Ir al checkout', 'bsc-2-0' ); ?>">
 			<?php
 			$item_count_text = sprintf(
 				/* translators: number of items in the mini cart. */
-				_n( '%d item', '%d items', WC()->cart->get_cart_contents_count(), 'bsc-2-0' ),
+				_n( '%d producto', '%d productos', WC()->cart->get_cart_contents_count(), 'bsc-2-0' ),
 				WC()->cart->get_cart_contents_count()
 			);
 			?>
@@ -229,10 +228,52 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 
 
     add_action('after_setup_theme', function () {
-    add_theme_support('wc-product-gallery-zoom');
     add_theme_support('wc-product-gallery-lightbox');
     add_theme_support('wc-product-gallery-slider');
     });
+
+/**
+ * BSC-089: Product gallery image sizes tuned for PDP quality/performance balance.
+ *
+ * @param array $size Image size config.
+ * @return array
+ */
+function bsc_woocommerce_single_image_size( $size ) {
+	return array(
+		'width'  => 900,
+		'height' => 900,
+		'crop'   => 0,
+	);
+}
+add_filter( 'woocommerce_get_image_size_single', 'bsc_woocommerce_single_image_size' );
+
+/**
+ * BSC-089: Keep only the real PDP gallery main image eager for faster LCP.
+ *
+ * @param array        $attr          Image attributes.
+ * @param int          $attachment_id Attachment ID.
+ * @param string|array $size          Requested image size.
+ * @param bool         $main_image    Whether this is the main gallery image.
+ * @return array
+ */
+function bsc_product_gallery_image_loading_attrs( $attr, $attachment_id, $size, $main_image ) {
+	if ( ! is_product() ) {
+		return $attr;
+	}
+
+	if ( $main_image ) {
+		$attr['loading']       = 'eager';
+		$attr['fetchpriority'] = 'high';
+		$attr['decoding']      = 'sync';
+	} else {
+		$attr['loading']  = 'lazy';
+		$attr['decoding'] = 'async';
+		unset( $attr['fetchpriority'] );
+	}
+
+	return $attr;
+}
+add_filter( 'woocommerce_gallery_image_html_attachment_image_params', 'bsc_product_gallery_image_loading_attrs', 10, 4 );
 
 
   add_filter('woocommerce_checkout_fields', 'bsc_add_billing_cedula_field');
@@ -260,11 +301,53 @@ add_action('after_setup_theme', function () {
 
 add_filter('woocommerce_checkout_fields', 'bsc_translate_placeholders');
 function bsc_translate_placeholders($fields) {
-  // País, Departamento, Ciudad, etc.
-  $fields['billing']['billing_state']['placeholder'] = 'Selecciona un departamento…';
-  $fields['billing']['billing_city']['placeholder'] = 'Selecciona una ciudad…';
+  $fields['billing']['billing_state']['placeholder']   = 'Selecciona un departamento…';
+  $fields['billing']['billing_city']['placeholder']    = 'Selecciona una ciudad…';
   $fields['billing']['billing_country']['placeholder'] = 'Selecciona un país…';
+  return $fields;
+}
 
+add_filter('woocommerce_billing_fields', 'bsc_billing_field_placeholders');
+function bsc_billing_field_placeholders($fields) {
+  $map = [
+    'billing_first_name' => 'Tu nombre',
+    'billing_last_name'  => 'Tu apellido',
+    'billing_company'    => 'Empresa (opcional)',
+    'billing_address_1'  => 'Dirección (calle, barrio, número…)',
+    'billing_address_2'  => 'Complemento (apto, piso, torre…)',
+    'billing_postcode'   => 'Código postal',
+    'billing_phone'      => 'Teléfono de contacto',
+    'billing_email'      => 'Correo electrónico',
+    'billing_state'      => 'Selecciona un departamento…',
+    'billing_city'       => 'Selecciona una ciudad…',
+    'billing_country'    => 'Selecciona un país…',
+  ];
+  foreach ( $map as $key => $placeholder ) {
+    if ( isset($fields[$key]) ) {
+      $fields[$key]['placeholder'] = $placeholder;
+    }
+  }
+  return $fields;
+}
+
+add_filter('woocommerce_shipping_fields', 'bsc_shipping_field_placeholders');
+function bsc_shipping_field_placeholders($fields) {
+  $map = [
+    'shipping_first_name' => 'Tu nombre',
+    'shipping_last_name'  => 'Tu apellido',
+    'shipping_company'    => 'Empresa (opcional)',
+    'shipping_address_1'  => 'Dirección (calle, barrio, número…)',
+    'shipping_address_2'  => 'Complemento (apto, piso, torre…)',
+    'shipping_postcode'   => 'Código postal',
+    'shipping_state'      => 'Selecciona un departamento…',
+    'shipping_city'       => 'Selecciona una ciudad…',
+    'shipping_country'    => 'Selecciona un país…',
+  ];
+  foreach ( $map as $key => $placeholder ) {
+    if ( isset($fields[$key]) ) {
+      $fields[$key]['placeholder'] = $placeholder;
+    }
+  }
   return $fields;
 }
 
@@ -274,21 +357,16 @@ function bsc_custom_order_button_text($button_text) {
 }
 
 
+function bsc_calculate_order_bubble_points( WC_Order $order ): int {
+    return max( 0, (int) floor( (float) $order->get_total() / 1000 ) );
+}
+
+function bsc_get_order_bubble_points_earned( WC_Order $order ): int {
+    return bsc_calculate_order_bubble_points( $order );
+}
+
 function bsc_get_order_bubble_points_balance( WC_Order $order ): int {
-    $user_id = (int) $order->get_user_id();
-    if ( $user_id <= 0 ) {
-        return 0;
-    }
-
-    if ( function_exists( 'bsc_bp_get_balance' ) ) {
-        return (int) bsc_bp_get_balance( $user_id );
-    }
-
-    if ( class_exists( 'BSC_Bubble_Points' ) && method_exists( 'BSC_Bubble_Points', 'get' ) ) {
-        return (int) BSC_Bubble_Points::get( $user_id );
-    }
-
-    return (int) get_user_meta( $user_id, 'bsc_bubble_points', true );
+    return bsc_calculate_order_bubble_points( $order );
 }
 
 function bsc_cart_has_free_shipping_coupon(): bool {
@@ -365,7 +443,7 @@ function bsc_update_customer_destination_from_checkout_post( string $post_data =
 
 function bsc_force_checkout_shipping_package_destination( array $packages ): array {
     $destination = bsc_get_checkout_shipping_destination();
-    if ( ! bsc_checkout_destination_is_complete( $destination ) ) {
+    if ( ! bsc_checkout_destination_has_rate_context( $destination ) ) {
         return $packages;
     }
 
@@ -390,7 +468,7 @@ function bsc_force_checkout_shipping_package_destination( array $packages ): arr
 
 function bsc_get_checkout_shipping_destination( array $package = [] ): array {
     $posted_destination = bsc_normalize_checkout_destination( bsc_get_posted_checkout_destination() );
-    if ( bsc_checkout_destination_is_complete( $posted_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $posted_destination ) ) {
         return $posted_destination;
     }
 
@@ -404,12 +482,12 @@ function bsc_get_checkout_shipping_destination( array $package = [] ): array {
         ]
     );
 
-    if ( bsc_checkout_destination_is_complete( $package_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $package_destination ) ) {
         return $package_destination;
     }
 
     $customer_destination = bsc_get_customer_checkout_destination();
-    if ( bsc_checkout_destination_is_complete( $customer_destination ) ) {
+    if ( bsc_checkout_destination_has_rate_context( $customer_destination ) ) {
         return $customer_destination;
     }
 
@@ -444,7 +522,7 @@ function bsc_get_posted_checkout_destination( ?array $posted = null ): array {
     }
 
     $ship_to_different = ! empty( $posted['ship_to_different_address'] );
-    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] ) && ! empty( $posted['shipping_city'] )
+    $prefix = $ship_to_different && ! empty( $posted['shipping_state'] )
         ? 'shipping'
         : 'billing';
 
@@ -482,9 +560,13 @@ function bsc_checkout_destination_is_complete( array $destination ): bool {
         && trim( (string) ( $destination['city'] ?? '' ) ) !== '';
 }
 
+function bsc_checkout_destination_has_rate_context( array $destination ): bool {
+    return trim( (string) ( $destination['state'] ?? '' ) ) !== '';
+}
+
 function bsc_normalize_checkout_destination( array $destination ): array {
     $destination = [
-        'country'  => sanitize_text_field( (string) ( $destination['country'] ?? 'CO' ) ),
+        'country'  => 'CO',
         'state'    => sanitize_text_field( (string) ( $destination['state'] ?? '' ) ),
         'city'     => sanitize_text_field( (string) ( $destination['city'] ?? '' ) ),
         'postcode' => sanitize_text_field( (string) ( $destination['postcode'] ?? '' ) ),
@@ -504,18 +586,22 @@ function bsc_sync_customer_shipping_destination( ?array $posted = null ): void {
     }
 
     $destination = bsc_get_posted_checkout_destination( $posted );
-    if ( $destination['state'] === '' || $destination['city'] === '' ) {
+    if ( ! bsc_checkout_destination_has_rate_context( $destination ) ) {
         return;
     }
 
     WC()->customer->set_billing_country( $destination['country'] ?: 'CO' );
     WC()->customer->set_billing_state( $destination['state'] );
-    WC()->customer->set_billing_city( $destination['city'] );
     WC()->customer->set_billing_postcode( $destination['postcode'] );
     WC()->customer->set_shipping_country( $destination['country'] ?: 'CO' );
     WC()->customer->set_shipping_state( $destination['state'] );
-    WC()->customer->set_shipping_city( $destination['city'] );
     WC()->customer->set_shipping_postcode( $destination['postcode'] );
+
+    if ( $destination['city'] !== '' ) {
+        WC()->customer->set_billing_city( $destination['city'] );
+        WC()->customer->set_shipping_city( $destination['city'] );
+    }
+
     WC()->customer->save();
 
     bsc_clear_cached_shipping_packages();
@@ -532,7 +618,7 @@ function bsc_clear_cached_shipping_packages(): void {
 }
 
 function bsc_apply_location_shipping_rates( array $rates, string $state, string $city ): array {
-    if ( trim( $state ) === '' || trim( $city ) === '' ) {
+    if ( trim( $state ) === '' ) {
         return $rates;
     }
 
@@ -556,7 +642,9 @@ function bsc_apply_location_shipping_rates( array $rates, string $state, string 
 
     $is_local = bsc_is_bogota_or_cundinamarca_destination( $state, $city );
     $qualifies_for_free_shipping = bsc_cart_qualifies_for_free_shipping();
-    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? 9000 : 20000 );
+    $bogota_cost = (float) bsc_get_bogota_shipping_price();
+    $other_cost  = (float) bsc_get_other_shipping_price();
+    $target_cost = $qualifies_for_free_shipping ? 0 : ( $is_local ? $bogota_cost : $other_cost );
     $target_label = $qualifies_for_free_shipping
         ? 'Envio gratis'
         : ( $is_local ? 'Envio Bogota/Cundinamarca' : 'Envio nacional' );
@@ -595,6 +683,14 @@ function bsc_apply_location_shipping_rates( array $rates, string $state, string 
     }
 
     return $rates;
+}
+
+function bsc_get_bogota_shipping_price(): int {
+    return max( 0, (int) get_option( 'bsc_bogota_shipping_price', 10000 ) );
+}
+
+function bsc_get_other_shipping_price(): int {
+    return max( 0, (int) get_option( 'bsc_other_shipping_price', 17000 ) );
 }
 
 function bsc_normalize_shipping_text( string $value ): string {
@@ -777,6 +873,26 @@ add_filter('default_checkout_shipping_country', function() {
   return 'CO';
 });
 
+function bsc_limit_wc_countries_to_colombia( array $countries ): array {
+    if ( is_admin() && ! wp_doing_ajax() ) {
+        return $countries;
+    }
+
+    return [
+        'CO' => $countries['CO'] ?? 'Colombia',
+    ];
+}
+add_filter( 'woocommerce_countries_allowed_countries', 'bsc_limit_wc_countries_to_colombia', 20 );
+add_filter( 'woocommerce_countries_shipping_countries', 'bsc_limit_wc_countries_to_colombia', 20 );
+
+function bsc_force_checkout_posted_countries_to_colombia( array $data ): array {
+    $data['billing_country']  = 'CO';
+    $data['shipping_country'] = 'CO';
+
+    return $data;
+}
+add_filter( 'woocommerce_checkout_posted_data', 'bsc_force_checkout_posted_countries_to_colombia', 20 );
+
 // ── BSC-032: Custom order statuses ────────────────────────────────────
 add_action('init', 'bsc_register_order_statuses');
 function bsc_register_order_statuses(): void {
@@ -830,3 +946,74 @@ add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(arr
     $statuses[] = 'shipped';
     return $statuses;
 });
+
+// ── BSC: Unified WC status → BSC progress bar state map ──────────────
+function bsc_map_order_status_to_bar(string $wc_status): string {
+    require_once get_template_directory() . '/components/orders/order-progress-bar.php';
+    $map = [
+        'processing' => BSC_Order_Progress_Bar::RECEIVED,
+        'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
+        'pending'    => BSC_Order_Progress_Bar::RECEIVED,
+        'preparing'  => BSC_Order_Progress_Bar::RECEIVED,
+        'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
+        'completed'  => BSC_Order_Progress_Bar::DONE,
+        'refunded'   => BSC_Order_Progress_Bar::REFUNDED,
+        'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
+        'failed'     => BSC_Order_Progress_Bar::CANCELLED,
+    ];
+    return $map[$wc_status] ?? BSC_Order_Progress_Bar::CANCELLED;
+}
+
+// ── BSC: Auto-archive orders after N days (daily WP cron) ────────────
+add_action('init', 'bsc_schedule_order_archiver');
+function bsc_schedule_order_archiver(): void {
+    if (!wp_next_scheduled('bsc_auto_archive_orders')) {
+        wp_schedule_event(time(), 'daily', 'bsc_auto_archive_orders');
+    }
+}
+
+add_action('bsc_auto_archive_orders', 'bsc_run_order_archiver');
+function bsc_mark_order_archived(WC_Order $order, string $bucket, int $days): void {
+    if ($order->get_meta('_bsc_archived_at', true)) {
+        return;
+    }
+
+    $order->update_meta_data('_bsc_archived_at', gmdate('Y-m-d H:i:s'));
+    $order->update_meta_data('_bsc_archive_bucket', $bucket);
+    $order->save_meta_data();
+    $order->add_order_note(sprintf('Auto-archivado tras %d dias en estado %s.', $days, $bucket));
+}
+
+function bsc_run_order_archiver(): void {
+    $days_shipped   = (int) apply_filters('bsc_auto_archive_days_shipped',   15);
+    $days_cancelled = (int) apply_filters('bsc_auto_archive_days_cancelled',  30);
+
+    $cutoff_shipped   = gmdate('Y-m-d H:i:s', strtotime("-{$days_shipped} days"));
+    $cutoff_cancelled = gmdate('Y-m-d H:i:s', strtotime("-{$days_cancelled} days"));
+
+    $shipped_ids = wc_get_orders([
+        'status'      => ['shipped'],
+        'date_before' => $cutoff_shipped,
+        'limit'       => -1,
+        'return'      => 'ids',
+    ]);
+    foreach ($shipped_ids as $id) {
+        $order = wc_get_order($id);
+        if ($order instanceof WC_Order) {
+            bsc_mark_order_archived($order, 'shipped', $days_shipped);
+        }
+    }
+
+    $cancelled_ids = wc_get_orders([
+        'status'      => ['cancelled'],
+        'date_before' => $cutoff_cancelled,
+        'limit'       => -1,
+        'return'      => 'ids',
+    ]);
+    foreach ($cancelled_ids as $id) {
+        $order = wc_get_order($id);
+        if ($order instanceof WC_Order) {
+            bsc_mark_order_archived($order, 'cancelled', $days_cancelled);
+        }
+    }
+}
