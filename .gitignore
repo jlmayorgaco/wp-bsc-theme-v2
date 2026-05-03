@@ -31,3 +31,7 @@ test-results/
 
 # Local review captures
 Videos/
+
+# Codex local working state
+.Codex/tickets/
+.Codex/tmp/
