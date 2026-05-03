@@ -3,48 +3,83 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 8.4rem 2rem 9rem;
   text-align: center;
+  color: #333;
 
   &--empty-orders {
     background-color: #fff;
-    border-radius: 12px;
-    max-width: 720px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
   .orders__title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
+    font-size: clamp(2rem, 2.1vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: 0.11em;
+    margin: 0;
     color: #333;
   }
 
-  .orders__image {
-    margin-bottom: 2rem;
-
-    .orders__empty-image {
-      max-width: 300px;
-      width: 100%;
-      height: auto;
-    }
+  .orders__subtitle {
+    font-size: clamp(1.6rem, 2.05vw, 2.7rem);
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: 0.06em;
+    margin: 0.35rem 0 4.9rem;
+    color: #333;
+    white-space: nowrap;
   }
 
   .orders__button {
-    .bsc__button {
-      display: inline-block;
-      padding: 0.8rem 2rem;
-      background-color: #333;
-      color: #fff;
-      font-size: 1.125rem;
-      font-weight: 600;
-      border-radius: 32px;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 210px;
+    min-height: 58px;
+    padding: 0.72rem 2.35rem 0.78rem;
+    background-color: #333;
+    color: #fff;
+    font-size: clamp(1.35rem, 1.9vw, 2.1rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
 
-      &:hover {
-        background-color: #555;
-      }
+    strong {
+      font-weight: 800;
+    }
+
+    &:hover,
+    &:focus {
+      background-color: #4a4a4a;
+      color: #fff;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .bsc__orders {
+    padding: 4rem 1.25rem 5rem;
+
+    .orders__title {
+      letter-spacing: 0.06em;
+    }
+
+    .orders__subtitle {
+      margin-bottom: 3rem;
+      letter-spacing: 0.03em;
+      white-space: normal;
+    }
+
+    .orders__button {
+      min-width: 0;
+      max-width: 100%;
+      min-height: 52px;
+      white-space: normal;
     }
   }
 }

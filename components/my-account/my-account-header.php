@@ -13,7 +13,7 @@ class BSC_MY_ACCOUNT_HEADER {
       ],
       [
         'id' => 'bubble-points',
-        'text' => html_entity_decode('&#161; Mis puntos !', ENT_QUOTES, 'UTF-8'),
+        'text' => html_entity_decode('&#161; Bubble points !', ENT_QUOTES, 'UTF-8'),
         'href' => home_url('/mi-cuenta/bubble-points/'),
       ],
       [

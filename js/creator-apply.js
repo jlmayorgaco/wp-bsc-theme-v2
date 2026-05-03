@@ -16,16 +16,36 @@
     $form.on('submit', function (event) {
       event.preventDefault();
       $error.hide().text('');
-      $button.prop('disabled', true).text('Enviando…');
 
-      $.post(bsc_ajax.ajax_url, {
-        action: 'bsc_creator_apply',
-        nonce: bsc_ajax.nonce,
+      var fields = {
         nombre: $('#bc-name').val().trim(),
         email: $('#bc-email').val().trim(),
         instagram: $('#bc-instagram').val().trim(),
         tiktok: $('#bc-tiktok').val().trim(),
         mensaje: $('#bc-message').val().trim(),
+      };
+      var $firstEmptyField = $form
+        .find('input[required], textarea[required]')
+        .filter(function () {
+          return !$(this).val().trim();
+        })
+        .first();
+
+      if ($firstEmptyField.length) {
+        $error.text('Por favor completa todos los campos requeridos.').show();
+        $firstEmptyField.trigger('focus');
+        return;
+      }
+      $button.prop('disabled', true).text('Enviando…');
+
+      $.post(bsc_ajax.ajax_url, {
+        action: 'bsc_creator_apply',
+        nonce: bsc_ajax.nonce,
+        nombre: fields.nombre,
+        email: fields.email,
+        instagram: fields.instagram,
+        tiktok: fields.tiktok,
+        mensaje: fields.mensaje,
       })
         .done(function (response) {
           if (response && response.success) {

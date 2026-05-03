@@ -1,541 +1,463 @@
-@use "../mixins/mixins" as mixins;
-
-// -------------------------------------------
-// VARIABLES
-// -------------------------------------------
-$font-primary: 'Helvetica', sans-serif;
-
-$bc-pink: #f8d7e0;
-$bc-pink-strong: #f3c5d2;
-$bc-blue: #c1dfe9;
-$bc-light: #f7f7f7;
-$bc-white: #ffffff;
+$bc-font: "Helvetica", "Helvetica Neue", Arial, sans-serif;
 $bc-text: #333333;
-$bc-text-soft: #6b6b6b;
-$bc-accent: #977272;
-$bc-border: #d9d9d9;
-$bc-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+$bc-yellow: #fff7bf;
+$bc-blue: #bfeaf3;
+$bc-pink: #f7b8c9;
+$bc-border: #222222;
+$bc-placeholder: #aaaaaa;
 
-$radius-xl: 28px;
-$radius-lg: 20px;
-$radius-md: 14px;
-
-$container-width: 1200px;
-
-// -------------------------------------------
-// PAGE
-// -------------------------------------------
 .page-bubble-creators {
   width: 100%;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   color: $bc-text;
-  font-family: $font-primary;
+  font-family: $bc-font;
+  letter-spacing: 1.1px;
 
-  section {
-    width: 100%;
-  }
-
-
-// -------------------------------------------
-// HERO
-// -------------------------------------------
-.bc__hero {
-  width: 100%;
-  max-width: $container-width;
-  margin: 2rem auto 0;
-  padding: 3rem 2rem;
-  border-radius: 0;
-  background: linear-gradient(135deg, $bc-pink 0%, #fbe7ed 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3rem;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(255,255,255,0.55) 0, rgba(255,255,255,0) 25%),
-      radial-gradient(circle at 80% 30%, rgba(255,255,255,0.35) 0, rgba(255,255,255,0) 22%),
-      radial-gradient(circle at 70% 80%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 20%);
-    pointer-events: none;
-  }
-}
-
-.bc__hero-content,
-.bc__hero-image {
-  position: relative;
-  z-index: 1;
-}
-
-.bc__hero-content {
-  flex: 1 1 52%;
-  max-width: 560px;
-}
-
-.bc__hero-hearts {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-
-  img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-  }
-}
-
-.bc__hero-title {
-  margin: 0 0 1rem;
-  font-size: 64px;
-  line-height: 0.95;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: $bc-accent;
-}
-
-.bc__hero-subtitle {
-  margin: 0 0 1.75rem;
-  font-size: 22px;
-  line-height: 1.4;
-  font-weight: 300;
-  letter-spacing: 0.8px;
-  color: $bc-text;
-
-  strong {
-    font-weight: 700;
-  }
-}
-
-.bc__cta-btn {
-  @include mixins.bsc-button();
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.bc__hero-image {
-  flex: 1 1 42%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  img {
-    width: 100%;
-    max-width: 420px;
-    display: block;
-    object-fit: contain;
-  }
-}
-
-// -------------------------------------------
-// ABOUT
-// -------------------------------------------
-.bc__about {
-  padding: 5rem 1.5rem 2rem;
-  background: #fff;
-}
-
-.bc__about-container {
-  max-width: $container-width;
-  margin: 0 auto;
-}
-
-.bc__about-cards {
-  margin-top: 2.5rem;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.bc__about-card {
-  background: $bc-white;
-  border: 1px solid #eee;
-  border-radius: $radius-lg;
-  padding: 2rem 1.5rem;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: $bc-shadow;
-  }
-}
-
-.bc__about-icon {
-  width: 120px;
-  max-width: 100%;
-  margin: 0 auto 1rem;
-  display: block;
-}
-
-.bc__about-card-title {
-  margin: 0 0 0.75rem;
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: $bc-accent;
-}
-
-.bc__about-card-text {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.5;
-  font-weight: 300;
-  letter-spacing: 0.4px;
-  color: $bc-text;
-}
-
-// -------------------------------------------
-// PITCH
-// -------------------------------------------
-.bc__pitch {
-  padding: 3rem 1.5rem 4rem;
-}
-
-.bc__pitch-container {
-  max-width: 980px;
-  margin: 0 auto;
-  background: $bc-blue;
-  border-radius: $radius-xl;
-  padding: 3rem 2rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.bc__pitch-text {
-  margin: 0;
-  font-size: 25px;
-  line-height: 1.5;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  color: $bc-text;
-
-  strong {
-    font-weight: 700;
-  }
-}
-
-.bc__pitch-rainbow {
-  width: 100px;
-  margin: 1.75rem auto 0;
-  display: block;
-}
-
-// -------------------------------------------
-// FORM
-// -------------------------------------------
-.bc__form-section {
-  padding: 1rem 1.5rem 5rem;
-}
-
-.bc__form-container {
-  max-width: 920px;
-  margin: 0 auto;
-  background: $bc-light;
-  border-radius: $radius-xl;
-  padding: 3rem 2rem;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.05);
-}
-
-.bc__form-description {
-  margin: -5px 0 2rem;
-  text-align: center;
-  font-size: 18px;
-  line-height: 1.5;
-  color: $bc-text-soft;
-}
-
-.bc__form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.bc__form-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.bc__form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-
-  &--full {
-    width: 100%;
-  }
-
-  label {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-    color: $bc-text;
-  }
-
-  input,
-  textarea {
-    width: 100%;
-    border: 1px solid $bc-border;
-    border-radius: 18px;
-    background: #fff;
-    padding: 0.95rem 1rem;
-    font-family: $font-primary;
-    font-size: 16px;
-    color: $bc-text;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    box-sizing: border-box;
-
-    &:focus {
-      border-color: $bc-accent;
-      box-shadow: 0 0 0 3px rgba(151, 114, 114, 0.12);
-    }
-  }
-
-  textarea {
-    min-height: 140px;
-    resize: vertical;
-    border-radius: 20px;
-  }
-}
-
-.bc__form-feedback {
-  display: none;
-  margin: 0.25rem 0 0;
-  padding: 0.85rem 1rem;
-  border-radius: 14px;
-  font-size: 15px;
-
-  &--error {
-    background: #ffe7e7;
-    color: #9c2e2e;
-    border: 1px solid #f0b4b4;
-  }
-}
-
-.bc__form-submit {
-  @include mixins.bsc-button();
-  align-self: center;
-  min-width: 220px;
-}
-
-.bc__form-success {
-  display: none;
-  margin-top: 1rem;
-}
-
-.bc__form-success-inner {
-  background: #e9f8ef;
-  border: 1px solid #b9e3c7;
-  color: #25623c;
-  border-radius: 20px;
-  padding: 1.5rem;
-  text-align: center;
-
-  img {
-    width: 26px;
-    height: 26px;
-    object-fit: contain;
-    margin: 0 auto 0.75rem;
-    display: block;
-  }
-
-  p {
-    margin: 0;
-    font-size: 17px;
-    line-height: 1.5;
-  }
-}
-}
-// -------------------------------------------
-// TITLE TWEAKS INSIDE THIS PAGE
-// -------------------------------------------
-.page-bubble-creators {
-  .bsc__title {
-    padding-top: 0;
-    margin-bottom: 0.5rem;
-  }
-}
-
-// -------------------------------------------
-// TABLET
-// -------------------------------------------
-@media (min-width: 768px) and (max-width: 1024px) {
-  .bc__hero {
-    padding: 2.5rem 1.5rem;
-    gap: 2rem;
-  }
-
-  .bc__hero-title {
-    font-size: 50px;
-  }
-
-  .bc__hero-subtitle {
-    font-size: 19px;
-  }
-
-  .bc__hero-image img {
-    max-width: 340px;
-  }
-
-  .bc__about-cards {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .bc__about-card {
-    padding: 1.5rem;
-  }
-
-  .bc__pitch-text {
-    font-size: 22px;
-  }
-
-  .bc__form-container {
-    padding: 2.5rem 1.5rem;
-  }
-}
-
-// -------------------------------------------
-// MOBILE
-// -------------------------------------------
-@media (max-width: 767px) {
-  .page-bubble-creators {
-    .bsc__title {
-      padding-top: 0;
-      font-size: 20px !important;
-      letter-spacing: 1px;
-      width: 100%;
-    }
-    .bsc__title::after {
-    content: "";
-    display: block;
-    width: 80px;
-    height: 18px;
-    margin: 25px auto 0;
-}
-  }
-
-  .bc__hero {
-    margin-top: 0;
-    padding: 2.5rem 1rem 2rem;
-    flex-direction: column;
-    gap: 1.5rem;
+  .bc__intro {
+    width: min(100%, 720px);
+    margin: 0 auto;
+    padding: 66px 20px 0;
     text-align: center;
-    border-radius: 0;
   }
 
-  .bc__hero-content {
-    max-width: 100%;
+  .bc__intro-logo {
+    position: relative;
+    width: 183px;
+    height: 161px;
+    margin: 0 auto 35px;
+
+
+    img {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 162px;
+      max-width: none;
+      transform: translateX(-50%);
+    }
   }
 
-  .bc__hero-hearts {
-    justify-content: center;
-    margin-bottom: 1rem;
+  .bc__intro-logo-text {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: -3px;
+    width: 190px;
+    height: 74px;
+    overflow: visible;
+
+    path {
+      fill: none;
+    }
+
+    text {
+      fill: $bc-text;
+      font-family: $bc-font;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
   }
 
-  .bc__hero-title {
-    font-size: 42px;
-    line-height: 0.95;
-  }
-
-  .bc__hero-subtitle {
+  .bc__intro-copy {
+    max-width: 706px;
+    margin: 0 auto;
     font-size: 18px;
-    line-height: 1.45;
-    letter-spacing: 0.3px;
+    font-weight: 400;
+    line-height: 1.32;
+    text-align: center;
+
+    strong {
+      font-weight: 700;
+    }
   }
 
-  .bc__cta-btn {
-    width: 100%;
-    max-width: 280px;
+  .bc__wave {
+    display: block;
+    width: 58px;
+    height: auto;
+    margin: 36px auto 0;
   }
 
-  .bc__hero-image img {
-    max-width: 260px;
+  .bc__benefits {
+    width: min(100%, 1050px);
+    margin: 35px auto 0;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 43px;
+    align-items: end;
   }
 
-  .bc__about {
-    padding: 3rem 1rem 1rem;
+  .bc__benefit-card {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
   }
 
-  .bc__about-cards {
-    margin-top: 2rem;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .bc__benefit-icon {
+    display: block;
+    margin: 0 auto 0px;
+    object-fit: contain;
   }
 
-  .bc__about-card {
-    padding: 1.5rem 1rem;
+  .bc__benefit-icon--rainbow {
+    width: 156px;
   }
 
-  .bc__about-icon {
-    width: 95px;
+  .bc__benefit-card h2 {
+    position: relative;
+    z-index: 2;
+    width: fit-content;
+    min-width: 270px;
+    max-width: 100%;
+    margin: 0 auto -16px;
+    padding: 5px 14px 4px;
+    border: 1px solid $bc-border;
+    border-radius: 999px;
+    color: $bc-text;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 1.4px;
   }
 
-  .bc__about-card-title {
-    font-size: 21px;
+  .bc__benefit-card--yellow h2 {
+    background: $bc-yellow;
   }
 
-  .bc__about-card-text {
+  .bc__benefit-card--blue h2 {
+    background: $bc-blue;
+  }
+
+  .bc__benefit-card--pink h2 {
+    background: $bc-pink;
+  }
+
+  .bc__benefit-box {
+    height: 158px;
+    padding: 34px 24px 23px;
+    border: 1px solid $bc-border;
+    border-radius: 10px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .bc__benefit-box p {
+    margin: 0;
+    color: $bc-text;
     font-size: 16px;
+    line-height: 1.06;
+    letter-spacing: 1px;
   }
 
-  .bc__pitch {
-    padding: 2rem 1rem 3rem;
+  .bc__benefit-box p + p {
+    margin-top: 4px;
   }
 
-  .bc__pitch-container {
-    padding: 2rem 1.25rem;
-    border-radius: 20px;
-  }
-
-  .bc__pitch-text {
-    font-size: 19px;
-    line-height: 1.45;
-  }
-
-  .bc__pitch-rainbow {
-    width: 82px;
-    margin-top: 1.25rem;
+  .bc__benefit-box strong {
+    font-weight: 700;
   }
 
   .bc__form-section {
-    padding: 0 1rem 3rem;
+    width: min(100%, 946px);
+    margin: 20px auto 0;
+    padding: 0 20px 20px;
   }
 
-  .bc__form-container {
-    padding: 2rem 1rem;
-    border-radius: 20px;
-  }
+  .bc__form-heading {
+    text-align: center;
 
-  .bc__form-description {
-    font-size: 16px;
-    margin-bottom: 1.5rem;
-  }
+    h2 {
+      margin: 0;
+      color: $bc-text;
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: 3.2px;
 
-  .bc__form-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+      strong {
+        font-weight: 700;
+      }
+    }
 
-  .bc__form-field {
-    input,
-    textarea {
-      font-size: 16px;
+    .bc__wave {
+      margin-top: 24px;
+    }
+
+    p {
+      max-width: 908px;
+      margin: 42px auto 46px;
+      color: $bc-text;
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.32;
+      letter-spacing: 1.1px;
+
+      strong {
+        font-weight: 700;
+      }
     }
   }
 
-  .bc__form-submit {
+  .bc__form {
     width: 100%;
-    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    display: grid;
+    row-gap: 17px;
+  }
+
+  .bc__form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+  }
+
+  .bc__form-field {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    label {
+      color: $bc-text;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.5px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #d1d1d6;
+      border-radius: 17px;
+      background: #ffffff;
+      color: $bc-text;
+      font-family: $bc-font;
+      font-size: 17px;
+      font-weight: 400;
+      letter-spacing: 0;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+      &::placeholder {
+        color: $bc-placeholder;
+        opacity: 1;
+      }
+
+      &:focus {
+        border-color: $bc-text;
+        box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.08);
+      }
+    }
+
+    input {
+      min-height: 54px;
+      padding: 14px 17px;
+    }
+
+    textarea {
+      min-height: 147px;
+      padding: 17px;
+      resize: vertical;
+    }
+  }
+
+  .bc__form-feedback {
+    display: none;
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid #f0b4b4;
+    border-radius: 8px;
+    background: #ffe7e7;
+    color: #9c2e2e;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .bc__form-submit {
+    width: fit-content;
+    min-width: 347px;
+    margin: 36px auto 0;
+    padding: 11px 28px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: $bc-text;
+    color: #ffffff;
+    font-family: $bc-font;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 1.2px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+
+    strong {
+      font-weight: 700;
+    }
+
+    &:hover,
+    &:focus {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      cursor: wait;
+      opacity: 0.7;
+      transform: none;
+    }
+  }
+
+  .bc__form-success {
+    display: none;
+    margin-top: 24px;
+  }
+
+  .bc__form-success-inner {
+    width: min(100%, 640px);
+    margin: 0 auto;
+    padding: 24px;
+    border: 2px solid $bc-border;
+    border-radius: 10px;
+    background: #ffffff;
+    text-align: center;
+
+    img {
+      display: block;
+      width: 120px;
+      margin: 0 auto 14px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.35;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .page-bubble-creators {
+    .bc__benefits {
+      column-gap: 20px;
+    }
+
+    .bc__benefit-card h2 {
+      min-width: 0;
+      font-size: 17px;
+      letter-spacing: 0.8px;
+    }
+
+    .bc__benefit-box {
+      padding-inline: 16px;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .page-bubble-creators {
+    letter-spacing: 0.7px;
+
+    .bc__intro {
+      padding-top: 42px;
+    }
+
+    .bc__intro-logo {
+      width: 154px;
+      height: 136px;
+      margin-bottom: 30px;
+
+      &::before {
+        bottom: 10px;
+        width: 98px;
+        height: 98px;
+      }
+
+      img {
+        width: 136px;
+      }
+    }
+
+    .bc__intro-logo-text {
+      top: 0;
+      left: -18px;
+      transform: scale(0.82);
+
+      text {
+        font-size: 19px;
+        letter-spacing: 1.7px;
+      }
+    }
+
+    .bc__intro-copy,
+    .bc__form-heading p {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .bc__wave {
+      margin-top: 28px;
+    }
+
+    .bc__benefits {
+      margin-top: 12px;
+      grid-template-columns: 1fr;
+      gap: 0px;
+    }
+
+    .bc__benefit-icon--rainbow {
+      width: 142px;
+      margin-bottom: 8px;
+    }
+
+    .bc__benefit-card h2 {
+      min-width: 0;
+      font-size: 18px;
+      letter-spacing: 0.8px;
+    }
+
+    .bc__benefit-box {
+      height: auto;
+      min-height: auto;
+      padding: 32px 20px 22px;
+    }
+
+    .bc__form-section {
+      margin-top: 24px;
+      padding-bottom: 54px;
+    }
+
+    .bc__form-heading h2 {
+      font-size: 23px;
+      letter-spacing: 2px;
+    }
+
+    .bc__form-heading p {
+      margin: 32px auto 36px;
+    }
+
+    .bc__form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .bc__form-submit {
+      width: 100%;
+      min-width: 0;
+      max-width: 347px;
+      font-size: 19px;
+      line-height: 1.15;
+    }
   }
 }
