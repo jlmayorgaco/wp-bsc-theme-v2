@@ -7,13 +7,13 @@ const staticPages = [
     name: 'FAQ',
     route: routes.faq,
     pageClass: '.page-faq',
-    titleFragment: 'Preguntas Frecuentes',
+    titleFragment: 'Preguntas frecuentes',
   },
   {
     name: 'Shipping Returns',
     route: routes.shippingReturns,
     pageClass: '.page-shipping-returns',
-    titleFragment: 'Devoluciones',
+    titleFragment: 'Política de envíos',
   },
   {
     name: 'Claims',
