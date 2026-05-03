@@ -328,6 +328,11 @@ test.describe('BSC smoke', () => {
     await gotoAndStabilize(page, routes.bubbleCreators);
 
     await expect(page.locator('#bc-creator-form').first()).toBeVisible();
+    await expect(page.locator('#bc-name')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-email')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-instagram')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-tiktok')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-message')).toHaveAttribute('required', '');
 
     await page.locator('#bc-name').fill('QA Creator');
     await page.locator('#bc-email').fill('qa.creator@bsc.local');
