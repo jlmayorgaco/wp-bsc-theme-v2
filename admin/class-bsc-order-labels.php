@@ -235,8 +235,8 @@ function bsc_handle_order_labels_pdf_request(): void {
         wp_die( esc_html__( 'No se encontraron pedidos validos para generar el PDF.', 'bsc-2-0' ) );
     }
 
-    $width_mm  = max( 10, (float) ( $_POST['width_mm'] ?? get_option( 'bsc_order_label_width_mm', 100 ) ) );
-    $height_mm = max( 10, (float) ( $_POST['height_mm'] ?? get_option( 'bsc_order_label_height_mm', 153 ) ) );
+    $width_mm  = max( 10, (float) ( $_POST['width_mm'] ?? 100 ) );
+    $height_mm = max( 10, (float) ( $_POST['height_mm'] ?? 150 ) );
 
     bsc_render_order_labels_pdf( $labels, $width_mm, $height_mm );
 }

@@ -14,11 +14,11 @@
 
 // ── Physical dimensions ───────────────────────────────────────────────────────
 $lbl-w:     100mm;
-$lbl-h:     153mm;
+$lbl-h:     150mm;
 $lbl-pad-x: 4mm;   // left/right inner margin of every section
 
 // ── Fixed section heights ─────────────────────────────────────────────────────
-// Recipient block fills remaining space: 153 - 35 - 16 - 20 - 28 = 54mm
+// Recipient block fills remaining space: 150 - 35 - 16 - 20 - 28 = 51mm
 $header-h:  35mm;
 $claims-h:  16mm;
 $obs-h:     20mm;
@@ -126,6 +126,48 @@ body {
     font-size: 11px;
     color: #666;
     line-height: 1.4;
+  }
+
+  &__size-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__size-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  &__size-input {
+    width: 84px;
+    padding: 7px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font: inherit;
+    color: $ink;
+    background: $bg;
+  }
+
+  &__notice {
+    flex-basis: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #fff5da;
+    border: 1px solid #eed28b;
+    color: #6a5313;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &__pdf-form {
+    display: none;
   }
 }
 
