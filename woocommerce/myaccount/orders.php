@@ -40,7 +40,7 @@ do_action( 'woocommerce_before_account_orders', $has_orders ); ?>
 
 <?php else : ?>
 	<?php 
-		require_once get_template_directory() . '/components/orders/orders-zero-state'; 
+		require_once get_template_directory() . '/components/orders/orders-zero-state.php'; 
 		order_zero_state();
 	?>
 <?php endif; ?>
