@@ -1,22 +1,15 @@
 <?php
 function order_zero_state() {
     ?>
-    <div class="bsc__orders bsc__orders--empty-orders">
-        <h1 class="orders__title">No has realizado pedidos :(</h1>
+    <div class="bsc__orders bsc__orders--empty-orders" aria-labelledby="bsc-orders-empty-title">
+        <h1 id="bsc-orders-empty-title" class="orders__title">Upss... a&uacute;n no tienes pedidos :(</h1>
+        <p class="orders__subtitle">&iexcl;Tenemos todo para armar tu rutina coreana perfecta!</p>
 
-        <div class="orders__image">
-            <img class="orders__empty-image" 
-                 src="<?php echo get_template_directory_uri(); ?>/images/bsc_zero_state_pink.png" 
-                 alt="Estado vacío: sin pedidos">
-        </div>
-
-        <div class="orders__button">
-            <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" 
-               class="bsc__button"
-               aria-label="Haz tu primer pedido en nuestra tienda">
-                ¡Hacer tu primer pedido!
-            </a>
-        </div>
+        <a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"
+           class="orders__button bsc__button"
+           aria-label="Ir a la tienda">
+            &iexcl; Ir a la&nbsp;<strong>tienda</strong>&nbsp;!
+        </a>
     </div>
     <?php
 }

@@ -14,6 +14,7 @@ if ( ! function_exists( 'bsc_render_static_page_template' ) ) {
 	 * @param array{
 	 *   page_class?: string,
 	 *   title?: string,
+	 *   title_html?: string,
 	 *   subtitle?: string,
 	 *   body_class?: string,
 	 *   fallback_callback?: callable|null
@@ -23,6 +24,7 @@ if ( ! function_exists( 'bsc_render_static_page_template' ) ) {
 		$page_id           = get_queried_object_id();
 		$page_class        = isset( $config['page_class'] ) ? (string) $config['page_class'] : 'page-static';
 		$title             = isset( $config['title'] ) ? (string) $config['title'] : ( $page_id ? (string) get_the_title( $page_id ) : '' );
+		$title_html        = isset( $config['title_html'] ) ? (string) $config['title_html'] : '';
 		$subtitle          = isset( $config['subtitle'] ) ? (string) $config['subtitle'] : '';
 		$body_class        = isset( $config['body_class'] ) ? trim( (string) $config['body_class'] ) : '';
 		$fallback_callback = $config['fallback_callback'] ?? null;
@@ -33,7 +35,16 @@ if ( ! function_exists( 'bsc_render_static_page_template' ) ) {
 		<main class="bsc bsc__page <?php echo esc_attr( $page_class ); ?>">
 			<section class="bsc__static-hero">
 				<div class="bsc__static-hero__container">
-					<h1 class="bsc__static-hero__title"><?php echo esc_html( $title ); ?></h1>
+					<h1 class="bsc__static-hero__title">
+						<?php
+						if ( '' !== $title_html ) {
+							echo wp_kses( $title_html, [ 'strong' => [] ] );
+						} else {
+							echo esc_html( $title );
+						}
+						?>
+					</h1>
+					<div class="bsc__static-hero__wave" aria-hidden="true"></div>
 					<?php if ( '' !== $subtitle ) : ?>
 						<p class="bsc__static-hero__subtitle"><?php echo esc_html( $subtitle ); ?></p>
 					<?php endif; ?>

@@ -46,6 +46,30 @@ test.describe('BSC smoke - auth and account', () => {
     await expect(page.locator('#account_display_name')).toHaveValue('Maria Luisa Perez');
   });
 
+  test('account orders route renders table or no-orders state', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for account smoke');
+    test.skip(!hasAccountAuth(), 'The auth fixture or PW_ACCOUNT_* credentials are required.');
+
+    await loginFromAccount(page, routes.login, routes.account, auth.username || auth.email, auth.password);
+    await gotoAndStabilize(page, routes.accountOrders);
+
+    await expect(page.locator('.menu__link', { hasText: '¡ Mis pedidos !' }).first()).toBeVisible();
+    await expect(page.locator('.menu__link', { hasText: '¡ Bubble points !' }).first()).toBeVisible();
+
+    const emptyTitle = page.locator('#bsc-orders-empty-title').first();
+    if (await emptyTitle.count()) {
+      await expect(emptyTitle).toContainText('Upss... aún no tienes pedidos :(');
+      await expect(page.locator('.orders__subtitle')).toContainText(
+        '¡Tenemos todo para armar tu rutina coreana perfecta!'
+      );
+      await expect(page.locator('.orders__button')).toContainText('¡ Ir a la tienda !');
+      await expect(page.locator('.orders__empty-image')).toHaveCount(0);
+      return;
+    }
+
+    await expect(page.locator('.bsc__orders-row, .bsc__orders-card').first()).toBeAttached();
+  });
+
   test('view order route renders authenticated order details', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for account smoke');
     test.skip(!hasAccountAuth(), 'The auth fixture or PW_ACCOUNT_* credentials are required.');
