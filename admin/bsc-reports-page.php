@@ -60,12 +60,11 @@ add_action('admin_init', function() {
     $date_end   = sanitize_text_field( $_GET['date_end']   ?? gmdate('Y-m-d') );
     $statuses   = bsc_reports_get_statuses();
 
-    $orders = wc_get_orders([
+    $orders_args = [
         'status'      => $statuses,
         'date_after'  => $date_start . ' 00:00:00',
         'date_before' => $date_end   . ' 23:59:59',
-        'limit'       => -1,
-    ]);
+    ];
 
     while ( ob_get_level() > 0 ) ob_end_clean();
     header('Content-Type: text/csv; charset=UTF-8');
@@ -74,10 +73,10 @@ add_action('admin_init', function() {
     fputs($out, "\xEF\xBB\xBF");
     fputcsv($out, ['Fecha', 'Pedido #', 'Cliente', 'Email', 'Productos', 'Total', 'Estado', 'Canal']);
 
-    foreach ($orders as $order) {
+    bsc_reports_for_each_order($orders_args, function($order) use ($out) {
         $items_str = implode(' | ', array_map(fn($i) => $i->get_name() . ' x' . $i->get_quantity(), $order->get_items()));
         $canal     = $order->get_meta('_bsc_is_showroom_sale') ? 'Showroom' : 'Web';
-        fputcsv($out, [
+        fputcsv($out, bsc_csv_safe_row([
             $order->get_date_created()?->date('Y-m-d H:i') ?? '',
             '#' . $order->get_order_number(),
             $order->get_formatted_billing_full_name(),
@@ -86,8 +85,8 @@ add_action('admin_init', function() {
             $order->get_total(),
             wc_get_order_status_name($order->get_status()),
             $canal,
-        ]);
-    }
+        ]));
+    });
     fclose($out);
     exit;
 });
@@ -97,6 +96,25 @@ function bsc_reports_get_statuses(): array {
     if ( ! isset($_GET['statuses']) ) return $all;
     $raw = (array) $_GET['statuses'];
     return array_filter($raw, fn($s) => in_array($s, $all, true));
+}
+
+function bsc_reports_for_each_order( array $args, callable $callback, int $limit = 100 ): void {
+    $page = 1;
+
+    do {
+        $orders = wc_get_orders(array_merge($args, [
+            'limit' => $limit,
+            'paged' => $page,
+        ]));
+
+        foreach ($orders as $order) {
+            if ($order instanceof WC_Order) {
+                $callback($order);
+            }
+        }
+
+        $page++;
+    } while (count($orders) === $limit);
 }
 
 function bsc_reports_get_stock_row_class( object $row, int $threshold ): string {
@@ -190,18 +208,18 @@ function bsc_reports_tab_ventas(): void {
     }
 
     if ( false === $data ) {
-        $orders = wc_get_orders([
+        $orders_args = [
             'status'      => $statuses,
             'date_after'  => $date_start . ' 00:00:00',
             'date_before' => $date_end   . ' 23:59:59',
-            'limit'       => -1,
-        ]);
+        ];
 
-        $total_sales    = 0; $order_count = count($orders);
+        $total_sales    = 0; $order_count = 0;
         $total_items    = 0; $web_sales   = 0; $showroom_sales = 0;
         $product_sales  = []; $category_sales = [];
 
-        foreach ($orders as $order) {
+        bsc_reports_for_each_order($orders_args, function($order) use (&$total_sales, &$order_count, &$total_items, &$web_sales, &$showroom_sales, &$product_sales, &$category_sales) {
+            $order_count++;
             $total = (float) $order->get_total();
             $total_sales += $total;
             $is_showroom  = (bool) $order->get_meta('_bsc_is_showroom_sale');
@@ -237,7 +255,7 @@ function bsc_reports_tab_ventas(): void {
                     }
                 }
             }
-        }
+        });
 
         uasort($product_sales, fn($a,$b) => $b['qty'] <=> $a['qty']);
         $top_products = array_slice($product_sales, 0, 10, true);

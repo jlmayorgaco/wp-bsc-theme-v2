@@ -934,11 +934,98 @@ function bsc_add_order_statuses_to_woo(array $statuses): array {
 }
 
 // ── BSC-036: Deduct bodega stock when web order moves to processing ───
-add_action('woocommerce_order_status_processing', function(int $order_id): void {
-    if (class_exists('BSC_Stock')) {
-        BSC_Stock::deduct_bodega($order_id);
+function bsc_dual_stock_product_id( $product ): int {
+    if ( ! $product instanceof WC_Product ) {
+        return 0;
     }
-});
+
+    return (int) ( $product->get_parent_id() ?: $product->get_id() );
+}
+
+function bsc_dual_stock_quantity_filter( $quantity, $product ) {
+    if ( ! class_exists( 'BSC_Stock' ) ) {
+        return $quantity;
+    }
+
+    $product_id = bsc_dual_stock_product_id( $product );
+    if ( $product_id <= 0 || ! BSC_Stock::has_dual_stock( $product_id ) ) {
+        return $quantity;
+    }
+
+    return BSC_Stock::get_total_stock( $product_id );
+}
+add_filter( 'woocommerce_product_get_stock_quantity', 'bsc_dual_stock_quantity_filter', 20, 2 );
+add_filter( 'woocommerce_product_variation_get_stock_quantity', 'bsc_dual_stock_quantity_filter', 20, 2 );
+
+function bsc_dual_stock_status_filter( $status, $product ) {
+    if ( ! class_exists( 'BSC_Stock' ) ) {
+        return $status;
+    }
+
+    $product_id = bsc_dual_stock_product_id( $product );
+    if ( $product_id <= 0 || ! BSC_Stock::has_dual_stock( $product_id ) ) {
+        return $status;
+    }
+
+    return BSC_Stock::get_total_stock( $product_id ) > 0 ? 'instock' : 'outofstock';
+}
+add_filter( 'woocommerce_product_get_stock_status', 'bsc_dual_stock_status_filter', 20, 2 );
+add_filter( 'woocommerce_product_variation_get_stock_status', 'bsc_dual_stock_status_filter', 20, 2 );
+
+function bsc_dual_stock_is_in_stock_filter( $is_in_stock, $product ) {
+    if ( ! class_exists( 'BSC_Stock' ) ) {
+        return $is_in_stock;
+    }
+
+    $product_id = bsc_dual_stock_product_id( $product );
+    if ( $product_id <= 0 || ! BSC_Stock::has_dual_stock( $product_id ) ) {
+        return $is_in_stock;
+    }
+
+    return BSC_Stock::get_total_stock( $product_id ) > 0;
+}
+add_filter( 'woocommerce_product_is_in_stock', 'bsc_dual_stock_is_in_stock_filter', 20, 2 );
+
+function bsc_dual_stock_add_to_cart_validation( $passed, $product_id, $quantity, $variation_id = 0 ): bool {
+    if ( ! $passed || ! class_exists( 'BSC_Stock' ) ) {
+        return (bool) $passed;
+    }
+
+    $stock_product_id = $variation_id ? (int) $variation_id : (int) $product_id;
+    if ( ! BSC_Stock::has_dual_stock( $stock_product_id ) && $variation_id ) {
+        $stock_product_id = (int) $product_id;
+    }
+
+    if ( $stock_product_id <= 0 || ! BSC_Stock::has_dual_stock( $stock_product_id ) ) {
+        return (bool) $passed;
+    }
+
+    $requested = max( 1, (int) $quantity );
+    if ( WC()->cart ) {
+        foreach ( WC()->cart->get_cart() as $cart_item ) {
+            $cart_product_id = (int) ( $cart_item['variation_id'] ?: $cart_item['product_id'] );
+            if ( $cart_product_id === $stock_product_id ) {
+                $requested += (int) $cart_item['quantity'];
+            }
+        }
+    }
+
+    if ( $requested > BSC_Stock::get_total_stock( $stock_product_id ) ) {
+        wc_add_notice( __( 'No hay stock suficiente para agregar esa cantidad.', 'bsc-2-0' ), 'error' );
+        return false;
+    }
+
+    return true;
+}
+add_filter( 'woocommerce_add_to_cart_validation', 'bsc_dual_stock_add_to_cart_validation', 20, 4 );
+
+function bsc_deduct_dual_stock_for_paid_order( int $order_id ): void {
+    if (class_exists('BSC_Stock')) {
+        BSC_Stock::deduct_web_order($order_id);
+    }
+}
+add_action('woocommerce_order_status_processing', 'bsc_deduct_dual_stock_for_paid_order');
+add_action('woocommerce_order_status_completed', 'bsc_deduct_dual_stock_for_paid_order');
 
 // Allow email triggers for custom statuses
 add_filter('woocommerce_valid_order_statuses_for_payment_complete', function(array $statuses): array {
@@ -991,29 +1078,30 @@ function bsc_run_order_archiver(): void {
     $cutoff_shipped   = gmdate('Y-m-d H:i:s', strtotime("-{$days_shipped} days"));
     $cutoff_cancelled = gmdate('Y-m-d H:i:s', strtotime("-{$days_cancelled} days"));
 
-    $shipped_ids = wc_get_orders([
-        'status'      => ['shipped'],
-        'date_before' => $cutoff_shipped,
-        'limit'       => -1,
-        'return'      => 'ids',
-    ]);
-    foreach ($shipped_ids as $id) {
-        $order = wc_get_order($id);
-        if ($order instanceof WC_Order) {
-            bsc_mark_order_archived($order, 'shipped', $days_shipped);
-        }
-    }
+    bsc_archive_orders_batch( [ 'shipped' ], $cutoff_shipped, 'shipped', $days_shipped );
+    bsc_archive_orders_batch( [ 'cancelled' ], $cutoff_cancelled, 'cancelled', $days_cancelled );
+}
 
-    $cancelled_ids = wc_get_orders([
-        'status'      => ['cancelled'],
-        'date_before' => $cutoff_cancelled,
-        'limit'       => -1,
-        'return'      => 'ids',
-    ]);
-    foreach ($cancelled_ids as $id) {
-        $order = wc_get_order($id);
-        if ($order instanceof WC_Order) {
-            bsc_mark_order_archived($order, 'cancelled', $days_cancelled);
+function bsc_archive_orders_batch( array $statuses, string $date_before, string $bucket, int $days ): void {
+    $page  = 1;
+    $limit = 100;
+
+    do {
+        $ids = wc_get_orders([
+            'status'      => $statuses,
+            'date_before' => $date_before,
+            'limit'       => $limit,
+            'paged'       => $page,
+            'return'      => 'ids',
+        ]);
+
+        foreach ($ids as $id) {
+            $order = wc_get_order($id);
+            if ($order instanceof WC_Order) {
+                bsc_mark_order_archived($order, $bucket, $days);
+            }
         }
-    }
+
+        $page++;
+    } while ( count($ids) === $limit );
 }
