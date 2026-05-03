@@ -17,7 +17,7 @@
     "dir-archiver": "^1.1.1",
     "rtlcss": "^3.5.0",
     "sass": "^1.89.1",
-    "swiper": "^11.2.10"
+    "swiper": "^12.1.4"
   },
   "rtlcssConfig": {
     "options": {
