@@ -98,34 +98,7 @@ body.bsc-packing-view {
   min-width: 180px;
 }
 
-.bsc-packing-source {
-  min-width: 96px;
-  padding: 5px 6px;
-}
-
-.bsc-packing-confirm {
-  margin-left: 6px;
-  padding: 6px 10px;
-}
-
-.bsc-packing-confirm[disabled],
-.bsc-packing-source[disabled] {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.bsc-packing-feedback {
-  display: block;
-  margin-top: 4px;
-  font-size: 11px;
-  color: #555;
-}
-
-.bsc-packing-feedback.is-error {
-  color: #b00020;
-}
-
-.bsc-packing-packed {
+.bsc-packing-source-label {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 999px;
@@ -156,9 +129,4 @@ body.bsc-packing-view {
     font-size: 11px;
   }
 
-  .bsc-packing-confirm,
-  .bsc-packing-source,
-  .bsc-packing-feedback {
-    display: none;
-  }
 }

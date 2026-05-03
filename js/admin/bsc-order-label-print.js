@@ -8,7 +8,7 @@
   }
 
   var defaultWidth = parseFloat(root.dataset.defaultWidthMm || '100');
-  var defaultHeight = parseFloat(root.dataset.defaultHeightMm || '153');
+  var defaultHeight = parseFloat(root.dataset.defaultHeightMm || '150');
   var autoPrint = root.dataset.autoprint === '1';
   var storageWidthKey = 'bsc-order-label-width-mm';
   var storageHeightKey = 'bsc-order-label-height-mm';
@@ -129,11 +129,9 @@
     }
   });
 
-  applySize(
-    window.localStorage.getItem(storageWidthKey) || defaultWidth,
-    window.localStorage.getItem(storageHeightKey) || defaultHeight,
-    false
-  );
+  window.localStorage.removeItem(storageWidthKey);
+  window.localStorage.removeItem(storageHeightKey);
+  applySize(defaultWidth, defaultHeight, false);
 
   if (autoPrint) {
     window.addEventListener('load', function () {

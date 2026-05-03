@@ -5,15 +5,15 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-$default_width_mm  = (float) get_option( 'bsc_order_label_width_mm', 100 );
-$default_height_mm = (float) get_option( 'bsc_order_label_height_mm', 153 );
+$default_width_mm  = 100;
+$default_height_mm = 150;
 
 if ( $default_width_mm <= 0 ) {
     $default_width_mm = 100;
 }
 
 if ( $default_height_mm <= 0 ) {
-    $default_height_mm = 153;
+    $default_height_mm = 150;
 }
 
 $label_print_css_path = get_template_directory() . '/admin-order-label-print.css';
