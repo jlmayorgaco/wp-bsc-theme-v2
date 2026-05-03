@@ -13,6 +13,10 @@ add_action('wp_ajax_nopriv_bsc_search_products', 'bsc_search_products');
 function bsc_search_products() {
     check_ajax_referer('bsc_ajax_action', 'nonce');
 
+    if ( ! bsc_search_rate_limit_passed() ) {
+        wp_send_json_error(['message' => 'Demasiadas busquedas. Intenta de nuevo en un momento.'], 429);
+    }
+
     $query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
 
     if ( strlen($query) < 2 ) {
@@ -143,4 +147,17 @@ function bsc_search_products() {
     // ── Cache and return ───────────────────────────────────────────────────
     set_transient($cache_key, $results, 15 * MINUTE_IN_SECONDS);
     wp_send_json_success(['products' => $results]);
+}
+
+function bsc_search_rate_limit_passed(): bool {
+    $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+    $key = 'bsc_search_rate_' . md5($ip);
+    $hits = (int) get_transient($key);
+
+    if ($hits >= 60) {
+        return false;
+    }
+
+    set_transient($key, $hits + 1, MINUTE_IN_SECONDS);
+    return true;
 }

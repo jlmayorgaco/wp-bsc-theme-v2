@@ -61,7 +61,7 @@ function bsc_handle_bulk_export(): void {
     if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_export_nonce'] ) ), 'bsc_bulk_export' ) ) {
         wp_die( esc_html__( 'Nonce inválido.', 'bsc-2-0' ) );
     }
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_die( esc_html__( 'Sin permisos.', 'bsc-2-0' ) );
     }
 
@@ -134,7 +134,7 @@ function bsc_count_orders_for_statuses( array $statuses ): int {
 
 // â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function bsc_render_orders_page(): void {
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
     }
 
@@ -251,7 +251,7 @@ function bsc_render_orders_page(): void {
 add_action( 'wp_ajax_bsc_update_order_status', 'bsc_ajax_update_order_status' );
 function bsc_ajax_update_order_status(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
 
     $order_id = absint( $_POST['order_id'] ?? 0 );
     $status   = sanitize_text_field( $_POST['status'] ?? '' );
@@ -270,7 +270,7 @@ function bsc_ajax_update_order_status(): void {
 add_action( 'wp_ajax_bsc_save_tracking', 'bsc_ajax_save_tracking' );
 function bsc_ajax_save_tracking(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) wp_send_json_error( ['message' => 'Sin permisos'] );
 
     $order_id      = absint( $_POST['order_id'] ?? 0 );
     $tracking_code = sanitize_text_field( $_POST['tracking_code'] ?? '' );
@@ -299,7 +299,7 @@ add_action( 'wp_ajax_bsc_pack_order_item_stock', 'bsc_ajax_pack_order_item_stock
 function bsc_ajax_pack_order_item_stock(): void {
     check_ajax_referer( 'bsc_packing_stock', 'nonce' );
 
-    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'edit_orders' ) ) {
+    if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_send_json_error( [ 'message' => 'Sin permisos.' ], 403 );
     }
 
@@ -309,12 +309,6 @@ function bsc_ajax_pack_order_item_stock(): void {
 
     $order_id = absint( $_POST['order_id'] ?? 0 );
     $item_id  = absint( $_POST['item_id'] ?? 0 );
-    $source   = sanitize_key( wp_unslash( $_POST['source'] ?? 'bodega' ) );
-
-    if ( ! in_array( $source, [ 'bodega', 'tienda' ], true ) ) {
-        wp_send_json_error( [ 'message' => 'Origen de stock invalido.' ], 400 );
-    }
-
     $order = wc_get_order( $order_id );
     if ( ! $order ) {
         wp_send_json_error( [ 'message' => 'Pedido no encontrado.' ], 404 );
@@ -325,40 +319,27 @@ function bsc_ajax_pack_order_item_stock(): void {
         wp_send_json_error( [ 'message' => 'Producto del pedido no encontrado.' ], 404 );
     }
 
-    if ( $item->get_meta( '_bsc_packed_stock_at', true ) ) {
-        wp_send_json_error( [ 'message' => 'Este producto ya fue descontado para empaque.' ], 409 );
-    }
-
     $product_id = (int) $item->get_product_id();
     $quantity   = max( 1, (int) $item->get_quantity() );
-    $new_stock  = BSC_Stock::adjust(
-        $product_id,
-        $source,
-        -$quantity,
-        sprintf( 'Empaque pedido #%s item #%d', $order->get_order_number(), $item_id )
-    );
+    $label      = BSC_Stock::get_order_item_source_label( $item, $product_id );
 
-    $item->update_meta_data( '_bsc_packed_stock_source', $source );
     $item->update_meta_data( '_bsc_packed_stock_at', current_time( 'mysql' ) );
     $item->update_meta_data( '_bsc_packed_stock_user_id', get_current_user_id() );
     $item->save();
 
-    $label = ( 'tienda' === $source ) ? 'showroom' : 'bodega';
     $order->add_order_note(
         sprintf(
-            'Stock descontado desde %1$s para %2$s x %3$d.',
-            $label,
+            'Empaque confirmado para %1$s x %2$d. Origen: %3$s.',
             $item->get_name(),
-            $quantity
+            $quantity,
+            $label,
         )
     );
 
     wp_send_json_success(
         [
-            'message'   => 'Stock descontado.',
-            'source'    => $source,
+            'message'   => 'Empaque confirmado.',
             'label'     => $label,
-            'new_stock' => $new_stock,
         ]
     );
 }
@@ -418,7 +399,7 @@ function bsc_export_orders_csv( array $order_ids ): void {
             $items[] = $item->get_quantity() . '× ' . $item->get_name();
         }
 
-        fputcsv( $out, [
+        fputcsv( $out, bsc_csv_safe_row( [
             $order->get_order_number(),
             $order->get_date_created() ? $order->get_date_created()->date('d/m/Y H:i') : '',
             trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
@@ -429,11 +410,27 @@ function bsc_export_orders_csv( array $order_ids ): void {
             implode( ' | ', $items ),
             $order->get_total(),
             wc_get_order_status_name( $order->get_status() ),
-        ] );
+        ] ) );
     }
 
     fclose( $out );
     exit;
+}
+
+if ( ! function_exists( 'bsc_csv_safe_value' ) ) {
+    function bsc_csv_safe_value( $value ) {
+        if ( is_string( $value ) && preg_match( '/^[=+\-@]/', ltrim( $value ) ) ) {
+            return "'" . $value;
+        }
+
+        return $value;
+    }
+}
+
+if ( ! function_exists( 'bsc_csv_safe_row' ) ) {
+    function bsc_csv_safe_row( array $row ): array {
+        return array_map( 'bsc_csv_safe_value', $row );
+    }
 }
 
 // â”€â”€ BSC-034: Packing print view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -488,19 +485,19 @@ function bsc_render_packing_view( array $order_ids ): void {
             </div>
             <table>
                 <thead>
-                    <tr><th>Producto</th><th>SKU</th><th>Qty</th><th>Subtotal</th><th>Stock</th><th>Empaque</th></tr>
+                    <tr><th>Producto</th><th>SKU</th><th>Qty</th><th>Subtotal</th><th>Stock</th><th>Origen para empaque</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach ( $order->get_items() as $item ) :
                         $product      = $item->get_product();
-                        $product_id   = $product ? (int) $product->get_id() : (int) $item->get_product_id();
+                        $product_id   = (int) $item->get_product_id();
                         $sku          = $product ? $product->get_sku() : '';
                         $stock        = class_exists( 'BSC_Stock' ) ? BSC_Stock::get_stock( $product_id ) : [ 'bodega' => 0, 'tienda' => 0 ];
-                        $packed_at    = $item->get_meta( '_bsc_packed_stock_at', true );
-                        $packed_source = $item->get_meta( '_bsc_packed_stock_source', true );
-                        $packed_label = ( 'tienda' === $packed_source ) ? 'showroom' : 'bodega';
+                        $source_label = class_exists( 'BSC_Stock' ) && $item instanceof WC_Order_Item_Product
+                            ? BSC_Stock::get_order_item_source_label( $item, $product_id )
+                            : 'Bodega';
                     ?>
-                    <tr data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-item-id="<?php echo esc_attr( $item->get_id() ); ?>" data-product-id="<?php echo esc_attr( $product_id ); ?>" class="<?php echo $packed_at ? 'is-packed' : ''; ?>">
+                    <tr data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-item-id="<?php echo esc_attr( $item->get_id() ); ?>" data-product-id="<?php echo esc_attr( $product_id ); ?>">
                         <td><?php echo esc_html( $item->get_name() ); ?></td>
                         <td><?php echo esc_html( $sku ); ?></td>
                         <td><?php echo esc_html( $item->get_quantity() ); ?></td>
@@ -510,16 +507,7 @@ function bsc_render_packing_view( array $order_ids ): void {
                             Showroom: <?php echo esc_html( (string) ( $stock['tienda'] ?? 0 ) ); ?>
                         </td>
                         <td class="bsc-packing-action">
-                            <?php if ( $packed_at ) : ?>
-                                <span class="bsc-packing-packed">Descontado de <?php echo esc_html( $packed_label ); ?></span>
-                            <?php else : ?>
-                                <select class="bsc-packing-source">
-                                    <option value="bodega" selected>Bodega</option>
-                                    <option value="tienda">Showroom</option>
-                                </select>
-                                <button type="button" class="bsc-packing-confirm">Confirmar</button>
-                                <span class="bsc-packing-feedback" aria-live="polite"></span>
-                            <?php endif; ?>
+                            <span class="bsc-packing-source-label"><?php echo esc_html( $source_label ); ?></span>
                         </td>
                     </tr>
                     <?php endforeach; ?>
