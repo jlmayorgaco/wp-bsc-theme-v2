@@ -33,13 +33,16 @@ function bsc_enqueue_dashboard_assets( string $hook ): void {
 function bsc_dashboard_count_orders( array $statuses, array $extra_args = [] ): int {
     $query_args = array_merge(
         [
-            'status'   => $statuses,
             'limit'    => 1,
             'paginate' => true,
             'return'   => 'ids',
         ],
         $extra_args
     );
+
+    if ( ! empty( $statuses ) ) {
+        $query_args['status'] = $statuses;
+    }
 
     $result = wc_get_orders( $query_args );
     return (int) ( $result->total ?? 0 );
@@ -264,15 +267,19 @@ function bsc_render_dashboard(): void {
         $today_start = gmdate('Y-m-d') . ' 00:00:00';
         $today_end   = gmdate('Y-m-d') . ' 23:59:59';
 
-        $today_orders = wc_get_orders([
+        $today_order_count = bsc_dashboard_count_orders([], [
             'date_after'  => $today_start,
             'date_before' => $today_end,
-            'limit'       => -1,
-            'return'      => 'objects',
         ]);
-        $ventas_hoy = array_reduce($today_orders, function($carry, $o) {
-            return $carry + (in_array($o->get_status(), ['processing','completed','preparing','shipped']) ? (float)$o->get_total() : 0);
-        }, 0);
+        $ventas_hoy = 0;
+        bsc_reports_for_each_order([
+            'date_after'  => $today_start,
+            'date_before' => $today_end,
+        ], function($o) use (&$ventas_hoy) {
+            if (in_array($o->get_status(), ['processing','completed','preparing','shipped'], true)) {
+                $ventas_hoy += (float) $o->get_total();
+            }
+        });
 
         $pending_count   = bsc_dashboard_count_orders(['pending', 'on-hold']);
         $preparing_count = bsc_dashboard_count_orders(['processing', 'preparing']);
@@ -300,7 +307,7 @@ function bsc_render_dashboard(): void {
 
         $kpis = [
             'ventas_hoy'     => $ventas_hoy,
-            'pedidos_hoy'    => count($today_orders),
+            'pedidos_hoy'    => $today_order_count,
             'pendientes'     => $pending_count,
             'preparando'     => $preparing_count,
             'enviados'       => $shipped_count,

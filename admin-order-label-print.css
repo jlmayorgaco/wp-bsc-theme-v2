@@ -1,5 +1,5 @@
 @page {
-  size: 100mm 153mm;
+  size: 100mm 150mm;
   margin: 0;
 }
 *,
@@ -96,7 +96,7 @@ body {
 
 .bsc-print-label {
   width: 100mm;
-  height: 153mm;
+  height: 150mm;
   background: #fff;
   color: #111;
   font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -304,7 +304,7 @@ body {
 
 @media print {
   @page {
-    size: 100mm 153mm;
+    size: 100mm 150mm;
     margin: 0;
   }
   body {
@@ -336,9 +336,9 @@ body {
   }
   .bsc-print-label {
     width: 100mm !important;
-    height: 153mm !important;
+    height: 150mm !important;
     max-width: 100mm !important;
-    max-height: 153mm !important;
+    max-height: 150mm !important;
     box-shadow: none;
     margin: 0;
     overflow: hidden;

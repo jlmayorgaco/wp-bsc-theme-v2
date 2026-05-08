@@ -57,9 +57,6 @@ class BSC_Roles {
      * call on every init without causing unnecessary DB writes.
      */
     public static function grant_admin_wc_caps(): void {
-        $admin = get_role( 'administrator' );
-        if ( ! $admin ) return;
-
         $caps = [
             'edit_orders',
             'edit_others_orders',
@@ -77,9 +74,21 @@ class BSC_Roles {
             'assign_product_terms',
         ];
 
+        $admin = get_role( 'administrator' );
+        if ( ! $admin ) return;
+
         foreach ( $caps as $cap ) {
             if ( ! $admin->has_cap( $cap ) ) {
                 $admin->add_cap( $cap, true );
+            }
+        }
+
+        $shop_manager = get_role( 'shop_manager' );
+        if ( ! $shop_manager ) return;
+
+        foreach ( [ 'edit_orders', 'edit_products' ] as $cap ) {
+            if ( ! $shop_manager->has_cap( $cap ) ) {
+                $shop_manager->add_cap( $cap, true );
             }
         }
     }
@@ -103,11 +112,12 @@ add_filter( 'pre_option_default_role', function( $role ) {
  *
  * WooCommerce 7.x no longer auto-inherits edit_orders / edit_products /
  * manage_woocommerce for the administrator role. This filter ensures
- * admins always pass every WC capability check without modifying the
+ * admins and shop managers always pass BSC/WC capability checks without modifying the
  * stored role in the database.
  */
 add_filter( 'user_has_cap', function( array $allcaps, array $caps, array $args, WP_User $user ): array {
-    if ( ! in_array( 'administrator', (array) $user->roles, true ) ) {
+    $roles = (array) $user->roles;
+    if ( ! in_array( 'administrator', $roles, true ) && ! in_array( 'shop_manager', $roles, true ) ) {
         return $allcaps;
     }
     $wc_caps = [

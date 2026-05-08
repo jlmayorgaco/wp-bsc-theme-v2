@@ -13,7 +13,6 @@ function bsc_creator_apply() {
     if ( get_transient( $ip_key ) ) {
         wp_send_json_error(['message' => 'Por favor espera unos minutos antes de enviar otra solicitud.']);
     }
-    set_transient( $ip_key, 1, 300 );
 
     $nombre    = isset($_POST['nombre'])    ? sanitize_text_field($_POST['nombre'])    : '';
     $email     = isset($_POST['email'])     ? sanitize_email($_POST['email'])          : '';
@@ -21,9 +20,15 @@ function bsc_creator_apply() {
     $tiktok    = isset($_POST['tiktok'])    ? sanitize_text_field($_POST['tiktok'])    : '';
     $mensaje   = isset($_POST['mensaje'])   ? sanitize_textarea_field($_POST['mensaje']) : '';
 
-    if (empty($nombre) || empty($email) || !is_email($email)) {
-        wp_send_json_error(['message' => 'Por favor completa tu nombre y correo electrónico válido.']);
+    if (empty($nombre) || empty($email) || empty($instagram) || empty($tiktok) || empty($mensaje)) {
+        wp_send_json_error(['message' => 'Por favor completa todos los campos requeridos.']);
     }
+
+    if (!is_email($email)) {
+        wp_send_json_error(['message' => 'Por favor ingresa un correo electrónico válido.']);
+    }
+
+    set_transient( $ip_key, 1, 300 );
 
     // Save application
     $applications = get_option('bsc_creator_applications', []);

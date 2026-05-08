@@ -56,6 +56,9 @@ test.describe('BSC admin orders smoke', () => {
       async (currentPopup) => {
         await expect(currentPopup.locator('body.bsc-packing-view').first()).toBeVisible();
         await expect(currentPopup.locator('.bsc-packing-view__order-card').first()).toBeVisible();
+        await expect(currentPopup.locator('.bsc-packing-source-label').first()).toBeVisible();
+        await expect(currentPopup.locator('.bsc-packing-confirm')).toHaveCount(0);
+        await expect(currentPopup.locator('.bsc-packing-source')).toHaveCount(0);
       }
     );
 
