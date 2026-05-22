@@ -26,7 +26,9 @@ function bsc_contact_form_submit() {
         wp_send_json_error(['message' => 'El mensaje debe tener al menos 10 caracteres.']);
     }
 
-    if ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'contact', 1, MINUTE_IN_SECONDS ) ) {
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'contact', 1, MINUTE_IN_SECONDS );
+    } elseif ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'contact', 1, MINUTE_IN_SECONDS ) ) {
         wp_send_json_error(['message' => 'Por favor espera un momento antes de enviar otro mensaje.']);
     }
 

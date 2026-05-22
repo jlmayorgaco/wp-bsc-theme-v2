@@ -1,7 +1,7 @@
 <?php
 /**
  * BSC-031: Admin orders page render + AJAX handlers.
- * BSC-033: bsc_save_tracking â†’ auto status 'shipped' + shipping email.
+ * BSC-033: bsc_save_tracking -> auto status 'shipped' + shipping email.
  * BSC-034: CSV export + packing print view via bulk actions.
  */
 defined('ABSPATH') || exit;
@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 require_once get_template_directory() . '/admin/class-bsc-orders-table.php';
 require_once get_template_directory() . '/admin/class-bsc-order-labels.php';
 
-// â”€â”€ Enqueue admin JS only on BSC orders page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Enqueue admin JS only on BSC orders page
 add_action( 'admin_enqueue_scripts', function ( string $hook ) {
     $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
@@ -51,7 +51,7 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
     ] );
 } );
 
-// â”€â”€ BSC-034: handle bulk export/packing on admin_init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-034: handle bulk export/packing on admin_init
 // Form POSTs back to admin.php?page=bsc-orders (same page).
 // admin_init fires after WooCommerce is ready but before any HTML output.
 add_action( 'admin_init', 'bsc_handle_bulk_export' );
@@ -124,7 +124,7 @@ function bsc_handle_bulk_export(): void {
     }
 }
 
-// â”€â”€ Status tabs config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Status tabs config
 function bsc_orders_status_tabs(): array {
     return [
         ''              => [ 'label' => 'Todos',          'statuses' => [] ],
@@ -177,7 +177,7 @@ function bsc_count_orders_for_statuses( array $statuses ): int {
     return (int) ( $result->total ?? 0 );
 }
 
-// â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Page render
 function bsc_render_orders_page(): void {
     if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
@@ -233,7 +233,7 @@ function bsc_render_orders_page(): void {
             </div>
         <?php endif; ?>
 
-        <!-- â”€â”€ Status tabs â”€â”€ -->
+        <!-- Status tabs -->
         <nav class="bsc-orders-tabs">
             <?php foreach ( $status_tabs as $slug => $config ) :
                 $tab_url = $slug
@@ -250,7 +250,7 @@ function bsc_render_orders_page(): void {
             <?php endforeach; ?>
         </nav>
 
-        <!-- â”€â”€ Filters â”€â”€ -->
+        <!-- Filters -->
         <form method="get" class="bsc-orders-filters">
             <input type="hidden" name="page" value="bsc-orders">
             <?php if ( $active_status ) : ?>
@@ -275,7 +275,7 @@ function bsc_render_orders_page(): void {
             <?php endif; ?>
         </form>
 
-        <!-- â”€â”€ Table with bulk export form â”€â”€ -->
+        <!-- Table with bulk export form -->
         <!-- Posts back to this same page; bsc_handle_bulk_export() intercepts in admin_init -->
         <form method="post" id="bsc-orders-form"
               action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
@@ -312,7 +312,7 @@ function bsc_render_orders_page(): void {
     <?php
 }
 
-// â”€â”€ BSC-031: AJAX â€” update order status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-031: AJAX - update order status
 add_action( 'wp_ajax_bsc_update_order_status', 'bsc_ajax_update_order_status' );
 function bsc_ajax_update_order_status(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
@@ -340,7 +340,7 @@ function bsc_ajax_update_order_status(): void {
     wp_send_json_success( ['message' => 'Estado actualizado', 'status' => $status] );
 }
 
-// â”€â”€ BSC-031+033: AJAX â€” save tracking code/link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-031+033: AJAX - save tracking code/link
 add_action( 'wp_ajax_bsc_save_tracking', 'bsc_ajax_save_tracking' );
 function bsc_ajax_save_tracking(): void {
     check_ajax_referer( 'bsc_admin_orders', 'nonce' );
@@ -420,7 +420,7 @@ function bsc_ajax_pack_order_item_stock(): void {
     );
 }
 
-// â”€â”€ BSC-033: Send shipping notification email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-033: Send shipping notification email
 function bsc_send_shipping_email( int $order_id ): string {
     $order = wc_get_order( $order_id );
     if ( ! $order ) return 'Pedido no encontrado';
@@ -466,7 +466,7 @@ function bsc_maybe_send_shipping_email_for_order( WC_Order $order ): string {
     return $email_error;
 }
 
-// â”€â”€ BSC-034: CSV export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-034: CSV export
 function bsc_export_orders_csv( array $order_ids ): void {
     // Clear any WP output buffers so headers can be sent cleanly
     while ( ob_get_level() > 0 ) {
@@ -529,7 +529,7 @@ if ( ! function_exists( 'bsc_csv_safe_row' ) ) {
     }
 }
 
-// â”€â”€ BSC-034: Packing print view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-034: Packing print view
 function bsc_render_packing_view( array $order_ids ): void {
     while ( ob_get_level() > 0 ) {
         ob_end_clean();

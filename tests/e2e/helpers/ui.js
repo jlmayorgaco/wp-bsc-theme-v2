@@ -720,6 +720,46 @@ async function openWpAdminPopup(page, triggerSelector, verifyReady, options = {}
   throw lastError || new Error(`Admin popup did not stabilize for ${triggerSelector}`);
 }
 
+function watchConsoleErrors(page, options = {}) {
+  const allowed = options.allowed || [];
+  const errors = [];
+
+  function isAllowed(text) {
+    return allowed.some((pattern) => {
+      if (pattern instanceof RegExp) {
+        return pattern.test(text);
+      }
+
+      return String(text).includes(String(pattern));
+    });
+  }
+
+  page.on('console', (message) => {
+    if (message.type() !== 'error') {
+      return;
+    }
+
+    const text = message.text();
+    if (!isAllowed(text)) {
+      errors.push(`console.error: ${text}`);
+    }
+  });
+
+  page.on('pageerror', (error) => {
+    const text = error.message || String(error);
+    if (!isAllowed(text)) {
+      errors.push(`pageerror: ${text}`);
+    }
+  });
+
+  return {
+    errors,
+    assertNoErrors() {
+      expect(errors, errors.join('\n')).toEqual([]);
+    },
+  };
+}
+
 module.exports = {
   applyCheckoutCoupon,
   applyCheckoutCouponDirect,
@@ -736,4 +776,5 @@ module.exports = {
   removeCheckoutCoupon,
   removeCheckoutCouponDirect,
   selectCheckoutBillingDestination,
+  watchConsoleErrors,
 };

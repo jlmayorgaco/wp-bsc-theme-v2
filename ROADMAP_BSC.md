@@ -474,6 +474,10 @@ Pendientes historicos consolidados:
 
 Unreleased/MVP2:
 
+- P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
+- Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
+- QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
+- Seguridad/calidad PHP P2: cupones centralizan lectura de `coupon_code` en helper sanitizado y contacto usa el rate limiter uniforme `bsc_rate_limit`.
 - P1 release-slice cerrado: rate limiter helper por scope/IP/user, limites para carrito/cupones/review/city reload/newsletter/creator/Bubble Points.
 - Admin hardening: dashboard clear-cache por POST+nonce, cupones con delete POST+nonce y validacion de porcentaje/fecha, panel BSC Creators con filtros, estados y CSV.
 - UX/accesibilidad P1: mega menu y profile dropdown con `aria-expanded`, `hidden`, Escape/focusout; search con listbox/combobox, keyboard navigation y abort de fetch anterior.
@@ -544,6 +548,7 @@ Uso recomendado:
 - Resolver primero P0, despues P1, despues P2/P3.
 - No mezclar refactors grandes con fixes visuales pequenos.
 - Cada ticket debe pasar `npm run lint`, `npm run test:e2e:smoke` y, si toca UI, `npm run test:e2e:visual`.
+- Para P2/code-quality correr tambien `npm run audit:php-requests` y revisar el inventario no bloqueante.
 - Para tickets que tocan checkout, carrito, cuenta, inventario, puntos o admin, agregar QA manual antes de aceptar.
 
 Leyenda de prioridad:
@@ -2095,6 +2100,7 @@ Medio. CSS desalineado genera regresiones invisibles.
 
 Prioridad: P2
 Area: Code quality PHP
+Estado MVP2: cerrado en corte P2 2026-05-22.
 
 Problema:
 El lint actual parece centrado en JS/CSS/tests. PHP necesita gate para syntax, WordPress standards y patrones peligrosos.
@@ -2113,9 +2119,12 @@ Implementacion minima:
 Criterios de aceptacion:
 - Syntax PHP rota falla antes de deploy.
 - Nuevas lecturas `$_POST` directas quedan visibles.
+- `npm run lint` incluye `lint:encoding`, `lint:js`, `lint:scss` y `lint:php`.
+- `npm run audit:php-requests` inventaria superglobals y puede endurecerse con `--strict`.
 
 QA:
 - Introducir prueba controlada o verificar comando sobre repo actual.
+- Validado con `npm run lint` y `npm run audit:php-requests`.
 
 Riesgo:
 Medio. PHPCS completo puede generar mucho ruido; empezar incremental.
@@ -2151,6 +2160,7 @@ Medio. Setup WP tests puede tomar tiempo.
 
 Prioridad: P2
 Area: QA automatizado
+Estado MVP2: cerrado en corte P2 2026-05-22.
 
 Problema:
 Contacto, newsletter y Bubble Creators son leads importantes y hoy su validacion puede romperse sin smoke dedicado.
@@ -2172,9 +2182,11 @@ Implementacion minima:
 Criterios de aceptacion:
 - Suite falla si required de IG/TikTok deja de aplicarse.
 - Contacto/newsletter muestran errores correctos.
+- `tests/e2e/smoke/public-forms.spec.js` cubre newsletter invalido/exito, contacto error AJAX/exito y validacion de hosts Instagram/TikTok.
 
 QA:
 - Ejecutar smoke.
+- Validado con `npx playwright test tests/e2e/smoke/public-forms.spec.js tests/e2e/smoke/console-errors.spec.js --workers=1 --reporter=list`.
 
 Riesgo:
 Bajo-medio.
@@ -2363,6 +2375,7 @@ Medio. Cambiar orden puede romper hooks.
 
 Prioridad: P2
 Area: Frontend quality
+Estado MVP2: cerrado en corte P2 2026-05-22.
 
 Problema:
 Errores JS silenciosos en una pagina pueden romper otros scripts globales. Hace falta gate de consola.
@@ -2382,9 +2395,13 @@ Implementacion minima:
 
 Criterios de aceptacion:
 - Home/product/cart/checkout/account no generan console errors.
+- `watchConsoleErrors()` falla por `console.error` y `pageerror` no permitido.
+- `tests/e2e/smoke/console-errors.spec.js` cubre home, categoria, producto, carrito, contacto y Bubble Creators en los tres viewports del config.
+- El error real encontrado en categoria se corrigio desactivando el script legacy `bsc-filter-slider-script` en archivos de producto.
 
 QA:
 - Ejecutar smoke con console listener.
+- Validado con `npx playwright test tests/e2e/smoke/console-errors.spec.js --workers=1 --reporter=list`.
 
 Riesgo:
 Bajo-medio.

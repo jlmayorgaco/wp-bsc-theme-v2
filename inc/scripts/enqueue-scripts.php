@@ -12,7 +12,7 @@ function bsc_2_0_scripts() {
 	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION);
 	wp_style_add_data('bsc-2-0-style', 'rtl', 'replace');
 
-	// Scripts globales â€” necesarios en todas las pÃ¡ginas
+	// Scripts globales - necesarios en todas las paginas
 	wp_enqueue_script(
 		'bsc-2-0-navigation',
 		get_template_directory_uri() . '/js/navigation.js',
@@ -28,7 +28,7 @@ function bsc_2_0_scripts() {
 		'nonce'     => wp_create_nonce('bsc_ajax_action'),
 	]);
 
-	// Mobile menu â€” extracted from header.php inline script
+	// Mobile menu - extracted from header.php inline script
 	wp_enqueue_script(
 		'bsc-2-0-mobile-menu',
 		get_template_directory_uri() . '/js/mobile-menu.js',
@@ -81,7 +81,7 @@ function bsc_2_0_scripts() {
 
 	// Scripts solo en home
 	if (is_front_page()) {
-		// Tabs â€” secciÃ³n favoritos por tipo de piel
+		// Tabs - seccion favoritos por tipo de piel
 		wp_enqueue_script(
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
@@ -99,7 +99,7 @@ function bsc_2_0_scripts() {
 			true
 		);
 
-		// Swiper init â€” depends on swiper-js (loaded via script_init.php)
+		// Swiper init - depends on swiper-js (loaded via script_init.php)
 		wp_enqueue_script(
 			'bsc-2-0-swiper-init',
 			get_template_directory_uri() . '/js/swiper-init.js',
@@ -109,7 +109,7 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Filtros y category filter â€” solo en catÃ¡logo y pÃ¡ginas de categorÃ­a
+	// Filtros y category filter - solo en catalogo y paginas de categoria
 	if (is_shop() || is_product_category() || is_product_tag() || is_archive()) {
 		// AJAX product filters (sidebar)
 		wp_enqueue_script(
@@ -130,7 +130,7 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Checkout â€” solo en la pÃ¡gina de checkout
+	// Checkout - solo en la pagina de checkout
 	if (is_checkout()) {
 		wp_enqueue_script(
 			'bsc-2-0-checkout',
@@ -141,7 +141,7 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Contact form â€” solo en la landing de contacto
+	// Contact form - solo en la landing de contacto
 	if ( is_page_template( 'page-contact-us.php' ) ) {
 		wp_enqueue_script(
 			'bsc-2-0-contact',
@@ -152,7 +152,7 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Bubble Creators form â€” solo en su landing
+	// Bubble Creators form - solo en su landing
 	if ( is_page_template( 'page-bubble-creators.php' ) ) {
 		wp_enqueue_script(
 			'bsc-2-0-creator-apply',
@@ -193,7 +193,7 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Cupones â€” solo en carrito y checkout
+	// Cupones - solo en carrito y checkout
 	if (is_cart() || is_checkout()) {
 		wp_enqueue_script(
 			'bsc-2-0-coupons',

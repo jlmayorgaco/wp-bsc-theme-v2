@@ -1,6 +1,6 @@
 <?php
 /**
- * BSC-066: BSC Coupons admin page â€” manage WooCommerce coupons from the BSC menu.
+ * BSC-066: BSC Coupons admin page - manage WooCommerce coupons from the BSC menu.
  */
 defined('ABSPATH') || exit;
 
@@ -33,7 +33,7 @@ function bsc_enqueue_coupons_admin_assets(): void {
     );
 }
 
-// â”€â”€ Handle create / delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Handle create / delete
 add_action( 'admin_init', 'bsc_coupons_handle_actions' );
 function bsc_coupons_handle_actions(): void {
     $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
@@ -95,7 +95,7 @@ function bsc_coupons_handle_actions(): void {
     }
 }
 
-// â”€â”€ Page render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Page render
 function bsc_render_coupons_page(): void {
     if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) {
         wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
@@ -130,7 +130,7 @@ function bsc_render_coupons_page(): void {
         </p></div>
         <?php endif; ?>
 
-        <!-- â”€â”€ Create form â”€â”€ -->
+        <!-- Create form -->
         <div class="bsc-coupon-create-panel">
             <h2>Crear nuevo cupón</h2>
             <form method="post">
@@ -182,7 +182,7 @@ function bsc_render_coupons_page(): void {
             </form>
         </div>
 
-        <!-- â”€â”€ Coupons list â”€â”€ -->
+        <!-- Coupons list -->
         <h2 class="bsc-admin-coupons__section-title">Cupones activos</h2>
 
         <?php if ( ! $coupons_query->have_posts() ) : ?>

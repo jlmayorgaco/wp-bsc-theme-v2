@@ -21,10 +21,7 @@ function bsc_apply_coupon() {
         );
     }
 
-    $raw_coupon_code = $_POST['coupon_code'] ?? '';
-    $coupon_code = is_scalar( $raw_coupon_code )
-        ? wc_format_coupon_code( wp_unslash( (string) $raw_coupon_code ) )
-        : '';
+    $coupon_code = bsc_get_posted_coupon_code();
 
     if ( $coupon_code === '' ) {
         wp_send_json_error(
@@ -112,7 +109,9 @@ function bsc_remove_coupon() {
         bsc_rate_limit( 'coupon_remove', 30, MINUTE_IN_SECONDS );
     }
 
-    if ( ! isset( $_POST['coupon_code'] ) ) {
+    $coupon_code = bsc_get_posted_coupon_code();
+
+    if ( '' === $coupon_code ) {
         wp_send_json_error(
             [
                 'message' => 'No encontramos un cupon para eliminar.',
@@ -120,11 +119,6 @@ function bsc_remove_coupon() {
             ]
         );
     }
-
-    $raw_coupon_code = $_POST['coupon_code'];
-    $coupon_code = is_scalar( $raw_coupon_code )
-        ? wc_format_coupon_code( wp_unslash( (string) $raw_coupon_code ) )
-        : '';
 
     if ( ! WC()->cart ) {
         wp_send_json_error(
@@ -188,6 +182,16 @@ function bsc_get_coupon_totals_payload(): array {
         'cart_total'                => $summary['cart_total_html'],
         'cart_count'                => $summary['cart_count'],
     ];
+}
+
+function bsc_get_posted_coupon_code(): string {
+    $raw_coupon_code = isset( $_POST['coupon_code'] ) ? wp_unslash( $_POST['coupon_code'] ) : '';
+
+    if ( ! is_scalar( $raw_coupon_code ) ) {
+        return '';
+    }
+
+    return wc_format_coupon_code( (string) $raw_coupon_code );
 }
 
 function bsc_get_coupon_notice_message( string $fallback ): string {

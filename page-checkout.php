@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Página Checkout Personalizada
+ * Template Name: PÃ¡gina Checkout Personalizada
  */
 
 get_header();
