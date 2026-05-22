@@ -63,6 +63,25 @@
   input[type='date'] {
     font-family: inherit;
   }
+
+  .bsc__account-form & select {
+    box-sizing: border-box;
+    display: block;
+    height: 40px;
+    min-height: 40px;
+    padding-right: 2.25rem;
+    line-height: 1.25;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #333 50%),
+      linear-gradient(135deg, #333 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 12px) 50%;
+    background-repeat: no-repeat;
+    background-size: 6px 6px;
+  }
 }
 
 .bsc__account-needs {
@@ -220,6 +239,15 @@
     select {
       padding: 0.75rem;
       font-size: 0.95rem;
+    }
+
+    .bsc__account-form & select {
+      height: 44px;
+      min-height: 44px;
+      padding-right: 2.5rem;
+      background-position:
+        calc(100% - 20px) 50%,
+        calc(100% - 14px) 50%;
     }
   }
 

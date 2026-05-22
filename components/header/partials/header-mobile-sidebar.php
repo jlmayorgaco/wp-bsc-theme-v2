@@ -1,4 +1,4 @@
-<sidebar class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar">
+<aside class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar" aria-label="Menu movil">
   <div class="sidebar-mobile__container">
 
 
@@ -56,7 +56,7 @@
                         <?php foreach ($section['items'] as $item): ?>
                            
                             
-                            <li class="mobile-nav__item <?php echo ($item['slug']); ?>">
+                            <li class="mobile-nav__item <?php echo esc_attr( $item['slug'] ); ?>">
                             <a class="mobile-nav__item-link" href="<?php echo esc_url($item['link']); ?>">
                                 <span class="mobile-nav__item-text"><?php echo esc_html($item['title']); ?></span>
                             </a>
@@ -87,7 +87,7 @@
     </a>
 
     <div class="sidebar-mobile__carita">
-        <img src="<?php echo get_template_directory_uri(); ?>/images/bsc_profile_logo.png" alt="BSC Profile">
+        <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_profile_logo.png" alt="BSC Profile">
     </div>
 
     <!-- Social Media -->
@@ -116,7 +116,7 @@
 
   </div>
 
-</sidebar>
+</aside>
 
 
 <!-- Mobile menu script enqueued via mobile-menu.js -->

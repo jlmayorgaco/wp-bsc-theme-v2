@@ -9,25 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.innerWidth <= MOBILE_BREAKPOINT;
   }
 
-  // ── Shared AJAX search runner ─────────────────────────────────────────────
   async function runSearch(query, resultsList) {
-    // BSC-038: serve from client cache when available
     if (searchCache[query]) {
       renderResults(searchCache[query], resultsList);
       return;
     }
 
-    resultsList.innerHTML = '<li class="search-loading">Buscando…</li>';
+    setSingleResultMessage(resultsList, 'search-loading', 'Buscando...');
 
     const ajaxUrl =
       window.bsc_search && window.bsc_search.ajax_url
         ? window.bsc_search.ajax_url
         : '/wp-admin/admin-ajax.php';
-
-    const placeholderImg =
-      window.bsc_search && window.bsc_search.placeholder_img
-        ? window.bsc_search.placeholder_img
-        : '';
 
     const nonce =
       window.bsc_search && window.bsc_search.nonce
@@ -46,11 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (!data.success || !data.data.products || data.data.products.length === 0) {
-        resultsList.innerHTML = '<li class="search-empty">No se encontraron productos.</li>';
+        setSingleResultMessage(resultsList, 'search-empty', 'No se encontraron productos.');
         return;
       }
 
-      // BSC-038: store in client cache (evict oldest entry if over limit)
       const cacheKeys = Object.keys(searchCache);
       if (cacheKeys.length >= SEARCH_CACHE_MAX) {
         delete searchCache[cacheKeys[0]];
@@ -59,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderResults(data.data.products, resultsList);
     } catch (err) {
-      resultsList.innerHTML = '<li class="search-empty">Error al buscar. Intenta de nuevo.</li>';
+      setSingleResultMessage(resultsList, 'search-empty', 'Error al buscar. Intenta de nuevo.');
     }
   }
 
@@ -74,9 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
     products.forEach((product) => {
       const li = document.createElement('li');
       li.classList.add('search-result-item');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'option');
 
       const img = document.createElement('img');
-      img.alt = product.name;
+      img.alt = product.name || '';
       img.classList.add('search-result-image');
 
       if (product.image) {
@@ -92,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const name = document.createElement('span');
       name.classList.add('search-result-name');
-      name.textContent = product.name;
+      name.textContent = product.name || '';
       info.appendChild(name);
 
       if (product.brand) {
@@ -112,15 +106,24 @@ document.addEventListener('DOMContentLoaded', () => {
       li.appendChild(img);
       li.appendChild(info);
 
-      li.addEventListener('click', () => {
-        window.location.href = product.permalink;
+      const goToProduct = () => {
+        if (product.permalink) {
+          window.location.href = product.permalink;
+        }
+      };
+
+      li.addEventListener('click', goToProduct);
+      li.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          goToProduct();
+        }
       });
 
       resultsList.appendChild(li);
     });
   }
 
-  // ── Init a search instance ────────────────────────────────────────────────
   function initSearchInstance({
     type,
     toggleBtn,
@@ -139,11 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function openSearch() {
       if (!isThisInstanceActive()) return;
       searchContainer.classList.add('visible');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
       searchInput.focus();
     }
 
     function closeSearch() {
       searchContainer.classList.remove('visible');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
     }
 
     function clearSearchResults() {
@@ -217,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // ── Desktop search ────────────────────────────────────────────────────────
   const desktopSearch = initSearchInstance({
     type: 'desktop',
     toggleBtn: document.querySelector('.btn-search-toggle'),
@@ -226,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsList: document.querySelector('.bsc__header--desktop .search-results')
   });
 
-  // ── Mobile search ─────────────────────────────────────────────────────────
   const mobileSearch = initSearchInstance({
     type: 'mobile',
     toggleBtn: document.querySelector('#mobile-search-btn'),
@@ -235,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsList: document.querySelector('.bsc-mobile-search-panel .search-results')
   });
 
-  // ── Reset states on resize between desktop/mobile ─────────────────────────
   let lastIsMobile = isMobileView();
 
   window.addEventListener('resize', () => {
@@ -250,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSearchPosition();
   });
 
-  // ── Desktop search dropdown position ──────────────────────────────────────
   function updateSearchPosition() {
     const root = document.documentElement;
     if (!root) return;
@@ -271,10 +272,16 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSearchPosition();
 });
 
-
-
 function decodeHtmlEntities(str) {
   const txt = document.createElement('textarea');
   txt.innerHTML = str;
   return txt.value;
+}
+
+function setSingleResultMessage(resultsList, className, message) {
+  resultsList.innerHTML = '';
+  const item = document.createElement('li');
+  item.className = className;
+  item.textContent = message;
+  resultsList.appendChild(item);
 }

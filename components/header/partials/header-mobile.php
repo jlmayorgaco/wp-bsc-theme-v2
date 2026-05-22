@@ -5,7 +5,7 @@
             <button
                 id="mobileMenuToggle"
                 type="button"
-                aria-label="Abrir menú"
+                aria-label="Abrir menu"
                 aria-controls="mobileSidebar"
                 aria-expanded="false"
                 class="header-mobile__icon-btn header-mobile__menu-btn"
@@ -24,7 +24,7 @@
             <a href="<?php echo esc_url($header_home_url); ?>" class="item--logo">
                 <img
                     class="header-mobile__logo"
-                    src="<?php echo get_template_directory_uri(); ?>/images/bsc_logo_header_mobile.png"
+                    src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_logo_header_mobile.png"
                     alt="Bubbles Skin Care"
                 >
             </a>
@@ -34,19 +34,22 @@
             <button
                 id="mobile-search-btn"
                 aria-label="Buscar productos"
+                aria-expanded="false"
                 class="header-mobile__icon-btn header-mobile__search-btn"
                 type="button"
             >
                 <div class="image__icon-hoverable">
                     <img
                         class="image__icon icon--normal"
-                        alt="Buscar"
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png"
+                        alt=""
+                        src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__search-icon--hover.png"
+                        aria-hidden="true"
                     >
                     <img
                         class="image__icon icon--hover"
                         alt=""
-                        src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png"
+                        src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__search-icon--hover.png"
+                        aria-hidden="true"
                     >
                 </div>
             </button>
@@ -59,13 +62,15 @@
                 <div class="image__icon-hoverable">
                     <img
                         class="image__icon icon--normal"
-                        alt="<?php echo esc_attr($mobile_profile_label); ?>"
-                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
+                        alt=""
+                        src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png"
+                        aria-hidden="true"
                     >
                     <img
                         class="image__icon icon--hover"
                         alt=""
-                        src="<?php echo esc_url( get_template_directory_uri() );?>/images/bsc_header__profile-icon--hover.png"
+                        src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png"
+                        aria-hidden="true"
                     >
                 </div>
             </a>
@@ -74,8 +79,7 @@
     </div>
 </header>
 
-<!-- Mobile search panel (standalone — not inside any display:none header) -->
 <div class="bsc-mobile-search-panel" role="search" aria-label="Buscar productos">
-    <input type="text" class="header-search-input" placeholder="Buscar productos…" autocomplete="off">
+    <input type="search" class="header-search-input" placeholder="Buscar productos..." autocomplete="off" aria-label="Buscar productos">
     <ul class="search-results"></ul>
 </div>

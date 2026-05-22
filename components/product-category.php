@@ -98,8 +98,34 @@ class BSCShopPage
         return $thumb ? wp_get_attachment_url($thumb) : $fallback;
     }
 
+    private function addAvailableStockConstraint(array $args): array
+    {
+        if (class_exists('BSC_Stock')) {
+            $args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
+        }
+
+        return $args;
+    }
+
+    private function shouldCollapseMiddleBreadcrumb(?WP_Term $grandparent, ?WP_Term $parent): bool
+    {
+        if (!($grandparent instanceof WP_Term) || !($parent instanceof WP_Term)) {
+            return false;
+        }
+
+        $rootGroupSlugs = [
+            'group-skin-care',
+            'group-hair-care',
+            'group-make-up',
+        ];
+
+        return in_array($grandparent->slug, $rootGroupSlugs, true);
+    }
+
     private function renderBreadcrumbs(?WP_Term $grandparent, ?WP_Term $parent, ?WP_Term $current): void
     {
+        $showParent = $parent && !$this->shouldCollapseMiddleBreadcrumb($grandparent, $parent);
+
         echo '<nav class="bsc__shop-nav">';
         if ($grandparent) {
             printf(
@@ -108,7 +134,7 @@ class BSCShopPage
                 esc_html($grandparent->name)
             );
         }
-        if ($parent) {
+        if ($showParent) {
             printf(
                 '<a href="%s">%s</a> → ',
                 esc_url(get_term_link($parent)),
@@ -283,6 +309,18 @@ class BSCShopPage
             return;
         }
 
+        $filter_context = null;
+        $has_filter_sidebar = function_exists('bsc_render_custom_filters_sidebar') && class_exists('BSC_Catalog_Request_Context');
+        if ($has_filter_sidebar) {
+            $filter_context = BSC_Catalog_Request_Context::from_request([
+                'group'    => $cat->slug,
+                'category' => $defaultChild->slug,
+            ]);
+        }
+
+        echo "<div class='shop__main shop__main--group'>";
+        echo "<section class='shop__content'>";
+
         // --- sub-subcategorías (botones) ---
         $subsubcats = get_terms([
             'taxonomy'   => 'product_cat',
@@ -391,7 +429,7 @@ class BSCShopPage
         // --- productos del defaultChild + todos sus descendientes ---
         // Cap at 120 products: client-side filter needs all records upfront,
         // but -1 causes full table scan and OOM on large catalogues.
-        $products_query = new WP_Query([
+        $products_query = new WP_Query($this->addAvailableStockConstraint([
             'post_type'      => 'product',
             'post_status'    => 'publish',
             'posts_per_page' => 120,
@@ -402,7 +440,17 @@ class BSCShopPage
                 'terms'            => [$defaultChild->term_id],
                 'include_children' => true,
             ]],
-        ]);
+        ]));
+
+        $catalog_layout_class = $has_filter_sidebar ? 'shop__catalog-layout' : 'shop__catalog-layout shop__catalog-layout--full';
+
+        echo '<div class="' . esc_attr($catalog_layout_class) . '">';
+
+        if ($has_filter_sidebar) {
+            echo "<aside class='shop__sidebar'>";
+            bsc_render_custom_filters_sidebar($filter_context);
+            echo "</aside>";
+        }
 
         echo "<div id='bscProductsContainer' class='shop__products'>";
 
@@ -456,7 +504,10 @@ class BSCShopPage
         }
 
         echo "</div>"; // #bscProductsContainer
+        echo "</div>"; // .shop__catalog-layout
         echo "</section>";
+        echo "</section>";
+        echo "</div>";
     }
 
 
@@ -511,7 +562,7 @@ class BSCShopPage
     {
         $paged = max(1, get_query_var('paged'));
 
-        $query = new WP_Query([
+        $query = new WP_Query($this->addAvailableStockConstraint([
             'post_type'      => 'product',
             'post_status'    => 'publish',
             'posts_per_page' => 24,
@@ -521,7 +572,7 @@ class BSCShopPage
                 'field'    => 'slug',
                 'terms'    => $category->slug,
             ]],
-        ]);
+        ]));
 
         if ($query->have_posts()) {
             while ($query->have_posts()) {

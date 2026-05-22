@@ -65,7 +65,7 @@ bsc_render_static_page_template(
 
 			<section class="bsc__pdf-section">
 				<h2>&iquest;QU&Eacute; M&Eacute;TODOS DE PAGO MANEJAN?</h2>
-				<p>Puedes pagar a trav&eacute;s de: tarjeta cr&eacute;dito, tarheta d&eacute;bito, PSE, Nequi, llave o efectivo (aplica solo en el showroom la modalidad de efectivo).</p>
+				<p>Puedes pagar a trav&eacute;s de: tarjeta cr&eacute;dito, tarjeta d&eacute;bito, PSE, Nequi, llave o efectivo (aplica solo en el showroom la modalidad de efectivo).</p>
 			</section>
 
 			<section class="bsc__pdf-section">

@@ -1,6 +1,8 @@
 <?php
 defined('ABSPATH') || exit;
 
+require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
+
 
 // ── Add to cart ────────────────────────────────────────────────────────────
 add_action('wp_ajax_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler');
@@ -55,7 +57,7 @@ function bsc_update_cart_quantity() {
 
 			if ($new_qty < 1) {
 				WC()->cart->remove_cart_item($cart_item_key);
-				WC()->cart->calculate_totals();
+				bsc_recalculate_checkout_totals( true );
 				wc_clear_notices();
 				// BSC-004: incluir cart_count para que el JS actualice el badge sin depender del fragmento
 				wp_send_json_success([
@@ -72,7 +74,7 @@ function bsc_update_cart_quantity() {
 				wp_send_json_error(['message' => 'No se pudo actualizar la cantidad'], 409);
 			}
 
-			WC()->cart->calculate_totals();
+			bsc_recalculate_checkout_totals( true );
 			wc_clear_notices();
 			wp_send_json_success([
 				'message'    => 'Quantity updated',
@@ -129,7 +131,7 @@ function bsc_remove_cart_item() {
 
   if ($removed) {
     // Recalcular totales
-    WC()->cart->calculate_totals();
+    bsc_recalculate_checkout_totals( true );
 
     // Obtener fragmentos actualizados
     WC_AJAX::get_refreshed_fragments();

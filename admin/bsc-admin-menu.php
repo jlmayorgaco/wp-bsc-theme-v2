@@ -431,6 +431,7 @@ function bsc_render_settings_page(): void {
 
         update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', $_POST['bsc_whatsapp_number'] ?? '573156922859'));
         update_option('bsc_contact_email',             sanitize_email($_POST['bsc_contact_email'] ?? ''));
+        update_option('bsc_creator_email',             sanitize_email($_POST['bsc_creator_email'] ?? ''));
         update_option('bsc_free_shipping_threshold',   max(0, intval($_POST['bsc_free_shipping_threshold'] ?? 300000)));
         update_option('bsc_bogota_shipping_price',     max(0, intval($_POST['bsc_bogota_shipping_price'] ?? 10000)));
         update_option('bsc_other_shipping_price',      max(0, intval($_POST['bsc_other_shipping_price'] ?? 17000)));
@@ -464,6 +465,15 @@ function bsc_render_settings_page(): void {
                         <input type="email" id="bsc_contact_email" name="bsc_contact_email"
                             value="<?php echo esc_attr(get_option('bsc_contact_email', defined('BSC_CONTACT_EMAIL') ? BSC_CONTACT_EMAIL : '')); ?>"
                             class="regular-text">
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="bsc_creator_email">Email Bubble Creators</label></th>
+                    <td>
+                        <input type="email" id="bsc_creator_email" name="bsc_creator_email"
+                            value="<?php echo esc_attr(get_option('bsc_creator_email', defined('BSC_CREATOR_EMAIL') ? BSC_CREATOR_EMAIL : '')); ?>"
+                            class="regular-text">
+                        <p class="description">Destino exclusivo para solicitudes de Bubble Creators.</p>
                     </td>
                 </tr>
 

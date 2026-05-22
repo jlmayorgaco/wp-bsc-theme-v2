@@ -89,6 +89,24 @@ class BSC_Stock {
         return max( 0, (int) $stock['bodega'] ) + max( 0, (int) $stock['tienda'] );
     }
 
+    public static function get_available_stock_meta_query(): array {
+        return [
+            'relation' => 'OR',
+            [
+                'key'     => '_stock_bodega',
+                'value'   => 0,
+                'compare' => '>',
+                'type'    => 'NUMERIC',
+            ],
+            [
+                'key'     => '_stock_tienda',
+                'value'   => 0,
+                'compare' => '>',
+                'type'    => 'NUMERIC',
+            ],
+        ];
+    }
+
     /**
      * @return array{bodega: int, tienda: int}
      */

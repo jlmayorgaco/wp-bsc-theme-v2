@@ -12,6 +12,34 @@
     var $error = $('#bc-form-error');
     var $success = $('#bc-form-success');
     var $successMessage = $('#bc-form-success-msg');
+    var socialLinkRules = {
+      instagram: {
+        host: 'instagram.com',
+        message: 'Por favor ingresa un link valido de Instagram.',
+      },
+      tiktok: {
+        host: 'tiktok.com',
+        message: 'Por favor ingresa un link valido de TikTok.',
+      },
+    };
+
+    function isPlatformUrl(value, expectedHost) {
+      var parsedUrl;
+      var host;
+
+      try {
+        parsedUrl = new URL(value);
+      } catch (error) {
+        return false;
+      }
+
+      host = parsedUrl.hostname.toLowerCase();
+
+      return (
+        (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:') &&
+        (host === expectedHost || host.slice(-expectedHost.length - 1) === '.' + expectedHost)
+      );
+    }
 
     $form.on('submit', function (event) {
       event.preventDefault();
@@ -36,7 +64,20 @@
         $firstEmptyField.trigger('focus');
         return;
       }
-      $button.prop('disabled', true).text('Enviando…');
+
+      if (!isPlatformUrl(fields.instagram, socialLinkRules.instagram.host)) {
+        $error.text(socialLinkRules.instagram.message).show();
+        $('#bc-instagram').trigger('focus');
+        return;
+      }
+
+      if (!isPlatformUrl(fields.tiktok, socialLinkRules.tiktok.host)) {
+        $error.text(socialLinkRules.tiktok.message).show();
+        $('#bc-tiktok').trigger('focus');
+        return;
+      }
+
+      $button.prop('disabled', true).text('Enviando...');
 
       $.post(bsc_ajax.ajax_url, {
         action: 'bsc_creator_apply',
@@ -65,7 +106,7 @@
           $button.prop('disabled', false).text('Enviar solicitud');
         })
         .fail(function () {
-          $error.text('Error de conexión. Por favor intenta nuevamente.').show();
+          $error.text('Error de conexion. Por favor intenta nuevamente.').show();
           $button.prop('disabled', false).text('Enviar solicitud');
         });
     });

@@ -12,8 +12,7 @@ class BSC_Checkout_Review_Summary {
 	}
 
 	public function render(): void {
-		$this->cart->calculate_shipping();
-		$this->cart->calculate_totals();
+		bsc_recalculate_checkout_totals();
 
 		$summary        = bsc_get_checkout_summary_payload();
 		$cart_count     = (int) $summary['cart_count'];

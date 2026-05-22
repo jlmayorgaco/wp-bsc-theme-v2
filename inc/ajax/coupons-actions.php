@@ -83,7 +83,7 @@ function bsc_apply_coupon() {
         );
     }
 
-    WC()->cart->calculate_totals();
+    bsc_recalculate_checkout_totals( true );
 
     if ( function_exists( 'wc_clear_notices' ) ) {
         wc_clear_notices();
@@ -130,7 +130,7 @@ function bsc_remove_coupon() {
     }
 
     WC()->cart->remove_coupon( $coupon_code );
-    WC()->cart->calculate_totals();
+    bsc_recalculate_checkout_totals( true );
 
     wp_send_json_success(
         array_merge(
@@ -162,7 +162,7 @@ function bsc_get_applied_coupons() {
 
     foreach ( WC()->cart->get_applied_coupons() as $code ) {
         $coupons[] = [
-            'code' => $code,
+            'code' => esc_html( $code ),
         ];
     }
 

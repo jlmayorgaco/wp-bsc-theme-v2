@@ -135,12 +135,12 @@ function bsc_search_products() {
 
         $results[] = [
             'id'        => $pid,
-            'name'      => $product->get_name(),
-            'permalink' => get_permalink($pid),
-            'image'     => $img_url,
-            'brand'     => $brand,
+            'name'      => wp_strip_all_tags( $product->get_name() ),
+            'permalink' => esc_url_raw( get_permalink($pid) ),
+            'image'     => esc_url_raw( $img_url ),
+            'brand'     => wp_strip_all_tags( $brand ),
             'price'     => strip_tags($product->get_price_html()),
-            'sku'       => $product->get_sku(),
+            'sku'       => sanitize_text_field( $product->get_sku() ),
         ];
     }
 
@@ -150,14 +150,9 @@ function bsc_search_products() {
 }
 
 function bsc_search_rate_limit_passed(): bool {
-    $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
-    $key = 'bsc_search_rate_' . md5($ip);
-    $hits = (int) get_transient($key);
-
-    if ($hits >= 60) {
-        return false;
+    if ( function_exists( 'bsc_rate_limit_passed' ) ) {
+        return bsc_rate_limit_passed( 'search', 60, MINUTE_IN_SECONDS );
     }
 
-    set_transient($key, $hits + 1, MINUTE_IN_SECONDS);
     return true;
 }
