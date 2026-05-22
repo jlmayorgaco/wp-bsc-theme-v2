@@ -59,8 +59,8 @@ function bsc_creator_apply() {
         wp_send_json_error(['message' => 'Por favor ingresa un link valido de TikTok.']);
     }
 
-    if ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'creator', 1, 5 * MINUTE_IN_SECONDS ) ) {
-        wp_send_json_error(['message' => 'Por favor espera unos minutos antes de enviar otra solicitud.']);
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'creator', 1, 5 * MINUTE_IN_SECONDS );
     }
 
     $applications = get_option('bsc_creator_applications', []);
@@ -70,6 +70,8 @@ function bsc_creator_apply() {
         'instagram' => $instagram,
         'tiktok'    => $tiktok,
         'mensaje'   => $mensaje,
+        'status'    => 'new',
+        'source'    => 'bubble-creators-form',
         'date'      => current_time('mysql'),
     ];
     update_option('bsc_creator_applications', $applications, false);

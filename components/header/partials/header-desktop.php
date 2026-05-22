@@ -20,12 +20,12 @@
                     
                     <div class="bsc header__search hidden" role="search" aria-label="Buscar productos">
                         <input type="search" class="header-search-input" placeholder="Buscar productos..." autocomplete="off" aria-label="Buscar productos">
-                        <ul class="search-results"></ul>
+                        <ul class="search-results" aria-live="polite"></ul>
                     </div>
                 </li>
                 <?php if (is_user_logged_in()) : ?>
                     <li class="menu__icon icon--profile">
-                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false">
+                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
                             <div class="image__icon-hoverable">
                                 <img class="image__icon icon--normal" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
                                 <img class="image__icon icon--hover" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
@@ -44,7 +44,7 @@
                     </li>
                     <?php else : ?>
                     <li class="menu__icon icon--profile">
-                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false">
+                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
                         <i aria-hidden="true" class="dlicon users_single-03"></i>
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">

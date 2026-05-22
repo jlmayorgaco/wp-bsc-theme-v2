@@ -46,7 +46,12 @@
 }
 
 .bsc-admin-coupons__actions-col {
-  width: 120px;
+  width: 150px;
+}
+
+.bsc-admin-coupons__delete-form {
+  display: inline-flex;
+  margin: 0 0 0 4px;
 }
 
 .bsc-admin-coupons__expired {

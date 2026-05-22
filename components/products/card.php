@@ -8,6 +8,7 @@ class BSC_Products_Card {
     private $sale_price;
     private $stock_status;
     private $image;
+    private $image_id = 0;
     private $categories = [];
     private $link;
     private $rating = 0;
@@ -24,7 +25,8 @@ class BSC_Products_Card {
         $this->sale_price    = wc_price( $product->get_sale_price() );
         $this->stock_status  = $product->get_stock_status();
 
-        $image_data      = wp_get_attachment_image_src( $product->get_image_id(), 'woocommerce_single' );
+        $this->image_id = (int) $product->get_image_id();
+        $image_data      = wp_get_attachment_image_src( $this->image_id, 'woocommerce_thumbnail' );
         $img_placeholder = esc_url( get_stylesheet_directory_uri() ) . '/images/bsc__placeholder_product.jpg';
         $this->image     = is_array( $image_data ) ? $image_data[0] : $img_placeholder . '?query_photo_index=0';
 
@@ -56,7 +58,23 @@ class BSC_Products_Card {
     }
 
     public function render_images(): void {
-        echo '<img class="card__image" src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->title ) . '" />';
+        if ( $this->image_id > 0 ) {
+            echo wp_get_attachment_image(
+                $this->image_id,
+                'woocommerce_thumbnail',
+                false,
+                [
+                    'class'    => 'card__image',
+                    'alt'      => $this->title,
+                    'loading'  => 'lazy',
+                    'decoding' => 'async',
+                    'sizes'    => '(max-width: 767px) calc(100vw - 76px), 200px',
+                ]
+            );
+            return;
+        }
+
+        echo '<img class="card__image" src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->title ) . '" width="300" height="300" loading="lazy" decoding="async" />';
     }
 
     public function render_rating(): void {

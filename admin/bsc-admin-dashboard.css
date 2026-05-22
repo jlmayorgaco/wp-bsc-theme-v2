@@ -4,6 +4,16 @@
   gap: 12px;
 }
 
+.bsc-admin-dashboard__refresh-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.bsc-admin-dashboard__refresh-form .page-title-action {
+  top: 0;
+  cursor: pointer;
+}
+
 .bsc-admin-dashboard__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

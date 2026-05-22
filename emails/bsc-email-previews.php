@@ -52,11 +52,17 @@ function bsc_get_email_preview_definitions(): array {
 }
 
 function bsc_get_email_preview_url( string $slug ): string {
+	$args = [
+		'action'   => 'bsc_preview_email',
+		'template' => sanitize_key( $slug ),
+	];
+
+	if ( is_user_logged_in() ) {
+		$args['_wpnonce'] = wp_create_nonce( 'bsc_preview_email_' . sanitize_key( $slug ) );
+	}
+
 	return add_query_arg(
-		[
-			'action'   => 'bsc_preview_email',
-			'template' => sanitize_key( $slug ),
-		],
+		$args,
 		admin_url( 'admin-post.php' )
 	);
 }
@@ -262,6 +268,10 @@ function bsc_render_email_preview_page(): void {
 	$slug        = sanitize_key( (string) ( $_GET['template'] ?? '' ) );
 	$definitions = bsc_get_email_preview_definitions();
 
+	if ( isset( $_GET['_wpnonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'bsc_preview_email_' . $slug ) ) {
+		wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
+	}
+
 	if ( ! isset( $definitions[ $slug ] ) ) {
 		wp_die( esc_html__( 'Template de preview no encontrado.', 'bsc-2-0' ) );
 	}
@@ -277,6 +287,7 @@ function bsc_render_email_preview_page(): void {
 
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=UTF-8' );
+	header( 'X-Robots-Tag: noindex, noarchive, nosnippet', true );
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	exit;
 }

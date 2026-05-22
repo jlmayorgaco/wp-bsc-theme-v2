@@ -81,5 +81,5 @@
 
 <div class="bsc-mobile-search-panel" role="search" aria-label="Buscar productos">
     <input type="search" class="header-search-input" placeholder="Buscar productos..." autocomplete="off" aria-label="Buscar productos">
-    <ul class="search-results"></ul>
+    <ul class="search-results" aria-live="polite"></ul>
 </div>

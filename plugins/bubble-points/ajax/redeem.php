@@ -5,13 +5,16 @@ add_action('wp_ajax_bsc_redeem_points', 'bsc_bp_ajax_redeem_points');
 
 function bsc_bp_ajax_redeem_points() {
     check_ajax_referer('bsc_redeem_points', 'nonce');
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'bubble_points_redeem', 5, 10 * MINUTE_IN_SECONDS );
+    }
 
     if (!is_user_logged_in()) {
         wp_send_json_error(['message' => 'Debes iniciar sesión.']);
     }
 
     $user_id = get_current_user_id();
-    $points  = isset($_POST['points']) ? absint($_POST['points']) : 0;
+    $points  = isset($_POST['points']) ? absint(wp_unslash($_POST['points'])) : 0;
 
     if ($points <= 0) {
         wp_send_json_error(['message' => 'Datos inválidos para redención.']);
@@ -45,6 +48,9 @@ function bsc_bp_ajax_redeem_points() {
     update_post_meta($coupon_id, 'individual_use', 'yes');
     update_post_meta($coupon_id, 'usage_limit', 1);
     update_post_meta($coupon_id, 'customer_email', sanitize_email( wp_get_current_user()->user_email ) );
+    update_post_meta($coupon_id, 'date_expires', strtotime('+60 days'));
+    update_post_meta($coupon_id, '_bsc_bp_user_id', $user_id);
+    update_post_meta($coupon_id, '_bsc_bp_points_used', $points);
 
     // 4. Deduct points only after coupon creation succeeds
     $ledger = bsc_bp_add_ledger_entry(
@@ -66,6 +72,8 @@ function bsc_bp_ajax_redeem_points() {
         wp_delete_post($coupon_id, true);
         wp_send_json_error(['message' => 'Error al descontar puntos: ' . $ledger['error']]);
     }
+
+    update_post_meta($coupon_id, '_bsc_bp_ledger_id', (int) $ledger['insert_id']);
 
     // 5. Return success
     wp_send_json_success([

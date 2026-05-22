@@ -8,6 +8,9 @@ add_action('wp_ajax_nopriv_bsc_get_review_summary', 'bsc_get_review_summary');
 
 function bsc_get_review_summary() {
   check_ajax_referer('bsc_ajax_action', 'nonce');
+  if ( function_exists( 'bsc_rate_limit' ) ) {
+    bsc_rate_limit( 'review_summary', 60, MINUTE_IN_SECONDS );
+  }
 
   if ( ! function_exists('WC') || ! WC()->cart ) {
       wp_send_json_error(['message' => 'Cart is unavailable']);

@@ -1,9 +1,527 @@
-# BSC Code Quality, UX, Security and Performance Roadmap
+# BSC Unified Roadmap and Operating Manual
 
-Fecha de auditoria: 2026-05-22
+Ultima consolidacion: 2026-05-22
 Repositorio: wp-bsc-theme-v2
 Rama esperada de release: MVP2
-Objetivo: convertir los hallazgos tecnicos y visuales en tickets ejecutables, pequenos, trazables y reversibles.
+Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
+
+## Politica de documentacion
+
+Archivos markdown activos:
+
+- `ROADMAP_BSC.md`: documento unico para roadmap, estado de release, checklist, arquitectura, operaciones, QA y backlog.
+- `CLAUDE.md`: guia corta para agentes y colaboradores; debe apuntar siempre a este roadmap.
+
+Reglas:
+
+- No crear nuevos `.md` sueltos para tickets, changelog, release notes, checklists o runbooks.
+- No usar `.Codex/tickets/` como cola activa. Las tareas nuevas se agregan en la seccion "Backlog operativo" de este archivo.
+- La evidencia historica vive en git commits y en las secciones consolidadas de este archivo.
+- Si una tarea se completa, moverla o marcarla dentro de este archivo; no crear archivos paralelos.
+- Los artefactos generados, videos, reportes, `node_modules`, capturas y resultados de Playwright no deben subirse salvo instruccion explicita.
+
+## Identidad del proyecto
+
+Bubble Skin Care es una tienda ecommerce WordPress + WooCommerce implementada principalmente en este custom theme.
+
+Prioridades de negocio:
+
+1. Lanzar sin regresiones.
+2. Preservar checkout, carrito, cuenta, admin, navegacion y SEO.
+3. Resolver primero issues visibles reportados por cliente.
+4. Mantener cambios pequenos, trazables y reversibles.
+5. Mejorar mobile UX, performance y flujos operativos admin.
+
+Stack:
+
+- WordPress 6+
+- WooCommerce 7+
+- PHP 8+
+- Sass
+- Playwright
+- Swiper 11 local
+- Font Awesome local
+- Modulos internos bajo `plugins/`
+
+Comandos principales:
+
+```bash
+npm run lint
+npm run lint:php
+npm run lint:js
+npm run lint:scss
+npm run test:e2e:smoke
+npm run test:e2e:visual
+npm run compile:css
+```
+
+## Estado actual de release
+
+Branch activo: `MVP2`
+
+Gate de cierre P1 documentado el 2026-05-22:
+
+- `npm run lint`: verde.
+- `npm run test:e2e:smoke`: verde, 93 passed / 27 skipped.
+- `npx playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --reporter=list`: verde, 30 passed.
+- Header/mobile nav visual subset: verde en los viewports aplicables.
+- `npm run test:e2e:visual`: no verde por snapshots publicos ya desactualizados en home, categoria, producto, checkout, contacto y Bubble Creators. Este refresh de baselines queda fuera del cierre P1 porque requiere revision visual aprobada.
+- Account visual page conserva diffs minimos de baseline en pagina de pedidos de cuenta; smoke de `edit-account` si pasa y el ajuste Safari/iPhone de selects esta cubierto por CSS.
+
+Scope ya cerrado en MVP2:
+
+- Hardening de ordenes, cuenta y rutas autenticadas.
+- Integridad de Bubble Points, limpieza admin y cobertura visual.
+- Separacion de vistas checkout, smoke de cart/coupon y thank-you.
+- Modularizacion de header, responsive cleanup y normalizacion de rutas.
+- Extraccion de assets inline hacia pipeline CSS/JS.
+- Cobertura Playwright de storefront, auth, admin, previews de email y smoke de release.
+- Reemplazo de links publicos hardcoded con helpers compartidos donde ya fue abordado.
+- Cart quantity hardening con `cart_item_key`, bloqueo de clicks duplicados y reconciliacion desde respuestas WooCommerce.
+- Packing view con deduccion por linea desde bodega o showroom.
+- Limpieza de mojibake en copy admin/operador tocado en el release pass.
+- P1 release-slice: rate limit centralizado para AJAX publico critico, acciones admin mutables por POST+nonce, validacion de cupones, workflow admin de Bubble Creators, previews de email admin-only/noindex, invalidacion de cache de busqueda, redencion Bubble Points con guardrails, accesibilidad de mega menu/search, fix de selects en cuenta para Safari/iPhone, imagenes de cards con sizes/decoding y helper Playwright compatible con lazy images.
+
+Notas residuales:
+
+- WP admin local sigue siendo mas lento y fragil que storefront.
+- Safari/iPhone/WebKit necesita gate explicito antes de production GO.
+- Visual baselines deben revisarse antes de marcar release verde.
+- P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, auditoria WebKit manual, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
+- `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
+
+## Mapa del sistema
+
+Runtime:
+
+```text
+WordPress bootstrap
+  -> functions.php
+    -> inc/setup/*
+    -> inc/scripts/enqueue-scripts.php
+    -> inc/woocommerce.php
+    -> inc/ajax/*.php
+    -> includes/class-bsc-roles.php
+    -> includes/class-bsc-permissions.php
+    -> includes/class-bsc-stock.php
+    -> emails/bsc-emails.php
+  -> selected template
+  -> components/header.php
+  -> page/template/component content
+  -> components/footer.php
+```
+
+AJAX:
+
+```text
+admin-ajax.php
+  -> check_ajax_referer()
+  -> capability check when needed
+  -> sanitize input
+  -> WooCommerce/theme operation
+  -> wp_send_json_success() or wp_send_json_error()
+```
+
+Areas principales:
+
+- Storefront: `front-page.php`, `components/header.php`, `components/products/*`, `woocommerce/archive-product.php`, `woocommerce/single-product.php`, `page-cart.php`.
+- Checkout: `page-checkout.php`, `components/checkout/*`, `inc/ajax/cart-actions.php`, `inc/ajax/checkout-actions.php`, `js/cart.js`, `js/checkout.js`.
+- Admin: `admin/bsc-admin-menu.php`, `admin/bsc-orders-page.php`, `admin/bsc-products-page.php`, `admin/bsc-reports-page.php`, `admin/bsc-showroom-page.php`, `includes/class-bsc-permissions.php`.
+- Stock dual: `includes/class-bsc-stock.php`, `_stock_bodega`, `_stock_tienda`, logs de movimiento y deducciones por pedido/showroom.
+- Emails: `emails/bsc-emails.php`, `emails/bsc-email-helpers.php`, `emails/bsc-order-*.php`, `emails/bsc-followup-*.php`.
+- Catalogo interno: `plugins/bsc-catalog/*` absorbio contratos utiles del plugin legacy; el folder legacy `wp-bsc-plugin-v1` no debe ser runtime activo.
+- Bubble Points: `plugins/bubble-points/*`, ledger en `bsc_points_ledger`, meta balance `bsc_bubble_points`.
+- Tests: `tests/e2e/smoke`, `tests/e2e/visual`, helpers bajo `tests/e2e/helpers`.
+
+Reglas de alto riesgo:
+
+- Cart quantities deben apuntar a `cart_item_key` cuando exista.
+- UI de carrito/checkout debe reconciliar desde servidor, no solo estado optimista.
+- Cambios de destino en checkout deben evitar respuestas AJAX stale.
+- Ajustes de stock deben pasar por helpers para preservar logs.
+- Mutaciones de Bubble Points deben pasar por ledger.
+
+## Go-live checklist
+
+Pre-flight:
+
+- Confirmar worktree limpio excepto archivos locales ignorados.
+- Confirmar que el artefacto de deploy corresponde al branch/revision esperado.
+- Confirmar backup de DB y theme restorable.
+- Confirmar WooCommerce status sin fatales activos.
+- Confirmar credenciales de pago y reglas de envio en produccion.
+- Confirmar acceso admin a Pedidos, Productos, Informes, Showcase y Bubble Points.
+
+Gates requeridos antes de GO:
+
+- `npm run lint`
+- `npm run test:e2e:smoke`
+- `npm run test:e2e:visual`
+- Revision manual home mobile/tablet/desktop.
+- Walk-through manual checkout con carrito preparado.
+- Cart stress: taps rapidos +/-, decremento a cero, filas duplicadas/variantes y badge.
+- Admin order popup: packing, stock source bodega, stock source showroom, labels/PDF.
+
+GO solo si:
+
+- Smoke verde.
+- Visual verde y diffs revisados.
+- Home, checkout, cuenta, Bubble Points y admin orders spot-checked.
+- No hay drift visual no aprobado.
+- Backup existe.
+
+NO-GO si:
+
+- Falla checkout smoke.
+- Falla cuenta/order detail.
+- Visual diff muestra drift no revisado.
+- Admin order/product no carga.
+- Pago/envio post-deploy roto.
+
+Post-deploy smoke:
+
+- Home carga y header renderiza.
+- Categoria carga cards.
+- PDP abre desde categoria.
+- Add-to-cart actualiza quantity controls.
+- Checkout renderiza con carrito preparado.
+- Checkout +/- reconcilia cantidad, row total y badge.
+- Contacto y Bubble Creators exponen shells AJAX.
+- Login/register/account/view-order/thank-you cargan.
+- BSC Pedidos, Productos, Informes, Showcase y Bubble Points cargan.
+- Email previews cargan para welcome, reset, birthday, order lifecycle y followups.
+
+Rollback:
+
+1. Detener operaciones manuales en admin.
+2. Revertir al theme artifact o snapshot previo.
+3. Restaurar DB solo si hubo cambios destructivos de datos.
+4. Limpiar caches.
+5. Repetir smoke storefront y admin.
+
+## Deploy y rollback operativo
+
+Pre-requisitos:
+
+- SSH a produccion.
+- WP-CLI instalado.
+- Repo git clonado en servidor.
+- Backup reciente verificado.
+
+Deploy:
+
+```bash
+wp maintenance-mode activate --path=/var/www/html
+cd /var/www/html/wp-content/themes/wp-bsc-theme-v2
+git fetch origin
+git pull origin MVP2
+wp cache flush --path=/var/www/html
+wp transient delete --all --path=/var/www/html
+tail -20 /var/log/php_errors.log
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+Smoke manual post-deploy:
+
+- Home sin errores de consola.
+- Agregar producto al carrito actualiza badge.
+- Checkout visible y funcional.
+- Admin BSC carga.
+- Sin PHP warnings recientes.
+
+Rollback codigo:
+
+```bash
+cd /var/www/html/wp-content/themes/wp-bsc-theme-v2
+git revert HEAD --no-edit
+wp cache flush --path=/var/www/html
+```
+
+Rollback DB:
+
+```bash
+wp maintenance-mode activate --path=/var/www/html
+gunzip -c /backups/bsc/db/db-DATE.sql.gz | mysql -h DB_HOST -u DB_USER -p DB_NAME
+wp cache flush --path=/var/www/html
+wp transient delete --all --path=/var/www/html
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+## Backups, restore y DR
+
+Capas de backup:
+
+1. DB backup: `scripts/backup-db.sh`, salida `db-YYYY-MM-DD-HH-MM.sql.gz`, frecuencia diaria.
+2. WordPress app backup: `scripts/backup-full.sh`, incluye `wp-config.php`, themes, plugins, uploads y languages.
+3. VPS state backup: `scripts/backup-vps-state.sh`, incluye nginx/apache, letsencrypt, cron, systemd, ssh, mysql/php config, inventario.
+4. Recovery bundle: `scripts/backup-recovery-bundle.sh`, artefacto preferido para drills y retencion off-site.
+
+Schedule recomendado:
+
+- DB: diario 02:00.
+- VPS state: diario 02:20.
+- WordPress app: diario 02:40.
+- Recovery bundle: domingo 03:15.
+- Health monitor: cada 15 minutos.
+
+Retencion recomendada:
+
+- DB: 30 dias.
+- App backups: 30 dias.
+- VPS state: 30 dias.
+- Bundles: 60-90 dias.
+- Archivo mensual off-site: 6-12 meses.
+
+Restore DB:
+
+```bash
+wp maintenance-mode activate --path=/var/www/html
+gunzip -c /backups/bsc/db/db-DATE.sql.gz | mysql -h DB_HOST -u DB_USER -p DB_NAME
+wp cache flush --path=/var/www/html
+wp transient delete --all --path=/var/www/html
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+Restore WordPress files:
+
+```bash
+wp maintenance-mode activate --path=/var/www/html
+tar -xzf /backups/bsc/full/full-DATE.tar.gz -C /var/www/html
+chown -R www-data:www-data /var/www/html/wp-content
+chmod -R 755 /var/www/html/wp-content
+find /var/www/html/wp-content -type f -name "*.php" -exec chmod 644 {} \;
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+Stage recovery bundle:
+
+```bash
+bash scripts/restore-bundle.sh /backups/bsc/bundles/recovery-bundle-DATE.tar.gz --restore-root /tmp/bsc-restore
+```
+
+Full restore from bundle:
+
+```bash
+wp maintenance-mode activate --path=/var/www/html
+bash scripts/restore-bundle.sh /backups/bsc/bundles/recovery-bundle-DATE.tar.gz --restore-root /tmp/bsc-restore --apply-db --apply-wordpress --wp-root /var/www/html
+chown -R www-data:www-data /var/www/html/wp-content
+chmod -R 755 /var/www/html/wp-content
+wp cache flush --path=/var/www/html
+wp rewrite flush --path=/var/www/html
+wp maintenance-mode deactivate --path=/var/www/html
+```
+
+DR inventory que debe mantenerse fuera de git:
+
+- VPS provider, cuenta, billing y soporte.
+- Registrar/DNS/CDN/WAF.
+- IPs, roots, off-site backup destination.
+- Credenciales y ubicaciones de llaves.
+- SMTP, payment gateway, contactos de escalacion.
+- Registro mensual de restore drill.
+
+## Cache y media
+
+Browser cache recomendado:
+
+- Imagenes/fuentes: 1 ano.
+- CSS/JS: 1 mes.
+- Versionar assets con `BSC_THEME_VERSION`.
+
+Nunca cachear:
+
+```text
+/carrito/
+/cart/
+/checkout/
+/mi-cuenta/
+/mi-cuenta/*
+/wp-admin/
+/?wc-ajax=*
+/?add-to-cart=*
+```
+
+Object cache:
+
+- Redis si hosting lo soporta.
+- Si no, object cache por defecto de WordPress es aceptable para trafico moderado.
+
+Transients BSC:
+
+- `bsc_slider_*`: 1 hora, invalidado por `save_post_product`.
+- `bsc_menu_categories`: 12 horas, invalidado por term edits/creates.
+- `bsc_search_*`: 15 minutos.
+- `bsc_report_*`: 1 hora.
+
+Media:
+
+- WebP depende de soporte `imagewebp()`.
+- Regenerar imagenes existentes con `wp media regenerate --yes`.
+- Sizes: `bsc-card` 400x400, `bsc-hero` 1440x600, `bsc-thumb` 120x120.
+- Producto: minimo 800x800, ideal menos de 300 KB.
+- Hero: minimo 1440x600, ideal menos de 400 KB.
+- Menu/banners: WebP preferido, menos de 150 KB.
+- Slide 0 hero: eager/fetchpriority high.
+- Cards: lazy por defecto via `wp_get_attachment_image`.
+
+## Monitoreo
+
+Monitoreo externo:
+
+- UptimeRobot o equivalente cada 5 minutos para `https://bubbleskincare.co`.
+- Alertas por email del equipo.
+
+Health check servidor:
+
+- HTTP status distinto de 200.
+- Disco mayor a 80%.
+- SSL expira en menos de 30 dias.
+- Backup DB ausente en ultimas 48 horas.
+
+Cron sugerido:
+
+```bash
+0 2 * * * /var/www/html/wp-content/themes/wp-bsc-theme-v2/scripts/backup-db.sh
+0 3 * * 0 /var/www/html/wp-content/themes/wp-bsc-theme-v2/scripts/backup-full.sh
+*/15 * * * * /var/www/html/wp-content/themes/wp-bsc-theme-v2/scripts/monitor-health.sh
+```
+
+Logs importantes:
+
+- `/var/log/bsc-backup.log`
+- `/var/log/bsc-monitor.log`
+- `/var/log/apache2/error.log` o nginx equivalente.
+- `/var/log/php_errors.log`
+
+## Playwright y QA baseline
+
+Base URL por defecto: `http://bsc.local`
+
+Overrides:
+
+- `PLAYWRIGHT_BASE_URL`
+- `PW_PUBLIC_MODE=storefront|coming-soon`
+- `PW_ROUTE_HOME`
+- `PW_ROUTE_CATEGORY`
+- `PW_ROUTE_CHECKOUT`
+- `PW_ROUTE_ACCOUNT`
+- `PW_ROUTE_BUBBLE_POINTS`
+- `PW_ROUTE_THANK_YOU`
+- `PW_ROUTE_PRODUCT`
+
+Viewports oficiales:
+
+- Mobile: 390x844.
+- Tablet: 768x1024.
+- Desktop: 1440x900.
+
+Comandos:
+
+```bash
+npm run test:e2e:smoke
+npm run test:e2e:visual
+npm run test:e2e:visual:auth
+npm run test:e2e:visual:public-auth
+npm run test:e2e:visual:emails
+npm run test:e2e:visual:update
+npm run test:e2e:report
+```
+
+Notas:
+
+- Smoke y visual corren con `--workers=1` para evitar flake del stack local.
+- Visual esta dividido en public, header, authenticated y email preview.
+- Actualizar snapshots solo cuando el ambiente y el cambio visual fueron aprobados.
+
+## Backlog operativo consolidado desde tickets historicos
+
+Tickets recientes integrados/completados:
+
+- Account edit iOS select height: normalizar selects de "Tipo de piel" y "Sensibilidad" para Safari/iPhone.
+- Bubble Creators required social links: Instagram/TikTok obligatorios como URL valida de plataforma.
+- Bubble Creators success/email routing: success sin recuadro/emoji y email dedicado `bsc_creator_email`.
+- Checkout/cart/coupon/shipping audit: alinear totales, cupones, envio y resumen.
+- Checkout empty cart state: redirigir checkout vacio a cart empty state.
+- Empty cart recommended products: mostrar recomendados bajo "Volver a la tienda".
+- Footer account link orders: "Mi cuenta" del footer apunta a ordenes.
+- Menu nav image category links: imagenes del mega menu apuntan a group category roots.
+- Group category filters: filtros en top-level groups.
+- Hide zero dual-stock products: ocultar productos con stock dual total cero.
+- Mobile description typography: arreglar bloque SCSS mobile para `.bsc__description`.
+- PHP bootstrap refactor phase 1: mover hooks runtime a `inc/security`, `inc/performance`, `inc/routing`, `inc/product`.
+- Shop breadcrumbs two-step groups: ocultar breadcrumb intermedio en grupos principales.
+- Shop subcategory full-width layout: links de sub-subcategoria full width y sidebar debajo.
+- Full codebase audit roadmap: auditoria consolidada en este roadmap.
+
+Tickets historicos que quedan como referencia/seguimiento:
+
+- Green Grape add-to-cart failure: verificar producto especifico en home y PDP si vuelve a aparecer.
+- PHP refactorization audit plan: seguir refactors por fases, empezando por bajo riesgo.
+- Deep theme audit: base de los P0/P1/P2 listados abajo.
+
+Pendientes historicos consolidados:
+
+- BSC-001: WhatsApp helper centralizado.
+- BSC-002: eliminar URLs localhost/bsc.local hardcodeadas.
+- BSC-003: quantity controls completos.
+- BSC-005: add-to-cart iPad/touch.
+- BSC-009: mobile menu redesign.
+- BSC-010: unificar arbol mobile/desktop.
+- BSC-014: product gallery stretching.
+- BSC-045 a BSC-053: backups, monitoreo, accesibilidad, i18n.
+
+## Changelog consolidado
+
+Unreleased/MVP2:
+
+- P1 release-slice cerrado: rate limiter helper por scope/IP/user, limites para carrito/cupones/review/city reload/newsletter/creator/Bubble Points.
+- Admin hardening: dashboard clear-cache por POST+nonce, cupones con delete POST+nonce y validacion de porcentaje/fecha, panel BSC Creators con filtros, estados y CSV.
+- UX/accesibilidad P1: mega menu y profile dropdown con `aria-expanded`, `hidden`, Escape/focusout; search con listbox/combobox, keyboard navigation y abort de fetch anterior.
+- Performance/estabilidad P1: product cards con `wp_get_attachment_image`, `sizes`, `loading` y `decoding`; cache de busqueda versionado por cambios de producto/categoria; helper Playwright robusto con lazy images.
+- Email previews: rutas admin-only con `X-Robots-Tag` noindex y nonce compatible con links admin sin romper fixtures read-only.
+- Roles custom `bsc_operator` y `bsc_employee`.
+- Admin menu BSC con Pedidos, Productos, Venta Presencial, Informes, Configuracion.
+- Pedidos admin con filtros, paginacion, estado inline y tracking.
+- Estados custom `wc-preparing` y `wc-shipped`.
+- Email de envio HTML con tracking.
+- CSV de pedidos y packing print view.
+- Informes con KPIs y top productos.
+- Stock dual bodega/tienda con clase `BSC_Stock`.
+- Venta presencial/showroom con carrito JS y descuento de tienda.
+- Cache de busqueda y sliders.
+- `BSC_THEME_VERSION` para assets.
+- Sizes de imagen BSC y cards con `wp_get_attachment_image`.
+- Nonce CSRF en registro.
+- Responsive fixes en cuenta, pedidos mobile y direcciones.
+- Bubble Points con tickets usados/vencidos y flujo de ledger.
+- Scripts condicionales, Swiper/Font Awesome locales, cleanup de assets externos.
+
+Notas de version 1.1.0:
+
+- Swiper y Font Awesome migrados a local.
+- Trust signals en checkout.
+- Fallback hero estatico.
+- Guards ABSPATH y nonces en AJAX criticos.
+- Newsletter JS extraido.
+- Bubble Creators landing funcional.
+- Notices de cupones/search mejorados.
+- Cart badge sincronizado.
+- Mobile menu cleanup.
+- Checkout submit vuelve a WooCommerce.
+- Thank-you escaping corregido.
+- Transient guard para default pages.
+
+Notas de version 1.0.0:
+
+- Tema inicial basado en Underscores.
+- Integracion WooCommerce.
+- Hero Swiper CPT.
+- Mega menu desktop y mobile sidebar.
+- Favoritos.
+- Bubble Points interno.
+- Paginas custom checkout/cart/mi-cuenta/bubble-points.
+- AJAX cart/checkout/coupons/filters/search/newsletter.
+- Responsive mobile/desktop.
 
 ## Resumen ejecutivo
 
@@ -22,7 +540,7 @@ Estado observado:
 
 Uso recomendado:
 
-- Crear un archivo nuevo por ticket en `.Codex/tickets/`.
+- Registrar nuevas tareas directamente en este archivo, bajo la prioridad o backlog correspondiente.
 - Resolver primero P0, despues P1, despues P2/P3.
 - No mezclar refactors grandes con fixes visuales pequenos.
 - Cada ticket debe pasar `npm run lint`, `npm run test:e2e:smoke` y, si toca UI, `npm run test:e2e:visual`.
@@ -73,8 +591,7 @@ Archivos a inspeccionar:
 - `style.css.map`
 - `.gitignore`
 - `package.json`
-- `MVP2_RELEASE_STATUS.md`
-- `MVP2_GO_LIVE_CHECKLIST.md`
+- Secciones "Estado actual de release" y "Go-live checklist" en este archivo.
 
 Implementacion minima:
 - Crear un ticket de release hygiene.
@@ -113,7 +630,7 @@ Archivos a inspeccionar:
 - `tests/e2e/visual/*.spec.js`
 - `tests/e2e/visual/*-snapshots/*`
 - `playwright.config.js`
-- `MVP2_RELEASE_STATUS.md`
+- Seccion "Estado actual de release" en este archivo.
 
 Implementacion minima:
 - Correr visual suite en estado controlado.
@@ -908,7 +1425,7 @@ Implementacion minima:
 - Documentar si hay contenido en DB que requiere search-replace.
 
 Criterios de aceptacion:
-- Codigo versionado no contiene URLs locales salvo docs/tests.
+- Codigo versionado no contiene URLs locales salvo fixtures o tests.
 - Navegacion/product cards usan URLs dinamicas.
 
 QA:
@@ -1881,9 +2398,7 @@ Problema:
 Hay release docs, pero los nuevos modulos de cache/routing/performance/admin necesitan pasos explicitos de deploy y rollback.
 
 Archivos a inspeccionar:
-- `MVP2_GO_LIVE_CHECKLIST.md`
-- `MVP2_RELEASE_STATUS.md`
-- `CHANGELOG.md`
+- `ROADMAP_BSC.md`
 - `inc/performance/frontend-cleanup.php`
 - `inc/routing/frontend-routing.php`
 
@@ -2085,16 +2600,16 @@ Cross-browser:
 
 ---
 
-# Definition of Done por ticket
+# Definition of Done
 
-Todo ticket de esta lista debe cerrar con:
+Toda tarea de esta lista debe cerrar con:
 
-1. Ticket `.Codex/tickets/<id>.md` creado antes de editar codigo.
+1. Entrada actualizada en este `ROADMAP_BSC.md`; no crear ticket `.md` separado.
 2. Archivos tocados limitados al objetivo.
-3. Riesgos y rollback documentados.
+3. Riesgos y rollback documentados en la seccion correspondiente.
 4. `npm run lint` ejecutado o razon clara si no aplica.
 5. `npm run test:e2e:smoke` ejecutado para cambios funcionales.
 6. `npm run test:e2e:visual` ejecutado para cambios UI/layout.
 7. QA manual especifico completado si toca checkout, cart, account, admin, stock, emails o puntos.
-8. Changelog/release status actualizado cuando el cambio entra a MVP2.
-9. Ticket removido de `.Codex/tickets/` solo despues de commit aceptado.
+8. Estado de release actualizado dentro de este documento cuando el cambio entra a MVP2.
+9. Commit limpio con resumen concreto.

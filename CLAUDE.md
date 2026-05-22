@@ -1,6 +1,6 @@
 # Bubble Skin Care (BSC) - Claude Guide
 
-This file mirrors the active agent workflow in `AGENTS.md`. Keep both files aligned.
+This is the short agent guide. The single source of truth for roadmap, release notes, QA, deploy, operations, historical tickets, and backlog is `ROADMAP_BSC.md`.
 
 ## Project Identity
 
@@ -8,10 +8,11 @@ BSC is a custom WordPress + WooCommerce ecommerce theme. Treat it as a productio
 
 ## Active Workflow
 
-- Active tickets live only in `.Codex/tickets/`.
-- Closed ticket files are removed from active queues after their commits are accepted.
-- Do not use `.claude/tickets/` as an active queue; historical ticket evidence is in git history.
-- Every code change should reference a ticket ID in the commit message.
+- Do not create standalone `.md` tickets, release notes, changelogs, runbooks, or checklists.
+- Do not use `.Codex/tickets/` or `.claude/tickets/` as active queues.
+- Add new work directly to the backlog or relevant section in `ROADMAP_BSC.md`.
+- Historical evidence lives in git commits and consolidated notes inside `ROADMAP_BSC.md`.
+- Every code change should be traceable to a roadmap/backlog entry or a clear user request.
 
 ## Delivery Rules
 
@@ -21,6 +22,7 @@ Before editing:
 2. List files to change.
 3. State the minimum implementation.
 4. Call out risks.
+5. Update `ROADMAP_BSC.md` when the task changes roadmap, release, QA, deploy, operations, or backlog state.
 
 After editing:
 
@@ -44,7 +46,4 @@ npm run test:e2e:visual
 
 ## Current Release Docs
 
-- `MVP2_RELEASE_STATUS.md`
-- `MVP2_GO_LIVE_CHECKLIST.md`
-- `CHANGELOG.md`
-- `docs/architecture.md`
+- `ROADMAP_BSC.md`

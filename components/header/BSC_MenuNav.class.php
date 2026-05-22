@@ -62,7 +62,7 @@ class BSC_MenuNav {
 
         ob_start();
 
-        echo '<button class="bsc__menu-nav bsc__menu-nav--button"'.' data-target="'.$this->slug.'"'.'>';
+        echo '<button class="bsc__menu-nav bsc__menu-nav--button" type="button" data-target="' . esc_attr($this->slug) . '" aria-controls="' . esc_attr($this->slug) . '" aria-expanded="false">';
         echo '<span class="menu-nav__name">' . esc_html($this->name) . '</span>';
         echo '<span class="menu-nav__icon">';
         echo '<i aria-hidden="true" class="fas fa-angle-down icon-down"></i>';
@@ -76,7 +76,7 @@ class BSC_MenuNav {
     public function renderContent(): string {
 		ob_start();
 
-		echo '<div class="bsc__menu-nav bsc__menu-nav--content" id="' . esc_attr($this->slug) . '">';
+		echo '<div class="bsc__menu-nav bsc__menu-nav--content" id="' . esc_attr($this->slug) . '" hidden>';
 		echo '<div class="menu-nav__container">';
 
 		foreach ($this->menus as $menu) {
