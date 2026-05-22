@@ -270,7 +270,7 @@
 
           // BSC-006: usar get_term_link() para generar la URL jerárquica correcta.
           // El URL plano /product-category/{slug} tenía depth=1 y caía en renderLevel2(),
-          // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 â†’ renderLevel3().
+          // que solo maneja grupos (group-*). Las marcas necesitan depth>=2 -> renderLevel3().
           $term      = get_term_by('slug', $raw_slug, 'product_cat');
           $term_link = ($term && !is_wp_error($term)) ? get_term_link($term) : null;
           $brand_url = ($term_link && !is_wp_error($term_link)) ? esc_url($term_link) : '#';

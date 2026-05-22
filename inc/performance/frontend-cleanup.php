@@ -27,6 +27,10 @@ add_action(
 		wp_dequeue_style( 'wp-block-library' );
 		wp_dequeue_style( 'wp-block-library-theme' );
 		wp_dequeue_style( 'wc-blocks-style' );
+
+		if ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_tag() ) ) {
+			wp_dequeue_script( 'bsc-filter-slider-script' );
+		}
 	},
 	100
 );

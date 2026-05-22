@@ -8,7 +8,7 @@ defined('ABSPATH') || exit;
 
 require_once get_template_directory() . '/admin/bsc-admin-ui.php';
 
-// â”€â”€ Register BSC menu pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Register BSC menu pages
 add_action( 'admin_menu', 'bsc_add_admin_menu' );
 
 add_action( 'admin_enqueue_scripts', 'bsc_enqueue_dashboard_assets' );
@@ -64,9 +64,9 @@ function bsc_add_admin_menu(): void {
         3
     );
 
-    // â”€â”€ BSC-021: Ordered submenu list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // BSC-021: Ordered submenu list
 
-    // 1. Pedidos â€” operator + employee + admin
+    // 1. Pedidos - operator + employee + admin
     if ( bsc_current_user_has_bsc_page_access( 'bsc-orders' ) ) {
         add_submenu_page(
             'bsc-dashboard',
@@ -78,7 +78,7 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 2. Productos â€” admin + employee
+    // 2. Productos - admin + employee
     if ( bsc_current_user_has_bsc_page_access( 'bsc-products' ) ) {
         add_submenu_page(
             'bsc-dashboard',
@@ -90,7 +90,7 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 3. Informes â€” admin only
+    // 3. Informes - admin only
     if ( bsc_current_user_has_bsc_page_access( 'bsc-reports' ) ) {
         add_submenu_page(
             'bsc-dashboard',
@@ -102,7 +102,7 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 4. Showcase (Venta Presencial) â€” operator + employee + admin
+    // 4. Showcase (Venta Presencial) - operator + employee + admin
     if ( bsc_current_user_has_bsc_page_access( 'bsc-showroom' ) ) {
         add_submenu_page(
             'bsc-dashboard',
@@ -114,7 +114,7 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 5. Home Favorites â€” admin only
+    // 5. Home Favorites - admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Home Favorites', 'bsc-2-0' ),
@@ -124,7 +124,7 @@ function bsc_add_admin_menu(): void {
         'bsc_home_favorites_settings_page'  // defined in scripts/script_custom_types.php
     );
 
-    // 6. Hero Slides â€” links to CPT list (show_in_menu=false on the CPT keeps this clean)
+    // 6. Hero Slides - links to CPT list (show_in_menu=false on the CPT keeps this clean)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Hero Slides', 'bsc-2-0' ),
@@ -134,7 +134,7 @@ function bsc_add_admin_menu(): void {
         ''
     );
 
-    // 7. Bubble Points â€” callbacks defined in plugins/bubble-points/admin/admin-menu.php
+    // 7. Bubble Points - callbacks defined in plugins/bubble-points/admin/admin-menu.php
     add_submenu_page(
         'bsc-dashboard',
         __( 'Bubble Points', 'bsc-2-0' ),
@@ -144,7 +144,7 @@ function bsc_add_admin_menu(): void {
         'bsc_bp_render_admin_screen'
     );
 
-    // 8. Cupones â€” WC coupons management
+    // 8. Cupones - WC coupons management
     if ( bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) {
         add_submenu_page(
             'bsc-dashboard',
@@ -156,7 +156,7 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 9. Bubble Creators â€” admin / shop manager
+    // 9. Bubble Creators - admin / shop manager
     add_submenu_page(
         'bsc-dashboard',
         __( 'Bubble Creators', 'bsc-2-0' ),
@@ -166,7 +166,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_creators_page'
     );
 
-    // 10. Emails â€” admin only
+    // 10. Emails - admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Emails BSC', 'bsc-2-0' ),
@@ -176,7 +176,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_followup_emails_page'
     );
 
-    // 11. Control de Acceso â€” role Ã— page matrix
+    // 11. Control de Acceso - role x page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -186,7 +186,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 12. ConfiguraciÃ³n â€” admin only (always last)
+    // 12. Configuracion - admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Configuración BSC', 'bsc-2-0' ),
@@ -196,8 +196,8 @@ function bsc_add_admin_menu(): void {
         'bsc_render_settings_page'
     );
 
-    // â”€â”€ Hidden pages (no sidebar entry, accessible via direct URL) â”€â”€â”€â”€â”€â”€â”€â”€
-    // Product editor â€” reachable from Productos table
+    // Hidden pages (no sidebar entry, accessible via direct URL)
+    // Product editor - reachable from Productos table
     if ( bsc_current_user_has_bsc_page_access( 'bsc-product-edit' ) ) {
         add_submenu_page(
             null,
@@ -220,7 +220,7 @@ function bsc_add_admin_menu(): void {
     );
 }
 
-// â”€â”€ Hide native WP/WC menus for operational roles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Hide native WP/WC menus for operational roles
 add_action( 'admin_menu', 'bsc_restrict_admin_menus', 999 );
 
 function bsc_restrict_admin_menus(): void {
@@ -256,7 +256,7 @@ function bsc_restrict_admin_menus(): void {
     }
 }
 
-// â”€â”€ Include page-specific implementations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Include page-specific implementations
 require_once get_template_directory() . '/admin/bsc-orders-page.php';
 require_once get_template_directory() . '/admin/bsc-reports-page.php';
 require_once get_template_directory() . '/admin/bsc-showroom-page.php';
@@ -267,7 +267,7 @@ require_once get_template_directory() . '/admin/bsc-creators-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
-// â”€â”€ Page render functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Page render functions
 
 function bsc_render_dashboard(): void {
     if ( ! bsc_current_user_has_bsc_page_access( 'bsc-dashboard' ) ) {
@@ -443,7 +443,7 @@ function bsc_render_dashboard(): void {
 // bsc_render_reports_page() is defined in admin/bsc-reports-page.php
 // bsc_render_product_edit_page() is defined in admin/bsc-product-edit-page.php (BSC-065)
 
-// â”€â”€ BSC-064: Settings page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// BSC-064: Settings page
 function bsc_render_settings_page(): void {
     if ( ! current_user_can('manage_options') ) {
         wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );

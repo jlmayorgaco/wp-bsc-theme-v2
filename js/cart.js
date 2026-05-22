@@ -58,7 +58,7 @@ jQuery(function ($) {
 
   /**
    * Add to cart handler
-   * BSC-005: listen to both pointerup (touch/mouse â€” no 300ms delay) and click
+   * BSC-005: listen to both pointerup (touch/mouse - no 300ms delay) and click
    * (keyboard Enter/Space on <button>). The data-processing guard prevents
    * double-firing when both events fire for the same interaction.
    */
@@ -139,12 +139,12 @@ jQuery(function ($) {
     $.ajax({
       url: '?wc-ajax=get_refreshed_fragments',
       method: 'GET',
-      timeout: 8000, // 8 s timeout â€” prevents indefinite stall on slow network
+      timeout: 8000, // 8 s timeout - prevents indefinite stall on slow network
     })
     .done(function (cart) {
       const rawHtml = cart?.fragments?.['a.cart-contents'];
       if (!rawHtml) {
-        // BSC-004: carrito vacÃ­o â€” WC no devuelve fragmento, poner badge en 0
+        // BSC-004: carrito vacio - WC no devuelve fragmento, poner badge en 0
         $(SELECTORS.footerCount).text('0');
         $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         return;
@@ -169,7 +169,7 @@ jQuery(function ($) {
         });
     })
     .fail(function () {
-      // Timeout or network error â€” badge already updated from POST response (BSC-004)
+      // Timeout or network error - badge already updated from POST response (BSC-004)
       console.warn('BSC: cart fragment refresh failed or timed out.');
     });
   };
@@ -274,7 +274,7 @@ jQuery(function ($) {
     const $btn = $(this);
     const $item = $btn.closest(SELECTORS.checkoutItem);
     const key = $item.data('item-key');
-    if (!key) return console.error('âŒ No item key found');
+    if (!key) return console.error('BSC: No item key found');
 
     const emptiesCheckout = isCheckoutPage() && $(SELECTORS.checkoutItem).length <= 1;
 
@@ -315,7 +315,7 @@ jQuery(function ($) {
           $(SELECTORS.footerCount).text(count);
           $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
         } else {
-          // Cart is now empty â€” WC returns no fragment for empty cart
+          // Cart is now empty - WC returns no fragment for empty cart
           $(SELECTORS.footerCount).text('0');
           $(SELECTORS.footerCart).attr('aria-label', 'Shopping Cart with 0 items');
         }
@@ -335,7 +335,7 @@ jQuery(function ($) {
 });
 
 
-// refreshReviewSummary â€” called directly after cart item removal.
+// refreshReviewSummary - called directly after cart item removal.
 // On checkout pages, checkout.js handles this via WC's 'updated_checkout' event.
 let reviewSummaryRequest = null;
 
@@ -370,7 +370,7 @@ function refreshReviewSummary() {
     })
     .fail((xhr, statusText) => {
       if (statusText !== 'abort') {
-        console.error('âŒ Error al refrescar el resumen del pedido.', xhr?.responseText);
+        console.error('BSC: Error al refrescar el resumen del pedido.', xhr?.responseText);
       }
     })
     .always(() => {
