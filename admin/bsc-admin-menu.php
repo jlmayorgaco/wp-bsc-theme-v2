@@ -49,7 +49,11 @@ function bsc_dashboard_count_orders( array $statuses, array $extra_args = [] ): 
 }
 
 function bsc_add_admin_menu(): void {
-    // Top-level BSC entry (visible to any logged-in admin user)
+    if ( ! bsc_current_user_has_any_bsc_page_access() ) {
+        return;
+    }
+
+    // Top-level BSC entry for authorized BSC admin users.
     add_menu_page(
         __( 'BSC Dashboard', 'bsc-2-0' ),
         'BSC',
@@ -135,7 +139,7 @@ function bsc_add_admin_menu(): void {
         'bsc-dashboard',
         __( 'Bubble Points', 'bsc-2-0' ),
         __( 'Bubble Points', 'bsc-2-0' ),
-        'manage_options',
+        'manage_woocommerce',
         'bsc-bubble-points',
         'bsc_bp_render_admin_screen'
     );
@@ -200,7 +204,7 @@ function bsc_add_admin_menu(): void {
         null,
         __( 'Bubble Points — Ajustes', 'bsc-2-0' ),
         __( 'Bubble Points Ajustes', 'bsc-2-0' ),
-        'manage_options',
+        'manage_woocommerce',
         'bsc-bp-settings',
         'bsc_bp_render_settings_screen'
     );
@@ -255,7 +259,7 @@ require_once get_template_directory() . '/admin/bsc-access-page.php';        // 
 // â”€â”€ Page render functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function bsc_render_dashboard(): void {
-    if ( ! current_user_can('read') ) {
+    if ( ! bsc_current_user_has_bsc_page_access( 'bsc-dashboard' ) ) {
         wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
     }
 

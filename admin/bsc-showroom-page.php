@@ -230,7 +230,16 @@ function bsc_ajax_register_showroom_sale(): void {
 
     $items_raw      = isset($_POST['items']) ? wp_unslash($_POST['items']) : '[]';
     $items          = json_decode((string) $items_raw, true);
-    $payment        = sanitize_text_field($_POST['payment_method'] ?? 'efectivo');
+    $payment_methods = [
+        'efectivo'      => 'Efectivo',
+        'transferencia' => 'Transferencia',
+        'tarjeta'       => 'Tarjeta',
+    ];
+    $payment = sanitize_key($_POST['payment_method'] ?? 'efectivo');
+
+    if (!isset($payment_methods[$payment])) {
+        wp_send_json_error(['message' => 'Método de pago inválido']);
+    }
     $customer_name  = sanitize_text_field($_POST['customer_name'] ?? '');
     $customer_phone = sanitize_text_field($_POST['customer_phone'] ?? '');
     $customer_email = sanitize_email($_POST['customer_email'] ?? '');
@@ -312,7 +321,7 @@ function bsc_ajax_register_showroom_sale(): void {
     }
 
     $order->set_payment_method($payment);
-    $order->set_payment_method_title(ucfirst($payment));
+    $order->set_payment_method_title($payment_methods[$payment]);
     $order->update_meta_data('_bsc_is_showroom_sale', '1');
     $order->save();
 
