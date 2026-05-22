@@ -174,8 +174,16 @@ function bsc_render_product_edit_page(): void {
         $envio_tipo = in_array($_POST['_envio_tipo'] ?? '', ['bodega', 'tienda', 'ambos'], true)
             ? sanitize_text_field(wp_unslash($_POST['_envio_tipo']))
             : 'bodega';
-        update_post_meta($product_id, '_stock_bodega', $stock_bodega);
-        update_post_meta($product_id, '_stock_tienda', $stock_tienda);
+
+        $current_stock = BSC_Stock::get_stock($product_id);
+        if ((int) $current_stock['bodega'] !== $stock_bodega) {
+            BSC_Stock::adjust($product_id, 'bodega', $stock_bodega - (int) $current_stock['bodega'], 'Edicion BSC Product Edit');
+        }
+
+        if ((int) $current_stock['tienda'] !== $stock_tienda) {
+            BSC_Stock::adjust($product_id, 'tienda', $stock_tienda - (int) $current_stock['tienda'], 'Edicion BSC Product Edit');
+        }
+
         update_post_meta($product_id, '_envio_tipo', $envio_tipo);
 
         $repurchase_days_raw = isset($_POST['_bsc_repurchase_days'])

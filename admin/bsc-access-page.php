@@ -55,8 +55,21 @@ function bsc_access_managed_pages(): array {
 }
 
 function bsc_access_visible_pages(): array {
-    $pages = bsc_access_managed_pages();
+    $pages = bsc_access_role_controllable_pages();
     unset( $pages['bsc-product-edit'] );
+
+    return $pages;
+}
+
+function bsc_access_role_controllable_pages(): array {
+    $pages = bsc_access_managed_pages();
+    unset(
+        $pages['bsc-home-favorites'],
+        $pages['bsc-bubble-points'],
+        $pages['bsc-followup-emails'],
+        $pages['bsc-access'],
+        $pages['bsc-settings']
+    );
 
     return $pages;
 }
@@ -70,13 +83,13 @@ function bsc_access_default_config(): array {
 
 function bsc_access_required_pages(): array {
     return array(
-        'bsc_employee' => array( 'bsc-orders' ),
-        'bsc_operator' => array( 'bsc-orders' ),
+        'bsc_employee' => array( 'bsc-dashboard', 'bsc-orders' ),
+        'bsc_operator' => array( 'bsc-dashboard', 'bsc-orders' ),
     );
 }
 
 function bsc_access_normalize_config( array $config ): array {
-    $managed_pages = array_keys( bsc_access_managed_pages() );
+    $managed_pages = array_keys( bsc_access_role_controllable_pages() );
     $defaults      = bsc_access_default_config();
     $required      = bsc_access_required_pages();
     $normalized    = array();
@@ -118,7 +131,7 @@ function bsc_access_role_has_page( string $role, string $page_slug ): bool {
 }
 
 function bsc_current_user_has_bsc_page_access( string $page_slug ): bool {
-    if ( current_user_can( 'manage_options' ) ) {
+    if ( current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' ) ) {
         return true;
     }
 
@@ -134,7 +147,17 @@ function bsc_current_user_has_bsc_page_access( string $page_slug ): bool {
         }
     }
 
-    return true;
+    return false;
+}
+
+function bsc_current_user_has_any_bsc_page_access(): bool {
+    foreach ( array_keys( bsc_access_managed_pages() ) as $page_slug ) {
+        if ( bsc_current_user_has_bsc_page_access( $page_slug ) ) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function bsc_handle_access_control_save(): void {
