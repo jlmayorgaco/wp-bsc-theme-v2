@@ -11,7 +11,7 @@ function bsc_bp_ajax_redeem_points() {
     }
 
     $user_id = get_current_user_id();
-    $points  = isset($_POST['points']) ? intval($_POST['points']) : 0;
+    $points  = isset($_POST['points']) ? absint($_POST['points']) : 0;
 
     if ($points <= 0) {
         wp_send_json_error(['message' => 'Datos inválidos para redención.']);
@@ -33,7 +33,7 @@ function bsc_bp_ajax_redeem_points() {
         'post_content' => 'Cupón generado por redención de Bubble Points',
         'post_status'  => 'publish',
         'post_type'    => 'shop_coupon',
-        'post_author'  => 1,
+        'post_author'  => $user_id,
     ]);
 
     if (!$coupon_id || is_wp_error($coupon_id)) {
@@ -44,7 +44,7 @@ function bsc_bp_ajax_redeem_points() {
     update_post_meta($coupon_id, 'coupon_amount', $coupon_value);
     update_post_meta($coupon_id, 'individual_use', 'yes');
     update_post_meta($coupon_id, 'usage_limit', 1);
-    update_post_meta($coupon_id, 'customer_email', wp_get_current_user()->user_email);
+    update_post_meta($coupon_id, 'customer_email', sanitize_email( wp_get_current_user()->user_email ) );
 
     // 4. Deduct points only after coupon creation succeeds
     $ledger = bsc_bp_add_ledger_entry(

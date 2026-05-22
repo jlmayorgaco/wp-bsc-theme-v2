@@ -41,11 +41,16 @@ $menu-title-font: 'Helvetica', sans-serif;
     padding: 0.5em;
     font-size: 1em;
     border: none;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     letter-spacing: 1px;
     font-family: $menu-title-font;
     border-bottom: 1px solid #333;
     background: transparent;
+  }
+
+  .header-search-input:focus-visible {
+    outline-color: #333;
   }
 
   .search-results {
@@ -93,9 +98,16 @@ $menu-title-font: 'Helvetica', sans-serif;
   font-family: $menu-title-font;
   letter-spacing: 0.5px;
   border: 1px solid #333;
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   background: #fff;
   box-sizing: border-box;
+}
+
+.bsc-mobile-search-panel .header-search-input:focus-visible,
+.search-result-item:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
 }
 
 .bsc-mobile-search-panel .search-results {

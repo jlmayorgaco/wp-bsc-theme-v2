@@ -33,6 +33,22 @@ jQuery(function ($) {
     $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${count} items`);
   }
 
+  function isCheckoutPage() {
+    const currentPath = window.location.pathname.replace(/\/+$/, '');
+
+    return $('form[name="checkout"], form.woocommerce-checkout, .bsc__page--checkout').length > 0
+      || currentPath.endsWith('/checkout');
+  }
+
+  function redirectToEmptyCartFromCheckout() {
+    if (!isCheckoutPage()) return false;
+
+    const cartUrl = window.bsc_ajax?.cart_url || '/cart/';
+    window.location.assign(cartUrl);
+
+    return true;
+  }
+
   // BSC-017: floating cart swing animation helper
   function triggerCartSwing() {
     const $cart = $(SELECTORS.footerCart);
@@ -206,6 +222,10 @@ jQuery(function ($) {
 
       syncCartCount(cartCount);
 
+      if (Number(cartCount) === 0 && redirectToEmptyCartFromCheckout()) {
+        return;
+      }
+
       if (serverQty !== undefined) {
         $value.text(serverQty);
       }
@@ -256,6 +276,8 @@ jQuery(function ($) {
     const key = $item.data('item-key');
     if (!key) return console.error('âŒ No item key found');
 
+    const emptiesCheckout = isCheckoutPage() && $(SELECTORS.checkoutItem).length <= 1;
+
     $btn.prop('disabled', true).addClass('loading');
 
     $.post(bsc_ajax.ajax_url, {
@@ -271,6 +293,12 @@ jQuery(function ($) {
         const $notice = $('<div class="bsc__coupon-notice bsc__coupon-notice--error"></div>').text(msg);
         $('body').append($notice);
         setTimeout(() => $notice.remove(), 4000);
+        return;
+      }
+
+      if (emptiesCheckout) {
+        syncCartCount(0);
+        redirectToEmptyCartFromCheckout();
         return;
       }
 

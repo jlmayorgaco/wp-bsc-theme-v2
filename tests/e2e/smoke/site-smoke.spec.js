@@ -38,6 +38,9 @@ test.describe('BSC smoke', () => {
       await expect(page.locator('.bsc__header--desktop .header__image').first()).toBeVisible();
       await expect(page.locator('.bsc__header--desktop .btn-search-toggle').first()).toBeVisible();
       await expect(page.locator('.bsc__header--desktop .menu__icon.icon--profile').first()).toBeVisible();
+      await expect(page.locator('.bsc__menu-nav-image:has(img[alt="SKIN CARE"])')).toHaveAttribute('href', /\/product-category\/group-skin-care\/$/);
+      await expect(page.locator('.bsc__menu-nav-image:has(img[alt="HAIR CARE"])')).toHaveAttribute('href', /\/product-category\/group-hair-care\/$/);
+      await expect(page.locator('.bsc__menu-nav-image:has(img[alt="MAKE UP"])')).toHaveAttribute('href', /\/product-category\/group-make-up\/$/);
       return;
     }
 
@@ -263,6 +266,20 @@ test.describe('BSC smoke', () => {
     await expect(page).toHaveURL(/mi-cuenta|my-account|login/i);
   });
 
+  test('footer account heading links directly to orders', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for footer navigation smoke');
+
+    await gotoAndStabilize(page, routes.home);
+
+    const footerAccountLink = page.locator('.footer__heading a', { hasText: 'Mi cuenta' }).first();
+    await expect(footerAccountLink).toBeVisible();
+
+    const href = await footerAccountLink.getAttribute('href');
+    const actualPath = new URL(href, page.url()).pathname;
+
+    expect(actualPath).toMatch(/\/(?:my-account|mi-cuenta)\/orders\/$/);
+  });
+
   test('contact page exposes dynamic contact CTAs and ajax feedback shell', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for contact smoke');
 
@@ -331,13 +348,15 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('#bc-name')).toHaveAttribute('required', '');
     await expect(page.locator('#bc-email')).toHaveAttribute('required', '');
     await expect(page.locator('#bc-instagram')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-instagram')).toHaveAttribute('type', 'url');
     await expect(page.locator('#bc-tiktok')).toHaveAttribute('required', '');
+    await expect(page.locator('#bc-tiktok')).toHaveAttribute('type', 'url');
     await expect(page.locator('#bc-message')).toHaveAttribute('required', '');
 
     await page.locator('#bc-name').fill('QA Creator');
     await page.locator('#bc-email').fill('qa.creator@bsc.local');
-    await page.locator('#bc-instagram').fill('@qa.creator');
-    await page.locator('#bc-tiktok').fill('@qa.creator');
+    await page.locator('#bc-instagram').fill('https://www.instagram.com/qa.creator/');
+    await page.locator('#bc-tiktok').fill('https://www.tiktok.com/@qa.creator');
     await page.locator('#bc-message').fill('Validando el flujo AJAX del formulario Bubble Creators.');
     await page.locator('#bc-form-submit').click();
 

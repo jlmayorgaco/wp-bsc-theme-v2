@@ -13,6 +13,8 @@ class BSC_Products_Card {
     private $rating = 0;
     private $brand = '';
     private $type  = 'simple';
+    private $is_purchasable = false;
+    private $is_in_stock = false;
 
     public function setProduct( WC_Product $product ): void {
         $this->id            = $product->get_id();
@@ -29,6 +31,8 @@ class BSC_Products_Card {
         $this->link   = get_permalink( $product->get_id() );
         $this->rating = (float) $product->get_average_rating();
         $this->type   = $product->get_type();
+        $this->is_purchasable = $product->is_purchasable();
+        $this->is_in_stock = $product->is_in_stock();
 
         $terms = get_the_terms( $product->get_id(), 'product_cat' );
         if ( $terms && ! is_wp_error( $terms ) ) {
@@ -128,6 +132,17 @@ class BSC_Products_Card {
             echo '<span class="bsc__qty-value">' . esc_html( $quantity ) . '</span>';
             echo '<button class="bsc__qty-plus">+</button>';
             echo '</div>';
+            return;
+        }
+
+        if ( ! $this->is_purchasable || ! $this->is_in_stock ) {
+            echo '<button
+                type="button"
+                class="bsc__button bsc__button--product-card bsc__button-add-to-cart"
+                disabled
+                aria-disabled="true"
+                aria-label="Producto agotado"
+            ><span>Agotado</span></button>';
             return;
         }
 

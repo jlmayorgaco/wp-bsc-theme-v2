@@ -21,6 +21,13 @@ function bsc_2_0_scripts() {
 		true
 	);
 
+	wp_localize_script('bsc-2-0-navigation', 'bsc_ajax', [
+		'ajax_url'  => admin_url('admin-ajax.php'),
+		'theme_uri' => get_template_directory_uri(),
+		'cart_url'  => function_exists('wc_get_cart_url') ? wc_get_cart_url() : home_url('/cart/'),
+		'nonce'     => wp_create_nonce('bsc_ajax_action'),
+	]);
+
 	// Mobile menu â€” extracted from header.php inline script
 	wp_enqueue_script(
 		'bsc-2-0-mobile-menu',
@@ -44,19 +51,24 @@ function bsc_2_0_scripts() {
 		'nonce'           => wp_create_nonce('bsc_ajax_action'),
 	]);
 
-	wp_enqueue_script(
-		'bsc-2-0-add-to-cart',
-		get_template_directory_uri() . '/js/cart.js',
-		array('jquery'),
-		BSC_THEME_VERSION,
-		true
-	);
+	$needs_cart_script = is_front_page()
+		|| is_shop()
+		|| is_product()
+		|| is_product_category()
+		|| is_product_tag()
+		|| is_cart()
+		|| is_checkout()
+		|| is_post_type_archive('product');
 
-	wp_localize_script('bsc-2-0-add-to-cart', 'bsc_ajax', [
-		'ajax_url'  => admin_url('admin-ajax.php'),
-		'theme_uri' => get_template_directory_uri(),
-		'nonce'     => wp_create_nonce('bsc_ajax_action'),
-	]);
+	if ( $needs_cart_script ) {
+		wp_enqueue_script(
+			'bsc-2-0-add-to-cart',
+			get_template_directory_uri() . '/js/cart.js',
+			array('jquery'),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
 
 	// Slider mobile hint
 	wp_enqueue_script(
@@ -134,7 +146,7 @@ function bsc_2_0_scripts() {
 		wp_enqueue_script(
 			'bsc-2-0-contact',
 			get_template_directory_uri() . '/js/contact.js',
-			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			array( 'jquery', 'bsc-2-0-navigation' ),
 			BSC_THEME_VERSION,
 			true
 		);
@@ -145,7 +157,7 @@ function bsc_2_0_scripts() {
 		wp_enqueue_script(
 			'bsc-2-0-creator-apply',
 			get_template_directory_uri() . '/js/creator-apply.js',
-			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			array( 'jquery', 'bsc-2-0-navigation' ),
 			BSC_THEME_VERSION,
 			true
 		);

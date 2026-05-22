@@ -4,19 +4,33 @@ get_header();
 
 $registration_error = '';
 
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['email'] ) ) {
+if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) && isset( $_POST['email'] ) ) {
 	if ( ! isset( $_POST['bsc_register_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_register_nonce'] ) ), 'bsc_register_action' ) ) {
 		wp_die( esc_html( html_entity_decode( 'Solicitud no v&aacute;lida.', ENT_QUOTES, 'UTF-8' ) ) );
 	}
 
+	if ( ! empty( $_POST['bsc_company'] ) ) {
+		wp_die( esc_html( html_entity_decode( 'Solicitud no v&aacute;lida.', ENT_QUOTES, 'UTF-8' ) ) );
+	}
+
+	if ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'register', 5, 15 * MINUTE_IN_SECONDS ) ) {
+		$registration_error = 'Demasiados intentos. Espera unos minutos antes de crear una cuenta.';
+	}
+
 	$nombres  = sanitize_text_field( wp_unslash( $_POST['nombres'] ?? '' ) );
 	$email    = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-	$password = $_POST['password'] ?? '';
+	$password = is_string( $_POST['password'] ?? null ) ? (string) wp_unslash( $_POST['password'] ) : '';
 
-	if ( email_exists( $email ) ) {
+	if ( ! empty( $registration_error ) ) {
+		// Keep the rate-limit message.
+	} elseif ( ! is_email( $email ) ) {
+		$registration_error = 'Ingresa un correo electronico valido.';
+	} elseif ( email_exists( $email ) ) {
 		$registration_error = 'Este correo ya est&aacute; registrado. Intenta iniciar sesi&oacute;n.';
 	} elseif ( empty( $nombres ) || empty( $email ) || empty( $password ) ) {
 		$registration_error = 'Por favor completa todos los campos.';
+	} elseif ( strlen( $password ) < 10 ) {
+		$registration_error = 'La contrasena debe tener al menos 10 caracteres.';
 	} else {
 		$name_parts = explode( ' ', $nombres, 2 );
 		$first_name = $name_parts[0];
@@ -37,7 +51,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['email'] ) ) {
 			wp_set_current_user( $user_id );
 			wp_set_auth_cookie( $user_id, true );
 			do_action( 'wp_login', $email, get_user_by( 'ID', $user_id ) );
-			wp_redirect( home_url( '/registro-familia-bubbles/' ) );
+			wp_safe_redirect( home_url( '/registro-familia-bubbles/' ) );
 			exit;
 		}
 
@@ -66,6 +80,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['email'] ) ) {
 
         <form name="registerform" id="registerform" method="post" class="form" novalidate>
           <?php wp_nonce_field( 'bsc_register_action', 'bsc_register_nonce' ); ?>
+          <input type="text" name="bsc_company" value="" tabindex="-1" autocomplete="off" class="screen-reader-text" aria-hidden="true" />
           <div class="bsc__form-field">
             <label for="nombres" class="bsc__label"><strong>Nombres</strong> y Apellidos</label>
             <input type="text" name="nombres" id="nombres" class="bsc__input" required />

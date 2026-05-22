@@ -119,7 +119,9 @@ $font-size__xl: 40px; // Example value, adjust as needed
     margin-bottom: 30px;
     text-rendering: optimizeLegibility;
     font-weight: 100;
-    max-width: 622px;
+
+    width: calc(100vw - 2em);
+    max-width: 1000px;
 
     text-align: center;
     margin: 0 auto;
@@ -130,4 +132,29 @@ $font-size__xl: 40px; // Example value, adjust as needed
   letter-spacing: 2px;
   font-size: 25px;
   font-weight: 900;
+}
+
+
+
+
+
+@media (max-width: 767px) {
+  .bsc__description {
+    font-family: "Helvetica", sans-serif;
+    color: var(--color--text);
+    font-size: 15px;
+    letter-spacing: 2px;
+    line-height: 29.25px;
+    margin-bottom: 30px;
+    text-rendering: optimizeLegibility;
+    font-weight: 100;
+
+    width: calc(100vw - 2em);
+    max-width: 1000px;
+
+    text-align: center;
+    margin: 0 auto;
+
+    margin-bottom: 30px;
+  }
 }

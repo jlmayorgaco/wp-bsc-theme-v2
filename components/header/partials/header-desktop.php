@@ -1,7 +1,7 @@
 <header class="bsc bsc__header bsc__header--desktop">
     <div class="header__container">
         <a class="header__image" href="<?php echo esc_url($header_home_url); ?>">
-            <img src="<?php echo get_template_directory_uri();?>/images/bsc_logo_header.png">
+            <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_logo_header.png" alt="Bubbles Skin Care">
         </a>
         <div class="header__nav">
             <?php
@@ -11,24 +11,24 @@
         <div class="header__menu">
             <ul class="menu__icons">
                 <li class="menu__icon icon--search">
-                    <button class="btn-search-toggle">
+                    <button class="btn-search-toggle" type="button" aria-label="Buscar productos" aria-expanded="false">
                           <div class="image__icon-hoverable">
-                                <img class="image__icon icon--normal" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png">
-                                <img class="image__icon icon--hover" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__search-icon--hover.png">
+                                <img class="image__icon icon--normal" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__search-icon--hover.png" aria-hidden="true">
+                                <img class="image__icon icon--hover" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__search-icon--hover.png" aria-hidden="true">
                           </div>
                     </button>
                     
-                    <div class="bsc header__search hidden">
-                        <input type="text" class="header-search-input" placeholder="Buscar productos...">
+                    <div class="bsc header__search hidden" role="search" aria-label="Buscar productos">
+                        <input type="search" class="header-search-input" placeholder="Buscar productos..." autocomplete="off" aria-label="Buscar productos">
                         <ul class="search-results"></ul>
                     </div>
                 </li>
                 <?php if (is_user_logged_in()) : ?>
                     <li class="menu__icon icon--profile">
-                        <button id="profile-button" aria-haspopup="true" aria-expanded="false">
+                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false">
                             <div class="image__icon-hoverable">
-                                <img class="image__icon icon--normal" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png">
-                                <img class="image__icon icon--hover" alt="" src="<?php echo get_template_directory_uri();?>/images/bsc_header__profile-icon--hover.png">
+                                <img class="image__icon icon--normal" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
+                                <img class="image__icon icon--hover" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
                             </div>
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">
@@ -44,7 +44,7 @@
                     </li>
                     <?php else : ?>
                     <li class="menu__icon icon--profile">
-                        <button id="profile-button" aria-haspopup="true" aria-expanded="false">
+                        <button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false">
                         <i aria-hidden="true" class="dlicon users_single-03"></i>
                         </button>
                         <div id="profile-dropdown" class="bsc__profile-dropdown">

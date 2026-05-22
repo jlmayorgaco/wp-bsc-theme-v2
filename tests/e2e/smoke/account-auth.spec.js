@@ -44,6 +44,14 @@ test.describe('BSC smoke - auth and account', () => {
     await expect(page.locator('#account_first_name')).toHaveValue('Maria');
     await expect(page.locator('#account_last_name')).toHaveValue('Luisa Perez');
     await expect(page.locator('#account_display_name')).toHaveValue('Maria Luisa Perez');
+
+    for (const selector of ['#account_skin_type', '#account_sensitivity']) {
+      const select = page.locator(selector).first();
+      await expect(select).toBeVisible();
+
+      const box = await select.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(38);
+    }
   });
 
   test('account orders route renders table or no-orders state', async ({ page }) => {

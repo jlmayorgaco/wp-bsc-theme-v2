@@ -72,7 +72,7 @@ function bsc_coupons_handle_actions(): void {
     // Delete coupon
     if ( isset( $_GET['bsc_delete_coupon'], $_GET['bsc_delete_nonce'] ) ) {
         $coupon_id = absint( $_GET['bsc_delete_coupon'] );
-        if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['bsc_delete_nonce'] ) ), 'bsc_delete_coupon_' . $coupon_id ) ) {
+        if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['bsc_delete_nonce'] ) ), 'bsc_delete_coupon_' . $coupon_id ) && 'shop_coupon' === get_post_type( $coupon_id ) ) {
             wp_delete_post( $coupon_id, true );
         }
         wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-coupons', 'bsc_notice' => 'deleted' ], admin_url( 'admin.php' ) ) );
@@ -99,9 +99,10 @@ function bsc_render_coupons_page(): void {
     <div class="wrap bsc-admin-coupons">
         <h1>Cupones BSC</h1>
 
-        <?php if ( isset( $_GET['bsc_notice'] ) ) : ?>
+        <?php $bsc_notice = isset( $_GET['bsc_notice'] ) ? sanitize_key( wp_unslash( $_GET['bsc_notice'] ) ) : ''; ?>
+        <?php if ( $bsc_notice ) : ?>
         <div class="notice notice-success is-dismissible"><p>
-            <?php echo $_GET['bsc_notice'] === 'created' ? 'Cupón creado correctamente.' : 'Cupón eliminado.'; ?>
+            <?php echo esc_html( $bsc_notice === 'created' ? 'Cupón creado correctamente.' : 'Cupón eliminado.' ); ?>
         </p></div>
         <?php endif; ?>
 

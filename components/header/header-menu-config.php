@@ -10,7 +10,7 @@ if (!function_exists('bsc_get_header_menu_configs')) {
                 'slug'    => 'BSC_MENU_NAV_SKIN_CARE',
                 'cover'   => [
                     'image' => get_theme_file_uri('images/header_menus/Menu-01-F-100.jpg'),
-                    'link'  => get_theme_file_uri('images/header_menus/Menu-01-F-100.jpg'),
+                    'link'  => '/product-category/group-skin-care/',
                 ],
                 'menus' => [
                     [
@@ -63,7 +63,7 @@ if (!function_exists('bsc_get_header_menu_configs')) {
                 'slug'    => 'BSC_MENU_NAV_HAIR_CARE',
                 'cover'   => [
                     'image' => get_theme_file_uri('images/header_menus/Menu-02-F-100.jpg'),
-                    'link'  => get_theme_file_uri('images/header_menus/Menu-02-F-100.jpg'),
+                    'link'  => '/product-category/group-hair-care/',
                 ],
                 'menus' => [
                     [
@@ -94,7 +94,7 @@ if (!function_exists('bsc_get_header_menu_configs')) {
                 'slug'    => 'BSC_MENU_NAV_MAKE_UP',
                 'cover'   => [
                     'image' => get_theme_file_uri('images/header_menus/Menu-05-F-100.jpg'),
-                    'link'  => get_theme_file_uri('images/header_menus/Menu-05-F-100.jpg'),
+                    'link'  => '/product-category/group-make-up/',
                 ],
                 'menus' => [
                     [

@@ -69,9 +69,30 @@ $breakpoint-xl: 1200px;
       width: 100%;
     }
 
+    &.shop__main--group {
+      display: block;
+      width: 100%;
+    }
+
     @media (max-width: $breakpoint-md) {
       grid-template-columns: 1fr;
     }
+  }
+
+  .shop__catalog-layout {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: $spacing-xl;
+    width: 100%;
+    align-items: start;
+
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .shop__catalog-layout--full {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .shop__sidebar {
@@ -220,7 +241,7 @@ $breakpoint-xl: 1200px;
 }
 
 .bsc-hero__quote strong {
-  color: #000;
+  color: var(--color--text);
   font-weight: 900;
 }
 
@@ -262,6 +283,8 @@ $breakpoint-xl: 1200px;
   max-width: 1140px;
   margin: 0 auto 2rem;
   padding-inline: 1rem;
+      padding-top: 3em;
+    padding-bottom: 1em;
 }
 
 .bsc-kb-grid--home {
@@ -607,11 +630,16 @@ $breakpoint-xl: 1200px;
   line-height: 25.25px;
 }
 
+.bsc__default-subsubcategory {
+  width: 100%;
+}
+
 .bsc__subsubcategory-links {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1rem 1.25rem;
+  width: 100%;
   margin-top: 2rem;
   margin-bottom: 2rem;
 }

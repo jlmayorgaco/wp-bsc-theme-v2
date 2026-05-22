@@ -26,6 +26,29 @@ if (!function_exists('bsc_bp_set_balance')) {
     }
 }
 
+if (!function_exists('bsc_bp_with_user_lock')) {
+    function bsc_bp_with_user_lock($user_id, callable $callback) {
+        global $wpdb;
+
+        $lock_name = 'bsc_bp_user_' . (int) $user_id;
+        $locked = (int) $wpdb->get_var(
+            $wpdb->prepare('SELECT GET_LOCK(%s, %d)', $lock_name, 5)
+        );
+
+        if (1 !== $locked) {
+            return ['ok' => false, 'balance' => bsc_bp_get_balance($user_id), 'error' => 'lock_timeout', 'insert_id' => null];
+        }
+
+        try {
+            return $callback();
+        } finally {
+            $wpdb->get_var(
+                $wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name)
+            );
+        }
+    }
+}
+
 if (!function_exists('bsc_bp_add_ledger_entry')) {
     /**
      * Add a ledger row and update the user's balance.
@@ -47,45 +70,47 @@ if (!function_exists('bsc_bp_add_ledger_entry')) {
             return ['ok' => false, 'balance' => 0, 'error' => 'invalid_user', 'insert_id' => null];
         }
 
-        $delta    = (int) $delta;
-        $reason   = sanitize_key($reason);
-        $order_id = $order_id ? (int) $order_id : null;
+        return bsc_bp_with_user_lock($user_id, function () use ($wpdb, $user_id, $delta, $reason, $order_id, $extra, $allow_negative) {
+            $delta    = (int) $delta;
+            $reason   = sanitize_key($reason);
+            $order_id = $order_id ? (int) $order_id : null;
 
-        // Current balance
-        $current = bsc_bp_get_balance($user_id);
+            // Current balance
+            $current = bsc_bp_get_balance($user_id);
 
-        // Compute new balance
-        $new = $current + $delta;
-        if (!$allow_negative && $new < 0) {
-            return ['ok' => false, 'balance' => $current, 'error' => 'insufficient_points', 'insert_id' => null];
-        }
-        $new = max(0, $new);
+            // Compute new balance
+            $new = $current + $delta;
+            if (!$allow_negative && $new < 0) {
+                return ['ok' => false, 'balance' => $current, 'error' => 'insufficient_points', 'insert_id' => null];
+            }
+            $new = max(0, $new);
 
-        // Persist balance first (so UI reflects latest fast)
-        bsc_bp_set_balance($user_id, $new);
+            // Persist balance first (so UI reflects latest fast)
+            bsc_bp_set_balance($user_id, $new);
 
-        // Insert ledger row
-        $inserted = $wpdb->insert(
-            bsc_bp_table(),
-            [
-                'user_id'       => $user_id,
-                'delta'         => $delta,
-                'balance_after' => $new,
-                'reason'        => $reason,
-                'order_id'      => $order_id,
-                'meta'          => $extra ? wp_json_encode($extra) : null,
-                'created_at'    => current_time('mysql'),
-            ],
-            ['%d','%d','%d','%s','%d','%s','%s']
-        );
+            // Insert ledger row
+            $inserted = $wpdb->insert(
+                bsc_bp_table(),
+                [
+                    'user_id'       => $user_id,
+                    'delta'         => $delta,
+                    'balance_after' => $new,
+                    'reason'        => $reason,
+                    'order_id'      => $order_id,
+                    'meta'          => $extra ? wp_json_encode($extra) : null,
+                    'created_at'    => current_time('mysql'),
+                ],
+                ['%d','%d','%d','%s','%d','%s','%s']
+            );
 
-        if ($inserted === false) {
-            // Ledger failed; try to revert balance to previous to keep consistency
-            bsc_bp_set_balance($user_id, $current);
-            return ['ok' => false, 'balance' => $current, 'error' => 'ledger_insert_failed', 'insert_id' => null];
-        }
+            if ($inserted === false) {
+                // Ledger failed; try to revert balance to previous to keep consistency
+                bsc_bp_set_balance($user_id, $current);
+                return ['ok' => false, 'balance' => $current, 'error' => 'ledger_insert_failed', 'insert_id' => null];
+            }
 
-        return ['ok' => true, 'balance' => $new, 'error' => null, 'insert_id' => (int)$wpdb->insert_id];
+            return ['ok' => true, 'balance' => $new, 'error' => null, 'insert_id' => (int)$wpdb->insert_id];
+        });
     }
 }
 

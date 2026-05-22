@@ -12,15 +12,12 @@ class BSC_Catalog_Product_Query {
     }
 
     public function get_query_args(BSC_Catalog_Request_Context $context): array {
-        $categories = [];
-
-        if ($context->get_category() !== '') {
-            $categories[] = $context->get_category();
-        }
+        $base_category = $context->get_category();
+        $filter_categories = [];
 
         foreach ($this->config->get_group_field_names($context->get_group()) as $field_name) {
             foreach ($context->get_selected_values($field_name) as $value) {
-                $categories[] = $value;
+                $filter_categories[] = $value;
             }
         }
 
@@ -44,15 +41,38 @@ class BSC_Catalog_Product_Query {
             ],
         ];
 
-        if (!empty($categories)) {
-            $args['tax_query'] = [
-                [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'slug',
-                    'terms'    => array_values(array_unique($categories)),
-                    'operator' => 'AND',
-                ],
+        if (class_exists('BSC_Stock')) {
+            $args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
+        }
+
+        $tax_query = [];
+
+        if ($base_category !== '') {
+            $tax_query[] = [
+                'taxonomy'         => 'product_cat',
+                'field'            => 'slug',
+                'terms'            => [$base_category],
+                'operator'         => 'IN',
+                'include_children' => true,
             ];
+        }
+
+        if (!empty($filter_categories)) {
+            $tax_query[] = [
+                'taxonomy'         => 'product_cat',
+                'field'            => 'slug',
+                'terms'            => array_values(array_unique($filter_categories)),
+                'operator'         => 'AND',
+                'include_children' => true,
+            ];
+        }
+
+        if (!empty($tax_query)) {
+            if (count($tax_query) > 1) {
+                $tax_query['relation'] = 'AND';
+            }
+
+            $args['tax_query'] = $tax_query;
         }
 
         return $args;

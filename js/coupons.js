@@ -123,8 +123,6 @@
   }
 
   function syncCheckoutState(payload = null) {
-    updateTotals(payload);
-
     if ($('form[name="checkout"]').length) {
       $('body').trigger('update_checkout');
     }
@@ -133,6 +131,7 @@
       return window.refreshReviewSummary();
     }
 
+    updateTotals(payload);
     return null;
   }
 
