@@ -13,8 +13,8 @@ function bsc_newsletter_subscribe() {
         wp_send_json_error(['message' => 'Por favor ingresa un correo electronico valido.']);
     }
 
-    if ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'newsletter', 1, MINUTE_IN_SECONDS ) ) {
-        wp_send_json_error(['message' => 'Por favor espera un momento antes de intentar de nuevo.']);
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'newsletter', 1, MINUTE_IN_SECONDS );
     }
 
     $subscribers = get_option('bsc_newsletter_subscribers', []);

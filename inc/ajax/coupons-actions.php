@@ -8,6 +8,9 @@ add_action( 'wp_ajax_nopriv_apply_coupon', 'bsc_apply_coupon' );
 
 function bsc_apply_coupon() {
     check_ajax_referer( 'bsc_ajax_action', 'nonce' );
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'coupon_apply', 20, MINUTE_IN_SECONDS );
+    }
 
     if ( ! WC()->cart ) {
         wp_send_json_error(
@@ -105,6 +108,9 @@ add_action( 'wp_ajax_nopriv_remove_coupon', 'bsc_remove_coupon' );
 
 function bsc_remove_coupon() {
     check_ajax_referer( 'bsc_ajax_action', 'nonce' );
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'coupon_remove', 30, MINUTE_IN_SECONDS );
+    }
 
     if ( ! isset( $_POST['coupon_code'] ) ) {
         wp_send_json_error(
@@ -148,6 +154,9 @@ add_action( 'wp_ajax_nopriv_get_applied_coupons', 'bsc_get_applied_coupons' );
 
 function bsc_get_applied_coupons() {
     check_ajax_referer( 'bsc_ajax_action', 'nonce' );
+    if ( function_exists( 'bsc_rate_limit' ) ) {
+        bsc_rate_limit( 'coupon_list', 60, MINUTE_IN_SECONDS );
+    }
 
     if ( ! WC()->cart ) {
         wp_send_json_error(

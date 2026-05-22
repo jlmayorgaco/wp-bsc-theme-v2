@@ -1,0 +1,37 @@
+.bsc-admin-creators__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-creators__filters {
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-creators__filters label {
+  font-weight: 600;
+}
+
+.bsc-admin-creators__table {
+  margin-top: 8px;
+}
+
+.bsc-admin-creators__link-empty {
+  color: #646970;
+}
+
+.bsc-admin-creators__status-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-creators__status-form select {
+  max-width: 130px;
+}

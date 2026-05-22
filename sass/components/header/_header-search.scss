@@ -8,8 +8,14 @@ $menu-title-font: 'Helvetica', sans-serif;
   cursor: pointer;
 }
 
-.search-result-item:hover {
+.search-result-item:hover,
+.search-result-item.is-active {
   background-color: #f4f4f4;
+}
+
+.search-result-item.is-active {
+  outline: 2px solid #333;
+  outline-offset: -2px;
 }
 
 .search-result-image {
@@ -125,6 +131,7 @@ $menu-title-font: 'Helvetica', sans-serif;
   cursor: pointer;
 }
 
-.bsc-mobile-search-panel .search-results li:hover {
+.bsc-mobile-search-panel .search-results li:hover,
+.bsc-mobile-search-panel .search-results li.is-active {
   background: #f7f7f7;
 }

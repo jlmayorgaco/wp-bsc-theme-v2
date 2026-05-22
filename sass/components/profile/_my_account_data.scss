@@ -44,13 +44,16 @@
 
   input,
   select {
+    box-sizing: border-box;
     width: 100%;
+    min-height: 42px;
     padding: 0.5rem 0.75rem;
     border: 1px dashed #333;
     border-radius: 8px;
     background-color: #fff;
     color: #333;
     font-size: 1rem;
+    line-height: 1.25;
     letter-spacing: 1px;
   }
 
@@ -61,7 +64,10 @@
   }
 
   input[type='date'] {
+    min-height: 42px;
     font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .bsc__account-form & select {

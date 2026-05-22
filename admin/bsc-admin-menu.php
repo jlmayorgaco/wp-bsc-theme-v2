@@ -156,7 +156,17 @@ function bsc_add_admin_menu(): void {
         );
     }
 
-    // 9. Emails â€” admin only
+    // 9. Bubble Creators â€” admin / shop manager
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Bubble Creators', 'bsc-2-0' ),
+        __( 'Creators', 'bsc-2-0' ),
+        'manage_woocommerce',
+        'bsc-creators',
+        'bsc_render_creators_page'
+    );
+
+    // 10. Emails â€” admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Emails BSC', 'bsc-2-0' ),
@@ -166,7 +176,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_followup_emails_page'
     );
 
-    // 10. Control de Acceso â€” role Ã— page matrix
+    // 11. Control de Acceso â€” role Ã— page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -176,7 +186,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 11. ConfiguraciÃ³n â€” admin only (always last)
+    // 12. ConfiguraciÃ³n â€” admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Configuración BSC', 'bsc-2-0' ),
@@ -253,6 +263,7 @@ require_once get_template_directory() . '/admin/bsc-showroom-page.php';
 require_once get_template_directory() . '/admin/bsc-products-page.php';      // BSC-062
 require_once get_template_directory() . '/admin/bsc-product-edit-page.php';  // BSC-065
 require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // BSC-066
+require_once get_template_directory() . '/admin/bsc-creators-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
@@ -261,6 +272,19 @@ require_once get_template_directory() . '/admin/bsc-access-page.php';        // 
 function bsc_render_dashboard(): void {
     if ( ! bsc_current_user_has_bsc_page_access( 'bsc-dashboard' ) ) {
         wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
+    }
+
+    if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bsc_dashboard_action'] ) ) {
+        if ( ! isset( $_POST['bsc_dashboard_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_dashboard_nonce'] ) ), 'bsc_dashboard_action' ) ) {
+            wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
+        }
+
+        $dashboard_action = sanitize_key( wp_unslash( $_POST['bsc_dashboard_action'] ) );
+
+        if ( 'clear_cache' === $dashboard_action ) {
+            delete_transient( 'bsc_dashboard_kpis' );
+            add_settings_error( 'bsc_dashboard', 'cache_cleared', __( 'Cache del dashboard limpiada.', 'bsc-2-0' ), 'updated' );
+        }
     }
 
     // BSC-061: Full KPI dashboard with transient cache (30min)
@@ -332,15 +356,13 @@ function bsc_render_dashboard(): void {
     <div class="wrap bsc-admin-dashboard">
         <h1 class="bsc-admin-dashboard__title">
             BSC Dashboard
-            <a href="<?php echo esc_url(add_query_arg('bsc_clear_cache','dashboard')); ?>" class="page-title-action">↺ Actualizar</a>
+            <form method="post" class="bsc-admin-dashboard__refresh-form">
+                <?php wp_nonce_field( 'bsc_dashboard_action', 'bsc_dashboard_nonce' ); ?>
+                <input type="hidden" name="bsc_dashboard_action" value="clear_cache">
+                <button type="submit" class="page-title-action">Actualizar</button>
+            </form>
         </h1>
-        <?php
-        // Handle cache clear
-        if ( isset($_GET['bsc_clear_cache']) ) {
-            delete_transient('bsc_dashboard_kpis');
-            echo '<div class="notice notice-success is-dismissible"><p>Caché del dashboard limpiada.</p></div>';
-        }
-        ?>
+        <?php settings_errors( 'bsc_dashboard' ); ?>
 
         <!-- KPI Cards -->
         <div class="bsc-admin-dashboard__grid">
@@ -433,17 +455,17 @@ function bsc_render_settings_page(): void {
             wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
         }
 
-        update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', $_POST['bsc_whatsapp_number'] ?? '573156922859'));
-        update_option('bsc_contact_email',             sanitize_email($_POST['bsc_contact_email'] ?? ''));
-        update_option('bsc_creator_email',             sanitize_email($_POST['bsc_creator_email'] ?? ''));
-        update_option('bsc_free_shipping_threshold',   max(0, intval($_POST['bsc_free_shipping_threshold'] ?? 300000)));
-        update_option('bsc_bogota_shipping_price',     max(0, intval($_POST['bsc_bogota_shipping_price'] ?? 10000)));
-        update_option('bsc_other_shipping_price',      max(0, intval($_POST['bsc_other_shipping_price'] ?? 17000)));
-        update_option('bsc_bogota_shipping_label',     sanitize_text_field($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá'));
-        update_option('bsc_default_max_products_slider', max(1, intval($_POST['bsc_default_max_products_slider'] ?? 5)));
-        update_option('bsc_email_from_name',           sanitize_text_field($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care'));
-        update_option('bsc_email_from_address',        sanitize_email($_POST['bsc_email_from_address'] ?? ''));
-        update_option('bsc_low_stock_threshold',       max(0, intval($_POST['bsc_low_stock_threshold'] ?? 3)));
+        update_option('bsc_whatsapp_number',          preg_replace('/[^0-9]/', '', wp_unslash($_POST['bsc_whatsapp_number'] ?? '573156922859')));
+        update_option('bsc_contact_email',             sanitize_email(wp_unslash($_POST['bsc_contact_email'] ?? '')));
+        update_option('bsc_creator_email',             sanitize_email(wp_unslash($_POST['bsc_creator_email'] ?? '')));
+        update_option('bsc_free_shipping_threshold',   max(0, intval(wp_unslash($_POST['bsc_free_shipping_threshold'] ?? 300000))));
+        update_option('bsc_bogota_shipping_price',     max(0, intval(wp_unslash($_POST['bsc_bogota_shipping_price'] ?? 10000))));
+        update_option('bsc_other_shipping_price',      max(0, intval(wp_unslash($_POST['bsc_other_shipping_price'] ?? 17000))));
+        update_option('bsc_bogota_shipping_label',     sanitize_text_field(wp_unslash($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá')));
+        update_option('bsc_default_max_products_slider', max(1, intval(wp_unslash($_POST['bsc_default_max_products_slider'] ?? 5))));
+        update_option('bsc_email_from_name',           sanitize_text_field(wp_unslash($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care')));
+        update_option('bsc_email_from_address',        sanitize_email(wp_unslash($_POST['bsc_email_from_address'] ?? '')));
+        update_option('bsc_low_stock_threshold',       max(0, intval(wp_unslash($_POST['bsc_low_stock_threshold'] ?? 3))));
 
         echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
     }

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.innerWidth <= MOBILE_BREAKPOINT;
   }
 
-  async function runSearch(query, resultsList) {
+  async function runSearch(query, resultsList, signal) {
     if (searchCache[query]) {
       renderResults(searchCache[query], resultsList);
       return;
@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const res = await fetch(
-        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query) + '&nonce=' + encodeURIComponent(nonce)
+        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query) + '&nonce=' + encodeURIComponent(nonce),
+        { signal }
       );
 
       if (!res.ok) {
@@ -51,6 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderResults(data.data.products, resultsList);
     } catch (err) {
+      if (err.name === 'AbortError') {
+        return;
+      }
+
       setSingleResultMessage(resultsList, 'search-empty', 'Error al buscar. Intenta de nuevo.');
     }
   }
@@ -68,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
       li.classList.add('search-result-item');
       li.tabIndex = 0;
       li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
 
       const img = document.createElement('img');
       img.alt = product.name || '';
@@ -134,6 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!searchContainer || !searchInput || !resultsList) return null;
 
     let searchTimeout = null;
+    let activeIndex = -1;
+    let activeController = null;
+    const listId = resultsList.id || `bsc-search-results-${type}`;
+    resultsList.id = listId;
+    resultsList.setAttribute('role', 'listbox');
+    searchInput.setAttribute('role', 'combobox');
+    searchInput.setAttribute('aria-autocomplete', 'list');
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.setAttribute('aria-controls', listId);
 
     function isThisInstanceActive() {
       return type === 'mobile' ? isMobileView() : !isMobileView();
@@ -143,22 +158,57 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isThisInstanceActive()) return;
       searchContainer.classList.add('visible');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+      searchInput.setAttribute('aria-expanded', 'true');
       searchInput.focus();
     }
 
     function closeSearch() {
       searchContainer.classList.remove('visible');
       if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      searchInput.setAttribute('aria-expanded', 'false');
+      searchInput.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
     }
 
     function clearSearchResults() {
       resultsList.innerHTML = '';
+      searchInput.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
     }
 
     function resetSearch() {
       closeSearch();
       searchInput.value = '';
       clearSearchResults();
+    }
+
+    function getOptions() {
+      return Array.from(resultsList.querySelectorAll('[role="option"]:not([aria-disabled="true"])'));
+    }
+
+    function setActiveOption(index) {
+      const options = getOptions();
+
+      if (!options.length) {
+        activeIndex = -1;
+        searchInput.removeAttribute('aria-activedescendant');
+        return;
+      }
+
+      activeIndex = Math.max(0, Math.min(index, options.length - 1));
+
+      options.forEach((option, optionIndex) => {
+        const optionId = option.id || `${listId}-option-${optionIndex}`;
+        option.id = optionId;
+        const isActive = optionIndex === activeIndex;
+        option.classList.toggle('is-active', isActive);
+        option.setAttribute('aria-selected', isActive ? 'true' : 'false');
+
+        if (isActive) {
+          searchInput.setAttribute('aria-activedescendant', optionId);
+          option.scrollIntoView({ block: 'nearest' });
+        }
+      });
     }
 
     if (toggleBtn) {
@@ -201,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isThisInstanceActive()) return;
 
       clearTimeout(searchTimeout);
+      if (activeController) {
+        activeController.abort();
+      }
 
       const query = searchInput.value.trim();
       clearSearchResults();
@@ -208,8 +261,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (query.length < 2) return;
 
       searchTimeout = setTimeout(() => {
-        runSearch(query, resultsList);
+        activeController = new AbortController();
+        runSearch(query, resultsList, activeController.signal);
       }, 400);
+    });
+
+    searchInput.addEventListener('keydown', (event) => {
+      if (!isThisInstanceActive()) return;
+
+      const options = getOptions();
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveOption(activeIndex + 1);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveOption(activeIndex <= 0 ? options.length - 1 : activeIndex - 1);
+      } else if (event.key === 'Home' && options.length) {
+        event.preventDefault();
+        setActiveOption(0);
+      } else if (event.key === 'End' && options.length) {
+        event.preventDefault();
+        setActiveOption(options.length - 1);
+      } else if (event.key === 'Enter' && activeIndex >= 0 && options[activeIndex]) {
+        event.preventDefault();
+        options[activeIndex].click();
+      }
     });
 
     return {
@@ -282,6 +359,8 @@ function setSingleResultMessage(resultsList, className, message) {
   resultsList.innerHTML = '';
   const item = document.createElement('li');
   item.className = className;
+  item.setAttribute('role', 'option');
+  item.setAttribute('aria-disabled', 'true');
   item.textContent = message;
   resultsList.appendChild(item);
 }

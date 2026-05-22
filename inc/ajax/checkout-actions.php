@@ -7,11 +7,15 @@ add_action('wp_ajax_nopriv_bsc_reload_city_fields', 'bsc_reload_city_fields');
 
 function bsc_reload_city_fields() {
   check_ajax_referer('bsc_ajax_action', 'nonce');
+  if ( function_exists( 'bsc_rate_limit' ) ) {
+    bsc_rate_limit( 'checkout_city_reload', 45, MINUTE_IN_SECONDS );
+  }
 
   $checkout = WC()->checkout();
   $fields = $checkout->get_checkout_fields();
-  $state = sanitize_text_field($_POST['billing_state'] ?? '');
-  $country = sanitize_text_field($_POST['billing_country'] ?? 'CO') ?: 'CO';
+  $state = isset($_POST['billing_state']) ? sanitize_text_field(wp_unslash($_POST['billing_state'])) : '';
+  $country = isset($_POST['billing_country']) ? sanitize_text_field(wp_unslash($_POST['billing_country'])) : 'CO';
+  $country = $country ?: 'CO';
 
   // The Colombia city plugin reads these through WC_Checkout::get_value().
   $_POST['billing_country'] = $country;

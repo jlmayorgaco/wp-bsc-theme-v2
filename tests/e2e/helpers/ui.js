@@ -28,6 +28,14 @@ async function waitForImages(page) {
     const images = Array.from(document.images || []);
     await Promise.all(
       images.map((img) => {
+        const rect = img.getBoundingClientRect();
+        const isNearViewport =
+          rect.bottom >= -300 && rect.top <= window.innerHeight + 300;
+
+        if (img.loading === 'lazy' && !isNearViewport) {
+          return Promise.resolve();
+        }
+
         if (img.complete) {
           return Promise.resolve();
         }

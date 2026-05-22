@@ -36,7 +36,8 @@ function bsc_enqueue_coupons_admin_assets(): void {
 // â”€â”€ Handle create / delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 add_action( 'admin_init', 'bsc_coupons_handle_actions' );
 function bsc_coupons_handle_actions(): void {
-    if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'bsc-coupons' ) return;
+    $page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+    if ( 'bsc-coupons' !== $page ) return;
     if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! bsc_current_user_has_bsc_page_access( 'bsc-coupons' ) ) return;
 
     // Create coupon
@@ -46,17 +47,31 @@ function bsc_coupons_handle_actions(): void {
         }
 
         $code          = sanitize_text_field( strtolower( wp_unslash( $_POST['coupon_code'] ?? '' ) ) );
-        $discount_type = sanitize_text_field( $_POST['discount_type'] ?? 'percent' );
-        $amount        = (float) ( $_POST['coupon_amount'] ?? 0 );
-        $expiry        = sanitize_text_field( $_POST['expiry_date'] ?? '' );
-        $description   = sanitize_textarea_field( $_POST['coupon_description'] ?? '' );
-        $usage_limit   = absint( $_POST['usage_limit'] ?? 0 );
-        $min_amount    = (float) ( $_POST['minimum_amount'] ?? 0 );
+        $discount_type = sanitize_text_field( wp_unslash( $_POST['discount_type'] ?? 'percent' ) );
+        $amount        = (float) wp_unslash( $_POST['coupon_amount'] ?? 0 );
+        $expiry        = sanitize_text_field( wp_unslash( $_POST['expiry_date'] ?? '' ) );
+        $description   = sanitize_textarea_field( wp_unslash( $_POST['coupon_description'] ?? '' ) );
+        $usage_limit   = absint( wp_unslash( $_POST['usage_limit'] ?? 0 ) );
+        $min_amount    = (float) wp_unslash( $_POST['minimum_amount'] ?? 0 );
+        $allowed_types = [ 'percent', 'fixed_cart', 'fixed_product' ];
+        $discount_type = in_array( $discount_type, $allowed_types, true ) ? $discount_type : 'percent';
+        $amount        = max( 0, $amount );
+        $min_amount    = max( 0, $min_amount );
+
+        if ( 'percent' === $discount_type && $amount > 100 ) {
+            wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-coupons', 'bsc_notice' => 'invalid_percent' ], admin_url( 'admin.php' ) ) );
+            exit;
+        }
+
+        if ( $expiry && false === strtotime( $expiry ) ) {
+            wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-coupons', 'bsc_notice' => 'invalid_expiry' ], admin_url( 'admin.php' ) ) );
+            exit;
+        }
 
         if ( $code ) {
             $coupon = new WC_Coupon();
             $coupon->set_code( $code );
-            $coupon->set_discount_type( in_array( $discount_type, [ 'percent', 'fixed_cart', 'fixed_product' ], true ) ? $discount_type : 'percent' );
+            $coupon->set_discount_type( $discount_type );
             $coupon->set_amount( $amount );
             $coupon->set_description( $description );
             if ( $expiry ) $coupon->set_date_expires( strtotime( $expiry ) );
@@ -70,9 +85,9 @@ function bsc_coupons_handle_actions(): void {
     }
 
     // Delete coupon
-    if ( isset( $_GET['bsc_delete_coupon'], $_GET['bsc_delete_nonce'] ) ) {
-        $coupon_id = absint( $_GET['bsc_delete_coupon'] );
-        if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['bsc_delete_nonce'] ) ), 'bsc_delete_coupon_' . $coupon_id ) && 'shop_coupon' === get_post_type( $coupon_id ) ) {
+    if ( isset( $_POST['bsc_delete_coupon'], $_POST['bsc_delete_nonce'] ) ) {
+        $coupon_id = absint( wp_unslash( $_POST['bsc_delete_coupon'] ) );
+        if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_delete_nonce'] ) ), 'bsc_delete_coupon_' . $coupon_id ) && 'shop_coupon' === get_post_type( $coupon_id ) ) {
             wp_delete_post( $coupon_id, true );
         }
         wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-coupons', 'bsc_notice' => 'deleted' ], admin_url( 'admin.php' ) ) );
@@ -101,8 +116,17 @@ function bsc_render_coupons_page(): void {
 
         <?php $bsc_notice = isset( $_GET['bsc_notice'] ) ? sanitize_key( wp_unslash( $_GET['bsc_notice'] ) ) : ''; ?>
         <?php if ( $bsc_notice ) : ?>
-        <div class="notice notice-success is-dismissible"><p>
-            <?php echo esc_html( $bsc_notice === 'created' ? 'Cupón creado correctamente.' : 'Cupón eliminado.' ); ?>
+        <?php
+            $notice_messages = [
+                'created'         => [ 'success', 'Cupón creado correctamente.' ],
+                'deleted'         => [ 'success', 'Cupón eliminado.' ],
+                'invalid_percent' => [ 'error', 'El porcentaje no puede ser mayor a 100%.' ],
+                'invalid_expiry'  => [ 'error', 'La fecha de expiración no es válida.' ],
+            ];
+            $notice_config = $notice_messages[ $bsc_notice ] ?? [ 'success', 'Acción completada.' ];
+        ?>
+        <div class="notice notice-<?php echo esc_attr( $notice_config[0] ); ?> is-dismissible"><p>
+            <?php echo esc_html( $notice_config[1] ); ?>
         </p></div>
         <?php endif; ?>
 
@@ -193,11 +217,6 @@ function bsc_render_coupons_page(): void {
                 $expiry = $coupon->get_date_expires() ? $coupon->get_date_expires()->date('d/m/Y') : '—';
                 $limit  = $coupon->get_usage_limit() ?: '∞';
                 $edit_url   = get_edit_post_link( get_the_ID() );
-                $delete_url = add_query_arg([
-                    'page'             => 'bsc-coupons',
-                    'bsc_delete_coupon'=> get_the_ID(),
-                    'bsc_delete_nonce' => wp_create_nonce( 'bsc_delete_coupon_' . get_the_ID() ),
-                ], admin_url( 'admin.php' ));
                 $is_expired = $coupon->get_date_expires() && $coupon->get_date_expires()->getTimestamp() < time();
             ?>
             <tr class="<?php echo $is_expired ? 'bsc-admin-coupons__expired' : ''; ?>">
@@ -215,8 +234,12 @@ function bsc_render_coupons_page(): void {
                 <td><?php echo esc_html( $coupon->get_usage_count() ); ?></td>
                 <td>
                     <a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small" target="_blank">Editar</a>
-                    <a href="<?php echo esc_url( $delete_url ); ?>" class="button button-small bsc-admin-coupons__delete"
-                       data-bsc-confirm="¿Eliminar este cupón?">Eliminar</a>
+                    <form method="post" class="bsc-admin-coupons__delete-form">
+                        <?php wp_nonce_field( 'bsc_delete_coupon_' . get_the_ID(), 'bsc_delete_nonce' ); ?>
+                        <input type="hidden" name="bsc_delete_coupon" value="<?php echo esc_attr( get_the_ID() ); ?>">
+                        <button type="submit" class="button button-small bsc-admin-coupons__delete"
+                                data-bsc-confirm="¿Eliminar este cupón?">Eliminar</button>
+                    </form>
                 </td>
             </tr>
             <?php endwhile; wp_reset_postdata(); ?>

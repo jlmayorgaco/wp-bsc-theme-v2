@@ -12943,8 +12943,14 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
-.search-result-item:hover {
+.search-result-item:hover,
+.search-result-item.is-active {
   background-color: #f4f4f4;
+}
+
+.search-result-item.is-active {
+  outline: 2px solid #333;
+  outline-offset: -2px;
 }
 
 .search-result-image {
@@ -13054,7 +13060,8 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
-.bsc-mobile-search-panel .search-results li:hover {
+.bsc-mobile-search-panel .search-results li:hover,
+.bsc-mobile-search-panel .search-results li.is-active {
   background: #f7f7f7;
 }
 
@@ -15869,13 +15876,16 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__field input,
 .bsc__field select {
+  box-sizing: border-box;
   width: 100%;
+  min-height: 42px;
   padding: 0.5rem 0.75rem;
   border: 1px dashed #333;
   border-radius: 8px;
   background-color: #fff;
   color: #333;
   font-size: 1rem;
+  line-height: 1.25;
   letter-spacing: 1px;
 }
 .bsc__field input[disabled] {
@@ -15884,7 +15894,10 @@ body.admin-bar .bsc__header--desktop {
   color: #999;
 }
 .bsc__field input[type=date] {
+  min-height: 42px;
   font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .bsc__account-form .bsc__field select {
   box-sizing: border-box;
