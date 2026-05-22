@@ -45,6 +45,8 @@ add_action( 'admin_enqueue_scripts', function ( string $hook ) {
             'trackingError'   => 'Error al guardar tracking',
             'connectionError' => 'Error de conexion. Intenta de nuevo.',
             'selectFirst'     => 'Selecciona al menos un pedido primero.',
+            'selectStatus'    => 'Selecciona el estado que quieres aplicar.',
+            'bulkStatusConfirm' => 'Vas a cambiar el estado de los pedidos seleccionados. ¿Continuar?',
         ],
     ] );
 } );
@@ -56,7 +58,8 @@ add_action( 'admin_init', 'bsc_handle_bulk_export' );
 function bsc_handle_bulk_export(): void {
     // Only act on our form POST
     if ( ! isset( $_POST['bsc_bulk_action'], $_POST['bsc_export_nonce'] ) ) return;
-    if ( ( sanitize_text_field( $_GET['page'] ?? '' ) ) !== 'bsc-orders' ) return;
+    $current_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+    if ( 'bsc-orders' !== $current_page ) return;
 
     if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_export_nonce'] ) ), 'bsc_bulk_export' ) ) {
         wp_die( esc_html__( 'Nonce inválido.', 'bsc-2-0' ) );
@@ -65,10 +68,14 @@ function bsc_handle_bulk_export(): void {
         wp_die( esc_html__( 'Sin permisos.', 'bsc-2-0' ) );
     }
 
-    $action    = sanitize_text_field( $_POST['bsc_bulk_action'] );
-    $order_ids = array_map( 'absint', (array) ( $_POST['order_ids'] ?? [] ) );
+    $action    = sanitize_text_field( wp_unslash( $_POST['bsc_bulk_action'] ) );
+    $order_ids = isset( $_POST['order_ids'] )
+        ? array_map( 'absint', (array) wp_unslash( $_POST['order_ids'] ) )
+        : array();
 
-    if ( empty( $order_ids ) ) return; // JS already prevents this, but safety guard
+    if ( empty( $order_ids ) ) {
+        return; // JS already prevents this, but safety guard
+    }
 
     if ( $action === 'export_csv' ) {
         bsc_export_orders_csv( $order_ids );
@@ -76,6 +83,44 @@ function bsc_handle_bulk_export(): void {
         bsc_render_packing_view( $order_ids );
     } elseif ( $action === 'print_order_labels' ) {
         bsc_render_order_labels( $order_ids );
+    } elseif ( $action === 'bulk_update_status' ) {
+        $status_key = isset( $_POST['bsc_bulk_status'] )
+            ? sanitize_text_field( wp_unslash( $_POST['bsc_bulk_status'] ) )
+            : '';
+
+        if ( ! isset( BSC_Admin_Orders_Table::STATUS_OPTIONS[ $status_key ] ) ) {
+            wp_die( esc_html__( 'Estado inválido.', 'bsc-2-0' ) );
+        }
+
+        $status_slug = bsc_normalize_order_status_slug( $status_key );
+        $updated     = 0;
+
+        foreach ( $order_ids as $order_id ) {
+            $order = wc_get_order( $order_id );
+
+            if ( ! $order ) {
+                continue;
+            }
+
+            $order->update_status( $status_slug, 'Estado actualizado en lote desde BSC Admin.' );
+
+            if ( 'shipped' === $status_slug ) {
+                $email_error = bsc_maybe_send_shipping_email_for_order( $order );
+
+                if ( $email_error ) {
+                    error_log( 'BSC: error al enviar email de envío — ' . $email_error );
+                }
+            }
+
+            $updated++;
+        }
+
+        $redirect_url = wp_get_referer() ?: admin_url( 'admin.php?page=bsc-orders' );
+        $redirect_url = remove_query_arg( array( 'bsc_bulk_updated' ), $redirect_url );
+        $redirect_url = add_query_arg( 'bsc_bulk_updated', $updated, $redirect_url );
+
+        wp_safe_redirect( $redirect_url );
+        exit;
     }
 }
 
@@ -180,6 +225,14 @@ function bsc_render_orders_page(): void {
         <h1 class="wp-heading-inline">Pedidos BSC</h1>
         <hr class="wp-header-end">
 
+        <?php if ( isset( $_GET['bsc_bulk_updated'] ) ) :
+            $updated_count = absint( $_GET['bsc_bulk_updated'] );
+        ?>
+            <div class="notice notice-success is-dismissible bsc-orders-notice">
+                <p><?php echo esc_html( sprintf( '%d pedidos actualizados.', $updated_count ) ); ?></p>
+            </div>
+        <?php endif; ?>
+
         <!-- â”€â”€ Status tabs â”€â”€ -->
         <nav class="bsc-orders-tabs">
             <?php foreach ( $status_tabs as $slug => $config ) :
@@ -237,6 +290,18 @@ function bsc_render_orders_page(): void {
                 <button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
                     Imprimir con datos (PDF)
                 </button>
+                <div class="bsc-orders-bulk-status">
+                    <label for="bsc-bulk-status">Cambiar estado</label>
+                    <select name="bsc_bulk_status" id="bsc-bulk-status">
+                        <option value="">Seleccionar estado</option>
+                        <?php foreach ( BSC_Admin_Orders_Table::STATUS_OPTIONS as $status_key => $status_label ) : ?>
+                            <option value="<?php echo esc_attr( $status_key ); ?>"><?php echo esc_html( $status_label ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" name="bsc_bulk_action" value="bulk_update_status" class="button" id="bsc-bulk-status-btn">
+                        Aplicar
+                    </button>
+                </div>
                 <span id="bsc-bulk-msg" class="bsc-orders-bulk-message">
                     Selecciona al menos un pedido primero.
                 </span>
@@ -263,6 +328,15 @@ function bsc_ajax_update_order_status(): void {
     if ( ! in_array( $status, $allowed_statuses, true ) ) wp_send_json_error( ['message' => 'Estado inválido'] );
 
     $order->update_status( $status, 'Estado actualizado desde BSC Admin.' );
+
+    if ( 'shipped' === $status ) {
+        $email_error = bsc_maybe_send_shipping_email_for_order( $order );
+
+        if ( $email_error ) {
+            error_log( 'BSC: error al enviar email de envío — ' . $email_error );
+        }
+    }
+
     wp_send_json_success( ['message' => 'Estado actualizado', 'status' => $status] );
 }
 
@@ -283,10 +357,12 @@ function bsc_ajax_save_tracking(): void {
     update_post_meta( $order_id, '_bsc_tracking_link', $tracking_link );
 
     // BSC-033: auto-change status to "shipped" and send email
-    if ( $tracking_code && $order->get_status() !== 'shipped' ) {
-        $order->update_status( 'shipped', 'Guía ingresada desde BSC Admin.' );
+    if ( $tracking_code ) {
+        if ( $order->get_status() !== 'shipped' ) {
+            $order->update_status( 'shipped', 'Guía ingresada desde BSC Admin.' );
+        }
 
-        $email_error = bsc_send_shipping_email( $order_id );
+        $email_error = bsc_maybe_send_shipping_email_for_order( $order );
         if ( $email_error ) {
             error_log( 'BSC: error al enviar email de envío — ' . $email_error );
         }
@@ -368,6 +444,26 @@ function bsc_send_shipping_email( int $order_id ): string {
     $sent = wp_mail( $to, $subject, $message, $headers );
 
     return $sent ? '' : 'wp_mail() devolvió false';
+}
+
+function bsc_maybe_send_shipping_email_for_order( WC_Order $order ): string {
+    $order_id = $order->get_id();
+
+    if ( ! get_post_meta( $order_id, '_bsc_tracking_code', true ) ) {
+        return '';
+    }
+
+    if ( get_post_meta( $order_id, '_bsc_shipping_email_sent_at', true ) ) {
+        return '';
+    }
+
+    $email_error = bsc_send_shipping_email( $order_id );
+
+    if ( ! $email_error ) {
+        update_post_meta( $order_id, '_bsc_shipping_email_sent_at', current_time( 'mysql' ) );
+    }
+
+    return $email_error;
 }
 
 // â”€â”€ BSC-034: CSV export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

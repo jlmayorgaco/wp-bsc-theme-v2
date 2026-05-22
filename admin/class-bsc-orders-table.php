@@ -16,8 +16,14 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
     private array $query_args;
 
     public const STATUS_OPTIONS = array(
+        'wc-pending'    => 'Pendiente',
+        'wc-on-hold'    => 'En espera',
         'wc-processing' => 'Recibido',
+        'wc-preparing'  => 'En preparación',
+        'wc-shipped'    => 'Enviado',
         'wc-completed'  => 'Terminado',
+        'wc-cancelled'  => 'Cancelado',
+        'wc-refunded'   => 'Reembolsado',
     );
 
     public function __construct( array $query_args = array() ) {
@@ -116,7 +122,14 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
         /** @var WC_Order $item */
         $date = $item->get_date_created();
 
-        return $date ? esc_html( $date->date_i18n( 'd M Y H:i' ) ) : '—';
+        if ( ! $date ) {
+            return '—';
+        }
+
+        $html = esc_html( $date->date_i18n( 'd M Y H:i' ) );
+        $html .= $this->order_age_badge( $item );
+
+        return $html;
     }
 
     public function column_city( $item ): string {
@@ -188,12 +201,47 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
     private function normalize_status_select_value( string $status ): string {
         $clean_status = preg_replace( '/^wc-/', '', $status );
+        $status_key   = 'wc-' . $clean_status;
 
-        if ( 'completed' === $clean_status ) {
-            return 'wc-completed';
+        if ( isset( self::STATUS_OPTIONS[ $status_key ] ) ) {
+            return $status_key;
         }
 
         return 'wc-processing';
+    }
+
+    private function order_age_badge( WC_Order $order ): string {
+        $open_statuses = array( 'pending', 'on-hold', 'processing', 'preparing' );
+
+        if ( ! in_array( $order->get_status(), $open_statuses, true ) ) {
+            return '';
+        }
+
+        $date = $order->get_date_created();
+
+        if ( ! $date ) {
+            return '';
+        }
+
+        $created_timestamp = (int) $date->getTimestamp();
+        $current_timestamp = time();
+        $age_days          = max( 0, (int) floor( ( $current_timestamp - $created_timestamp ) / DAY_IN_SECONDS ) );
+        $label             = 'Hoy';
+        $class             = 'fresh';
+
+        if ( 1 === $age_days ) {
+            $label = '1 día';
+            $class = 'warning';
+        } elseif ( $age_days >= 2 ) {
+            $label = sprintf( '%d días', $age_days );
+            $class = $age_days >= 3 ? 'critical' : 'warning';
+        }
+
+        return sprintf(
+            '<br><span class="bsc-order-age-badge bsc-order-age-badge--%s">%s</span>',
+            esc_attr( $class ),
+            esc_html( $label )
+        );
     }
 
     private function status_badge( string $status ): string {
