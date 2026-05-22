@@ -83,6 +83,25 @@
   flex-wrap: wrap;
 }
 
+.bsc-orders-bulk-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  padding-left: 10px;
+  border-left: 1px solid #dcdcde;
+}
+
+.bsc-orders-bulk-status label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #50575e;
+}
+
+.bsc-orders-bulk-status select {
+  min-width: 150px;
+}
+
 .bsc-orders-bulk-message {
   display: none;
   color: #c0392b;
@@ -247,4 +266,38 @@
 .bsc-order-badge--refunded {
   background: #e5e7eb;
   color: #374151;
+}
+
+.bsc-order-age-badge {
+  display: inline-flex;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bsc-order-age-badge--fresh {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.bsc-order-age-badge--warning {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.bsc-order-age-badge--critical {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@media (max-width: 782px) {
+  .bsc-orders-bulk-status {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
 }
