@@ -1,0 +1,32 @@
+* text=auto
+
+*.cjs text eol=lf
+*.css text eol=lf
+*.gitattributes text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.lock text eol=lf
+*.map text eol=lf
+*.md text eol=lf
+*.php text eol=lf
+*.scss text eol=lf
+*.txt text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+
+fonts/dlicon.json -text
+
+*.eot binary
+*.gif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.otf binary
+*.png binary
+*.svg text eol=lf
+*.ttf binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.zip binary

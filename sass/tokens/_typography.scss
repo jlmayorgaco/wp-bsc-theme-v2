@@ -13,8 +13,6 @@ $font-size__l: 28px;
 $font-size__lg: 32px;
 $font-size__xl: 40px; // Example value, adjust as needed
 
-@import url('https://fonts.cdnfonts.com/css/helvetica-neue-55');
-
 
 @mixin font-nav {
     font-family: 'Helvetica', sans-serif;
@@ -71,90 +69,4 @@ $font-size__xl: 40px; // Example value, adjust as needed
   font-size: 1.125rem;
   font-weight: 700;
   color: #e88b9c;
-}
-
-
-
-
-
-.bsc__title {
-
-  display: block;
-  width: fit-content;
-  margin: 0 auto;
-  font-family: "Helvetica", sans-serif;
-  font-size: 23px;
-  font-weight: 400;
-  letter-spacing: 2.5px;
-  color: var(--color--text);
-  text-align: center;
-
-  padding-bottom: 20px;
-  padding-top: 80px;
-
-  strong{
-    font-weight: 900;
-  }
-
-  &::after {
-      content: '';
-      display: block;
-      width: 120px;
-      height: 20px; 
-      margin: 30px auto 0;
-      background-image: url('/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png');
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: contain;
-    }
-}
-
-
-.bsc__description{
-    font-family: "Helvetica", sans-serif;
-    color: var(--color--text);
-    font-size: 18px;
-    letter-spacing: 2px;
-    line-height: 29.25px;
-    margin-bottom: 30px;
-    text-rendering: optimizeLegibility;
-    font-weight: 100;
-
-    width: calc(100vw - 2em);
-    max-width: 1000px;
-
-    text-align: center;
-    margin: 0 auto;
-}
-
-
-.bsc__price{
-  letter-spacing: 2px;
-  font-size: 25px;
-  font-weight: 900;
-}
-
-
-
-
-
-@media (max-width: 767px) {
-  .bsc__description {
-    font-family: "Helvetica", sans-serif;
-    color: var(--color--text);
-    font-size: 15px;
-    letter-spacing: 2px;
-    line-height: 29.25px;
-    margin-bottom: 30px;
-    text-rendering: optimizeLegibility;
-    font-weight: 100;
-
-    width: calc(100vw - 2em);
-    max-width: 1000px;
-
-    text-align: center;
-    margin: 0 auto;
-
-    margin-bottom: 30px;
-  }
 }

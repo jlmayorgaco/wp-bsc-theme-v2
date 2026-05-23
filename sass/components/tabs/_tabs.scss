@@ -1,3 +1,5 @@
+@use "../../tokens/public" as bsc;
+
 .bsc__tabs {
   margin-top: 2rem;
 
@@ -37,6 +39,51 @@
       display: flex;
       justify-content: center;
       align-items: center;
+
+      .cls-1,
+      .cls-2 {
+        stroke-width: 0;
+      }
+
+      .cls-2 {
+        fill: bsc.$text;
+      }
+
+      .cls-3 {
+        fill: none;
+        stroke: bsc.$text;
+        stroke-dasharray: 0 0 1 8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+    }
+
+    .tab__icon--skin-dry {
+      .cls-1,
+      .cls-2 {
+        fill: bsc.$text;
+      }
+    }
+
+    .tab__icon--skin-normal {
+      .cls-1 {
+        fill: bsc.$text;
+      }
+
+      .cls-2 {
+        fill: #000;
+      }
+
+      .cls-3 {
+        stroke: #000;
+      }
+    }
+
+    .tab__icon--accent {
+      .cls-1 {
+        fill: #fc0054;
+      }
     }
 
     .tab__title {
@@ -94,24 +141,24 @@
 .tab__header[data-tab-name="piel-grasa"] .cls-1,
 .tab__header[data-tab-name="hair-care"] .cls-1,
 .tab__header[data-tab-name="maquillaje"] .cls-1 {
-  fill: white;
+  fill: bsc.$surface;
 }
 
 .tab__header[data-tab-name="piel-seca"].active .cls-1,
 .tab__header[data-tab-name="piel-seca"]:hover .cls-1 {
-  fill: #BAE5F1;
+  fill: bsc.$brand-blue;
 }
 .tab__header[data-tab-name="piel-normal"].active .cls-1,
 .tab__header[data-tab-name="piel-normal"]:hover .cls-1 {
-  fill: #F7C0CD;
+  fill: bsc.$brand;
 }
 .tab__header[data-tab-name="piel-mixta"].active .cls-1,
 .tab__header[data-tab-name="piel-mixta"]:hover .cls-1 {
-  fill: #FFF3C2;
+  fill: bsc.$brand-yellow;
 }
 .tab__header[data-tab-name="piel-grasa"].active .cls-1,
 .tab__header[data-tab-name="piel-grasa"]:hover .cls-1 {
-  fill: #BAE5F1;
+  fill: bsc.$brand-blue;
 }
 .tab__header[data-tab-name="hair-care"].active .cls-1,
 .tab__header[data-tab-name="hair-care"]:hover .cls-1 {
@@ -119,13 +166,13 @@
 }
 .tab__header[data-tab-name="maquillaje"].active .cls-1,
 .tab__header[data-tab-name="maquillaje"]:hover .cls-1 {
-  fill: #F7C0CD;
+  fill: bsc.$brand;
 }
 
 // Optional override (redundant but kept in case of specificity issues)
 .bsc__tab [data-tab-name="piel-normal"].tab__header:hover .tab__icon .cls-1,
 .bsc__tab [data-tab-name="piel-normal"].tab__header.active .tab__icon .cls-1 {
-  fill: #BAE5F1;
+  fill: bsc.$brand-blue;
 }
 
 

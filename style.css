@@ -23,6 +23,89 @@ Normalizing styles have been helped along thanks to the fine work of
 Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 */
 @import url("https://fonts.cdnfonts.com/css/helvetica-neue-55");
+.bsc {
+  --color--main: #F7C0CD;
+  --color--text: #333333;
+  --color--blue: #c7e7f1;
+  --color--surface: #ffffff;
+  --color--surface-soft: #fdf4f8;
+  --color--surface-muted: #f9f9f9;
+  --color--border: #d1d1d6;
+  --color--muted: #888888;
+  --color--accent-warning: #fdf4c6;
+  --color--accent-success: #48bb78;
+  --color--accent-danger: #fc8181;
+  --space--xs: 0.5rem;
+  --space--sm: 0.75rem;
+  --space--md: 1rem;
+  --space--lg: 1.5rem;
+  --space--xl: 2rem;
+  --space--2xl: 2.5rem;
+  --space--section-y: 5rem;
+  --radius--sm: 6px;
+  --radius--md: 8px;
+  --radius--lg: 16px;
+  --radius--pill: 30px;
+  --size--control-h: 45px;
+  --size--input-h: 42px;
+  --size--page-container-w: 1200px;
+  --size--header-logo-w: 150px;
+}
+
+.bsc__title {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  padding-top: 80px;
+  padding-bottom: 20px;
+  color: var(--color--text);
+  font-family: "Helvetica", sans-serif;
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  text-align: center;
+}
+.bsc__title strong {
+  font-weight: 900;
+}
+.bsc__title::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 20px;
+  margin: 30px auto 0;
+  background-image: url("/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.bsc__description {
+  width: calc(100vw - 2em);
+  max-width: 1000px;
+  margin: 0 auto;
+  color: var(--color--text);
+  font-family: "Helvetica", sans-serif;
+  font-size: 18px;
+  font-weight: 100;
+  letter-spacing: 2px;
+  line-height: 29.25px;
+  text-align: center;
+  text-rendering: optimizelegibility;
+}
+
+.bsc__price {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 767px) {
+  .bsc__description {
+    margin-bottom: 30px;
+    font-size: 15px;
+  }
+}
 /* Inherit box-sizing to more easily change it's value on a component level.
 @link http://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
 *,
@@ -8485,107 +8568,6 @@ textarea:focus-visible {
     margin-top: 0px;
   }
 }
-.bsc {
-  --color--main: #F7C0CD;
-  --color--text: #333333;
-  --color--blue: #c7e7f1;
-  --color--surface: #ffffff;
-  --color--surface-soft: #fdf4f8;
-  --color--surface-muted: #f9f9f9;
-  --color--border: #d1d1d6;
-  --color--muted: #888888;
-  --color--accent-warning: #fdf4c6;
-  --color--accent-success: #48bb78;
-  --color--accent-danger: #fc8181;
-  --size--header-logo-w: 150px;
-}
-
-.bsc {
-  --space--xs: 0.5rem;
-  --space--sm: 0.75rem;
-  --space--md: 1rem;
-  --space--lg: 1.5rem;
-  --space--xl: 2rem;
-  --space--2xl: 2.5rem;
-  --space--section-y: 5rem;
-  --radius--sm: 6px;
-  --radius--md: 8px;
-  --radius--lg: 16px;
-  --radius--pill: 30px;
-  --size--control-h: 45px;
-  --size--input-h: 42px;
-}
-
-.bsc__title {
-  display: block;
-  width: fit-content;
-  margin: 0 auto;
-  font-family: "Helvetica", sans-serif;
-  font-size: 23px;
-  font-weight: 400;
-  letter-spacing: 2.5px;
-  color: var(--color--text);
-  text-align: center;
-  padding-bottom: 20px;
-  padding-top: 80px;
-}
-.bsc__title strong {
-  font-weight: 900;
-}
-.bsc__title::after {
-  content: "";
-  display: block;
-  width: 120px;
-  height: 20px;
-  margin: 30px auto 0;
-  background-image: url("/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-.bsc__description {
-  font-family: "Helvetica", sans-serif;
-  color: var(--color--text);
-  font-size: 18px;
-  letter-spacing: 2px;
-  line-height: 29.25px;
-  margin-bottom: 30px;
-  text-rendering: optimizeLegibility;
-  font-weight: 100;
-  width: calc(100vw - 2em);
-  max-width: 1000px;
-  text-align: center;
-  margin: 0 auto;
-}
-
-.bsc__price {
-  letter-spacing: 2px;
-  font-size: 25px;
-  font-weight: 900;
-}
-
-@media (max-width: 767px) {
-  .bsc__description {
-    font-family: "Helvetica", sans-serif;
-    color: var(--color--text);
-    font-size: 15px;
-    letter-spacing: 2px;
-    line-height: 29.25px;
-    margin-bottom: 30px;
-    text-rendering: optimizeLegibility;
-    font-weight: 100;
-    width: calc(100vw - 2em);
-    max-width: 1000px;
-    text-align: center;
-    margin: 0 auto;
-    margin-bottom: 30px;
-  }
-}
-.bsc {
-  --size--page-container-w: 1200px;
-}
-
 .bsc__button {
   display: inline-block;
   font-family: "Helvetica", sans-serif;
@@ -9649,7 +9631,7 @@ textarea:focus-visible {
 }
 .bsc__shop .bsc__container {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1280px;
   margin: 0 auto;
   padding-inline: 1rem;
 }
@@ -9657,18 +9639,18 @@ textarea:focus-visible {
   padding-block: 1rem;
 }
 .bsc__shop .bsc__shop-nav a {
-  color: #333;
+  color: var(--color--text, #333333);
   text-decoration: none;
   letter-spacing: 2px;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 .bsc__shop .bsc__shop-nav a:hover {
-  color: var(--color--main);
+  color: var(--color--main, #F7C0CD);
 }
 .bsc__shop .bsc__shop-nav a.active {
   font-weight: bold;
-  border-bottom: 2px solid var(--color--main);
+  border-bottom: 2px solid var(--color--main, #F7C0CD);
 }
 .bsc__shop .shop__main {
   display: block;
@@ -9751,12 +9733,12 @@ textarea:focus-visible {
 }
 
 .bsc__category-card {
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
   overflow: hidden;
   text-align: center;
   transition: transform 0.2s ease;
-  background-color: #fff;
+  background-color: var(--color--surface, #ffffff);
 }
 .bsc__category-card:hover {
   transform: translateY(-3px);
@@ -9783,8 +9765,8 @@ textarea:focus-visible {
    K-Beauty Level 1 Landing Styles
    ========================================= */
 .bsc__shop {
-  background-color: #fff;
-  color: #1a1a1a;
+  background-color: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   font-family: "Poppins", "Noto Sans KR", sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
@@ -9802,7 +9784,7 @@ textarea:focus-visible {
 .bsc-hero {
   text-align: center;
   margin-bottom: 3rem;
-  color: #333;
+  color: var(--color--text, #333333);
 }
 
 .bsc-hero__icon img {
@@ -9839,7 +9821,7 @@ textarea:focus-visible {
   font-weight: 400;
   line-height: 1.27;
   letter-spacing: 1px;
-  color: #333;
+  color: var(--color--text, #333333);
   font-style: italic;
 }
 
@@ -9850,7 +9832,7 @@ textarea:focus-visible {
 
 .bsc-hero__author {
   font-weight: 600;
-  color: #333;
+  color: var(--color--text, #333333);
   font-size: 1.2rem;
   margin-bottom: 1rem;
   letter-spacing: 1px;
@@ -9860,15 +9842,15 @@ textarea:focus-visible {
   width: 80%;
   max-width: 800px;
   height: 1px;
-  background-color: white;
+  background-color: var(--color--surface, #ffffff);
   margin: 2rem auto;
-  border-bottom: 2px dashed #333;
+  border-bottom: 2px dashed var(--color--text, #333333);
 }
 
 .bsc-hero__subtitle {
   font-size: 1.3rem;
   font-weight: 500;
-  color: #333;
+  color: var(--color--text, #333333);
   text-align: center;
   margin-bottom: 3rem;
   padding-top: 1em;
@@ -9899,7 +9881,7 @@ textarea:focus-visible {
 .bsc-kb-card {
   position: relative;
   border-radius: 0;
-  border: 2px solid #333333;
+  border: 2px solid var(--color--text, #333333);
   background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
   min-height: 420px;
   height: 100%;
@@ -9989,12 +9971,12 @@ textarea:focus-visible {
   object-fit: contain;
 }
 .bsc-kb-card__front p {
-  color: white;
+  color: var(--color--surface, #ffffff);
   margin: 0;
 }
 .bsc-kb-card__front .bsc-kb-text {
   width: 88%;
-  color: white;
+  color: var(--color--surface, #ffffff);
   letter-spacing: 1px;
   text-align: center;
   font-size: 14px;
@@ -10016,14 +9998,14 @@ textarea:focus-visible {
   right: -2px;
   z-index: 3;
   background-color: #d8e4ea;
-  color: #333;
+  color: var(--color--text, #333333);
   font-family: "Poppins", sans-serif;
   font-size: 0.8rem;
   letter-spacing: 1px;
   font-weight: 600;
   padding: 6px 14px;
   border-radius: 0;
-  border: 2px solid #333333;
+  border: 2px solid var(--color--text, #333333);
   white-space: nowrap;
 }
 
@@ -10036,15 +10018,15 @@ textarea:focus-visible {
 }
 
 .bsc-kb-card:nth-child(1) .bsc-kb-card__label {
-  background-color: #F4C8CF;
+  background-color: var(--color--main, #F7C0CD);
 }
 
 .bsc-kb-card:nth-child(2) .bsc-kb-card__label {
-  background-color: #FFF3C2;
+  background-color: var(--color--accent-warning, #fdf4c6);
 }
 
 .bsc-kb-card:nth-child(3) .bsc-kb-card__label {
-  background-color: #BAE5F1;
+  background-color: var(--color--blue, #c7e7f1);
 }
 
 .bsc-kb-card:nth-child(4) .bsc-kb-card__label {
@@ -10206,7 +10188,7 @@ textarea:focus-visible {
 .bsc__title--subcategory {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #333;
+  color: var(--color--text, #333333);
   text-align: center;
   margin-bottom: 1rem;
   padding-top: 1em;
@@ -10240,15 +10222,15 @@ textarea:focus-visible {
   padding: 0.35rem 0.9rem;
   margin-left: 0;
   margin-right: 0;
-  border: 1px solid #333;
+  border: 1px solid var(--color--text, #333333);
   border-radius: 2px;
   font-size: 0.9rem;
   line-height: 1;
-  color: #333;
+  color: var(--color--text, #333333);
   text-decoration: none;
   font-weight: 400;
   letter-spacing: 1px;
-  background-color: #fff;
+  background-color: var(--color--surface, #ffffff);
   box-sizing: border-box;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -10301,11 +10283,11 @@ textarea:focus-visible {
 }
 
 .bsc-subcat-card {
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
   overflow: hidden;
   text-decoration: none;
-  background: #fff;
+  background: var(--color--surface, #ffffff);
   transition: box-shadow 0.3s ease;
 }
 
@@ -10323,11 +10305,11 @@ textarea:focus-visible {
 .bsc-subcat-card__title {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: var(--color--text, #333333);
 }
 
 .custom-shop-empty {
-  color: #999;
+  color: var(--color--muted, #888888);
 }
 
 [hidden].bsc__subsubcategory-modal {
@@ -10359,7 +10341,7 @@ textarea:focus-visible {
   .bsc__subsubcategory-chip {
     border: 1px solid #d7dde1;
     border-radius: 999px;
-    background: #fff;
+    background: var(--color--surface, #ffffff);
     color: #173642;
     min-height: 46px;
     box-shadow: 0 8px 22px rgba(23, 54, 66, 0.08);
@@ -10436,7 +10418,7 @@ textarea:focus-visible {
     right: 0;
     bottom: 0;
     padding: 1rem 1rem 1.5rem;
-    background: #fff;
+    background: var(--color--surface, #ffffff);
     border-radius: 24px 24px 0 0;
     box-shadow: 0 -12px 40px rgba(23, 54, 66, 0.18);
     max-height: 78vh;
@@ -10492,7 +10474,7 @@ textarea:focus-visible {
   .bsc__subsubcategory-modal-option {
     border: 1px solid #d7dde1;
     border-radius: 999px;
-    background: #fff;
+    background: var(--color--surface, #ffffff);
     color: #173642;
     padding: 0.75rem 1rem;
     line-height: 1.2;
@@ -10504,7 +10486,7 @@ textarea:focus-visible {
   .bsc__subsubcategory-modal-option--active {
     background: #173642;
     border-color: #173642;
-    color: #fff;
+    color: var(--color--surface, #ffffff);
   }
   .bsc__subsubcategory-modal.is-visible .bsc__subsubcategory-modal-option {
     animation: bscFilterOptionIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -11707,8 +11689,8 @@ textarea:focus-visible {
 .page-bubble-creators {
   width: 100%;
   overflow: hidden;
-  background: #ffffff;
-  color: #333333;
+  background: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 1.1px;
 }
@@ -11745,7 +11727,7 @@ textarea:focus-visible {
   fill: none;
 }
 .page-bubble-creators .bc__intro-logo-text text {
-  fill: #333333;
+  fill: var(--color--text, #333333);
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   font-size: 20px;
   font-weight: 700;
@@ -11799,36 +11781,36 @@ textarea:focus-visible {
   max-width: 100%;
   margin: 0 auto -16px;
   padding: 5px 14px 4px;
-  border: 1px solid #222222;
+  border: 1px solid var(--color--text, #333333);
   border-radius: 999px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 20px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 1.4px;
 }
 .page-bubble-creators .bc__benefit-card--yellow h2 {
-  background: #fff7bf;
+  background: var(--color--accent-warning, #fdf4c6);
 }
 .page-bubble-creators .bc__benefit-card--blue h2 {
-  background: #bfeaf3;
+  background: var(--color--blue, #c7e7f1);
 }
 .page-bubble-creators .bc__benefit-card--pink h2 {
-  background: #f7b8c9;
+  background: var(--color--main, #F7C0CD);
 }
 .page-bubble-creators .bc__benefit-box {
   height: 158px;
   padding: 34px 24px 23px;
-  border: 1px solid #222222;
+  border: 1px solid var(--color--text, #333333);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--color--surface, #ffffff);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 .page-bubble-creators .bc__benefit-box p {
   margin: 0;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 16px;
   line-height: 1.06;
   letter-spacing: 1px;
@@ -11849,7 +11831,7 @@ textarea:focus-visible {
 }
 .page-bubble-creators .bc__form-heading h2 {
   margin: 0;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 24px;
   font-weight: 400;
   line-height: 1.2;
@@ -11864,7 +11846,7 @@ textarea:focus-visible {
 .page-bubble-creators .bc__form-heading p {
   max-width: 908px;
   margin: 42px auto 46px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 18px;
   font-weight: 400;
   line-height: 1.32;
@@ -11894,7 +11876,7 @@ textarea:focus-visible {
   gap: 9px;
 }
 .page-bubble-creators .bc__form-field label {
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -11905,8 +11887,8 @@ textarea:focus-visible {
   width: 100%;
   border: 1px solid #d1d1d6;
   border-radius: 17px;
-  background: #ffffff;
-  color: #333333;
+  background: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   font-size: 17px;
   font-weight: 400;
@@ -11917,12 +11899,12 @@ textarea:focus-visible {
 }
 .page-bubble-creators .bc__form-field input::placeholder,
 .page-bubble-creators .bc__form-field textarea::placeholder {
-  color: #aaaaaa;
+  color: var(--color--muted, #888888);
   opacity: 1;
 }
 .page-bubble-creators .bc__form-field input:focus,
 .page-bubble-creators .bc__form-field textarea:focus {
-  border-color: #333333;
+  border-color: var(--color--text, #333333);
   box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.08);
 }
 .page-bubble-creators .bc__form-field input {
@@ -11952,7 +11934,7 @@ textarea:focus-visible {
   padding: 11px 28px 12px;
   border: 0;
   border-radius: 999px;
-  background: #333333;
+  background: var(--color--text, #333333);
   color: #ffffff;
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   font-size: 22px;
@@ -12097,8 +12079,8 @@ textarea:focus-visible {
 .page-contact-us {
   width: 100%;
   overflow: hidden;
-  background: #ffffff;
-  color: #333333;
+  background: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   letter-spacing: 1.1px;
 }
@@ -12115,7 +12097,7 @@ textarea:focus-visible {
 }
 .page-contact-us .bsc__contact-hero h1 {
   margin: 0;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 25px;
   font-weight: 400;
   line-height: 1.2;
@@ -12133,7 +12115,7 @@ textarea:focus-visible {
 .page-contact-us .bsc__contact-hero p {
   max-width: 710px;
   margin: 36px auto 0;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 18px;
   font-weight: 400;
   line-height: 1.32;
@@ -12150,10 +12132,10 @@ textarea:focus-visible {
   position: relative;
   min-height: 172px;
   padding: 31px 24px 25px;
-  border: 1px solid #222222;
+  border: 1px solid var(--color--text, #333333);
   border-radius: 10px;
-  background: #ffffff;
-  color: #333333;
+  background: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12163,7 +12145,7 @@ textarea:focus-visible {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .page-contact-us .bsc__contact-card:hover, .page-contact-us .bsc__contact-card:focus {
-  color: #333333;
+  color: var(--color--text, #333333);
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
@@ -12173,10 +12155,10 @@ textarea:focus-visible {
   left: 50%;
   width: 56px;
   height: 56px;
-  border: 2px solid #222222;
+  border: 2px solid var(--color--text, #333333);
   border-radius: 50%;
-  background: #ffffff;
-  color: #333333;
+  background: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12184,18 +12166,18 @@ textarea:focus-visible {
   transform: translateX(-50%);
 }
 .page-contact-us .bsc__contact-card--yellow .bsc__contact-card__icon {
-  background: #fff7bf;
+  background: var(--color--accent-warning, #fdf4c6);
 }
 .page-contact-us .bsc__contact-card--blue .bsc__contact-card__icon {
-  background: #bfeaf3;
+  background: var(--color--blue, #c7e7f1);
 }
 .page-contact-us .bsc__contact-card--pink .bsc__contact-card__icon {
-  background: #f7b8c9;
+  background: var(--color--main, #F7C0CD);
 }
 .page-contact-us .bsc__contact-card__label {
   display: block;
   margin-top: 4px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 20px;
   font-weight: 700;
   line-height: 1;
@@ -12204,7 +12186,7 @@ textarea:focus-visible {
 .page-contact-us .bsc__contact-card__value {
   display: block;
   margin-top: 13px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 16px;
   font-weight: 400;
   line-height: 1.2;
@@ -12215,7 +12197,7 @@ textarea:focus-visible {
   position: absolute;
   right: 16px;
   bottom: 12px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 20px;
   line-height: 1;
 }
@@ -12233,10 +12215,10 @@ textarea:focus-visible {
   display: inline-block;
   margin-bottom: 12px;
   padding: 5px 16px 4px;
-  border: 2px solid #222222;
+  border: 2px solid var(--color--text, #333333);
   border-radius: 999px;
-  background: #fff7bf;
-  color: #333333;
+  background: var(--color--accent-warning, #fdf4c6);
+  color: var(--color--text, #333333);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -12245,7 +12227,7 @@ textarea:focus-visible {
 .page-contact-us .bsc__contact-note p {
   max-width: 640px;
   margin: 0 auto 20px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 17px;
   line-height: 1.35;
 }
@@ -12256,8 +12238,8 @@ textarea:focus-visible {
   min-width: 200px;
   padding: 10px 22px;
   border-radius: 999px;
-  background: #333333;
-  color: #ffffff;
+  background: var(--color--text, #333333);
+  color: var(--color--surface, #ffffff);
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -12266,7 +12248,7 @@ textarea:focus-visible {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 .page-contact-us .bsc__contact-shop:hover, .page-contact-us .bsc__contact-shop:focus {
-  color: #ffffff;
+  color: var(--color--surface, #ffffff);
   opacity: 0.9;
   transform: translateY(-1px);
 }
@@ -12275,7 +12257,7 @@ textarea:focus-visible {
 }
 .page-contact-us .bsc__contact-form-heading h2 {
   margin: 0;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 24px;
   font-weight: 400;
   line-height: 1.2;
@@ -12287,7 +12269,7 @@ textarea:focus-visible {
 .page-contact-us .bsc__contact-form-heading p {
   max-width: 680px;
   margin: 32px auto 43px;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 18px;
   line-height: 1.32;
 }
@@ -12312,7 +12294,7 @@ textarea:focus-visible {
   gap: 9px;
 }
 .page-contact-us .bsc__contact-field label {
-  color: #333333;
+  color: var(--color--text, #333333);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -12324,7 +12306,7 @@ textarea:focus-visible {
   border: 1px solid #d1d1d6;
   border-radius: 17px;
   background: #ffffff;
-  color: #333333;
+  color: var(--color--text, #333333);
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   font-size: 17px;
   font-weight: 400;
@@ -12335,12 +12317,12 @@ textarea:focus-visible {
 }
 .page-contact-us .bsc__contact-field input::placeholder,
 .page-contact-us .bsc__contact-field textarea::placeholder {
-  color: #aaaaaa;
+  color: var(--color--muted, #888888);
   opacity: 1;
 }
 .page-contact-us .bsc__contact-field input:focus,
 .page-contact-us .bsc__contact-field textarea:focus {
-  border-color: #333333;
+  border-color: var(--color--text, #333333);
   box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.08);
 }
 .page-contact-us .bsc__contact-field input {
@@ -12381,7 +12363,7 @@ textarea:focus-visible {
   padding: 12px 28px;
   border: 0;
   border-radius: 999px;
-  background: #333333;
+  background: var(--color--text, #333333);
   color: #ffffff;
   font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
   font-size: 18px;
@@ -13337,7 +13319,7 @@ body.admin-bar .bsc__menu-nav--content {
   top: 0;
   z-index: 1200;
   background-color: var(--color--main);
-  color: #333;
+  color: var(--color--text, #333333);
 }
 .bsc__header--mobile a {
   color: inherit;
@@ -13350,7 +13332,7 @@ body.admin-bar .bsc__menu-nav--content {
   padding: 0;
   margin: 0;
   cursor: pointer;
-  color: #333;
+  color: var(--color--text, #333333);
   font-size: 25px;
   line-height: 1;
   -webkit-tap-highlight-color: transparent;
@@ -13388,30 +13370,30 @@ body.admin-bar .bsc__menu-nav--content {
   align-items: center;
   justify-content: center;
   position: relative;
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
   flex-shrink: 0;
 }
 .bsc__header--mobile .header-mobile__icon-btn:visited, .bsc__header--mobile .header-mobile__icon-btn:link {
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
 }
 .bsc__header--mobile .item--sidebar-btn,
 .bsc__header--mobile .header-mobile__menu-btn {
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
 }
 .bsc__header--mobile .item--sidebar-btn i,
 .bsc__header--mobile .header-mobile__menu-btn i {
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
   font-size: 25px;
   line-height: 1;
 }
 .bsc__header--mobile .item--sidebar-btn button,
 .bsc__header--mobile .header-mobile__menu-btn button {
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
 }
 .bsc__header--mobile .item--sidebar-btn button:visited, .bsc__header--mobile .item--sidebar-btn button:link,
 .bsc__header--mobile .header-mobile__menu-btn button:visited,
 .bsc__header--mobile .header-mobile__menu-btn button:link {
-  color: #333 !important;
+  color: var(--color--text, #333333) !important;
 }
 .bsc__header--mobile .mobile-toggle__icon {
   display: flex;
@@ -15852,14 +15834,14 @@ body.admin-bar .bsc__header--desktop {
 .bsc__account-grid {
   display: grid;
   grid-template-columns: 1fr 2px 1fr 2px 1fr;
-  gap: 20px;
+  gap: 1.5rem;
   align-items: flex-start;
 }
 
 .bsc__account-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
@@ -15870,7 +15852,7 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__field label {
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--color--text, #333333);
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -15880,18 +15862,18 @@ body.admin-bar .bsc__header--desktop {
   width: 100%;
   min-height: 42px;
   padding: 0.5rem 0.75rem;
-  border: 1px dashed #333;
+  border: 1px dashed var(--color--text, #333333);
   border-radius: 8px;
-  background-color: #fff;
-  color: #333;
+  background-color: var(--color--surface, #ffffff);
+  color: var(--color--text, #333333);
   font-size: 1rem;
   line-height: 1.25;
   letter-spacing: 1px;
 }
 .bsc__field input[disabled] {
   cursor: not-allowed;
-  background-color: #eee;
-  color: #999;
+  background-color: #e0e0e0;
+  color: var(--color--muted, #888888);
 }
 .bsc__field input[type=date] {
   min-height: 42px;
@@ -15908,7 +15890,7 @@ body.admin-bar .bsc__header--desktop {
   line-height: 1.25;
   -webkit-appearance: none;
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #333 50%), linear-gradient(135deg, #333 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--color--text, #333333) 50%), linear-gradient(135deg, var(--color--text, #333333) 50%, transparent 50%);
   background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
   background-repeat: no-repeat;
   background-size: 6px 6px;
@@ -15917,7 +15899,7 @@ body.admin-bar .bsc__header--desktop {
 .bsc__account-needs h3 {
   margin: 0 0 1rem;
   padding: 0;
-  color: #333;
+  color: var(--color--text, #333333);
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -15947,7 +15929,7 @@ body.admin-bar .bsc__header--desktop {
   width: 100%;
   padding: 0.5rem 0.75rem;
   padding-right: 2.5rem;
-  border: 1px dashed #333;
+  border: 1px dashed var(--color--text, #333333);
   font-size: 1rem;
 }
 .bsc__field--need .bsc__need-wrapper .bsc__check-icon {
@@ -15962,7 +15944,7 @@ body.admin-bar .bsc__header--desktop {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
 }
 .bsc__need .bsc__need-icon {
   width: 26px;
@@ -15973,14 +15955,14 @@ body.admin-bar .bsc__header--desktop {
   flex: 1;
   min-width: 0;
   padding: 0.5rem 0.75rem;
-  border: 1px dashed #333;
-  background-color: #fff;
+  border: 1px dashed var(--color--text, #333333);
+  background-color: var(--color--surface, #ffffff);
   font-family: inherit;
   font-size: 1rem;
 }
 
 .bsc__need-input::placeholder {
-  color: #888;
+  color: var(--color--muted, #888888);
   font-style: italic;
 }
 
@@ -15989,7 +15971,7 @@ body.admin-bar .bsc__header--desktop {
   width: 2px;
   height: 100%;
   margin: 0;
-  background-color: #999;
+  background-color: var(--color--muted, #888888);
   opacity: 0.5;
 }
 
@@ -16201,6 +16183,37 @@ details[open] .bsc__product-detail-category > summary::after {
   justify-content: center;
   align-items: center;
 }
+.bsc__tabs .tab__header .tab__icon .cls-1,
+.bsc__tabs .tab__header .tab__icon .cls-2 {
+  stroke-width: 0;
+}
+.bsc__tabs .tab__header .tab__icon .cls-2 {
+  fill: var(--color--text, #333333);
+}
+.bsc__tabs .tab__header .tab__icon .cls-3 {
+  fill: none;
+  stroke: var(--color--text, #333333);
+  stroke-dasharray: 0 0 1 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2px;
+}
+.bsc__tabs .tab__header .tab__icon--skin-dry .cls-1,
+.bsc__tabs .tab__header .tab__icon--skin-dry .cls-2 {
+  fill: var(--color--text, #333333);
+}
+.bsc__tabs .tab__header .tab__icon--skin-normal .cls-1 {
+  fill: var(--color--text, #333333);
+}
+.bsc__tabs .tab__header .tab__icon--skin-normal .cls-2 {
+  fill: #000;
+}
+.bsc__tabs .tab__header .tab__icon--skin-normal .cls-3 {
+  stroke: #000;
+}
+.bsc__tabs .tab__header .tab__icon--accent .cls-1 {
+  fill: #fc0054;
+}
 .bsc__tabs .tab__header .tab__title {
   font-size: 0.9rem;
   color: var(--color--text);
@@ -16246,27 +16259,27 @@ details[open] .bsc__product-detail-category > summary::after {
 .tab__header[data-tab-name=piel-grasa] .cls-1,
 .tab__header[data-tab-name=hair-care] .cls-1,
 .tab__header[data-tab-name=maquillaje] .cls-1 {
-  fill: white;
+  fill: var(--color--surface, #ffffff);
 }
 
 .tab__header[data-tab-name=piel-seca].active .cls-1,
 .tab__header[data-tab-name=piel-seca]:hover .cls-1 {
-  fill: #BAE5F1;
+  fill: var(--color--blue, #c7e7f1);
 }
 
 .tab__header[data-tab-name=piel-normal].active .cls-1,
 .tab__header[data-tab-name=piel-normal]:hover .cls-1 {
-  fill: #F7C0CD;
+  fill: var(--color--main, #F7C0CD);
 }
 
 .tab__header[data-tab-name=piel-mixta].active .cls-1,
 .tab__header[data-tab-name=piel-mixta]:hover .cls-1 {
-  fill: #FFF3C2;
+  fill: var(--color--accent-warning, #fdf4c6);
 }
 
 .tab__header[data-tab-name=piel-grasa].active .cls-1,
 .tab__header[data-tab-name=piel-grasa]:hover .cls-1 {
-  fill: #BAE5F1;
+  fill: var(--color--blue, #c7e7f1);
 }
 
 .tab__header[data-tab-name=hair-care].active .cls-1,
@@ -16276,12 +16289,12 @@ details[open] .bsc__product-detail-category > summary::after {
 
 .tab__header[data-tab-name=maquillaje].active .cls-1,
 .tab__header[data-tab-name=maquillaje]:hover .cls-1 {
-  fill: #F7C0CD;
+  fill: var(--color--main, #F7C0CD);
 }
 
 .bsc__tab [data-tab-name=piel-normal].tab__header:hover .tab__icon .cls-1,
 .bsc__tab [data-tab-name=piel-normal].tab__header.active .tab__icon .cls-1 {
-  fill: #BAE5F1;
+  fill: var(--color--blue, #c7e7f1);
 }
 
 /* iPad / tablet */
@@ -16608,7 +16621,7 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__checkout-cart .checkout-cart__item {
   display: flex;
-  gap: 20px;
+  gap: 1.5rem;
   width: min(100%, 450px);
   margin: 0 auto 2rem;
   padding: 1rem;
@@ -16627,8 +16640,8 @@ details[open] .bsc__product-detail-category > summary::after {
   width: 100%;
   height: 100px;
   object-fit: cover;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid #d1d1d6;
+  border-radius: 6px;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col1 .item__picture label {
   display: flex;
@@ -16639,14 +16652,14 @@ details[open] .bsc__product-detail-category > summary::after {
   right: -3px;
   width: 30px;
   height: 30px;
-  background: #fff;
-  border: 1px solid #333;
+  background: var(--color--surface, #ffffff);
+  border: 1px solid var(--color--text, #333333);
   border-radius: 50%;
   font-size: 14px;
   font-weight: bold;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col1 .item__picture label span {
-  color: #333;
+  color: var(--color--text, #333333);
   font-weight: 100;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 {
@@ -16654,7 +16667,7 @@ details[open] .bsc__product-detail-category > summary::after {
   min-width: 0;
   height: var(--checkout--review--img-h);
   position: relative;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--color--text, #333333);
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row {
   display: flex;
@@ -16676,12 +16689,12 @@ details[open] .bsc__product-detail-category > summary::after {
   letter-spacing: 1px;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__name a {
-  color: #333;
+  color: var(--color--text, #333333);
   font-weight: inherit;
   text-decoration: none;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__name a:visited {
-  color: #333;
+  color: var(--color--text, #333333);
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__brand {
   margin: 0;
@@ -16692,12 +16705,12 @@ details[open] .bsc__product-detail-category > summary::after {
   text-transform: uppercase;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__brand a {
-  color: #333;
+  color: var(--color--text, #333333);
   font-weight: 900;
   text-decoration: none;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__brand a:visited {
-  color: #333;
+  color: var(--color--text, #333333);
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_total {
   width: 4em;
@@ -16705,7 +16718,7 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_total .item__total {
   margin: 0;
-  color: #333;
+  color: var(--color--text, #333333);
   font-size: 15px;
   font-weight: bold;
   text-align: right;
@@ -16728,9 +16741,9 @@ details[open] .bsc__product-detail-category > summary::after {
   padding-top: 2px;
   padding-bottom: 2px;
   margin-right: 10px;
-  color: #333;
-  background: #fff;
-  border: 1px solid #fff;
+  color: var(--color--text, #333333);
+  background: var(--color--surface, #ffffff);
+  border: 1px solid var(--color--surface, #ffffff);
   border-radius: 30px;
   cursor: pointer;
   font-size: 16px;
@@ -16743,7 +16756,7 @@ details[open] .bsc__product-detail-category > summary::after {
   width: 12px;
   height: 12px;
   padding-left: 2px;
-  color: #333;
+  color: var(--color--text, #333333);
   font-size: 12px;
   text-align: center;
 }

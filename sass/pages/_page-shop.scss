@@ -1,25 +1,22 @@
+@use "../tokens/public" as bsc;
+
 // --------------------------------------------
 // Design Tokens
 // --------------------------------------------
-$color-text: #333;
-$color-primary: var(--color--main);
-$color-surface-subtle: #eef1f0;
+$color-text: bsc.$text;
+$color-primary: bsc.$brand;
+$color-surface-subtle: bsc.$surface-subtle;
 
-$spacing-sm: 0.5rem;
-$spacing-md: 1rem;
-$spacing-lg: 1.5rem;
-$spacing-xl: 2rem;
+$spacing-sm: bsc.$space-xs;
+$spacing-md: bsc.$space-md;
+$spacing-lg: bsc.$space-lg;
+$spacing-xl: bsc.$space-xl;
 
 $font-size-base: 14px;
 $font-size-sm: 12px;
 $font-size-lg: 18px;
 
-$container-width: 1240px;
-
-$breakpoint-sm: 576px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 992px;
-$breakpoint-xl: 1200px;
+$container-width: bsc.$container-wide;
 
 // --------------------------------------------
 // BSC Shop Layout
@@ -74,7 +71,7 @@ $breakpoint-xl: 1200px;
       width: 100%;
     }
 
-    @media (max-width: $breakpoint-md) {
+    @include bsc.media-max("tablet") {
       grid-template-columns: 1fr;
     }
   }
@@ -86,7 +83,7 @@ $breakpoint-xl: 1200px;
     width: 100%;
     align-items: start;
 
-    @media (max-width: $breakpoint-md) {
+    @include bsc.media-max("tablet") {
       grid-template-columns: 1fr;
     }
   }
@@ -98,7 +95,7 @@ $breakpoint-xl: 1200px;
   .shop__sidebar {
     display: block;
 
-    @media (max-width: $breakpoint-md) {
+    @include bsc.media-max("tablet") {
       order: 2;
     }
   }
@@ -108,7 +105,7 @@ $breakpoint-xl: 1200px;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: $spacing-lg;
 
-    @media (max-width: $breakpoint-sm) {
+    @media (max-width: 576px) {
       grid-template-columns: 1fr;
     }
 
@@ -133,22 +130,22 @@ $breakpoint-xl: 1200px;
   gap: 2rem;
   margin-top: 2rem;
 
-  @media (max-width: $breakpoint-lg) {
+  @include bsc.media-max("tablet-lg") {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: $breakpoint-sm) {
+  @media (max-width: 576px) {
     grid-template-columns: 1fr;
   }
 }
 
 .bsc__category-card {
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-lg;
   overflow: hidden;
   text-align: center;
   transition: transform 0.2s ease;
-  background-color: #fff;
+  background-color: bsc.$surface;
 
   &:hover {
     transform: translateY(-3px);
@@ -180,8 +177,8 @@ $breakpoint-xl: 1200px;
    ========================================= */
 
 .bsc__shop {
-  background-color: #fff;
-  color: #1a1a1a;
+  background-color: bsc.$surface;
+  color: bsc.$text;
   font-family: "Poppins", "Noto Sans KR", sans-serif;
   line-height: 1.5;
   overflow-x: hidden;
@@ -199,7 +196,7 @@ $breakpoint-xl: 1200px;
 .bsc-hero {
   text-align: center;
   margin-bottom: 3rem;
-  color: #333;
+  color: bsc.$text;
 }
 
 .bsc-hero__icon img {
@@ -236,7 +233,7 @@ $breakpoint-xl: 1200px;
   font-weight: 400;
   line-height: 1.27;
   letter-spacing: 1px;
-  color: #333;
+  color: bsc.$text;
   font-style: italic;
 }
 
@@ -247,7 +244,7 @@ $breakpoint-xl: 1200px;
 
 .bsc-hero__author {
   font-weight: 600;
-  color: #333;
+  color: bsc.$text;
   font-size: 1.2rem;
   margin-bottom: 1rem;
   letter-spacing: 1px;
@@ -257,15 +254,15 @@ $breakpoint-xl: 1200px;
   width: 80%;
   max-width: 800px;
   height: 1px;
-  background-color: white;
+  background-color: bsc.$surface;
   margin: 2rem auto;
-  border-bottom: 2px dashed #333;
+  border-bottom: 2px dashed bsc.$border;
 }
 
 .bsc-hero__subtitle {
   font-size: 1.3rem;
   font-weight: 500;
-  color: #333;
+  color: bsc.$text;
   text-align: center;
   margin-bottom: 3rem;
   padding-top: 1em;
@@ -296,7 +293,7 @@ $breakpoint-xl: 1200px;
 .bsc-kb-card {
   position: relative;
   border-radius: 0;
-  border: 2px solid #333333;
+  border: 2px solid bsc.$border;
   background: linear-gradient(135deg, #f4f4f4, #d9d9d9);
   min-height: 420px;
   height: 100%;
@@ -374,13 +371,13 @@ $breakpoint-xl: 1200px;
   }
 
   p {
-    color: white;
+    color: bsc.$surface;
     margin: 0;
   }
 
   .bsc-kb-text {
     width: 88%;
-    color: white;
+    color: bsc.$surface;
     letter-spacing: 1px;
     text-align: center;
     font-size: 14px;
@@ -403,14 +400,14 @@ $breakpoint-xl: 1200px;
   right: -2px;
   z-index: 3;
   background-color: #d8e4ea;
-  color: #333;
+  color: bsc.$text;
   font-family: "Poppins", sans-serif;
   font-size: 0.8rem;
   letter-spacing: 1px;
   font-weight: 600;
   padding: 6px 14px;
   border-radius: 0;
-  border: 2px solid #333333;
+  border: 2px solid bsc.$border;
   white-space: nowrap;
 }
 
@@ -428,9 +425,9 @@ $breakpoint-xl: 1200px;
   opacity: 0;
 }
 
-.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: #F4C8CF; }
-.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: #FFF3C2; }
-.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: #BAE5F1; }
+.bsc-kb-card:nth-child(1) .bsc-kb-card__label { background-color: bsc.$brand; }
+.bsc-kb-card:nth-child(2) .bsc-kb-card__label { background-color: bsc.$brand-yellow; }
+.bsc-kb-card:nth-child(3) .bsc-kb-card__label { background-color: bsc.$brand-blue; }
 .bsc-kb-card:nth-child(4) .bsc-kb-card__label { background-color: #FFD3A4; }
 .bsc-kb-card:nth-child(5) .bsc-kb-card__label { background-color: #DCFFFD; }
 .bsc-kb-card:nth-child(6) .bsc-kb-card__label { background-color: #ECDBFC; }
@@ -617,7 +614,7 @@ $breakpoint-xl: 1200px;
 .bsc__title--subcategory {
   font-size: 1.3rem;
   font-weight: 800;
-  color: #333;
+  color: bsc.$text;
   text-align: center;
   margin-bottom: 1rem;
   padding-top: 1em;
@@ -651,15 +648,15 @@ $breakpoint-xl: 1200px;
   padding: 0.35rem 0.9rem;
   margin-left: 0;
   margin-right: 0;
-  border: 1px solid #333;
+  border: 1px solid bsc.$border;
   border-radius: 2px;
   font-size: 0.9rem;
   line-height: 1;
-  color: #333;
+  color: bsc.$text;
   text-decoration: none;
   font-weight: 400;
   letter-spacing: 1px;
-  background-color: #fff;
+  background-color: bsc.$surface;
   box-sizing: border-box;
   transition:
     background-color 0.15s ease,
@@ -716,11 +713,11 @@ $breakpoint-xl: 1200px;
 }
 
 .bsc-subcat-card {
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-lg;
   overflow: hidden;
   text-decoration: none;
-  background: #fff;
+  background: bsc.$surface;
   transition: box-shadow 0.3s ease;
 }
 
@@ -738,11 +735,11 @@ $breakpoint-xl: 1200px;
 .bsc-subcat-card__title {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: bsc.$text;
 }
 
 .custom-shop-empty {
-  color: #999;
+  color: bsc.$text-muted;
 }
 
 [hidden].bsc__subsubcategory-modal {
@@ -778,7 +775,7 @@ body.bsc-filter-modal-open {
 .bsc__subsubcategory-chip {
   border: 1px solid #d7dde1;
   border-radius: 999px;
-  background: #fff;
+  background: bsc.$surface;
   color: #173642;
   min-height: 46px;
   box-shadow: 0 8px 22px rgba(23, 54, 66, 0.08);
@@ -866,7 +863,7 @@ body.bsc-filter-modal-open {
   right: 0;
   bottom: 0;
   padding: 1rem 1rem 1.5rem;
-  background: #fff;
+  background: bsc.$surface;
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -12px 40px rgba(23, 54, 66, 0.18);
   max-height: 78vh;
@@ -934,7 +931,7 @@ body.bsc-filter-modal-open {
 .bsc__subsubcategory-modal-option {
   border: 1px solid #d7dde1;
   border-radius: 999px;
-  background: #fff;
+  background: bsc.$surface;
   color: #173642;
   padding: 0.75rem 1rem;
   line-height: 1.2;
@@ -947,7 +944,7 @@ body.bsc-filter-modal-open {
 .bsc__subsubcategory-modal-option--active {
   background: #173642;
   border-color: #173642;
-  color: #fff;
+  color: bsc.$surface;
 }
 
 .bsc__subsubcategory-modal.is-visible .bsc__subsubcategory-modal-option {

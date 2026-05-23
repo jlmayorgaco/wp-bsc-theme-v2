@@ -1,15 +1,17 @@
-$contact-font: "Helvetica", "Helvetica Neue", Arial, sans-serif;
-$contact-text: #333333;
-$contact-border: #222222;
-$contact-yellow: #fff7bf;
-$contact-blue: #bfeaf3;
-$contact-pink: #f7b8c9;
-$contact-placeholder: #aaaaaa;
+@use "../tokens/public" as bsc;
+
+$contact-font: bsc.$font-main;
+$contact-text: bsc.$text;
+$contact-border: bsc.$border;
+$contact-yellow: bsc.$brand-yellow;
+$contact-blue: bsc.$brand-blue;
+$contact-pink: bsc.$brand;
+$contact-placeholder: bsc.$text-muted;
 
 .page-contact-us {
   width: 100%;
   overflow: hidden;
-  background: #ffffff;
+  background: bsc.$surface;
   color: $contact-text;
   font-family: $contact-font;
   letter-spacing: 1.1px;
@@ -71,7 +73,7 @@ $contact-placeholder: #aaaaaa;
     padding: 31px 24px 25px;
     border: 1px solid $contact-border;
     border-radius: 10px;
-    background: #ffffff;
+    background: bsc.$surface;
     color: $contact-text;
     display: flex;
     flex-direction: column;
@@ -97,7 +99,7 @@ $contact-placeholder: #aaaaaa;
     height: 56px;
     border: 2px solid $contact-border;
     border-radius: 50%;
-    background: #ffffff;
+    background: bsc.$surface;
     color: $contact-text;
     display: flex;
     align-items: center;
@@ -190,7 +192,7 @@ $contact-placeholder: #aaaaaa;
     padding: 10px 22px;
     border-radius: 999px;
     background: $contact-text;
-    color: #ffffff;
+    color: bsc.$surface;
     font-size: 18px;
     font-weight: 700;
     line-height: 1;
@@ -200,7 +202,7 @@ $contact-placeholder: #aaaaaa;
 
     &:hover,
     &:focus {
-      color: #ffffff;
+      color: bsc.$surface;
       opacity: 0.9;
       transform: translateY(-1px);
     }

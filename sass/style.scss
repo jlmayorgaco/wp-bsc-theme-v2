@@ -25,6 +25,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 // Import variables and mixins.
 
+@use "tokens/css-vars";
+
 @use "generic/box-sizing";
 @use "generic/normalize";
 @use "generic/dlicon";
@@ -43,12 +45,6 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "pages/page-bubble-creators";
 @use "pages/page-contact-us";
 @use "pages/page-static-info";
-
-@use "tokens/colors";
-@use "tokens/widths";
-@use "tokens/columns";
-@use "tokens/structure";
-@use "tokens/typography";
 
 @use "components/header/header";
 @use "components/footer/footer";
