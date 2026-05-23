@@ -47,6 +47,7 @@ Comandos principales:
 
 ```bash
 npm run lint
+npm run lint:local-urls
 npm run lint:inline-styles
 npm run lint:php
 npm run lint:js
@@ -65,6 +66,7 @@ Regla CSS/Sass:
 - No editar `admin/*.css`, `woocommerce-coming-soon.css`, `plugins/bubble-points/admin/*.css`, `style.css`, `woocommerce.css` o `admin-order-label-print.css` manualmente; editar su entrypoint SCSS y correr `npm run compile:css`.
 - Los tokens base deben ser puros y no emitir CSS por accidente. Las variables/clases globales del tema salen desde `sass/tokens/_css-vars.scss`; los tokens semanticos reutilizables viven en `sass/tokens/_public.scss`.
 - Los estilos inline estaticos no-email estan bloqueados por `npm run lint:inline-styles`; emails y estilos realmente dinamicos quedan permitidos.
+- URLs locales (`bsc.local`, `localhost`, `127.0.0.1`) estan bloqueadas en codigo productivo por `npm run lint:local-urls`; solo se permiten en tests, Playwright y documentacion.
 
 ## Estado actual de release
 
@@ -119,6 +121,14 @@ Gate post-MVP2 cross-browser/admin/privacy documentado el 2026-05-23:
 - `npx playwright test tests/e2e/smoke/admin-roles.spec.js --workers=1 --reporter=list`: verde, 3 passed / 6 skipped.
 - `npm run audit:woocommerce-templates -- --strict`: verde, 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
 - Alcance cerrado: BSC-RM-003, BSC-RM-023, BSC-RM-025 cierre strict y BSC-RM-047.
+
+Gate pre-GO deploy/url documentado el 2026-05-23:
+
+- `npm run lint:local-urls`: verde; no hay `bsc.local`, `localhost` ni `127.0.0.1` en archivos productivos.
+- Se cambio el fixture de preview email a `preview.customer@example.invalid`.
+- Se agrego `lint:local-urls` dentro de `npm run lint`.
+- Se documento checklist productivo de URLs, correos, cache, rollback y search-replace dry-run.
+- Alcance cerrado: BSC-RM-024 y BSC-RM-054.
 
 Scope ya cerrado en MVP2:
 
@@ -205,6 +215,18 @@ Pre-flight:
 - Confirmar WooCommerce status sin fatales activos.
 - Confirmar credenciales de pago y reglas de envio en produccion.
 - Confirmar acceso admin a Pedidos, Productos, Informes, Showcase y Bubble Points.
+- Confirmar `wp option get home` y `wp option get siteurl` con dominio productivo final.
+- Ejecutar search-replace dry-run para detectar URLs locales en DB antes de deploy:
+
+```bash
+wp search-replace 'http://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'https://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+```
+
+- Confirmar en `BSC > Configuracion`: email de contacto, email Bubble Creators, nombre/email remitente y retencion de formularios.
+- Confirmar en `BSC > Emails`: followups activos/inactivos segun decision de negocio.
+- Confirmar en `BSC > Accesos`: `bsc_operator`, `bsc_employee` y `shop_manager` con permisos esperados.
+- Confirmar que previews de email no son indexables y solo abren para admin.
 
 Gates requeridos antes de GO:
 
@@ -261,6 +283,28 @@ Pre-requisitos:
 - WP-CLI instalado.
 - Repo git clonado en servidor.
 - Backup reciente verificado.
+- Revision objetivo anotada: commit hash de `MVP2` que se va a publicar.
+- Dominio productivo definido y confirmado en WordPress (`home` y `siteurl`).
+- Credenciales SMTP/pago/envio disponibles para validar sin exponerlas en git.
+
+Pre-deploy local obligatorio:
+
+```bash
+npm run lint
+npm run audit:woocommerce-templates -- --strict
+npm run test:e2e:webkit
+```
+
+Pre-deploy servidor:
+
+```bash
+wp option get home --path=/var/www/html
+wp option get siteurl --path=/var/www/html
+wp search-replace 'http://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'https://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+```
+
+Si el dry-run reporta cambios en tablas de contenido, coordinar ventana de mantenimiento y ejecutar search-replace real despues del backup.
 
 Deploy:
 
@@ -269,11 +313,21 @@ wp maintenance-mode activate --path=/var/www/html
 cd /var/www/html/wp-content/themes/wp-bsc-theme-v2
 git fetch origin
 git pull origin MVP2
+wp eval "if ( false === get_option( 'bsc_form_data_retention_days', false ) ) { update_option( 'bsc_form_data_retention_days', 730, false ); }" --path=/var/www/html
+wp rewrite flush --path=/var/www/html
 wp cache flush --path=/var/www/html
 wp transient delete --all --path=/var/www/html
 tail -20 /var/log/php_errors.log
 wp maintenance-mode deactivate --path=/var/www/html
 ```
+
+Post-deploy config:
+
+- Revisar `BSC > Configuracion`: `bsc_contact_email`, `bsc_creator_email`, `bsc_email_from_name`, `bsc_email_from_address`.
+- Revisar `BSC > Emails`: estado de welcome/reset/birthday/inactive/repurchase.
+- Revisar `BSC > Accesos`: roles operativos y paginas permitidas.
+- Revisar `BSC > Monitoreo`: owner, canal de escalacion y senales recientes.
+- Guardar permalink settings o ejecutar `wp rewrite flush` si aparecen 404.
 
 Smoke manual post-deploy:
 
@@ -287,8 +341,11 @@ Rollback codigo:
 
 ```bash
 cd /var/www/html/wp-content/themes/wp-bsc-theme-v2
+git log --oneline -5
 git revert HEAD --no-edit
+wp rewrite flush --path=/var/www/html
 wp cache flush --path=/var/www/html
+wp transient delete --all --path=/var/www/html
 ```
 
 Rollback DB:
@@ -517,7 +574,7 @@ Tickets historicos que quedan como referencia/seguimiento:
 Pendientes historicos consolidados:
 
 - BSC-001: WhatsApp helper centralizado.
-- BSC-002: eliminar URLs localhost/bsc.local hardcodeadas.
+- BSC-002: eliminar URLs localhost/bsc.local hardcodeadas - cerrado por `BSC-RM-024`.
 - BSC-003: quantity controls completos.
 - BSC-005: add-to-cart iPad/touch.
 - BSC-009: mobile menu redesign.
@@ -529,6 +586,7 @@ Pendientes historicos consolidados:
 
 Unreleased/MVP2:
 
+- Pre-GO deploy/url hardening: `lint:local-urls` bloquea hosts locales en codigo productivo, previews de email usan `example.invalid`, y el roadmap documenta deploy, rollback, cache, search-replace dry-run y checklist de configuracion productiva.
 - SCSS source-of-truth: admin CSS, Bubble Points admin y coming soon migrados a entrypoints en `sass/`; `compile:css`, `lint:scss` y `lint:css-build` cubren todos los entrypoints y bloquean CSS sin fuente Sass.
 - Post-MVP2 hardening tickets 4-10: stock report server-side, CSS build sync gate, WooCommerce template audit, checkout edge smoke, fixture seed bootstrap, stock/Bubble Points domain guards, dependency/assets audit and PHP output/request baselines.
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
@@ -1486,6 +1544,7 @@ Medio. Datos personales sin control elevan riesgo legal/operativo.
 
 Prioridad: P1
 Area: Deploy, SEO, portability
+Estado MVP2: cerrado pre-GO el 2026-05-23.
 
 Problema:
 El contenido de ejemplo y algunos snippets usan `http://bsc.local`. URLs absolutas pueden colarse a produccion.
@@ -1506,12 +1565,22 @@ Implementacion minima:
 - Reemplazar en codigo por helpers `home_url`, `site_url`, `get_permalink`.
 - Documentar si hay contenido en DB que requiere search-replace.
 
+Implementacion MVP2:
+- Se agrego `tools/check-local-urls.js`.
+- Se agrego script `npm run lint:local-urls`.
+- `npm run lint` ahora incluye el guard de URLs locales.
+- El guard escanea archivos productivos y permite solo tests, Playwright, documentacion y config local explicita.
+- Se reemplazo `preview.customer@bsc.local` por `preview.customer@example.invalid` en previews de email.
+- Se documento search-replace dry-run para DB antes del GO.
+
 Criterios de aceptacion:
 - Codigo versionado no contiene URLs locales salvo fixtures o tests.
 - Navegacion/product cards usan URLs dinamicas.
+- `npm run lint:local-urls` queda verde.
 
 QA:
 - Smoke en entorno local y staging con dominio distinto.
+- Validado con `npm run lint:local-urls`: verde.
 
 Riesgo:
 Medio. Links rotos en produccion afectan ventas/SEO.
@@ -2558,6 +2627,7 @@ Bajo-medio.
 
 Prioridad: P2
 Area: Operacion
+Estado MVP2: cerrado pre-GO el 2026-05-23.
 
 Problema:
 Hay release docs, pero los nuevos modulos de cache/routing/performance/admin necesitan pasos explicitos de deploy y rollback.
@@ -2572,12 +2642,21 @@ Implementacion minima:
 - Rollback por ticket.
 - Verificacion post-deploy.
 
+Implementacion MVP2:
+- Se amplio `Go-live checklist` con validacion de `home`/`siteurl`, search-replace dry-run, emails destino/remitente, retencion, roles y previews admin-only.
+- Se amplio `Deploy y rollback operativo` con pre-deploy local, pre-deploy servidor, flush de rewrites/cache/transients y configuracion post-deploy.
+- Se documento inicializacion no destructiva de `bsc_form_data_retention_days`.
+- Se dejo rollback de codigo con `git revert`, `wp rewrite flush`, `wp cache flush` y `wp transient delete --all`.
+- Se mantuvo el runbook en `ROADMAP_BSC.md` como fuente unica, sin crear `.md` sueltos.
+
 Criterios de aceptacion:
 - Cualquier dev puede desplegar siguiendo checklist.
 - Rollback no depende de memoria.
+- El checklist productivo cubre dominio, correos, roles, cache y smoke manual.
 
 QA:
 - Dry run local/staging.
+- Validado documentalmente contra scripts y opciones existentes del tema.
 
 Riesgo:
 Bajo-medio.
@@ -2727,7 +2806,7 @@ Acceptance:
 Estos items ya aparecen o se infieren de documentos/backlog existentes y deben mapearse a tickets nuevos o cerrarse con evidencia:
 
 - BSC-001: helper WhatsApp/admin setting.
-- BSC-002: hardcoded localhost.
+- BSC-002: hardcoded localhost - cerrado por `BSC-RM-024` con `lint:local-urls`.
 - BSC-003: cantidad/quantity controls.
 - BSC-005: iPad add-to-cart.
 - BSC-009: mobile menu redesign.
