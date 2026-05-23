@@ -113,6 +113,7 @@ function bsc_dashboard_quick_links(): array {
         [ 'page' => 'bsc-showroom', 'label' => 'Showcase' ],
         [ 'page' => 'bsc-creators', 'label' => 'Creators' ],
         [ 'page' => 'bsc-newsletter', 'label' => 'Newsletter' ],
+        [ 'page' => 'bsc-monitoring', 'label' => 'Monitoreo' ],
         [ 'page' => 'bsc-reports', 'label' => 'Informes' ],
     ];
 
@@ -262,7 +263,17 @@ function bsc_add_admin_menu(): void {
         'bsc_render_followup_emails_page'
     );
 
-    // 12. Control de Acceso - role x page matrix
+    // 12. Monitoreo post-launch - admin only
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Monitoreo BSC', 'bsc-2-0' ),
+        __( 'Monitoreo', 'bsc-2-0' ),
+        'manage_options',
+        'bsc-monitoring',
+        'bsc_render_monitoring_page'
+    );
+
+    // 13. Control de Acceso - role x page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -272,7 +283,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 13. Configuracion - admin only (always last)
+    // 14. Configuracion - admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Configuración BSC', 'bsc-2-0' ),
@@ -352,6 +363,7 @@ require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // 
 require_once get_template_directory() . '/admin/bsc-creators-page.php';
 require_once get_template_directory() . '/admin/bsc-newsletter-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
+require_once get_template_directory() . '/admin/bsc-monitoring-page.php';
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
 // Page render functions
