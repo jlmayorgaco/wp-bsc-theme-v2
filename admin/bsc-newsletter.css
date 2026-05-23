@@ -1,0 +1,39 @@
+.bsc-admin-newsletter__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-newsletter__filters {
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-newsletter__filters label {
+  font-weight: 600;
+}
+
+.bsc-admin-newsletter__filters input[type="search"] {
+  min-width: 220px;
+}
+
+.bsc-admin-newsletter__table {
+  margin-top: 8px;
+}
+
+.bsc-admin-newsletter__status-form {
+  display: grid;
+  grid-template-columns: minmax(120px, 150px) minmax(180px, 1fr) auto;
+  gap: 6px;
+  align-items: start;
+}
+
+.bsc-admin-newsletter__status-form textarea {
+  width: 100%;
+  min-height: 48px;
+  resize: vertical;
+}

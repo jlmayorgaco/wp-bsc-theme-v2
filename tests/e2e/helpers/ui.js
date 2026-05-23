@@ -614,6 +614,8 @@ async function loginToWpAdmin(page, username, password) {
       waitForImages: false,
     });
 
+    await dismissAdminEmailVerification(page);
+
     if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
       return true;
     }
@@ -623,10 +625,43 @@ async function loginToWpAdmin(page, username, password) {
     }
 
     await submitLoginForm(page, username, password, '/wp-admin/');
+    await dismissAdminEmailVerification(page);
 
     if (page.url().includes('/wp-admin') && (await page.locator('#wpadminbar').count())) {
       return true;
     }
+  }
+
+  return false;
+}
+
+async function dismissAdminEmailVerification(page) {
+  const heading = page
+    .getByRole('heading', { name: /Administration email verification/i })
+    .first();
+
+  if ((await heading.count()) === 0 || !(await heading.isVisible().catch(() => false))) {
+    return false;
+  }
+
+  const correctButton = page.getByRole('button', { name: /The email is correct/i }).first();
+  if ((await correctButton.count()) > 0) {
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded').catch(() => null),
+      correctButton.click(),
+    ]);
+    await waitForSettledLoad(page);
+    return true;
+  }
+
+  const remindLater = page.getByRole('link', { name: /Remind me later/i }).first();
+  if ((await remindLater.count()) > 0) {
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded').catch(() => null),
+      remindLater.click(),
+    ]);
+    await waitForSettledLoad(page);
+    return true;
   }
 
   return false;

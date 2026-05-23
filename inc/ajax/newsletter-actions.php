@@ -17,7 +17,7 @@ function bsc_newsletter_subscribe() {
         bsc_rate_limit( 'newsletter', 1, MINUTE_IN_SECONDS );
     }
 
-    $subscribers = get_option('bsc_newsletter_subscribers', []);
+    $subscribers = bsc_newsletter_get_subscribers();
     $existing = array_column($subscribers, 'email');
 
     if (in_array($email, $existing, true)) {
@@ -25,10 +25,13 @@ function bsc_newsletter_subscribe() {
     }
 
     $subscribers[] = [
-        'email' => $email,
-        'date'  => current_time('mysql'),
+        'email'  => $email,
+        'date'   => current_time('mysql'),
+        'status' => 'new',
+        'source' => 'newsletter-form',
+        'notes'  => '',
     ];
-    update_option('bsc_newsletter_subscribers', $subscribers, false);
+    bsc_newsletter_save_subscribers($subscribers);
 
     $admin_email = get_option('admin_email');
     wp_mail(

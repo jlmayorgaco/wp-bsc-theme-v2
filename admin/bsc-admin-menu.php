@@ -166,7 +166,17 @@ function bsc_add_admin_menu(): void {
         'bsc_render_creators_page'
     );
 
-    // 10. Emails - admin only
+    // 10. Newsletter leads - admin / shop manager
+    add_submenu_page(
+        'bsc-dashboard',
+        __( 'Newsletter BSC', 'bsc-2-0' ),
+        __( 'Newsletter', 'bsc-2-0' ),
+        'manage_woocommerce',
+        'bsc-newsletter',
+        'bsc_render_newsletter_page'
+    );
+
+    // 11. Emails - admin only
     add_submenu_page(
         'bsc-dashboard',
         __( 'Emails BSC', 'bsc-2-0' ),
@@ -176,7 +186,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_followup_emails_page'
     );
 
-    // 11. Control de Acceso - role x page matrix
+    // 12. Control de Acceso - role x page matrix
     add_submenu_page(
         'bsc-dashboard',
         __( 'Control de Acceso', 'bsc-2-0' ),
@@ -186,7 +196,7 @@ function bsc_add_admin_menu(): void {
         'bsc_render_access_page'
     );
 
-    // 12. Configuracion - admin only (always last)
+    // 13. Configuracion - admin only (always last)
     add_submenu_page(
         'bsc-dashboard',
         __( 'Configuración BSC', 'bsc-2-0' ),
@@ -264,6 +274,7 @@ require_once get_template_directory() . '/admin/bsc-products-page.php';      // 
 require_once get_template_directory() . '/admin/bsc-product-edit-page.php';  // BSC-065
 require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // BSC-066
 require_once get_template_directory() . '/admin/bsc-creators-page.php';
+require_once get_template_directory() . '/admin/bsc-newsletter-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-access-page.php';        // BSC-066
 
