@@ -55,6 +55,12 @@ npm run test:e2e:visual
 npm run compile:css
 ```
 
+Regla CSS/Sass:
+
+- La fuente editable de estilos vive en `sass/`.
+- Los archivos `.css` versionados son salida compilada para WordPress/WooCommerce.
+- No editar `admin/*.css`, `woocommerce-coming-soon.css`, `plugins/bubble-points/admin/*.css`, `style.css`, `woocommerce.css` o `admin-order-label-print.css` manualmente; editar su entrypoint SCSS y correr `npm run compile:css`.
+
 ## Estado actual de release
 
 Branch activo: `MVP2`
@@ -510,6 +516,7 @@ Pendientes historicos consolidados:
 
 Unreleased/MVP2:
 
+- SCSS source-of-truth: admin CSS, Bubble Points admin y coming soon migrados a entrypoints en `sass/`; `compile:css`, `lint:scss` y `lint:css-build` cubren todos los entrypoints y bloquean CSS sin fuente Sass.
 - Post-MVP2 hardening tickets 4-10: stock report server-side, CSS build sync gate, WooCommerce template audit, checkout edge smoke, fixture seed bootstrap, stock/Bubble Points domain guards, dependency/assets audit and PHP output/request baselines.
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
 - P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
@@ -2126,8 +2133,9 @@ Estado MVP2: cerrado el 2026-05-23.
 
 Resultado:
 - Se agrego `npm run lint:css-build` con `tools/check-css-build-sync.js`.
-- `npm run lint` ahora falla si `style.css` o `style.css.map` no corresponden a `sass/style.scss`.
-- Comando canonico sigue siendo `npm run compile:css`.
+- `npm run lint` ahora falla si cualquier `.css` versionado sin excluir no corresponde a su entrypoint Sass.
+- `npm run compile:css` compila `sass:./` para `style.css`, `woocommerce.css`, `woocommerce-coming-soon.css`, admin CSS, Bubble Points admin y `admin-order-label-print.css`.
+- Admin styles comparten `sass/admin/_foundation.scss` con tokens y mixins.
 - Validado con `npm run lint:css-build` y `npm run lint`.
 
 Problema:

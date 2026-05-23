@@ -1,3 +1,5 @@
+@use "foundation" as admin;
+
 .bsc-admin-creators__header {
   display: flex;
   align-items: center;
@@ -22,7 +24,7 @@
 }
 
 .bsc-admin-creators__link-empty {
-  color: #646970;
+  color: admin.$text-subtle;
 }
 
 .bsc-admin-creators__status-form {
@@ -41,5 +43,3 @@
   min-height: 48px;
   resize: vertical;
 }
-
-/*# sourceMappingURL=bsc-creators.css.map */

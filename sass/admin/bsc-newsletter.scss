@@ -1,3 +1,5 @@
+@use "foundation" as admin;
+
 .bsc-admin-newsletter__header {
   display: flex;
   align-items: center;
@@ -17,7 +19,7 @@
   font-weight: 600;
 }
 
-.bsc-admin-newsletter__filters input[type=search] {
+.bsc-admin-newsletter__filters input[type="search"] {
   min-width: 220px;
 }
 
@@ -37,5 +39,3 @@
   min-height: 48px;
   resize: vertical;
 }
-
-/*# sourceMappingURL=bsc-newsletter.css.map */

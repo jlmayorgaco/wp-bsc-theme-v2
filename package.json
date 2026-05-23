@@ -34,7 +34,7 @@
   },
   "scripts": {
     "watch": "sass --watch sass:./ --source-map --style=expanded",
-    "compile:css": "sass sass/style.scss style.css --source-map --style=expanded",
+    "compile:css": "sass sass:./ --source-map --style=expanded",
     "compile:rtl": "rtlcss style.css style-rtl.css",
     "lint:encoding": "node tools/check-mojibake.js",
     "lint:css-build": "node tools/check-css-build-sync.js",

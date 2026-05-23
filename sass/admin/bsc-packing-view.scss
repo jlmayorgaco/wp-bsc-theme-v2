@@ -1,3 +1,5 @@
+@use "foundation" as admin;
+
 * {
   box-sizing: border-box;
 }
@@ -5,7 +7,7 @@
 body.bsc-packing-view {
   font-family: Arial, sans-serif;
   font-size: 13px;
-  color: #222;
+  color: admin.$text-strong;
   margin: 0;
   padding: 16px;
 }
@@ -29,7 +31,7 @@ body.bsc-packing-view {
 }
 
 .bsc-packing-view__order-card {
-  border: 1px solid #ccc;
+  border: 1px solid admin.$border-neutral;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
@@ -48,8 +50,8 @@ body.bsc-packing-view {
 }
 
 .bsc-packing-view__order-status {
-  background: #ffb6c1;
-  color: #000;
+  background: admin.$brand-pink-strong;
+  color: admin.$text-black;
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 12px;
@@ -76,7 +78,7 @@ body.bsc-packing-view {
 .bsc-packing-view td {
   padding: 6px 8px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid admin.$border-muted;
   font-size: 12px;
 }
 
@@ -87,7 +89,7 @@ body.bsc-packing-view {
 
 .bsc-packing-view .total-row td {
   font-weight: 700;
-  border-top: 2px solid #ccc;
+  border-top: 2px solid admin.$border-neutral;
 }
 
 .bsc-packing-stock {
@@ -115,16 +117,18 @@ body.bsc-packing-view {
   body.bsc-packing-view {
     padding: 8px;
   }
+
   .bsc-packing-view__toolbar {
     display: none;
   }
+
   .bsc-packing-view__order-card {
     border: 1px solid #999;
   }
+
   .bsc-packing-action,
   .bsc-packing-stock {
     font-size: 11px;
   }
-}
 
-/*# sourceMappingURL=bsc-packing-view.css.map */
+}

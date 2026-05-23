@@ -1,3 +1,5 @@
+@use "foundation" as admin;
+
 .bsc-admin-monitoring__intro {
   color: #50575e;
   max-width: 760px;
@@ -5,8 +7,8 @@
 
 .bsc-admin-monitoring__owner {
   align-items: flex-start;
-  background: #ffffff;
-  border: 1px solid #dcdcde;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
   border-radius: 8px;
   display: grid;
   gap: 20px;
@@ -27,7 +29,7 @@
 }
 
 .bsc-admin-monitoring__settings-form label {
-  color: #1d2327;
+  color: admin.$text;
   display: grid;
   font-weight: 600;
   gap: 4px;
@@ -49,23 +51,23 @@
 }
 
 .bsc-admin-monitoring__card {
-  background: #ffffff;
-  border: 1px solid #dcdcde;
-  border-left: 4px solid #646970;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+  border-left: 4px solid admin.$text-subtle;
   border-radius: 8px;
   padding: 16px;
 }
 
 .bsc-admin-monitoring__card--ok {
-  border-left-color: #22c55e;
+  border-left-color: admin.$success-accent;
 }
 
 .bsc-admin-monitoring__card--warning {
-  border-left-color: #f97316;
+  border-left-color: admin.$warning-accent;
 }
 
 .bsc-admin-monitoring__card--critical {
-  border-left-color: #dc2626;
+  border-left-color: admin.$danger-accent;
 }
 
 .bsc-admin-monitoring__card-header {
@@ -94,8 +96,8 @@
 }
 
 .bsc-admin-monitoring__checklist {
-  background: #ffffff;
-  border: 1px solid #dcdcde;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
   border-radius: 8px;
   margin-left: 0;
   max-width: 980px;
@@ -122,5 +124,3 @@
     grid-template-columns: 1fr;
   }
 }
-
-/*# sourceMappingURL=bsc-monitoring.css.map */
