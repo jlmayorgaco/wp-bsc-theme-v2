@@ -48,6 +48,82 @@ function bsc_dashboard_count_orders( array $statuses, array $extra_args = [] ): 
     return (int) ( $result->total ?? 0 );
 }
 
+function bsc_dashboard_user_can_view_financials(): bool {
+    return current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
+}
+
+function bsc_dashboard_range_options(): array {
+    return [
+        'today'  => 'Hoy',
+        '7d'     => 'Ultimos 7 dias',
+        '30d'    => 'Ultimos 30 dias',
+        'custom' => 'Personalizado',
+    ];
+}
+
+function bsc_dashboard_parse_date_input( string $value ): string {
+    $value = sanitize_text_field( $value );
+    return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ? $value : '';
+}
+
+function bsc_dashboard_get_range(): array {
+    $range_key = isset( $_GET['dashboard_range'] ) ? sanitize_key( wp_unslash( $_GET['dashboard_range'] ) ) : 'today';
+    $options   = bsc_dashboard_range_options();
+
+    if ( ! array_key_exists( $range_key, $options ) ) {
+        $range_key = 'today';
+    }
+
+    $now        = current_time( 'timestamp' );
+    $today      = wp_date( 'Y-m-d', $now );
+    $start_date = $today;
+    $end_date   = $today;
+
+    if ( '7d' === $range_key ) {
+        $start_date = wp_date( 'Y-m-d', strtotime( '-6 days', $now ) );
+    } elseif ( '30d' === $range_key ) {
+        $start_date = wp_date( 'Y-m-d', strtotime( '-29 days', $now ) );
+    } elseif ( 'custom' === $range_key ) {
+        $custom_start = isset( $_GET['dashboard_start'] ) ? bsc_dashboard_parse_date_input( wp_unslash( $_GET['dashboard_start'] ) ) : '';
+        $custom_end   = isset( $_GET['dashboard_end'] ) ? bsc_dashboard_parse_date_input( wp_unslash( $_GET['dashboard_end'] ) ) : '';
+
+        if ( $custom_start && $custom_end && $custom_start <= $custom_end ) {
+            $start_date = $custom_start;
+            $end_date   = $custom_end;
+        } else {
+            $range_key = 'today';
+        }
+    }
+
+    return [
+        'key'        => $range_key,
+        'label'      => $options[ $range_key ],
+        'start_date' => $start_date,
+        'end_date'   => $end_date,
+        'date_after' => $start_date . ' 00:00:00',
+        'date_before'=> $end_date . ' 23:59:59',
+        'cache_key'  => $range_key . '_' . $start_date . '_' . $end_date,
+    ];
+}
+
+function bsc_dashboard_quick_links(): array {
+    $links = [
+        [ 'page' => 'bsc-orders', 'label' => 'Pedidos' ],
+        [ 'page' => 'bsc-products', 'label' => 'Productos' ],
+        [ 'page' => 'bsc-showroom', 'label' => 'Showcase' ],
+        [ 'page' => 'bsc-creators', 'label' => 'Creators' ],
+        [ 'page' => 'bsc-newsletter', 'label' => 'Newsletter' ],
+        [ 'page' => 'bsc-reports', 'label' => 'Informes' ],
+    ];
+
+    return array_values(
+        array_filter(
+            $links,
+            static fn( array $link ): bool => bsc_current_user_has_bsc_page_access( $link['page'] )
+        )
+    );
+}
+
 function bsc_add_admin_menu(): void {
     if ( ! bsc_current_user_has_any_bsc_page_access() ) {
         return;
@@ -285,6 +361,10 @@ function bsc_render_dashboard(): void {
         wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
     }
 
+    $range               = bsc_dashboard_get_range();
+    $can_view_financials = bsc_dashboard_user_can_view_financials();
+    $cache_key           = 'bsc_dashboard_kpis_' . md5( $range['cache_key'] . '|' . ( $can_view_financials ? 'finance' : 'ops' ) );
+
     if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bsc_dashboard_action'] ) ) {
         if ( ! isset( $_POST['bsc_dashboard_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_dashboard_nonce'] ) ), 'bsc_dashboard_action' ) ) {
             wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
@@ -293,32 +373,32 @@ function bsc_render_dashboard(): void {
         $dashboard_action = sanitize_key( wp_unslash( $_POST['bsc_dashboard_action'] ) );
 
         if ( 'clear_cache' === $dashboard_action ) {
-            delete_transient( 'bsc_dashboard_kpis' );
+            delete_transient( $cache_key );
             add_settings_error( 'bsc_dashboard', 'cache_cleared', __( 'Cache del dashboard limpiada.', 'bsc-2-0' ), 'updated' );
         }
     }
 
-    // BSC-061: Full KPI dashboard with transient cache (30min)
-    $cache_key = 'bsc_dashboard_kpis';
     $kpis = get_transient( $cache_key );
 
     if ( false === $kpis ) {
-        $today_start = gmdate('Y-m-d') . ' 00:00:00';
-        $today_end   = gmdate('Y-m-d') . ' 23:59:59';
-
-        $today_order_count = bsc_dashboard_count_orders([], [
-            'date_after'  => $today_start,
-            'date_before' => $today_end,
+        $range_order_count = bsc_dashboard_count_orders([], [
+            'date_after'  => $range['date_after'],
+            'date_before' => $range['date_before'],
         ]);
-        $ventas_hoy = 0;
-        bsc_reports_for_each_order([
-            'date_after'  => $today_start,
-            'date_before' => $today_end,
-        ], function($o) use (&$ventas_hoy) {
-            if (in_array($o->get_status(), ['processing','completed','preparing','shipped'], true)) {
-                $ventas_hoy += (float) $o->get_total();
-            }
-        });
+
+        $range_revenue = null;
+
+        if ( $can_view_financials ) {
+            $range_revenue = 0;
+            bsc_reports_for_each_order([
+                'date_after'  => $range['date_after'],
+                'date_before' => $range['date_before'],
+            ], function($o) use (&$range_revenue) {
+                if (in_array($o->get_status(), ['processing','completed','preparing','shipped'], true)) {
+                    $range_revenue += (float) $o->get_total();
+                }
+            });
+        }
 
         $pending_count   = bsc_dashboard_count_orders(['pending', 'on-hold']);
         $preparing_count = bsc_dashboard_count_orders(['processing', 'preparing']);
@@ -345,8 +425,8 @@ function bsc_render_dashboard(): void {
         $low_stock_ids = class_exists('BSC_Stock') ? BSC_Stock::get_low_stock_products($low_threshold) : [];
 
         $kpis = [
-            'ventas_hoy'     => $ventas_hoy,
-            'pedidos_hoy'    => $today_order_count,
+            'ventas_periodo' => $range_revenue,
+            'pedidos_periodo'=> $range_order_count,
             'pendientes'     => $pending_count,
             'preparando'     => $preparing_count,
             'enviados'       => $shipped_count,
@@ -360,6 +440,7 @@ function bsc_render_dashboard(): void {
             ], $recent_orders),
             'low_stock_ids' => $low_stock_ids,
             'low_threshold' => $low_threshold,
+            'quick_links'   => bsc_dashboard_quick_links(),
         ];
         set_transient($cache_key, $kpis, 30 * MINUTE_IN_SECONDS);
     }
@@ -375,15 +456,34 @@ function bsc_render_dashboard(): void {
         </h1>
         <?php settings_errors( 'bsc_dashboard' ); ?>
 
+        <form method="get" class="bsc-admin-dashboard__filters">
+            <input type="hidden" name="page" value="bsc-dashboard">
+            <label for="dashboard_range">Periodo</label>
+            <select id="dashboard_range" name="dashboard_range">
+                <?php foreach ( bsc_dashboard_range_options() as $range_key => $range_label ) : ?>
+                    <option value="<?php echo esc_attr( $range_key ); ?>" <?php selected( $range['key'], $range_key ); ?>>
+                        <?php echo esc_html( $range_label ); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <label for="dashboard_start">Desde</label>
+            <input type="date" id="dashboard_start" name="dashboard_start" value="<?php echo esc_attr( $range['start_date'] ); ?>">
+            <label for="dashboard_end">Hasta</label>
+            <input type="date" id="dashboard_end" name="dashboard_end" value="<?php echo esc_attr( $range['end_date'] ); ?>">
+            <button type="submit" class="button">Aplicar</button>
+        </form>
+
         <!-- KPI Cards -->
         <div class="bsc-admin-dashboard__grid">
+            <?php if ( $can_view_financials ) : ?>
             <div class="bsc-admin-dashboard__card">
-                <div class="bsc-admin-dashboard__value"><?php echo wp_kses_post(wc_price($kpis['ventas_hoy'])); ?></div>
-                <div class="bsc-admin-dashboard__label">Ventas hoy</div>
+                <div class="bsc-admin-dashboard__value"><?php echo wp_kses_post(wc_price((float) $kpis['ventas_periodo'])); ?></div>
+                <div class="bsc-admin-dashboard__label">Ventas <?php echo esc_html($range['label']); ?></div>
             </div>
+            <?php endif; ?>
             <div class="bsc-admin-dashboard__card">
-                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pedidos_hoy']); ?></div>
-                <div class="bsc-admin-dashboard__label">Pedidos hoy</div>
+                <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pedidos_periodo']); ?></div>
+                <div class="bsc-admin-dashboard__label">Pedidos <?php echo esc_html($range['label']); ?></div>
             </div>
             <div class="bsc-admin-dashboard__card<?php echo $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pendientes']); ?></div>
@@ -406,17 +506,19 @@ function bsc_render_dashboard(): void {
             <div>
                 <h2 class="bsc-admin-dashboard__panel-title">Últimos 5 pedidos</h2>
                 <table class="wp-list-table widefat striped">
-                    <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
+                    <thead><tr><th>#</th><th>Cliente</th><?php if ( $can_view_financials ) : ?><th>Total</th><?php endif; ?><th>Estado</th></tr></thead>
                     <tbody>
                     <?php foreach ($kpis['recent_orders'] as $ro): ?>
                     <tr>
                         <td><a href="<?php echo esc_url($ro['url']); ?>">#<?php echo esc_html($ro['number']); ?></a></td>
                         <td><?php echo esc_html($ro['name']); ?></td>
+                        <?php if ( $can_view_financials ) : ?>
                         <td><?php echo wp_kses_post(wc_price($ro['total'])); ?></td>
+                        <?php endif; ?>
                         <td><?php echo esc_html($ro['status']); ?></td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (empty($kpis['recent_orders'])): ?><tr><td colspan="4" class="bsc-admin-dashboard__empty-row">Sin pedidos.</td></tr><?php endif; ?>
+                    <?php if (empty($kpis['recent_orders'])): ?><tr><td colspan="<?php echo esc_attr( $can_view_financials ? 4 : 3 ); ?>" class="bsc-admin-dashboard__empty-row">Sin pedidos.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
                 <p class="bsc-admin-dashboard__panel-action"><a href="<?php echo esc_url(admin_url('admin.php?page=bsc-orders')); ?>" class="button button-primary">Ver todos los pedidos</a></p>
@@ -424,7 +526,7 @@ function bsc_render_dashboard(): void {
 
             <!-- Low stock alerts -->
             <div>
-                <h2 class="bsc-admin-dashboard__panel-title">⚠️ Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
+                <h2 class="bsc-admin-dashboard__panel-title">Stock bodega bajo (< <?php echo esc_html($kpis['low_threshold']); ?>)</h2>
                 <?php if ( ! empty($kpis['low_stock_ids']) ): ?>
                 <table class="wp-list-table widefat striped bsc-admin-dashboard__low-stock-table">
                     <thead><tr><th>Producto</th><th>Stock bodega</th><th></th></tr></thead>
@@ -441,7 +543,22 @@ function bsc_render_dashboard(): void {
                     </tbody>
                 </table>
                 <?php else: ?>
-                <p class="bsc-admin-dashboard__low-stock-ok">✓ Todos los productos tienen stock suficiente.</p>
+                <p class="bsc-admin-dashboard__low-stock-ok">Todos los productos tienen stock suficiente.</p>
+                <?php endif; ?>
+            </div>
+
+            <div>
+                <h2 class="bsc-admin-dashboard__panel-title">Accesos rapidos</h2>
+                <?php if ( ! empty($kpis['quick_links']) ): ?>
+                    <div class="bsc-admin-dashboard__quick-links">
+                        <?php foreach ($kpis['quick_links'] as $quick_link): ?>
+                            <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=' . $quick_link['page'])); ?>">
+                                <?php echo esc_html($quick_link['label']); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="bsc-admin-dashboard__empty-row">No hay accesos disponibles para este rol.</p>
                 <?php endif; ?>
             </div>
         </div>

@@ -475,6 +475,7 @@ Pendientes historicos consolidados:
 Unreleased/MVP2:
 
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
+- P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
 - P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
 - Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
 - QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
@@ -2489,6 +2490,7 @@ Acceptance:
 
 Prioridad: P3
 Area: Admin UX
+Estado: Cerrado en MVP2, 2026-05-22
 
 Objetivo:
 Dashboard BSC con KPIs utiles por rango, alertas de stock, pedidos pendientes y accesos rapidos, todo respetando permisos.
@@ -2499,8 +2501,9 @@ Archivos a inspeccionar:
 - `includes/class-bsc-permissions.php`
 
 Acceptance:
-- Operador no ve finanzas si no esta autorizado.
-- Admin puede filtrar KPIs por rango.
+- Cerrado: Roles sin `manage_options`/`manage_woocommerce` no renderizan ventas ni total de pedidos recientes.
+- Cerrado: Admin puede filtrar KPIs de pedidos/ventas por hoy, 7 dias, 30 dias o rango personalizado.
+- Cerrado: Accesos rapidos del dashboard se filtran con `bsc_current_user_has_bsc_page_access`.
 
 ## BSC-RM-058 - Mejorar recomendaciones de productos
 

@@ -14,6 +14,22 @@
   cursor: pointer;
 }
 
+.bsc-admin-dashboard__filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+}
+
+.bsc-admin-dashboard__filters label {
+  font-weight: 600;
+}
+
 .bsc-admin-dashboard__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -53,7 +69,7 @@
 
 .bsc-admin-dashboard__panels {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   margin-top: 8px;
 }
@@ -88,6 +104,15 @@
   border: 1px solid #9ae6b4;
   padding: 10px 16px;
   border-radius: 6px;
+}
+
+.bsc-admin-dashboard__quick-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #dcdcde;
 }
 
 .bsc-admin-settings__section-title {
