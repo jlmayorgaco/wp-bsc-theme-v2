@@ -37,13 +37,16 @@ test.describe('BSC admin reports smoke', () => {
 
     const searchInput = page.locator('#bsc-stock-search').first();
     await expect(searchInput).toBeVisible();
+    await expect(page.locator('#bsc-stock-per-page').first()).toBeVisible();
+    await expect(page.locator('#bsc-stock-count').first()).toContainText(/resultado\(s\)/);
 
     const stockTable = page.locator('#bsc-stock-table').first();
     if (await stockTable.isVisible()) {
       await searchInput.fill('zzzzzzzzzz');
+      await page.getByRole('button', { name: 'Buscar' }).first().click();
+
       await expect(page.locator('#bsc-stock-count').first()).toContainText('0 resultado');
-      await searchInput.fill('');
-      await expect(page.locator('#bsc-stock-count').first()).toHaveText('');
+      await expect(page.locator('.bsc-admin-reports__empty-state--stock').first()).toBeVisible();
       return;
     }
 

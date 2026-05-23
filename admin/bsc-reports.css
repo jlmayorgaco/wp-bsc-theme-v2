@@ -39,7 +39,8 @@
 }
 
 .bsc-admin-reports__date-input,
-.bsc-admin-reports__stock-search-input {
+.bsc-admin-reports__stock-search-input,
+.bsc-admin-reports__stock-per-page {
     padding: 5px 8px;
     border: 1px solid #ccc;
     border-radius: 3px;
@@ -179,6 +180,38 @@
 
 .bsc-admin-reports__stock-search-input {
     width: 220px;
+}
+
+.bsc-admin-reports__stock-per-page {
+    min-width: 124px;
+}
+
+.bsc-admin-reports__pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.bsc-admin-reports__pagination .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    margin-left: 4px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #fff;
+    text-decoration: none;
+}
+
+.bsc-admin-reports__pagination .page-numbers.current {
+    border-color: #2271b1;
+    background: #2271b1;
+    color: #fff;
 }
 
 .bsc-admin-reports__legend {

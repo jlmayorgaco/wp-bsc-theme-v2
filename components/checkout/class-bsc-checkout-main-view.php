@@ -48,7 +48,7 @@ class BSC_Checkout_Main_View {
         $is_visible = WC()->cart && ! WC()->cart->is_empty();
         ?>
         <form id="checkout" class="checkout woocommerce-checkout" name="checkout" method="post" action="<?php echo esc_url(wc_get_checkout_url()); ?>" enctype="multipart/form-data">
-            <main class="bsc bsc__page bsc__page--dual bsc__page--checkout <?php echo $is_visible ? 'is-visible' : ''; ?>">
+            <main class="bsc bsc__page bsc__page--dual bsc__page--checkout <?php echo esc_attr( $is_visible ? 'is-visible' : '' ); ?>">
                 <div class="bsc__page-1 bg-white">
                     <div class="bsc__container bsc__container--to-right">
                         <img class="bsc__checkout-logo"

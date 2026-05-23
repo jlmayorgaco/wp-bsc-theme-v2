@@ -17,28 +17,28 @@ $checkout_aria_label  = sprintf(
   <div class="footer__container">
     <div class="footer__links-section">
       <div class="footer__column">
-        <h2 class="footer__heading"><a href="<?php echo $home_url; ?>">Bubbles Skin Care</a></h2>
+        <h2 class="footer__heading"><a href="<?php echo esc_url($home_url); ?>">Bubbles Skin Care</a></h2>
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="<?php echo $shipping_returns_url; ?>" class="footer__link"
+            <a href="<?php echo esc_url($shipping_returns_url); ?>" class="footer__link"
               >Envíos y devoluciones</a
             >
           </li>
           <li class="footer__list-item">
-            <a href="<?php echo $faq_url; ?>" class="footer__link">Preguntas frecuentes</a>
+            <a href="<?php echo esc_url($faq_url); ?>" class="footer__link">Preguntas frecuentes</a>
           </li>
           <li class="footer__list-item">
-            <a href="<?php echo $contact_url; ?>" class="footer__link">Contacto</a>
+            <a href="<?php echo esc_url($contact_url); ?>" class="footer__link">Contacto</a>
           </li>
         </ul>
       </div>
       <div class="footer__column">
-        <h2 class="footer__heading"><a href="<?php echo $shop_url; ?>">K-Beauty</a></h2>
+        <h2 class="footer__heading"><a href="<?php echo esc_url($shop_url); ?>">K-Beauty</a></h2>
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="<?php echo $product_category_url; ?>" class="footer__link">Entrega inmediata</a>
+            <a href="<?php echo esc_url($product_category_url); ?>" class="footer__link">Entrega inmediata</a>
           </li>
           <li class="footer__list-item">
             <a
@@ -53,16 +53,16 @@ $checkout_aria_label  = sprintf(
         </ul>
       </div>
       <div class="footer__column">
-        <h2 class="footer__heading"><a href="<?php echo $orders_url; ?>">Mi cuenta</a></h2>
+        <h2 class="footer__heading"><a href="<?php echo esc_url($orders_url); ?>">Mi cuenta</a></h2>
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="<?php echo $bubble_points_url; ?>" class="footer__link"
+            <a href="<?php echo esc_url($bubble_points_url); ?>" class="footer__link"
               >Mis puntos</a
             >
           </li>
           <li class="footer__list-item">
-            <a href="<?php echo $orders_url; ?>" class="footer__link">Pedidos</a>
+            <a href="<?php echo esc_url($orders_url); ?>" class="footer__link">Pedidos</a>
           </li>
         </ul>
       </div>
@@ -71,7 +71,7 @@ $checkout_aria_label  = sprintf(
         <div class="footer__divider footer__divider--short"></div>
         <ul class="footer__list">
           <li class="footer__list-item">
-            <a href="<?php echo $bubble_creators_url; ?>" class="footer__link">Bubble Creators</a>
+            <a href="<?php echo esc_url($bubble_creators_url); ?>" class="footer__link">Bubble Creators</a>
           </li>
         </ul>
       </div>
@@ -81,9 +81,9 @@ $checkout_aria_label  = sprintf(
 
     <div class="footer__bottom-section">
       <div class="footer__logo">
-        <a href="<?php echo $home_url; ?>">
+        <a href="<?php echo esc_url($home_url); ?>">
           <img
-            src="<?php echo get_template_directory_uri();?>/images/bsc_logo_footer.png"
+            src="<?php echo esc_url(get_template_directory_uri()); ?>/images/bsc_logo_footer.png"
             alt="Logo de Bubbles Skin Care"
             class="footer__logo-image"
           />

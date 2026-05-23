@@ -89,6 +89,19 @@ Gate release candidate documentado el 2026-05-23:
 - Home visual estabilizado antes de screenshot: el test detiene Swiper y fuerza el slide esperado por viewport para evitar diffs por autoplay.
 - Sin blocker tecnico detectado en lint, smoke o visual. Pendiente de GO: revision manual Safari/iPhone y validacion de configuracion productiva.
 
+Gate post-MVP2 tickets 4-10 documentado el 2026-05-23:
+
+- `npm run lint`: verde.
+- `npm run test:domain`: verde para contratos de `BSC_Stock` y Bubble Points.
+- `npm run audit:deps`: verde, `npm audit --omit=dev` sin vulnerabilidades y 6/6 assets vendor requeridos presentes.
+- `npm run audit:woocommerce-templates`: baseline generado, 44 overrides, 32 ok, 5 outdated y 7 missing/version review.
+- `npm run audit:php-output`: baseline generado, 35 lineas para revision manual futura.
+- `npm run audit:php-requests`: baseline generado, 382 referencias y 22 para revision manual futura.
+- `npm run test:e2e:seed`: verde, fixture estable con producto/categoria/cupones QA.
+- `npm run test:e2e:smoke:checkout -- --reporter=list`: verde, 53 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-reports.spec.js --workers=1 --reporter=list`: verde, 6 passed.
+- Alcance cerrado: BSC-RM-041, BSC-RM-043, BSC-RM-025 auditoria baseline, BSC-RM-048, BSC-RM-049, BSC-RM-045 guard tests, BSC-RM-050 y BSC-RM-051 baseline + fixes de alto riesgo.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -102,6 +115,7 @@ Scope ya cerrado en MVP2:
 - Packing view con deduccion por linea desde bodega o showroom.
 - Limpieza de mojibake en copy admin/operador tocado en el release pass.
 - P1 release-slice: rate limit centralizado para AJAX publico critico, acciones admin mutables por POST+nonce, validacion de cupones, workflow admin de Bubble Creators, previews de email admin-only/noindex, invalidacion de cache de busqueda, redencion Bubble Points con guardrails, accesibilidad de mega menu/search, fix de selects en cuenta para Safari/iPhone, imagenes de cards con sizes/decoding y helper Playwright compatible con lazy images.
+- Post-MVP2 tickets 4-10: reportes de stock con paginacion/busqueda/sort server-side; CSS source of truth con `lint:css-build`; auditoria Woo templates; tests edge checkout; seed QA estable; guard tests de stock/Bubble Points; auditoria de dependencias/assets; baseline de escaping/requests.
 
 Notas residuales:
 
@@ -496,6 +510,7 @@ Pendientes historicos consolidados:
 
 Unreleased/MVP2:
 
+- Post-MVP2 hardening tickets 4-10: stock report server-side, CSS build sync gate, WooCommerce template audit, checkout edge smoke, fixture seed bootstrap, stock/Bubble Points domain guards, dependency/assets audit and PHP output/request baselines.
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
 - P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
 - P3 recomendaciones: helper central filtra productos publicados, comprables y en stock; estrategia deterministica por relacionados, categorias y fallback de ultimos productos.
@@ -1470,6 +1485,14 @@ Medio. Links rotos en produccion afectan ventas/SEO.
 
 Prioridad: P1
 Area: Compatibilidad WooCommerce
+Estado MVP2: auditoria baseline cerrada el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run audit:woocommerce-templates`.
+- Baseline actual: 44 overrides, 32 ok, 5 outdated y 7 missing/version review.
+- Overrides outdated detectados: `cart/cart.php`, `cart/cross-sells.php`, `cart/mini-cart.php`, `cart/shipping-calculator.php`, `checkout/form-login.php`.
+- Overrides sin version/upstream para decision futura: `archive-product.php`, `coming-soon.php`, `myaccount/form-edit-account.php`, `myaccount/my-address.php`, `myaccount/my-orders.php`, `myaccount/view-order.php`, `single-product.php`.
+- Este cierre no migra templates; deja el inventario automatizado y el backlog tecnico para merges controlados por flujo.
 
 Problema:
 Hay muchos overrides WooCommerce con versiones distintas. Si WooCommerce actualizo templates, pueden faltar hooks, seguridad o markup esperado.
@@ -2027,6 +2050,15 @@ Bajo-medio.
 
 Prioridad: P1
 Area: Admin performance
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- `admin/bsc-reports-page.php` ya no renderiza todo el catalogo para filtrar en cliente.
+- Stock usa consulta SQL con filtro server-side por titulo/SKU, filtros de stock, sort whitelist y paginacion.
+- UI agrega busqueda, selector 25/50/100, contador de resultados y paginacion.
+- `js/admin/bsc-reports.js` queda como mejora de UX del form, no como fuente de verdad de datos.
+- Smoke actualizado: `tests/e2e/smoke/admin-reports.spec.js` valida busqueda, contador y empty state.
+- Validado con `npx playwright test tests/e2e/smoke/admin-reports.spec.js --workers=1 --reporter=list`: 6 passed.
 
 Problema:
 El reporte de stock carga todos los productos y metadatos en una consulta grande. En catalogos grandes puede ser lento.
@@ -2090,6 +2122,13 @@ Medio-alto. Tocar checkout/cart requiere smoke completo.
 
 Prioridad: P1
 Area: Build, CSS
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run lint:css-build` con `tools/check-css-build-sync.js`.
+- `npm run lint` ahora falla si `style.css` o `style.css.map` no corresponden a `sass/style.scss`.
+- Comando canonico sigue siendo `npm run compile:css`.
+- Validado con `npm run lint:css-build` y `npm run lint`.
 
 Problema:
 `style.css` y `style.css.map` pueden quedar fuera de sync con Sass. Esto causa diffs grandes y bugs que se arreglan en CSS compilado pero no en fuente.
@@ -2160,6 +2199,13 @@ Medio. PHPCS completo puede generar mucho ruido; empezar incremental.
 
 Prioridad: P2
 Area: Tests backend
+Estado MVP2: cerrado incremental el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run test:domain` con `tools/test-domain-guards.js`.
+- El gate protege contratos criticos por fuente: asignacion bodega-first, guard atomico contra stock negativo, locks por order item, errores de shortage, locks DB de Bubble Points, rollback de ledger, rechazo de puntos insuficientes y rate limit de redeem.
+- No reemplaza un harness completo de WP integration tests, pero evita regresiones economicas en los helpers principales.
+- Validado con `npm run test:domain`.
 
 Problema:
 Las zonas de mayor riesgo economico son stock y puntos. Hoy dependen mucho de QA manual.
@@ -2251,6 +2297,13 @@ Medio. Admin custom es sensible.
 
 Prioridad: P2
 Area: QA checkout
+Estado MVP2: cerrado incremental el 2026-05-23.
+
+Resultado:
+- Se agrego `tests/e2e/smoke/checkout-edge-cases.spec.js`.
+- Cubre checkout vacio sin form roto, remover ultimo item hasta estado vacio y proteccion contra respuestas AJAX stale en ciudad.
+- Se agrego script `npm run test:e2e:smoke:checkout` para correr smoke checkout junto con la suite base de storefront.
+- Validado con `npm run test:e2e:smoke:checkout -- --reporter=list`: 53 passed / 4 skipped.
 
 Problema:
 Checkout tiene muchos edge cases: usuario guest/logged-in, shipping distinto, coupon, city reload, item removed, empty cart redirect.
@@ -2283,6 +2336,13 @@ Medio. Tests pueden ser lentos/flaky si no se aislan datos.
 
 Prioridad: P2
 Area: QA, DX
+Estado MVP2: cerrado incremental el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run test:e2e:seed` con `tools/bootstrap-playwright-fixtures.js`.
+- El bootstrap reutiliza el fixture existente y falla si faltan producto, categoria o cupones QA.
+- Fixture validado: categoria QA, producto QA, cupon fijo `qa10off`, cupon de envio `qafreeship` y ruta de cuenta.
+- Aun queda como mejora futura un seed WP-CLI aislado por entorno para reset completo.
 
 Problema:
 Tests visuales/smoke dependen de productos, usuarios, stock y cupones. Si cambian datos reales, los tests flaquean.
@@ -2311,6 +2371,13 @@ Medio. Seeds mal aislados pueden tocar contenido real si se ejecutan en entorno 
 
 Prioridad: P2
 Area: Seguridad, performance
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run audit:assets` y `npm run audit:deps`.
+- `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilidades.
+- Assets locales requeridos: 6/6 presentes para Font Awesome y Swiper.
+- Baseline de referencias externas: 33 refs; incluye redes sociales/WhatsApp, fuentes, SVG namespaces y refs de tests. No bloquea mientras los vendor criticos sean locales.
 
 Problema:
 El theme usa npm packages, vendor PHP, FontAwesome, Swiper y posiblemente fonts externas. Se necesita inventario de versiones y vulnerabilidades.
@@ -2341,6 +2408,15 @@ Bajo-medio.
 
 Prioridad: P2
 Area: Calidad, seguridad frontend
+Estado MVP2: cerrado incremental el 2026-05-23.
+
+Resultado:
+- Se agrego `npm run audit:php-output` con baseline no bloqueante y modo strict disponible.
+- Baseline actual: 35 lineas para revision manual futura.
+- Se corrigieron escapes puntuales en carrito, footer, product card, thank-you/order-received, Bubble Points coupons, social links de creators, single product y clases dinamicas de checkout/reportes.
+- Se agrego cobertura de `wp_kses_post`, `esc_url`, `esc_attr` y `esc_html` en salidas de alto riesgo tocadas por este bloque.
+- `npm run audit:php-requests` queda como baseline complementario: 382 refs y 22 para revision manual.
+- No se declara strict global todavia; queda como deuda convertir los 35 hallazgos restantes en allowlist explicita o fixes por modulo.
 
 Problema:
 El theme renderiza muchas URLs, HTML y atributos manualmente. Necesita convencion consistente para `esc_url`, `esc_attr`, `esc_html`, `wp_kses_post`.
