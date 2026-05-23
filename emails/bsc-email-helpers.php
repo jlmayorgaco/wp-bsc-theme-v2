@@ -68,11 +68,118 @@ function bsc_send_email_from_template( string $to, string $subject, string $temp
 
 	$sent = wp_mail( $to, $subject, $body, $headers ?: bsc_get_email_headers() );
 
+	if ( isset( $vars['order'] ) && $vars['order'] instanceof WC_Order ) {
+		bsc_append_order_email_log(
+			$vars['order'],
+			pathinfo( $template, PATHINFO_FILENAME ),
+			$sent,
+			[
+				'to'       => $to,
+				'subject'  => $subject,
+				'template' => $template,
+			]
+		);
+	}
+
 	if ( ! $sent ) {
 		error_log( sprintf( 'BSC email failed for %s using template %s', $to, $template ) );
 	}
 
 	return $sent;
+}
+
+function bsc_get_order_email_log( WC_Order $order ): array {
+	$log = $order->get_meta( '_bsc_email_log', true );
+	return is_array( $log ) ? array_values( $log ) : [];
+}
+
+function bsc_order_email_was_sent( WC_Order $order, string $type, string $dedupe_key = '' ): bool {
+	$type = sanitize_key( $type );
+
+	foreach ( bsc_get_order_email_log( $order ) as $entry ) {
+		if ( ! is_array( $entry ) ) {
+			continue;
+		}
+
+		if (
+			(string) ( $entry['type'] ?? '' ) === $type
+			&& (string) ( $entry['status'] ?? '' ) === 'sent'
+			&& ( $dedupe_key === '' || (string) ( $entry['dedupe_key'] ?? '' ) === $dedupe_key )
+		) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function bsc_append_order_email_log( WC_Order $order, string $type, bool $sent, array $context = [] ): void {
+	$type = sanitize_key( $type );
+
+	if ( $type === '' ) {
+		$type = 'email';
+	}
+
+	$log = bsc_get_order_email_log( $order );
+	$log[] = [
+		'type'       => $type,
+		'status'     => $sent ? 'sent' : 'failed',
+		'sent_at'    => current_time( 'mysql' ),
+		'to'         => sanitize_email( (string) ( $context['to'] ?? '' ) ),
+		'subject'    => sanitize_text_field( (string) ( $context['subject'] ?? '' ) ),
+		'template'   => sanitize_text_field( (string) ( $context['template'] ?? '' ) ),
+		'dedupe_key' => sanitize_text_field( (string) ( $context['dedupe_key'] ?? '' ) ),
+		'user_id'    => get_current_user_id(),
+	];
+
+	$order->update_meta_data( '_bsc_email_log', array_slice( $log, -50 ) );
+	$order->save_meta_data();
+}
+
+function bsc_get_recent_order_email_log_rows( int $limit = 20 ): array {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return [];
+	}
+
+	$orders = wc_get_orders(
+		[
+			'limit'      => 50,
+			'orderby'    => 'modified',
+			'order'      => 'DESC',
+			'meta_key'   => '_bsc_email_log',
+			'meta_compare' => 'EXISTS',
+		]
+	);
+	$rows = [];
+
+	foreach ( $orders as $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			continue;
+		}
+
+		foreach ( bsc_get_order_email_log( $order ) as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+
+			$rows[] = [
+				'order_id'     => $order->get_id(),
+				'order_number' => $order->get_order_number(),
+				'type'         => (string) ( $entry['type'] ?? '' ),
+				'status'       => (string) ( $entry['status'] ?? '' ),
+				'sent_at'      => (string) ( $entry['sent_at'] ?? '' ),
+				'to'           => (string) ( $entry['to'] ?? '' ),
+				'subject'      => (string) ( $entry['subject'] ?? '' ),
+			];
+		}
+	}
+
+	usort(
+		$rows,
+		static fn( array $a, array $b ): int => strcmp( $b['sent_at'], $a['sent_at'] )
+	);
+
+	return array_slice( $rows, 0, max( 1, $limit ) );
 }
 
 function bsc_get_email_template_manifest(): array {

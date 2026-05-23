@@ -57,6 +57,9 @@ function bsc_render_followup_emails_page(): void {
 
 	$last_run = get_option( 'bsc_followup_email_last_run_summary', [] );
 	$manifest = bsc_get_email_template_manifest();
+	$email_log_rows = function_exists( 'bsc_get_recent_order_email_log_rows' )
+		? bsc_get_recent_order_email_log_rows( 20 )
+		: [];
 	?>
 	<div class="wrap">
 		<h1>Emails BSC</h1>
@@ -171,6 +174,42 @@ function bsc_render_followup_emails_page(): void {
 				</p>
 			<?php else : ?>
 				<p>No hay ejecuciones registradas todavía.</p>
+			<?php endif; ?>
+		</div>
+
+		<div class="bsc-admin-followup__section">
+			<h2>Log operativo de correos de pedidos</h2>
+			<?php if ( ! empty( $email_log_rows ) ) : ?>
+				<table class="widefat striped bsc-admin-followup__templates-table">
+					<thead>
+						<tr>
+							<th>Fecha</th>
+							<th>Pedido</th>
+							<th>Tipo</th>
+							<th>Estado</th>
+							<th>Destino</th>
+							<th>Asunto</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $email_log_rows as $row ) : ?>
+							<tr>
+								<td><?php echo esc_html( $row['sent_at'] ); ?></td>
+								<td>
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders&s=' . rawurlencode( (string) $row['order_number'] ) ) ); ?>">
+										#<?php echo esc_html( $row['order_number'] ); ?>
+									</a>
+								</td>
+								<td><?php echo esc_html( $row['type'] ); ?></td>
+								<td><?php echo esc_html( $row['status'] ); ?></td>
+								<td><?php echo esc_html( $row['to'] ); ?></td>
+								<td><?php echo esc_html( $row['subject'] ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php else : ?>
+				<p>No hay correos de pedidos registrados todavia.</p>
 			<?php endif; ?>
 		</div>
 

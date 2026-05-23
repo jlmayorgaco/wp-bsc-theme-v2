@@ -51,6 +51,13 @@ function bsc_send_order_email( int $order_id, string $status, array $extra = [] 
         return false;
     }
 
+    $email_type = 'order-' . sanitize_key( $status );
+    $dedupe_key = md5( wp_json_encode( [ $status, $extra['tracking_code'] ?? '', $extra['tracking_link'] ?? '' ] ) );
+
+    if ( empty( $extra['force'] ) && function_exists( 'bsc_order_email_was_sent' ) && bsc_order_email_was_sent( $order, $email_type, $dedupe_key ) ) {
+        return true;
+    }
+
     // Build subject per status
     $subjects = [
         'processing' => sprintf( '¡Tu pago fue recibido! Pedido #%s — Bubble Skin Care', $order->get_order_number() ),
@@ -77,6 +84,20 @@ function bsc_send_order_email( int $order_id, string $status, array $extra = [] 
         ];
 
     $sent = wp_mail( $to, $subject, $body, $headers );
+
+    if ( function_exists( 'bsc_append_order_email_log' ) ) {
+        bsc_append_order_email_log(
+            $order,
+            $email_type,
+            $sent,
+            [
+                'to'         => $to,
+                'subject'    => $subject,
+                'template'   => $template,
+                'dedupe_key' => $dedupe_key,
+            ]
+        );
+    }
 
     if ( ! $sent ) {
         error_log( "BSC email failed for order #$order_id status $status to $to" );
