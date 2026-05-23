@@ -1,18 +1,12 @@
+@use "foundation" as admin;
+
 .bsc-admin-toolbar {
-  align-items: flex-end;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: space-between;
+  @include admin.inline-stack($gap: admin.$space-4, $align: flex-end, $justify: space-between);
   margin: 12px 0 16px;
 }
 
 .bsc-admin-toolbar__group {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-start;
+  @include admin.inline-stack;
 }
 
 .bsc-admin-toolbar__group--grow {
@@ -20,44 +14,29 @@
 }
 
 .bsc-admin-actions {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-start;
+  @include admin.inline-stack;
 }
 
 .bsc-admin-note {
-  background: #ffffff;
-  border: 1px solid #dcdcde;
-  border-radius: 8px;
-  padding: 12px 14px;
+  @include admin.admin-card($padding: 12px 14px);
   margin: 16px 0;
-  color: #3c434a;
+  color: admin.$text-admin;
 }
 
 .bsc-admin-note--warning {
-  background: #fff7ed;
-  border-color: #fdba74;
-  color: #9a3412;
+  @include admin.status-surface(admin.$surface-warning, admin.$warning-border, admin.$warning);
 }
 
 .bsc-admin-note--success {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
+  @include admin.status-surface(admin.$surface-success, admin.$success-border, admin.$success);
 }
 
 .bsc-admin-note--muted {
-  background: #f6f7f7;
+  background: admin.$surface-muted;
 }
 
 .bsc-admin-badge {
-  align-items: center;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  justify-content: center;
+  @include admin.inline-stack($gap: admin.$space-1, $justify: center, $wrap: nowrap);
   min-height: 24px;
   padding: 2px 8px;
   border-radius: 999px;
@@ -68,40 +47,28 @@
 }
 
 .bsc-admin-badge--success {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
+  @include admin.status-surface(admin.$surface-success, admin.$success-border, admin.$success);
 }
 
 .bsc-admin-badge--warning {
-  background: #fff7ed;
-  border-color: #fdba74;
-  color: #9a3412;
+  @include admin.status-surface(admin.$surface-warning, admin.$warning-border, admin.$warning);
 }
 
 .bsc-admin-badge--muted {
-  background: #f6f7f7;
-  border-color: #dcdcde;
-  color: #50575e;
+  @include admin.status-surface(admin.$surface-muted, admin.$border-strong, admin.$text-neutral);
 }
 
 .bsc-admin-badge--locked {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  @include admin.status-surface(admin.$info-surface, admin.$info-border, admin.$info);
 }
 
 .bsc-admin-inline-editor {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-start;
+  @include admin.inline-stack;
 }
 
 .bsc-admin-inline-editor__field.is-pending {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 1px #f59e0b;
+  border-color: admin.$pending;
+  box-shadow: 0 0 0 1px admin.$pending;
 }
 
 .bsc-admin-inline-editor__save {
@@ -109,17 +76,13 @@
 }
 
 .bsc-admin-inline-editor__pending {
-  align-items: center;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  justify-content: flex-start;
+  @include admin.inline-stack($wrap: nowrap);
   display: none;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #fff7ed;
-  color: #9a3412;
-  border: 1px solid #fdba74;
+  background: admin.$surface-warning;
+  color: admin.$warning;
+  border: 1px solid admin.$warning-border;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.4;
@@ -136,8 +99,8 @@
   z-index: 99999;
   padding: 10px 14px;
   border-radius: 6px;
-  background: #1f2937;
-  color: #ffffff;
+  background: admin.$toast-surface;
+  color: admin.$surface;
   font-size: 13px;
   font-weight: 600;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
@@ -148,7 +111,7 @@
 }
 
 .bsc-admin-toast--error {
-  background: #991b1b;
+  background: admin.$toast-danger;
 }
 
 .bsc-admin-toast.is-visible {
@@ -156,5 +119,3 @@
   visibility: visible;
   transform: translateY(0);
 }
-
-/*# sourceMappingURL=bsc-admin-ui.css.map */

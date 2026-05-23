@@ -1,5 +1,7 @@
+@use "foundation" as admin;
+
 .bsc-admin-access__intro {
-  color: #555555;
+  color: admin.$text-soft;
   max-width: 600px;
 }
 
@@ -13,7 +15,7 @@
 }
 
 .bsc-admin-access__slug {
-  color: #888;
+  color: admin.$text-muted;
   font-family: monospace;
 }
 
@@ -54,5 +56,3 @@
 .bsc-admin-followup__templates-table {
   max-width: 980px;
 }
-
-/*# sourceMappingURL=bsc-admin-communications.css.map */

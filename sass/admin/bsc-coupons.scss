@@ -1,6 +1,8 @@
+@use "foundation" as admin;
+
 .bsc-coupon-create-panel {
-  background: #ffffff;
-  border: 1px solid #ddd;
+  background: admin.$surface;
+  border: 1px solid admin.$border;
   border-radius: 8px;
   padding: 20px 24px;
   margin: 16px 0;
@@ -25,7 +27,7 @@
 }
 
 .bsc-admin-coupons__empty {
-  color: #888;
+  color: admin.$text-muted;
 }
 
 .bsc-admin-coupons__code-col {
@@ -65,18 +67,16 @@
 }
 
 .bsc-admin-coupons__expired-badge {
-  color: #c53030;
+  color: admin.$danger;
   font-size: 11px;
 }
 
 .bsc-admin-coupons__description {
-  color: #666666;
+  color: admin.$text-secondary;
   font-size: 12px;
 }
 
 .bsc-admin-coupons__delete {
-  color: #c53030;
-  border-color: #c53030;
+  color: admin.$danger;
+  border-color: admin.$danger;
 }
-
-/*# sourceMappingURL=bsc-coupons.css.map */

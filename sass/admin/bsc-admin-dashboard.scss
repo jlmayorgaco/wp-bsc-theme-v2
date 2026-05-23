@@ -1,3 +1,5 @@
+@use "foundation" as admin;
+
 .bsc-admin-dashboard__title {
   display: flex;
   align-items: center;
@@ -21,8 +23,8 @@
   flex-wrap: wrap;
   margin: 16px 0;
   padding: 12px;
-  background: #ffffff;
-  border: 1px solid #dcdcde;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
   border-radius: 6px;
 }
 
@@ -38,8 +40,8 @@
 }
 
 .bsc-admin-dashboard__card {
-  background: #ffffff;
-  border: 1px solid #ddd;
+  background: admin.$surface;
+  border: 1px solid admin.$border;
   border-radius: 10px;
   padding: 18px 20px;
   text-align: center;
@@ -47,20 +49,20 @@
 }
 
 .bsc-admin-dashboard__card--warning {
-  border-color: #f6ad55;
-  background: #fffaf0;
+  border-color: admin.$warning-soft;
+  background: admin.$surface-warning-soft;
 }
 
 .bsc-admin-dashboard__value {
   font-size: 1.8rem;
   font-weight: 800;
-  color: #222;
+  color: admin.$text-strong;
   line-height: 1.2;
 }
 
 .bsc-admin-dashboard__label {
   font-size: 0.78rem;
-  color: #888;
+  color: admin.$text-muted;
   margin-top: 4px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -81,7 +83,7 @@
 
 .bsc-admin-dashboard__empty-row {
   text-align: center;
-  color: #888;
+  color: admin.$text-muted;
 }
 
 .bsc-admin-dashboard__panel-action {
@@ -89,13 +91,13 @@
 }
 
 .bsc-admin-dashboard__low-stock-table {
-  background: #fff5f5;
+  background: admin.$surface-danger;
   border: 1px solid #fc8181;
 }
 
 .bsc-admin-dashboard__low-stock-value {
   font-weight: 700;
-  color: #c53030;
+  color: admin.$danger;
 }
 
 .bsc-admin-dashboard__low-stock-ok {
@@ -111,8 +113,8 @@
   gap: 8px;
   flex-wrap: wrap;
   padding: 12px;
-  background: #ffffff;
-  border: 1px solid #dcdcde;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
 }
 
 .bsc-admin-settings__section-title {
@@ -122,5 +124,3 @@
 .bsc-admin-settings__section-title--spaced {
   margin: 16px 0 0;
 }
-
-/*# sourceMappingURL=bsc-admin-dashboard.css.map */

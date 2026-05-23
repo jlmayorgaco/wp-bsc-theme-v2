@@ -1,0 +1,108 @@
+$surface: #ffffff !default;
+$surface-muted: #f6f7f7 !default;
+$surface-soft: #f9f9f9 !default;
+$surface-warning: #fff7ed !default;
+$surface-warning-soft: #fffaf0 !default;
+$surface-success: #f0fdf4 !default;
+$surface-danger: #fff5f5 !default;
+$surface-low: #fffff0 !default;
+
+$text: #1d2327 !default;
+$text-admin: #3c434a !default;
+$text-neutral: #50575e !default;
+$text-strong: #222 !default;
+$text-body: #333333 !default;
+$text-secondary: #666666 !default;
+$text-soft: #555555 !default;
+$text-muted: #888 !default;
+$text-subtle: #646970 !default;
+$text-inverse: #ffffff !default;
+$text-black: #000 !default;
+
+$border: #ddd !default;
+$border-strong: #dcdcde !default;
+$border-muted: #eee !default;
+$border-neutral: #ccc !default;
+$border-subtle: #c3c4c7 !default;
+
+$brand-pink: #F7C0CD !default;
+$brand-pink-strong: #ffb6c1 !default;
+$wp-blue: #2271b1 !default;
+$info: #1d4ed8 !default;
+$info-border: #93c5fd !default;
+$info-surface: #eff6ff !default;
+$pending: #f59e0b !default;
+$toast-surface: #1f2937 !default;
+$toast-danger: #991b1b !default;
+
+$success: #166534 !default;
+$success-border: #86efac !default;
+$success-accent: #22c55e !default;
+
+$warning: #9a3412 !default;
+$warning-border: #fdba74 !default;
+$warning-accent: #f97316 !default;
+$warning-soft: #f6ad55 !default;
+$warning-panel: #fffbeb !default;
+
+$danger: #c53030 !default;
+$danger-strong: #b30000 !default;
+$danger-border: #e53e3e !default;
+$danger-accent: #dc2626 !default;
+
+$space-1: 4px !default;
+$space-2: 6px !default;
+$space-3: 8px !default;
+$space-4: 12px !default;
+$space-5: 16px !default;
+$space-6: 20px !default;
+$space-7: 24px !default;
+
+$radius-xs: 3px !default;
+$radius-sm: 4px !default;
+$radius-md: 6px !default;
+$radius-lg: 8px !default;
+$radius-xl: 10px !default;
+$radius-pill: 30px !default;
+
+$shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04) !default;
+$font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif !default;
+$font-code: monaco, consolas, "Andale Mono", "DejaVu Sans Mono", monospace !default;
+
+@mixin inline-stack($gap: $space-3, $align: center, $justify: flex-start, $wrap: wrap) {
+  align-items: $align;
+  display: flex;
+  flex-wrap: $wrap;
+  gap: $gap;
+  justify-content: $justify;
+}
+
+@mixin admin-card(
+  $padding: $space-5,
+  $radius: $radius-lg,
+  $background: $surface,
+  $border-color: $border-strong
+) {
+  background: $background;
+  border: 1px solid $border-color;
+  border-radius: $radius;
+  padding: $padding;
+}
+
+@mixin status-surface($background, $border-color, $color) {
+  background: $background;
+  border-color: $border-color;
+  color: $color;
+}
+
+@mixin admin-table-column($width) {
+  width: $width;
+}
+
+@mixin admin-muted-text($size: null) {
+  color: $text-muted;
+
+  @if $size != null {
+    font-size: $size;
+  }
+}
