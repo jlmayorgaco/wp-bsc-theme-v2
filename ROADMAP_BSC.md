@@ -476,6 +476,7 @@ Unreleased/MVP2:
 
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
 - P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
+- P3 recomendaciones: helper central filtra productos publicados, comprables y en stock; estrategia deterministica por relacionados, categorias y fallback de ultimos productos.
 - P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
 - Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
 - QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
@@ -2509,6 +2510,7 @@ Acceptance:
 
 Prioridad: P3
 Area: Conversion
+Estado: Cerrado en MVP2, 2026-05-22
 
 Objetivo:
 Recomendados en producto/carrito vacio deben usar estrategia clara: categoria, stock disponible, best sellers, margen o configuracion admin.
@@ -2520,8 +2522,9 @@ Archivos a inspeccionar:
 - `woocommerce/single-product.php`
 
 Acceptance:
-- No recomienda productos sin stock/no publicados.
-- Cards usan el mismo componente en todas las superficies.
+- Cerrado: Helper de recomendaciones excluye productos no publicados, sin SKU, no comprables o sin stock.
+- Cerrado: Producto usa relacionados -> misma categoria -> ultimos productos en stock; carrito usa relacionados/categorias de carrito o ultimos productos si esta vacio.
+- Cerrado: Sliders filtran elegibilidad y siguen renderizando `BSC_Products_Card` como componente unico.
 
 ## BSC-RM-059 - Notificaciones y estados de pedido mas robustos
 

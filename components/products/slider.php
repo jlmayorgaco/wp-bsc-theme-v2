@@ -35,8 +35,13 @@ class BSC_Products_Sliders {
 
     public function render(): void {
 
-        // Convert SKUs to IDs
-        $product_ids = array_filter(array_map('wc_get_product_id_by_sku', $this->skus));
+        // Convert SKUs to eligible product IDs.
+        $product_ids = array_values(
+            array_filter(
+                array_map('wc_get_product_id_by_sku', $this->skus),
+                fn($product_id) => $this->isEligibleProductId((int) $product_id)
+            )
+        );
         $needed = $this->max_products - count($product_ids);
 
 
@@ -51,9 +56,16 @@ class BSC_Products_Sliders {
 
         $query = new WP_Query([
             'post_type'              => 'product',
+            'post_status'            => 'publish',
             'post__in'               => $product_ids,
             'orderby'                => 'post__in',
             'posts_per_page'         => $this->max_products,
+            'meta_query'             => [
+                [
+                    'key'   => '_stock_status',
+                    'value' => 'instock',
+                ],
+            ],
             'no_found_rows'          => true,     // skip COUNT(*) — no pagination needed in sliders
             'cache_results'          => true,
             'update_post_meta_cache' => true,     // BSC-040: pre-load meta in batch
@@ -73,7 +85,7 @@ class BSC_Products_Sliders {
             $query->the_post();
             global $product;
 
-            if ($product instanceof WC_Product) {
+            if ($product instanceof WC_Product && $this->isEligibleProductId($product->get_id())) {
                 $card = new BSC_Products_Card();
                 $card->setProduct($product);
                 $card->render();
@@ -101,6 +113,12 @@ class BSC_Products_Sliders {
             'orderby'                => 'date',  // deterministic — avoids MySQL RAND() full-table scan
             'order'                  => 'DESC',
             'post__not_in'           => $exclude_ids,
+            'meta_query'             => [
+                [
+                    'key'   => '_stock_status',
+                    'value' => 'instock',
+                ],
+            ],
             'update_post_meta_cache' => false,
             'update_post_term_cache' => false,
         ];
@@ -146,11 +164,33 @@ class BSC_Products_Sliders {
                 $args['order'] = 'DESC';
         }
 
-        $ids = get_posts($args);
+        $ids = array_values(
+            array_filter(
+                array_map('absint', get_posts($args)),
+                fn($product_id) => $this->isEligibleProductId((int) $product_id)
+            )
+        );
 
         set_transient($cache_key, $ids, HOUR_IN_SECONDS);
 
         return $ids;
+    }
+
+    private function isEligibleProductId(int $product_id): bool {
+        if ($product_id <= 0) {
+            return false;
+        }
+
+        $product = wc_get_product($product_id);
+
+        if (function_exists('bsc_recommendation_product_is_eligible')) {
+            return bsc_recommendation_product_is_eligible($product);
+        }
+
+        return $product instanceof WC_Product
+            && $product->get_status() === 'publish'
+            && $product->is_purchasable()
+            && $product->is_in_stock();
     }
 }
 
