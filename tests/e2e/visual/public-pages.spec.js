@@ -7,11 +7,41 @@ const {
   openFirstProductFromCategory,
 } = require('../helpers/ui');
 
+async function stabilizeHomeHero(page) {
+  await page.evaluate(() => {
+    const hero = document.querySelector('.bsc__home-swiper');
+    const swiper = hero?.swiper || null;
+    const stableSlide = window.innerWidth < 768 ? 1 : 0;
+
+    if (swiper) {
+      if (swiper.autoplay && typeof swiper.autoplay.stop === 'function') {
+        swiper.autoplay.stop();
+      }
+
+      if (typeof swiper.slideTo === 'function') {
+        swiper.slideTo(stableSlide, 0);
+      }
+    }
+
+    document
+      .querySelectorAll('.bsc__home-swiper .slide__hero')
+      .forEach((node) => node.classList.remove('fade-in'));
+
+    const activeHero = document.querySelector(
+      '.bsc__home-swiper .swiper-slide-active .slide__hero'
+    );
+    if (activeHero) {
+      activeHero.classList.add('fade-in');
+    }
+  });
+}
+
 test.describe('BSC visual baseline - public pages', () => {
   test('home', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for public visual baselines');
 
     await gotoAndStabilize(page, routes.home);
+    await stabilizeHomeHero(page);
 
     await expect(page).toHaveScreenshot('home.png', {
       animations: 'disabled',

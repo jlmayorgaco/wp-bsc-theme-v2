@@ -79,6 +79,16 @@ Gate de cierre P3 documentado el 2026-05-23:
 - Commits de cierre P3 en `MVP2`: `8d6975f`, `f5b3bbf`, `8bea7b8`, `e3cc450`, `7c91c6e`.
 - Alcance cerrado: CRM admin para Creators/Newsletter, Dashboard operativo, recomendaciones, emails de pedido/followup y monitoreo post-launch.
 
+Gate release candidate documentado el 2026-05-23:
+
+- `npm run lint`: verde.
+- `npm run test:e2e:smoke -- --reporter=list`: verde, 124 passed / 35 skipped.
+- `npm run test:e2e:visual`: verde despues de refrescar baselines revisados.
+- Resultado visual por suite: public pages 24 passed, header/mobile nav 5 passed / 4 skipped, account/post-purchase 15 passed, email previews 30 passed.
+- Baselines visuales refrescados para paginas publicas y cuenta; los cambios corresponden al estado actual de UI despues de P0-P3.
+- Home visual estabilizado antes de screenshot: el test detiene Swiper y fuerza el slide esperado por viewport para evitar diffs por autoplay.
+- Sin blocker tecnico detectado en lint, smoke o visual. Pendiente de GO: revision manual Safari/iPhone y validacion de configuracion productiva.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
