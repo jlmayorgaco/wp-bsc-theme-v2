@@ -68,7 +68,7 @@ function bsc_get_email_preview_url( string $slug ): string {
 }
 
 function bsc_get_email_preview_customer(): WP_User {
-	$email = 'preview.customer@bsc.local';
+	$email = 'preview.customer@example.invalid';
 	$user  = get_user_by( 'email', $email );
 
 	if ( ! $user ) {
