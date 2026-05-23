@@ -43,14 +43,21 @@ function bsc_creators_save_applications(array $applications): void {
 
 function bsc_creators_status_options(): array {
     return [
-        'new'      => 'Nueva',
-        'reviewed' => 'Revisada',
-        'approved' => 'Aprobada',
-        'rejected' => 'Rechazada',
+        'new'       => 'Nueva',
+        'contacted' => 'Contactada',
+        'approved'  => 'Aprobada',
+        'discarded' => 'Descartada',
     ];
 }
 
 function bsc_creators_normalize_status(string $status): string {
+    $aliases = [
+        'reviewed' => 'contacted',
+        'rejected' => 'discarded',
+    ];
+
+    $status = $aliases[$status] ?? $status;
+
     return array_key_exists($status, bsc_creators_status_options()) ? $status : 'new';
 }
 
@@ -71,10 +78,12 @@ function bsc_creators_handle_actions(): void {
         if ('update_status' === $action) {
             $index = isset($_POST['application_id']) ? absint(wp_unslash($_POST['application_id'])) : -1;
             $status = isset($_POST['application_status']) ? sanitize_key(wp_unslash($_POST['application_status'])) : 'new';
+            $notes = isset($_POST['application_notes']) ? sanitize_textarea_field(wp_unslash($_POST['application_notes'])) : '';
             $applications = bsc_creators_get_applications();
 
             if (isset($applications[$index])) {
                 $applications[$index]['status'] = bsc_creators_normalize_status($status);
+                $applications[$index]['notes'] = $notes;
                 $applications[$index]['updated_at'] = current_time('mysql');
                 $applications[$index]['updated_by'] = get_current_user_id();
                 bsc_creators_save_applications($applications);
@@ -106,7 +115,7 @@ function bsc_creators_export_csv(): void {
 
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
-    fputcsv($out, ['Fecha', 'Estado', 'Nombre', 'Email', 'Instagram', 'TikTok', 'Mensaje']);
+    fputcsv($out, ['Fecha', 'Estado', 'Nombre', 'Email', 'Instagram', 'TikTok', 'Origen', 'Mensaje', 'Notas']);
 
     foreach (bsc_creators_get_applications() as $application) {
         fputcsv(
@@ -118,7 +127,9 @@ function bsc_creators_export_csv(): void {
                 $application['email'] ?? '',
                 $application['instagram'] ?? '',
                 $application['tiktok'] ?? '',
+                $application['source'] ?? '',
                 $application['mensaje'] ?? '',
+                $application['notes'] ?? '',
             ]
         );
     }
@@ -175,7 +186,9 @@ function bsc_render_creators_page(): void {
                     <th>Email</th>
                     <th>Instagram</th>
                     <th>TikTok</th>
+                    <th>Origen</th>
                     <th>Mensaje</th>
+                    <th>Notas</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -212,7 +225,9 @@ function bsc_render_creators_page(): void {
                             <span class="bsc-admin-creators__link-empty">No registrado</span>
                         <?php endif; ?>
                     </td>
+                    <td><?php echo esc_html($application['source'] ?? 'bubble-creators-form'); ?></td>
                     <td><?php echo esc_html(wp_trim_words((string) ($application['mensaje'] ?? ''), 18)); ?></td>
+                    <td><?php echo esc_html(wp_trim_words((string) ($application['notes'] ?? ''), 14)); ?></td>
                     <td>
                         <form method="post" class="bsc-admin-creators__status-form">
                             <?php wp_nonce_field('bsc_creators_action', 'bsc_creators_nonce'); ?>
@@ -225,13 +240,14 @@ function bsc_render_creators_page(): void {
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <textarea name="application_notes" rows="2" placeholder="Notas internas"><?php echo esc_textarea($application['notes'] ?? ''); ?></textarea>
                             <button type="submit" class="button button-small">Guardar</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
             <?php if (0 === $visible_rows) : ?>
-                <tr><td colspan="8"><?php echo esc_html($status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavía.'); ?></td></tr>
+                <tr><td colspan="10"><?php echo esc_html($status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavia.'); ?></td></tr>
             <?php endif; ?>
             </tbody>
         </table>

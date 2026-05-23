@@ -40,6 +40,7 @@ require get_template_directory() . '/inc/template-functions.php';
 require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/functions_bsc.php';
 require_once get_template_directory() . '/inc/bsc-contact-options.php';
+require_once get_template_directory() . '/inc/newsletter-store.php';
 require_once get_template_directory() . '/inc/bsc-static-pages.php';
 require_once get_template_directory() . '/inc/bsc-url-helpers.php';
 

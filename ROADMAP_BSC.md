@@ -474,6 +474,7 @@ Pendientes historicos consolidados:
 
 Unreleased/MVP2:
 
+- P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
 - P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
 - Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
 - QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
@@ -2468,6 +2469,7 @@ Bajo-medio. Suite puede tardar mas.
 
 Prioridad: P3
 Area: Producto, operacion
+Estado: Cerrado en MVP2, 2026-05-22
 
 Objetivo:
 Dar al equipo una vista operativa de leads: estado, notas, export, filtros, fecha, redes sociales y origen.
@@ -2478,9 +2480,10 @@ Archivos a inspeccionar:
 - `inc/ajax/newsletter-actions.php`
 
 Acceptance:
-- Admin ve solicitudes sin entrar a base de datos.
-- Se puede exportar CSV.
-- Se puede marcar estado: nuevo, contactado, aprobado, descartado.
+- Cerrado: Admin ve solicitudes de Creators y Newsletter sin entrar a base de datos.
+- Cerrado: Creators y Newsletter exportan CSV.
+- Cerrado: Ambos flujos permiten marcar estado: nuevo, contactado, aprobado, descartado.
+- Cerrado: Ambos flujos tienen notas internas; Creators muestra redes sociales y origen; Newsletter muestra origen y filtro por email.
 
 ## BSC-RM-057 - Dashboard operativo con filtros y permisos por rol
 

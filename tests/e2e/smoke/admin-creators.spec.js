@@ -36,5 +36,7 @@ test.describe('BSC Creators admin smoke', () => {
     await expect(page.locator('select[name="creator_status"]').first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'Exportar CSV' })).toBeVisible();
     await expect(page.locator('.bsc-admin-creators__table').first()).toBeVisible();
+    await expect(page.locator('.bsc-admin-creators__table thead').first()).toContainText('Origen');
+    await expect(page.locator('.bsc-admin-creators__table thead').first()).toContainText('Notas');
   });
 });
