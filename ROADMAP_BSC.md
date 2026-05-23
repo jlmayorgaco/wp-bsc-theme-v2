@@ -47,9 +47,11 @@ Comandos principales:
 
 ```bash
 npm run lint
+npm run lint:inline-styles
 npm run lint:php
 npm run lint:js
 npm run lint:scss
+npm run lint:stylelint
 npm run test:e2e:smoke
 npm run test:e2e:visual
 npm run compile:css
@@ -60,6 +62,8 @@ Regla CSS/Sass:
 - La fuente editable de estilos vive en `sass/`.
 - Los archivos `.css` versionados son salida compilada para WordPress/WooCommerce.
 - No editar `admin/*.css`, `woocommerce-coming-soon.css`, `plugins/bubble-points/admin/*.css`, `style.css`, `woocommerce.css` o `admin-order-label-print.css` manualmente; editar su entrypoint SCSS y correr `npm run compile:css`.
+- Los tokens base deben ser puros y no emitir CSS por accidente. Las variables/clases globales del tema salen desde `sass/tokens/_css-vars.scss`; los tokens semanticos reutilizables viven en `sass/tokens/_public.scss`.
+- Los estilos inline estaticos no-email estan bloqueados por `npm run lint:inline-styles`; emails y estilos realmente dinamicos quedan permitidos.
 
 ## Estado actual de release
 
@@ -122,6 +126,7 @@ Scope ya cerrado en MVP2:
 - Limpieza de mojibake en copy admin/operador tocado en el release pass.
 - P1 release-slice: rate limit centralizado para AJAX publico critico, acciones admin mutables por POST+nonce, validacion de cupones, workflow admin de Bubble Creators, previews de email admin-only/noindex, invalidacion de cache de busqueda, redencion Bubble Points con guardrails, accesibilidad de mega menu/search, fix de selects en cuenta para Safari/iPhone, imagenes de cards con sizes/decoding y helper Playwright compatible con lazy images.
 - Post-MVP2 tickets 4-10: reportes de stock con paginacion/busqueda/sort server-side; CSS source of truth con `lint:css-build`; auditoria Woo templates; tests edge checkout; seed QA estable; guard tests de stock/Bubble Points; auditoria de dependencias/assets; baseline de escaping/requests.
+- Post-MVP2 CSS/Sass hardening: tokens publicos separados de CSS emitido, migracion inicial de checkout/header/cuenta/shop/contacto/creators/tabs a tokens semanticos, Stylelint SCSS, guard de inline styles estaticos y `.gitattributes` para finales de linea consistentes.
 
 Notas residuales:
 

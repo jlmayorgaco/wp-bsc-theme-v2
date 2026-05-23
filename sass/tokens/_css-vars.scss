@@ -1,0 +1,95 @@
+@use "colors";
+@use "structure";
+@use "typography";
+@use "widths";
+
+@import url("https://fonts.cdnfonts.com/css/helvetica-neue-55");
+
+.bsc {
+  --color--main: #{colors.$color__pink};
+  --color--text: #{colors.$color__black};
+  --color--blue: #{colors.$color__blue};
+  --color--surface: #{colors.$color__white};
+  --color--surface-soft: #{colors.$color__pink-soft};
+  --color--surface-muted: #{colors.$color__gray-050};
+  --color--border: #{colors.$color__gray-300};
+  --color--muted: #{colors.$color__gray-500};
+  --color--accent-warning: #{colors.$color__yellow-soft};
+  --color--accent-success: #{colors.$color__success};
+  --color--accent-danger: #{colors.$color__danger};
+
+  --space--xs: #{structure.$bsc-spacing-xs};
+  --space--sm: #{structure.$bsc-spacing-sm};
+  --space--md: #{structure.$bsc-spacing-md};
+  --space--lg: #{structure.$bsc-spacing-lg};
+  --space--xl: #{structure.$bsc-spacing-xl};
+  --space--2xl: #{structure.$bsc-spacing-2xl};
+  --space--section-y: #{structure.$bsc-section-space};
+
+  --radius--sm: #{structure.$bsc-radius-sm};
+  --radius--md: #{structure.$bsc-radius-md};
+  --radius--lg: #{structure.$bsc-radius-lg};
+  --radius--pill: #{structure.$bsc-radius-pill};
+
+  --size--control-h: #{structure.$bsc-control-height};
+  --size--input-h: #{structure.$bsc-input-height};
+  --size--page-container-w: #{widths.$page-container-width};
+  --size--header-logo-w: 150px;
+}
+
+.bsc__title {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  padding-top: 80px;
+  padding-bottom: 20px;
+  color: var(--color--text);
+  font-family: "Helvetica", sans-serif;
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: 2.5px;
+  text-align: center;
+
+  strong {
+    font-weight: 900;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    width: 120px;
+    height: 20px;
+    margin: 30px auto 0;
+    background-image: url("/wp-content/themes/wp-bsc-theme-v2/images/bsc_title_underline.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+}
+
+.bsc__description {
+  width: calc(100vw - 2em);
+  max-width: 1000px;
+  margin: 0 auto;
+  color: var(--color--text);
+  font-family: "Helvetica", sans-serif;
+  font-size: 18px;
+  font-weight: 100;
+  letter-spacing: 2px;
+  line-height: 29.25px;
+  text-align: center;
+  text-rendering: optimizelegibility;
+}
+
+.bsc__price {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 767px) {
+  .bsc__description {
+    margin-bottom: 30px;
+    font-size: 15px;
+  }
+}

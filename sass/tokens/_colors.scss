@@ -39,22 +39,3 @@ $color__gray-600: #555555;
 $color__success: #48bb78;
 $color__danger: #fc8181;
 $color__warning: #ffe066;
-
-.bsc {
-
-  // Color
-  --color--main: #{$color__pink};
-  --color--text: #{$color__black};
-  --color--blue: #{$color__blue};
-  --color--surface: #{$color__white};
-  --color--surface-soft: #{$color__pink-soft};
-  --color--surface-muted: #{$color__gray-050};
-  --color--border: #{$color__gray-300};
-  --color--muted: #{$color__gray-500};
-  --color--accent-warning: #{$color__yellow-soft};
-  --color--accent-success: #{$color__success};
-  --color--accent-danger: #{$color__danger};
-
-  // Header
-  --size--header-logo-w: 150px;
-}

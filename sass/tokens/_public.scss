@@ -1,0 +1,95 @@
+@use "sass:map";
+@use "colors";
+@use "structure";
+@use "typography";
+@use "widths";
+
+$surface: var(--color--surface, #{colors.$color__white}) !default;
+$surface-soft: var(--color--surface-soft, #{colors.$color__pink-soft}) !default;
+$surface-muted: var(--color--surface-muted, #{colors.$color__gray-050}) !default;
+$surface-subtle: #eef1f0 !default;
+$text: var(--color--text, #{colors.$color__black}) !default;
+$text-muted: var(--color--muted, #{colors.$color__gray-500}) !default;
+$text-soft: #{colors.$color__gray-600} !default;
+$border: var(--color--text, #{colors.$color__black}) !default;
+$border-soft: #{colors.$color__gray-300} !default;
+$border-muted: #{colors.$color__gray-200} !default;
+$brand: var(--color--main, #{colors.$color__pink}) !default;
+$brand-blue: var(--color--blue, #{colors.$color__blue}) !default;
+$brand-yellow: var(--color--accent-warning, #{colors.$color__yellow-soft}) !default;
+$danger: var(--color--accent-danger, #{colors.$color__danger}) !default;
+$success: var(--color--accent-success, #{colors.$color__success}) !default;
+
+$space-xs: structure.$bsc-spacing-xs !default;
+$space-sm: structure.$bsc-spacing-sm !default;
+$space-md: structure.$bsc-spacing-md !default;
+$space-lg: structure.$bsc-spacing-lg !default;
+$space-xl: structure.$bsc-spacing-xl !default;
+$space-2xl: structure.$bsc-spacing-2xl !default;
+
+$radius-sm: structure.$bsc-radius-sm !default;
+$radius-md: structure.$bsc-radius-md !default;
+$radius-lg: structure.$bsc-radius-lg !default;
+$radius-pill: structure.$bsc-radius-pill !default;
+
+$control-height: structure.$bsc-control-height !default;
+$input-height: structure.$bsc-input-height !default;
+$container-width: widths.$page-container-width !default;
+$container-wide: 1280px !default;
+
+$font-main: "Helvetica", "Helvetica Neue", Arial, sans-serif !default;
+$font-system: typography.$font__main !default;
+
+@function breakpoint($name) {
+  @return map.get(structure.$bsc-breakpoints, $name);
+}
+
+@mixin media-max($name) {
+  $value: breakpoint($name);
+
+  @if $value == null {
+    @error "Unknown BSC breakpoint `#{$name}`.";
+  }
+
+  @media (max-width: $value) {
+    @content;
+  }
+}
+
+@mixin inline-stack($gap: $space-sm, $align: center, $justify: flex-start, $wrap: wrap) {
+  display: flex;
+  flex-wrap: $wrap;
+  align-items: $align;
+  justify-content: $justify;
+  gap: $gap;
+}
+
+@mixin field-control(
+  $border-style: solid,
+  $border-color: $border,
+  $radius: $radius-md,
+  $background: $surface,
+  $color: $text
+) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: $input-height;
+  padding: $space-xs $space-sm;
+  border: 1px $border-style $border-color;
+  border-radius: $radius;
+  background-color: $background;
+  color: $color;
+  font-size: 1rem;
+  line-height: 1.25;
+  letter-spacing: 1px;
+}
+
+@mixin link-reset($color: inherit, $weight: inherit) {
+  color: $color;
+  font-weight: $weight;
+  text-decoration: none;
+
+  &:visited {
+    color: $color;
+  }
+}
