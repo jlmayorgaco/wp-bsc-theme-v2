@@ -1,9 +1,63 @@
-const { defineConfig } = require('@playwright/test');
+const { defineConfig, devices } = require('@playwright/test');
 
 const baseURL =
   process.env.PLAYWRIGHT_BASE_URL ||
   process.env.BASE_URL ||
   'http://bsc.local';
+const includeWebKitGate = process.env.PW_ENABLE_WEBKIT_GATE === '1';
+const webKitGatePattern = /@webkit/;
+
+const baseProjects = [
+  {
+    name: 'mobile',
+    grepInvert: includeWebKitGate ? webKitGatePattern : undefined,
+    use: {
+      browserName: 'chromium',
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    },
+  },
+  {
+    name: 'tablet',
+    grepInvert: includeWebKitGate ? webKitGatePattern : undefined,
+    use: {
+      browserName: 'chromium',
+      viewport: { width: 768, height: 1024 },
+      isMobile: true,
+      hasTouch: true,
+    },
+  },
+  {
+    name: 'desktop',
+    grepInvert: includeWebKitGate ? webKitGatePattern : undefined,
+    use: {
+      browserName: 'chromium',
+      viewport: { width: 1440, height: 900 },
+    },
+  },
+];
+
+const webKitProjects = [
+  {
+    name: 'webkit-iphone',
+    grep: webKitGatePattern,
+    use: {
+      ...devices['iPhone 13'],
+      browserName: 'webkit',
+      locale: 'es-CO',
+      timezoneId: 'America/Bogota',
+    },
+  },
+  {
+    name: 'webkit-desktop',
+    grep: webKitGatePattern,
+    use: {
+      browserName: 'webkit',
+      viewport: { width: 1440, height: 900 },
+    },
+  },
+];
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
@@ -31,28 +85,5 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
     video: 'off',
   },
-  projects: [
-    {
-      name: 'mobile',
-      use: {
-        viewport: { width: 390, height: 844 },
-        isMobile: true,
-        hasTouch: true,
-      },
-    },
-    {
-      name: 'tablet',
-      use: {
-        viewport: { width: 768, height: 1024 },
-        isMobile: true,
-        hasTouch: true,
-      },
-    },
-    {
-      name: 'desktop',
-      use: {
-        viewport: { width: 1440, height: 900 },
-      },
-    },
-  ],
+  projects: includeWebKitGate ? [...baseProjects, ...webKitProjects] : baseProjects,
 });

@@ -1,0 +1,12 @@
+{
+  "coming-soon.php": {
+    "status": "theme-only",
+    "reviewedOn": "2026-05-23",
+    "reason": "BSC maintenance page is a theme-owned template and has no WooCommerce upstream equivalent."
+  },
+  "myaccount/my-orders.php": {
+    "status": "deprecated-upstream-no-version",
+    "reviewedOn": "2026-05-23",
+    "reason": "Deprecated WooCommerce template kept only for backward compatibility; upstream has no @version header."
+  }
+}

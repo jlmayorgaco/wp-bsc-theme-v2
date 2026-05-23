@@ -49,6 +49,10 @@ function bsc_playwright_fixture_admin_password(): string {
     return getenv('PW_ADMIN_PASSWORD') ?: 'VisualAdmin#2026BSC';
 }
 
+function bsc_playwright_fixture_role_password(): string {
+    return getenv('PW_ROLE_PASSWORD') ?: 'RoleSmoke#2026BSC';
+}
+
 function bsc_playwright_fixture_login_url(): string {
     $login_page = get_page_by_path('login');
 
@@ -347,6 +351,93 @@ function bsc_playwright_fixture_get_or_create_admin(string $username, string $em
     return $user;
 }
 
+function bsc_playwright_fixture_get_or_create_role_user(string $role, string $username, string $email, string $password): WP_User {
+    $user = get_user_by('login', $username);
+
+    if (!$user) {
+        $user = get_user_by('email', $email);
+    }
+
+    if (!$user) {
+        $user_id = wp_insert_user([
+            'user_login'   => $username,
+            'user_email'   => $email,
+            'user_pass'    => $password,
+            'role'         => $role,
+            'first_name'   => 'QA',
+            'last_name'    => ucfirst(str_replace('_', ' ', $role)),
+            'display_name' => 'QA ' . ucfirst(str_replace('_', ' ', $role)),
+        ]);
+
+        if (is_wp_error($user_id)) {
+            fwrite(STDERR, "Failed to create fixture {$role}: {$user_id->get_error_message()}\n");
+            exit(1);
+        }
+
+        $user = get_user_by('id', $user_id);
+    }
+
+    wp_update_user([
+        'ID'           => $user->ID,
+        'user_pass'    => $password,
+        'role'         => $role,
+        'first_name'   => 'QA',
+        'last_name'    => ucfirst(str_replace('_', ' ', $role)),
+        'display_name' => 'QA ' . ucfirst(str_replace('_', ' ', $role)),
+    ]);
+
+    return $user;
+}
+
+function bsc_playwright_fixture_admin_role_users(string $password): array {
+    if (class_exists('BSC_Roles')) {
+        BSC_Roles::create();
+        BSC_Roles::grant_admin_wc_caps();
+    }
+
+    $roles = [
+        'operator' => [
+            'role'     => 'bsc_operator',
+            'username' => 'qa_bsc_operator',
+            'email'    => 'qa.bsc.operator@bsc.local',
+        ],
+        'employee' => [
+            'role'     => 'bsc_employee',
+            'username' => 'qa_bsc_employee',
+            'email'    => 'qa.bsc.employee@bsc.local',
+        ],
+        'shopManager' => [
+            'role'     => 'shop_manager',
+            'username' => 'qa_bsc_shop_manager',
+            'email'    => 'qa.bsc.shop-manager@bsc.local',
+        ],
+    ];
+
+    $payload = [];
+
+    foreach ($roles as $key => $definition) {
+        if (!get_role($definition['role'])) {
+            continue;
+        }
+
+        $user = bsc_playwright_fixture_get_or_create_role_user(
+            $definition['role'],
+            $definition['username'],
+            $definition['email'],
+            $password
+        );
+
+        $payload[$key] = [
+            'username' => $user->user_login,
+            'email'    => $user->user_email,
+            'password' => $password,
+            'role'     => $definition['role'],
+        ];
+    }
+
+    return $payload;
+}
+
 function bsc_playwright_fixture_admin_variants(string $password): array {
     $variants = [];
 
@@ -526,6 +617,7 @@ $password = bsc_playwright_fixture_password();
 $admin_username = bsc_playwright_fixture_admin_username();
 $admin_email = bsc_playwright_fixture_admin_email();
 $admin_password = bsc_playwright_fixture_admin_password();
+$role_password = bsc_playwright_fixture_role_password();
 $user = bsc_playwright_fixture_get_or_create_customer($email, $password);
 $admin_user = bsc_playwright_fixture_get_or_create_admin($admin_username, $admin_email, $admin_password);
 $order = bsc_playwright_fixture_get_or_create_order((int) $user->ID);
@@ -560,6 +652,7 @@ $payload = [
         'password' => $admin_password,
     ],
     'adminVariants' => bsc_playwright_fixture_admin_variants($admin_password),
+    'adminRoles' => bsc_playwright_fixture_admin_role_users($role_password),
     'previewRoutes' => bsc_playwright_fixture_email_preview_routes(),
     'order' => [
         'id'     => $order->get_id(),

@@ -66,6 +66,18 @@ function bsc_newsletter_handle_admin_actions(): void {
             wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-newsletter', 'bsc_notice' => 'updated' ], admin_url( 'admin.php' ) ) );
             exit;
         }
+
+        if ( 'delete_lead' === $action ) {
+            $index       = isset( $_POST['subscriber_id'] ) ? absint( wp_unslash( $_POST['subscriber_id'] ) ) : -1;
+            $subscribers = function_exists( 'bsc_privacy_delete_indexed_row' )
+                ? bsc_privacy_delete_indexed_row( bsc_newsletter_get_subscribers(), $index )
+                : array_values( array_diff_key( bsc_newsletter_get_subscribers(), [ $index => true ] ) );
+
+            bsc_newsletter_save_subscribers( $subscribers );
+
+            wp_safe_redirect( add_query_arg( [ 'page' => 'bsc-newsletter', 'bsc_notice' => 'deleted' ], admin_url( 'admin.php' ) ) );
+            exit;
+        }
     }
 
     if ( isset( $_GET['bsc_export'], $_GET['_wpnonce'] ) && 'newsletter' === sanitize_key( wp_unslash( $_GET['bsc_export'] ) ) ) {
@@ -94,7 +106,7 @@ function bsc_newsletter_export_csv(): void {
     }
 
     fwrite( $out, "\xEF\xBB\xBF" );
-    fputcsv( $out, [ 'Fecha', 'Estado', 'Email', 'Origen', 'Notas' ] );
+    fputcsv( $out, [ 'Fecha', 'Estado', 'Email', 'Origen', 'Notas', 'Consentimiento', 'IP hash', 'Retencion dias' ] );
 
     $statuses = bsc_newsletter_status_options();
 
@@ -109,6 +121,9 @@ function bsc_newsletter_export_csv(): void {
                 $subscriber['email'] ?? '',
                 $subscriber['source'] ?? '',
                 $subscriber['notes'] ?? '',
+                ! empty( $subscriber['consent'] ) ? 'si' : 'no',
+                $subscriber['ip_hash'] ?? '',
+                $subscriber['retention_days'] ?? '',
             ]
         );
     }
@@ -140,7 +155,9 @@ function bsc_render_newsletter_page(): void {
         <hr class="wp-header-end">
 
         <?php if ( isset( $_GET['bsc_notice'] ) ) : ?>
-            <div class="bsc-admin-note bsc-admin-note--success">Lead actualizado.</div>
+            <div class="bsc-admin-note bsc-admin-note--success">
+                <?php echo esc_html( 'deleted' === sanitize_key( wp_unslash( $_GET['bsc_notice'] ) ) ? 'Lead eliminado.' : 'Lead actualizado.' ); ?>
+            </div>
         <?php endif; ?>
 
         <form method="get" class="bsc-admin-newsletter__filters">
@@ -173,6 +190,7 @@ function bsc_render_newsletter_page(): void {
                     <th>Email</th>
                     <th>Origen</th>
                     <th>Notas</th>
+                    <th>Privacidad</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -200,6 +218,12 @@ function bsc_render_newsletter_page(): void {
                     <td><?php echo esc_html( $subscriber['source'] ?? 'newsletter-form' ); ?></td>
                     <td><?php echo esc_html( wp_trim_words( (string) ( $subscriber['notes'] ?? '' ), 14 ) ); ?></td>
                     <td>
+                        <?php
+                        $retention_days = absint( $subscriber['retention_days'] ?? 0 );
+                        echo esc_html( $retention_days > 0 ? 'Retencion: ' . $retention_days . ' dias' : 'Sin retencion definida' );
+                        ?>
+                    </td>
+                    <td>
                         <form method="post" class="bsc-admin-newsletter__status-form">
                             <?php wp_nonce_field( 'bsc_newsletter_action', 'bsc_newsletter_nonce' ); ?>
                             <input type="hidden" name="bsc_newsletter_action" value="update_lead">
@@ -214,11 +238,17 @@ function bsc_render_newsletter_page(): void {
                             <textarea name="subscriber_notes" rows="2" placeholder="Notas internas"><?php echo esc_textarea( $subscriber['notes'] ?? '' ); ?></textarea>
                             <button type="submit" class="button button-small">Guardar</button>
                         </form>
+                        <form method="post" class="bsc-admin-newsletter__delete-form">
+                            <?php wp_nonce_field( 'bsc_newsletter_action', 'bsc_newsletter_nonce' ); ?>
+                            <input type="hidden" name="bsc_newsletter_action" value="delete_lead">
+                            <input type="hidden" name="subscriber_id" value="<?php echo esc_attr( $index ); ?>">
+                            <button type="submit" class="button button-small" onclick="return confirm('Eliminar este lead y sus datos personales?');">Eliminar datos</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
             <?php if ( 0 === $visible_rows ) : ?>
-                <tr><td colspan="6"><?php echo esc_html( ( $status_filter || $query_filter ) ? 'No hay leads con este filtro.' : 'No hay suscriptores todavia.' ); ?></td></tr>
+                <tr><td colspan="7"><?php echo esc_html( ( $status_filter || $query_filter ) ? 'No hay leads con este filtro.' : 'No hay suscriptores todavia.' ); ?></td></tr>
             <?php endif; ?>
             </tbody>
         </table>

@@ -1,6 +1,11 @@
 <?php
 /**
  * Template: Custom View Order Page for WooCommerce
+ *
+ * Reviewed against WooCommerce view-order.php 10.1.0.
+ *
+ * @package WooCommerce\Templates
+ * @version 10.1.0
  */
 
 defined( 'ABSPATH' ) || exit;

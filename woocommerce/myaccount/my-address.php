@@ -1,4 +1,13 @@
 <?php
+/**
+ * BSC custom account addresses view.
+ *
+ * Reviewed against WooCommerce my-address.php 9.3.0.
+ *
+ * @package WooCommerce\Templates
+ * @version 9.3.0
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 $customer_id = get_current_user_id();
@@ -35,7 +44,7 @@ $pretty_fields = [
     <div class="bsc__address-container">
 
         <div class="bsc__address-illustration">
-            <img src="<?php echo get_stylesheet_directory_uri(); ?>/images/profile/Caja_carita.png" alt="BSC Skin Care First" />
+            <img src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/images/profile/Caja_carita.png" alt="BSC Skin Care First" />
         </div>
 
         <?php foreach ( $addresses as $type => $data ) : ?>

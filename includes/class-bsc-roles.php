@@ -26,6 +26,7 @@ class BSC_Roles {
                 'BSC Operador',
                 [
                     'read'        => true,
+                    'edit_posts'  => true,
                     'edit_orders' => true,
                 ]
             );
@@ -38,6 +39,7 @@ class BSC_Roles {
                 'BSC Empleado',
                 [
                     'read'                    => true,
+                    'edit_posts'              => true,
                     'edit_orders'             => true,
                     'edit_products'           => true,
                     'read_private_products'   => true,
@@ -46,6 +48,42 @@ class BSC_Roles {
                     'upload_files'            => true,
                 ]
             );
+        }
+
+        self::sync_operational_caps();
+    }
+
+    private static function sync_operational_caps(): void {
+        $caps_by_role = [
+            'bsc_operator' => [
+                'read',
+                'edit_posts',
+                'edit_orders',
+            ],
+            'bsc_employee' => [
+                'read',
+                'edit_posts',
+                'edit_orders',
+                'edit_products',
+                'read_private_products',
+                'publish_products',
+                'edit_published_products',
+                'upload_files',
+            ],
+        ];
+
+        foreach ( $caps_by_role as $role_name => $caps ) {
+            $role = get_role( $role_name );
+
+            if ( ! $role ) {
+                continue;
+            }
+
+            foreach ( $caps as $cap ) {
+                if ( ! $role->has_cap( $cap ) ) {
+                    $role->add_cap( $cap, true );
+                }
+            }
         }
     }
 

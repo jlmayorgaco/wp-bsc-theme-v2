@@ -603,6 +603,7 @@ function bsc_render_settings_page(): void {
         update_option('bsc_other_shipping_price',      max(0, intval(wp_unslash($_POST['bsc_other_shipping_price'] ?? 17000))));
         update_option('bsc_bogota_shipping_label',     sanitize_text_field(wp_unslash($_POST['bsc_bogota_shipping_label'] ?? 'Bogotá')));
         update_option('bsc_default_max_products_slider', max(1, intval(wp_unslash($_POST['bsc_default_max_products_slider'] ?? 5))));
+        update_option('bsc_form_data_retention_days', max(30, intval(wp_unslash($_POST['bsc_form_data_retention_days'] ?? 730))));
         update_option('bsc_email_from_name',           sanitize_text_field(wp_unslash($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care')));
         update_option('bsc_email_from_address',        sanitize_email(wp_unslash($_POST['bsc_email_from_address'] ?? '')));
         update_option('bsc_low_stock_threshold',       max(0, intval(wp_unslash($_POST['bsc_low_stock_threshold'] ?? 3))));
@@ -686,6 +687,15 @@ function bsc_render_settings_page(): void {
                         <input type="number" id="bsc_default_max_products_slider" name="bsc_default_max_products_slider"
                             value="<?php echo esc_attr(get_option('bsc_default_max_products_slider',5)); ?>"
                             class="small-text" min="1" max="20">
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="bsc_form_data_retention_days">Retencion datos formularios (dias)</label></th>
+                    <td>
+                        <input type="number" id="bsc_form_data_retention_days" name="bsc_form_data_retention_days"
+                            value="<?php echo esc_attr(function_exists('bsc_privacy_get_form_retention_days') ? bsc_privacy_get_form_retention_days() : 730); ?>"
+                            class="small-text" min="30" step="30">
+                        <p class="description">Aplica a leads de Newsletter y Bubble Creators guardados en el panel.</p>
                     </td>
                 </tr>
                 <tr>

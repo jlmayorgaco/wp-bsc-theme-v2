@@ -25,6 +25,12 @@ class BSC_Permissions {
      * Get allowed BSC pages for a role, falling back to defaults.
      */
     public static function get_allowed_pages( string $role ): array {
+        if ( function_exists( 'bsc_access_get_config' ) ) {
+            $config = bsc_access_get_config();
+
+            return $config[ $role ] ?? self::DEFAULTS[ $role ] ?? [];
+        }
+
         $saved = get_option( 'bsc_access_control', [] );
         return $saved[ $role ] ?? self::DEFAULTS[ $role ] ?? [];
     }
@@ -41,9 +47,15 @@ class BSC_Permissions {
         foreach ( $restricted_roles as $role ) {
             if ( ! in_array( $role, $roles, true ) ) continue;
 
-            $page      = sanitize_text_field( $_GET['page']      ?? '' );
-            $post_type = sanitize_text_field( $_GET['post_type'] ?? '' );
+            $page      = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+            $post_type = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : '';
+            $pagenow   = isset( $GLOBALS['pagenow'] ) ? (string) $GLOBALS['pagenow'] : '';
             $allowed   = self::get_allowed_pages( $role );
+
+            if ( '' === $page && 'admin.php' !== $pagenow ) {
+                wp_safe_redirect( admin_url( 'admin.php?page=bsc-orders' ) );
+                exit;
+            }
 
             // Redirect native post-type screens (WC orders, products, etc.)
             if ( ! empty( $post_type ) ) {
