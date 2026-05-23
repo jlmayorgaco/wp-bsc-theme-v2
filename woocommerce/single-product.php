@@ -85,7 +85,7 @@ $product_id = get_the_ID();
         </div>
 
         <div class="bsc__product-cart bsc__product-cart--add-to-cart-button">
-          <?php echo $card->render_button('¡Lo Quiero!'); ?>
+          <?php $card->render_button(); ?>
         </div>
 
         <div class="bsc__product-meta">

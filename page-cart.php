@@ -34,7 +34,7 @@ $render_cart_recommendations = static function (int $products_limit = 5): void {
         return;
     }
 
-    echo $recommendations_html;
+    echo wp_kses_post( $recommendations_html );
 };
 ?>
 
@@ -44,7 +44,7 @@ $render_cart_recommendations = static function (int $products_limit = 5): void {
     <?php if (!WC()->cart->is_empty()) { ?> <h1 class="bsc__title"><strong>Tu</strong> carrito</h1> <?php } ?>
     <?php if (WC()->cart->is_empty())  { ?> <h1 class="bsc__title"> Ohh ... <strong>tu carrito</strong> esta vacio </h1> <?php } ?>
 
-    <div class="container__empty <?php if (WC()->cart->is_empty()) { echo 'is-visible'; }?> ">
+    <div class="container__empty <?php echo esc_attr( WC()->cart->is_empty() ? 'is-visible' : '' ); ?> ">
         <p class="bsc__cart-empty">
             <img width="250" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_image_empty_cart.png" alt="">
         </p>
@@ -61,7 +61,7 @@ $render_cart_recommendations = static function (int $products_limit = 5): void {
         </div>
     </div>
 
-    <div class="container__cols <?php if (!WC()->cart->is_empty()) { echo 'is-visible'; }?> ">
+    <div class="container__cols <?php echo esc_attr( ! WC()->cart->is_empty() ? 'is-visible' : '' ); ?> ">
         <div class="container__col col-1">
             <form class="bsc__cart-form" action="<?php echo esc_url(wc_get_cart_url()); ?>" method="post">
                 <table class="bsc__cart-table">

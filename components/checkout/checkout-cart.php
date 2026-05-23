@@ -42,8 +42,8 @@ class BSC_Checkout_Cart {
         <li class="checkout-cart__item" data-product_id="<?= esc_attr($_product->get_id()); ?>" data-item-key="<?= esc_attr($key); ?>">
             <div class="item__col col1">
                 <div class="item__picture">
-                    <?= $image; ?>
-                    <label><span><?= $quantity; ?></span></label>
+                    <?php echo wp_kses_post($image); ?>
+                    <label><span><?php echo esc_html($quantity); ?></span></label>
                 </div>
             </div>
             <div class="item__col col2">
@@ -57,14 +57,14 @@ class BSC_Checkout_Cart {
                         </h5>
                     </div>
                     <div class="col_total">
-                        <h5 class="item__total"><?= $price_total; ?></h5>
+                        <h5 class="item__total"><?php echo wp_kses_post($price_total); ?></h5>
                     </div>
                 </div>
                 <div class="row row_action_buttons bsc-checkout-cart--controls" data-product_id="<?= esc_attr($_product->get_id()); ?>" data-item-key="<?= esc_attr($key); ?>">
-                    <button class="bsc__qty-minus quantity-btn decrease"><span>-</span></button>
-                    <button class="bsc__qty-plus quantity-btn increase"><span>+</span></button>
-                    <button class="delete-btn"><span>x</span></button>
-                    <span class="bsc__qty-value bsc__qty-value--hidden"><?= $quantity; ?></span>
+                    <button type="button" class="bsc__qty-minus quantity-btn decrease"><span>-</span></button>
+                    <button type="button" class="bsc__qty-plus quantity-btn increase"><span>+</span></button>
+                    <button type="button" class="delete-btn"><span>x</span></button>
+                    <span class="bsc__qty-value bsc__qty-value--hidden"><?php echo esc_html($quantity); ?></span>
                 </div>
             </div>
         </li>

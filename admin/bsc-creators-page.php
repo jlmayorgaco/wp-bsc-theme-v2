@@ -213,14 +213,14 @@ function bsc_render_creators_page(): void {
                     <td><a href="mailto:<?php echo esc_attr($application['email'] ?? ''); ?>"><?php echo esc_html($application['email'] ?? ''); ?></a></td>
                     <td>
                         <?php if ($instagram_url) : ?>
-                            <a href="<?php echo $instagram_url; ?>" target="_blank" rel="noopener noreferrer">Instagram</a>
+                            <a href="<?php echo esc_url($instagram_url); ?>" target="_blank" rel="noopener noreferrer">Instagram</a>
                         <?php else : ?>
                             <span class="bsc-admin-creators__link-empty">No registrado</span>
                         <?php endif; ?>
                     </td>
                     <td>
                         <?php if ($tiktok_url) : ?>
-                            <a href="<?php echo $tiktok_url; ?>" target="_blank" rel="noopener noreferrer">TikTok</a>
+                            <a href="<?php echo esc_url($tiktok_url); ?>" target="_blank" rel="noopener noreferrer">TikTok</a>
                         <?php else : ?>
                             <span class="bsc-admin-creators__link-empty">No registrado</span>
                         <?php endif; ?>

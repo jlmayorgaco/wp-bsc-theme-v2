@@ -94,7 +94,7 @@ add_action('admin_init', function() {
 function bsc_reports_get_statuses(): array {
     $all = [ 'completed', 'processing', 'wc-preparing', 'wc-shipped' ];
     if ( ! isset($_GET['statuses']) ) return $all;
-    $raw = (array) $_GET['statuses'];
+    $raw = array_map( 'sanitize_key', (array) wp_unslash( $_GET['statuses'] ) );
     return array_filter($raw, fn($s) => in_array($s, $all, true));
 }
 
@@ -190,7 +190,7 @@ function bsc_reports_tab_ventas(): void {
     $statuses   = bsc_reports_get_statuses();
 
     if ( isset($_GET['preset']) ) {
-        switch ($_GET['preset']) {
+        switch ( sanitize_key( wp_unslash( $_GET['preset'] ) ) ) {
             case 'hoy':     $date_start = $date_end = gmdate('Y-m-d'); break;
             case 'semana':  $date_start = gmdate('Y-m-d', strtotime('monday this week')); $date_end = gmdate('Y-m-d'); break;
             case 'mes':     $date_start = gmdate('Y-m-01'); $date_end = gmdate('Y-m-d'); break;
@@ -369,18 +369,87 @@ function bsc_reports_tab_ventas(): void {
     <?php
 }
 
+function bsc_reports_get_stock_request_args(): array {
+    $valid_sorts = [ 'title', 'sku', 'bodega', 'tienda', 'total' ];
+    $sort_col    = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'title';
+    if ( ! in_array( $sort_col, $valid_sorts, true ) ) {
+        $sort_col = 'title';
+    }
+
+    $sort_dir = isset( $_GET['dir'] ) ? sanitize_key( wp_unslash( $_GET['dir'] ) ) : 'asc';
+    $sort_dir = 'desc' === $sort_dir ? 'DESC' : 'ASC';
+
+    $valid_filters = [ 'all', 'low_bodega', 'low_tienda', 'zero_bodega', 'zero_tienda' ];
+    $filter        = isset( $_GET['stock_filter'] ) ? sanitize_key( wp_unslash( $_GET['stock_filter'] ) ) : 'all';
+    if ( ! in_array( $filter, $valid_filters, true ) ) {
+        $filter = 'all';
+    }
+
+    $per_page = isset( $_GET['per_page'] ) ? absint( wp_unslash( $_GET['per_page'] ) ) : 50;
+    if ( ! in_array( $per_page, [ 25, 50, 100 ], true ) ) {
+        $per_page = 50;
+    }
+
+    return [
+        'sort'     => $sort_col,
+        'dir'      => $sort_dir,
+        'filter'   => $filter,
+        'search'   => isset( $_GET['stock_search'] ) ? sanitize_text_field( wp_unslash( $_GET['stock_search'] ) ) : '',
+        'per_page' => $per_page,
+        'paged'    => max( 1, isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1 ),
+    ];
+}
+
+function bsc_reports_get_stock_from_sql(): string {
+    global $wpdb;
+
+    return "FROM {$wpdb->posts} p
+        LEFT JOIN {$wpdb->postmeta} sku_m    ON p.ID = sku_m.post_id    AND sku_m.meta_key    = '_sku'
+        LEFT JOIN {$wpdb->postmeta} bodega_m ON p.ID = bodega_m.post_id AND bodega_m.meta_key = '_stock_bodega'
+        LEFT JOIN {$wpdb->postmeta} tienda_m ON p.ID = tienda_m.post_id AND tienda_m.meta_key = '_stock_tienda'
+        LEFT JOIN {$wpdb->postmeta} envio_m  ON p.ID = envio_m.post_id  AND envio_m.meta_key  = '_envio_tipo'";
+}
+
+function bsc_reports_get_stock_where_sql( array $args, int $threshold ): string {
+    global $wpdb;
+
+    $where  = [ "p.post_type = 'product'", "p.post_status = 'publish'" ];
+    $params = [];
+
+    if ( '' !== $args['search'] ) {
+        $like     = '%' . $wpdb->esc_like( $args['search'] ) . '%';
+        $where[]  = '(p.post_title LIKE %s OR sku_m.meta_value LIKE %s)';
+        $params[] = $like;
+        $params[] = $like;
+    }
+
+    switch ( $args['filter'] ) {
+        case 'low_bodega':
+            $where[]  = 'CAST(IFNULL(bodega_m.meta_value,0) AS UNSIGNED) < %d';
+            $params[] = $threshold;
+            break;
+        case 'low_tienda':
+            $where[]  = 'CAST(IFNULL(tienda_m.meta_value,0) AS UNSIGNED) < %d';
+            $params[] = $threshold;
+            break;
+        case 'zero_bodega':
+            $where[] = 'CAST(IFNULL(bodega_m.meta_value,0) AS UNSIGNED) = 0';
+            break;
+        case 'zero_tienda':
+            $where[] = 'CAST(IFNULL(tienda_m.meta_value,0) AS UNSIGNED) = 0';
+            break;
+    }
+
+    $where_sql = 'WHERE ' . implode( ' AND ', $where );
+    return $params ? $wpdb->prepare( $where_sql, $params ) : $where_sql;
+}
+
 // Tab: Stock (BSC-025)
 function bsc_reports_tab_stock(): void {
     global $wpdb;
 
     $threshold = (int) get_option('bsc_low_stock_threshold', 3);
-
-    // Sort params
-    $valid_sorts = ['title', 'sku', 'bodega', 'tienda', 'total'];
-    $sort_col    = in_array($_GET['sort'] ?? '', $valid_sorts, true)
-        ? sanitize_key($_GET['sort']) : 'title';
-    $sort_dir    = ($_GET['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
-    $flip_dir    = $sort_dir === 'ASC' ? 'desc' : 'asc';
+    $args      = bsc_reports_get_stock_request_args();
 
     $order_map = [
         'title'  => 'p.post_title',
@@ -389,42 +458,40 @@ function bsc_reports_tab_stock(): void {
         'tienda' => 'CAST(IFNULL(tienda_m.meta_value,0) AS UNSIGNED)',
         'total'  => '(CAST(IFNULL(bodega_m.meta_value,0) AS UNSIGNED) + CAST(IFNULL(tienda_m.meta_value,0) AS UNSIGNED))',
     ];
-    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared validated above
+
+    $sort_col  = $args['sort'];
+    $sort_dir  = $args['dir'];
+    $flip_dir  = $sort_dir === 'ASC' ? 'desc' : 'asc';
+    $filter    = $args['filter'];
+    $from_sql  = bsc_reports_get_stock_from_sql();
+    $where_sql = bsc_reports_get_stock_where_sql( $args, $threshold );
     $order_sql = $order_map[$sort_col] . ' ' . $sort_dir;
 
-    // Filter by status
-    $filter = sanitize_key($_GET['stock_filter'] ?? 'all');
-    $valid_filters = ['all', 'low_bodega', 'low_tienda', 'zero_bodega', 'zero_tienda'];
-    if (!in_array($filter, $valid_filters, true)) $filter = 'all';
+    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared SQL fragments are validated and prepared above.
+    $filtered_total = (int) $wpdb->get_var( "SELECT COUNT(DISTINCT p.ID) {$from_sql} {$where_sql}" );
+    $total_pages    = max( 1, (int) ceil( $filtered_total / $args['per_page'] ) );
+    $args['paged']  = min( $args['paged'], $total_pages );
+    $offset         = max( 0, ( $args['paged'] - 1 ) * $args['per_page'] );
 
-    $having = '';
-    switch ($filter) {
-        case 'low_bodega':  $having = $wpdb->prepare("HAVING stock_bodega < %d", $threshold); break;
-        case 'low_tienda':  $having = $wpdb->prepare("HAVING stock_tienda < %d", $threshold); break;
-        case 'zero_bodega': $having = "HAVING stock_bodega = 0"; break;
-        case 'zero_tienda': $having = "HAVING stock_tienda = 0"; break;
-    }
-
-    // Single query: all products + 4 meta keys
-    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared $order_sql and $having are validated above
+    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared SQL fragments are validated and prepared above.
     $products = $wpdb->get_results(
-        "SELECT
-            p.ID,
-            p.post_title,
-            IFNULL(sku_m.meta_value, '')                                              AS sku,
-            CAST(IFNULL(bodega_m.meta_value, 0) AS UNSIGNED)                          AS stock_bodega,
-            CAST(IFNULL(tienda_m.meta_value, 0) AS UNSIGNED)                          AS stock_tienda,
-            CAST(IFNULL(bodega_m.meta_value, 0) AS UNSIGNED)
-            + CAST(IFNULL(tienda_m.meta_value, 0) AS UNSIGNED)                        AS stock_total,
-            IFNULL(envio_m.meta_value, 'bodega')                                      AS envio_tipo
-         FROM {$wpdb->posts} p
-         LEFT JOIN {$wpdb->postmeta} sku_m    ON p.ID = sku_m.post_id    AND sku_m.meta_key    = '_sku'
-         LEFT JOIN {$wpdb->postmeta} bodega_m ON p.ID = bodega_m.post_id AND bodega_m.meta_key = '_stock_bodega'
-         LEFT JOIN {$wpdb->postmeta} tienda_m ON p.ID = tienda_m.post_id AND tienda_m.meta_key = '_stock_tienda'
-         LEFT JOIN {$wpdb->postmeta} envio_m  ON p.ID = envio_m.post_id  AND envio_m.meta_key  = '_envio_tipo'
-         WHERE p.post_type = 'product' AND p.post_status = 'publish'
-         {$having}
-         ORDER BY {$order_sql}, p.post_title ASC"
+        $wpdb->prepare(
+            "SELECT
+                p.ID,
+                p.post_title,
+                IFNULL(sku_m.meta_value, '') AS sku,
+                CAST(IFNULL(bodega_m.meta_value, 0) AS UNSIGNED) AS stock_bodega,
+                CAST(IFNULL(tienda_m.meta_value, 0) AS UNSIGNED) AS stock_tienda,
+                CAST(IFNULL(bodega_m.meta_value, 0) AS UNSIGNED)
+                    + CAST(IFNULL(tienda_m.meta_value, 0) AS UNSIGNED) AS stock_total,
+                IFNULL(envio_m.meta_value, 'bodega') AS envio_tipo
+             {$from_sql}
+             {$where_sql}
+             ORDER BY {$order_sql}, p.ID ASC
+             LIMIT %d OFFSET %d",
+            $args['per_page'],
+            $offset
+        )
     );
 
     // KPI totals (computed from full unfiltered set for accuracy)
@@ -442,10 +509,30 @@ function bsc_reports_tab_stock(): void {
         $threshold
     ), ARRAY_A );
 
-    // Helper: sort link URL
-    $sort_link = function(string $col) use ($sort_col, $flip_dir, $sort_dir): string {
+    $stock_url = function( array $overrides = [] ) use ( $args ): string {
+        $query = array_merge(
+            [
+                'page'         => 'bsc-reports',
+                'tab'          => 'stock',
+                'sort'         => $args['sort'],
+                'dir'          => strtolower( $args['dir'] ),
+                'stock_filter' => $args['filter'],
+                'stock_search' => $args['search'],
+                'per_page'     => $args['per_page'],
+                'paged'        => $args['paged'],
+            ],
+            $overrides
+        );
+
+        if ( empty( $query['stock_search'] ) ) {
+            unset( $query['stock_search'] );
+        }
+
+        return add_query_arg( $query, admin_url( 'admin.php' ) );
+    };
+    $sort_link = function(string $col) use ($sort_col, $flip_dir, $stock_url): string {
         $dir = ($col === $sort_col) ? $flip_dir : 'asc';
-        return esc_url(add_query_arg(['page'=>'bsc-reports','tab'=>'stock','sort'=>$col,'dir'=>$dir,'stock_filter'=>$_GET['stock_filter']??'all'], admin_url('admin.php')));
+        return $stock_url( [ 'sort' => $col, 'dir' => $dir, 'paged' => 1 ] );
     };
     $sort_arrow = fn(string $col): string => $col === $sort_col ? ($sort_dir === 'ASC' ? '&uarr;' : '&darr;') : '';
 
@@ -475,14 +562,14 @@ function bsc_reports_tab_stock(): void {
             <div class="bsc-kpi-value"><?php echo esc_html($totals['sum_tienda'] ?? 0); ?></div>
             <div class="bsc-kpi-label">Total Showcase</div>
         </div>
-        <div class="bsc-kpi-card<?php echo $low_bodega_alert ? ' bsc-kpi-card--warning' : ''; ?>">
-            <div class="bsc-kpi-value<?php echo $low_bodega_alert ? ' bsc-kpi-value--warning' : ''; ?>">
+        <div class="bsc-kpi-card<?php echo esc_attr( $low_bodega_alert ? ' bsc-kpi-card--warning' : '' ); ?>">
+            <div class="bsc-kpi-value<?php echo esc_attr( $low_bodega_alert ? ' bsc-kpi-value--warning' : '' ); ?>">
                 <?php echo esc_html($totals['low_bodega_count'] ?? 0); ?>
             </div>
             <div class="bsc-kpi-label">Stock bodega bajo</div>
         </div>
-        <div class="bsc-kpi-card<?php echo $zero_bodega_alert ? ' bsc-kpi-card--danger' : ''; ?>">
-            <div class="bsc-kpi-value<?php echo $zero_bodega_alert ? ' bsc-kpi-value--danger' : ''; ?>">
+        <div class="bsc-kpi-card<?php echo esc_attr( $zero_bodega_alert ? ' bsc-kpi-card--danger' : '' ); ?>">
+            <div class="bsc-kpi-value<?php echo esc_attr( $zero_bodega_alert ? ' bsc-kpi-value--danger' : '' ); ?>">
                 <?php echo esc_html($totals['zero_bodega_count'] ?? 0); ?>
             </div>
             <div class="bsc-kpi-label">Sin stock bodega</div>
@@ -497,17 +584,37 @@ function bsc_reports_tab_stock(): void {
     <div class="bsc-admin-reports__stock-toolbar">
         <div class="bsc-admin-reports__stock-filter-links">
             <?php foreach ($filter_links as $fkey => $flabel): ?>
-            <?php $furl = esc_url(add_query_arg(['page'=>'bsc-reports','tab'=>'stock','sort'=>$sort_col,'dir'=>strtolower($sort_dir),'stock_filter'=>$fkey], admin_url('admin.php'))); ?>
-            <a href="<?php echo $furl; ?>"
-               class="button bsc-admin-reports__stock-filter-button<?php echo $filter === $fkey ? ' button-primary' : ''; ?>">
+            <?php $furl = $stock_url( [ 'stock_filter' => $fkey, 'paged' => 1 ] ); ?>
+            <a href="<?php echo esc_url( $furl ); ?>"
+               class="button bsc-admin-reports__stock-filter-button<?php echo esc_attr( $filter === $fkey ? ' button-primary' : '' ); ?>">
                 <?php echo esc_html($flabel); ?>
             </a>
             <?php endforeach; ?>
         </div>
-        <div class="bsc-admin-reports__stock-search-wrap">
-            <input type="text" id="bsc-stock-search" placeholder="Buscar producto o SKU..." class="bsc-admin-reports__stock-search-input">
-            <span id="bsc-stock-count" class="bsc-admin-reports__stock-count"></span>
-        </div>
+        <form method="get" class="bsc-admin-reports__stock-search-wrap" data-bsc-stock-search-form>
+            <input type="hidden" name="page" value="bsc-reports">
+            <input type="hidden" name="tab" value="stock">
+            <input type="hidden" name="sort" value="<?php echo esc_attr( $sort_col ); ?>">
+            <input type="hidden" name="dir" value="<?php echo esc_attr( strtolower( $sort_dir ) ); ?>">
+            <input type="hidden" name="stock_filter" value="<?php echo esc_attr( $filter ); ?>">
+            <label class="screen-reader-text" for="bsc-stock-search">Buscar producto o SKU</label>
+            <input type="search" id="bsc-stock-search" name="stock_search" value="<?php echo esc_attr( $args['search'] ); ?>" placeholder="Buscar producto o SKU..." class="bsc-admin-reports__stock-search-input">
+            <label class="screen-reader-text" for="bsc-stock-per-page">Productos por pagina</label>
+            <select id="bsc-stock-per-page" name="per_page" class="bsc-admin-reports__stock-per-page">
+                <?php foreach ( [ 25, 50, 100 ] as $per_page_option ) : ?>
+                    <option value="<?php echo esc_attr( $per_page_option ); ?>" <?php selected( $args['per_page'], $per_page_option ); ?>>
+                        <?php echo esc_html( $per_page_option ); ?> por pagina
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="button">Buscar</button>
+            <?php if ( '' !== $args['search'] ) : ?>
+                <a href="<?php echo esc_url( $stock_url( [ 'stock_search' => '', 'paged' => 1 ] ) ); ?>" class="button">Limpiar</a>
+            <?php endif; ?>
+            <span id="bsc-stock-count" class="bsc-admin-reports__stock-count">
+                <?php echo esc_html( sprintf( '%d resultado(s)', $filtered_total ) ); ?>
+            </span>
+        </form>
     </div>
 
     <!-- Legend -->
@@ -525,19 +632,19 @@ function bsc_reports_tab_stock(): void {
         <thead>
             <tr>
                 <th class="bsc-admin-reports__stock-col-product">
-                    <a href="<?php echo $sort_link('title'); ?>">Producto <?php echo $sort_arrow('title'); ?></a>
+                    <a href="<?php echo esc_url( $sort_link('title') ); ?>">Producto <?php echo wp_kses_post( $sort_arrow('title') ); ?></a>
                 </th>
                 <th class="bsc-admin-reports__stock-col-sku">
-                    <a href="<?php echo $sort_link('sku'); ?>">SKU <?php echo $sort_arrow('sku'); ?></a>
+                    <a href="<?php echo esc_url( $sort_link('sku') ); ?>">SKU <?php echo wp_kses_post( $sort_arrow('sku') ); ?></a>
                 </th>
                 <th class="bsc-admin-reports__stock-col-center">
-                    <a href="<?php echo $sort_link('bodega'); ?>">Bodega <?php echo $sort_arrow('bodega'); ?></a>
+                    <a href="<?php echo esc_url( $sort_link('bodega') ); ?>">Bodega <?php echo wp_kses_post( $sort_arrow('bodega') ); ?></a>
                 </th>
                 <th class="bsc-admin-reports__stock-col-center">
-                    <a href="<?php echo $sort_link('tienda'); ?>">Showcase <?php echo $sort_arrow('tienda'); ?></a>
+                    <a href="<?php echo esc_url( $sort_link('tienda') ); ?>">Showcase <?php echo wp_kses_post( $sort_arrow('tienda') ); ?></a>
                 </th>
                 <th class="bsc-admin-reports__stock-col-total">
-                    <a href="<?php echo $sort_link('total'); ?>">Total <?php echo $sort_arrow('total'); ?></a>
+                    <a href="<?php echo esc_url( $sort_link('total') ); ?>">Total <?php echo wp_kses_post( $sort_arrow('total') ); ?></a>
                 </th>
                 <th class="bsc-admin-reports__stock-col-dispatch">Despacho</th>
                 <th class="bsc-admin-reports__stock-col-actions"></th>
@@ -568,9 +675,31 @@ function bsc_reports_tab_stock(): void {
         <?php endforeach; ?>
         </tbody>
     </table>
-    <p class="bsc-admin-reports__footnote">
-        <?php echo esc_html(count($products)); ?> producto(s) mostrados.
-    </p>
+    <div class="bsc-admin-reports__pagination">
+        <p class="bsc-admin-reports__footnote">
+            <?php
+            $first_item = $filtered_total > 0 ? $offset + 1 : 0;
+            $last_item  = min( $filtered_total, $offset + count( $products ) );
+            echo esc_html( sprintf( 'Mostrando %1$d-%2$d de %3$d producto(s).', $first_item, $last_item, $filtered_total ) );
+            ?>
+        </p>
+        <?php
+        if ( $total_pages > 1 ) {
+            echo wp_kses_post(
+                paginate_links(
+                    [
+                        'base'      => add_query_arg( 'paged', '%#%', $stock_url() ),
+                        'format'    => '',
+                        'current'   => $args['paged'],
+                        'total'     => $total_pages,
+                        'prev_text' => '&laquo;',
+                        'next_text' => '&raquo;',
+                    ]
+                )
+            );
+        }
+        ?>
+    </div>
     <?php endif; ?>
     <?php
 }

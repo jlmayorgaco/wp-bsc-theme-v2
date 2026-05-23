@@ -107,7 +107,7 @@ class BSC_Products_Card {
     }
 
     public function render_price(): void {
-        echo $this->price;
+        echo wp_kses_post( $this->price );
     }
 
     public function render_button( string $label = '' ): void {

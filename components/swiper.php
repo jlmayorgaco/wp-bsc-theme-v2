@@ -41,7 +41,7 @@ if (count($repeated_slides) > 0) : ?>
                   width="1440"
                   height="700"
                   <?php if ($i === 0) : ?>loading="eager" fetchpriority="high"<?php else : ?>loading="lazy"<?php endif; ?>
-                  decoding="<?php echo $i === 0 ? 'sync' : 'async'; ?>"
+                  decoding="<?php echo esc_attr( $i === 0 ? 'sync' : 'async' ); ?>"
                 >
               </div>
               <div class="slide__content">
