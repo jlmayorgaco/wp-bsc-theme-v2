@@ -50,6 +50,7 @@ function bsc_access_managed_pages(): array {
         'bsc-home-favorites'=> 'Home Favorites',
         'bsc-bubble-points' => 'Bubble Points',
         'bsc-followup-emails' => 'Emails',
+        'bsc-monitoring'    => 'Monitoreo',
         'bsc-access'        => 'Acceso',
     );
 }
@@ -67,6 +68,7 @@ function bsc_access_role_controllable_pages(): array {
         $pages['bsc-home-favorites'],
         $pages['bsc-bubble-points'],
         $pages['bsc-followup-emails'],
+        $pages['bsc-monitoring'],
         $pages['bsc-access'],
         $pages['bsc-settings']
     );

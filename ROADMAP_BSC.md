@@ -370,6 +370,7 @@ Monitoreo externo:
 
 - UptimeRobot o equivalente cada 5 minutos para `https://bubbleskincare.co`.
 - Alertas por email del equipo.
+- Panel interno: `BSC > Monitoreo` (`/wp-admin/admin.php?page=bsc-monitoring`) para checklist diario, owner, procedimiento, pedidos fallidos, emails, cron y rate limits.
 
 Health check servidor:
 
@@ -478,6 +479,7 @@ Unreleased/MVP2:
 - P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
 - P3 recomendaciones: helper central filtra productos publicados, comprables y en stock; estrategia deterministica por relacionados, categorias y fallback de ultimos productos.
 - P3 emails operativos: log por orden para correos transaccionales/followups con dedupe por tipo y tracking, visible en Emails BSC.
+- P3 monitoreo post-launch: panel BSC > Monitoreo con owner editable, checklist diario, procedimiento de incidente, senales de PHP/JS, checkout, emails, followup cron y picos de rate limit.
 - P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
 - Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
 - QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
@@ -2550,6 +2552,7 @@ Acceptance:
 
 Prioridad: P3
 Area: Operacion, observabilidad
+Estado: Cerrado en MVP2, 2026-05-22
 
 Objetivo:
 Tener senales basicas despues del deploy: errores PHP, errores JS, conversion checkout, fallos de email, pedidos fallidos, rate limit spikes.
@@ -2561,8 +2564,10 @@ Archivos a inspeccionar:
 - `emails/*`
 
 Acceptance:
-- Existe dashboard o checklist diario post-launch.
-- Incidentes tienen owner y procedimiento.
+- Cerrado: Existe dashboard/checklist diario en `BSC > Monitoreo`.
+- Cerrado: Incidentes tienen owner editable, canal de escalacion y procedimiento por severidad.
+- Cerrado: Panel muestra senales de PHP logs, JS smoke, checkout/pedidos, emails, followup cron y rate limit spikes.
+- Cerrado: Rate limiter registra bloqueos recientes para detectar picos por scope.
 
 ---
 

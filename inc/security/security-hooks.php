@@ -106,3 +106,57 @@ function bsc_rate_limit( string $scope, int $limit, int $window_seconds ): void 
 		429
 	);
 }
+
+add_action( 'bsc_rate_limit_blocked', 'bsc_record_rate_limit_blocked', 10, 3 );
+
+function bsc_record_rate_limit_blocked( string $scope, string $ip, int $user_id ): void {
+	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+
+	if ( ! is_array( $rows ) ) {
+		$rows = [];
+	}
+
+	$rows[] = [
+		'blocked_at' => current_time( 'mysql' ),
+		'scope'      => sanitize_key( $scope ),
+		'ip'         => sanitize_text_field( $ip ),
+		'user_id'    => max( 0, $user_id ),
+	];
+
+	update_option( 'bsc_rate_limit_blocked_log', array_slice( $rows, -100 ), false );
+}
+
+function bsc_get_recent_rate_limit_blocks( int $limit = 20 ): array {
+	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+
+	if ( ! is_array( $rows ) ) {
+		return [];
+	}
+
+	return array_reverse( array_slice( $rows, -1 * max( 1, $limit ) ) );
+}
+
+function bsc_count_rate_limit_blocks_since( int $seconds ): int {
+	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+
+	if ( ! is_array( $rows ) ) {
+		return 0;
+	}
+
+	$threshold = current_time( 'timestamp' ) - max( 1, $seconds );
+	$count     = 0;
+
+	foreach ( $rows as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+
+		$timestamp = strtotime( (string) ( $row['blocked_at'] ?? '' ) );
+
+		if ( false !== $timestamp && $timestamp >= $threshold ) {
+			$count++;
+		}
+	}
+
+	return $count;
+}
