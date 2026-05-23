@@ -64,16 +64,19 @@ function bsc_creator_apply() {
     }
 
     $applications = get_option('bsc_creator_applications', []);
-    $applications[] = [
-        'nombre'    => $nombre,
-        'email'     => $email,
-        'instagram' => $instagram,
-        'tiktok'    => $tiktok,
-        'mensaje'   => $mensaje,
-        'status'    => 'new',
-        'source'    => 'bubble-creators-form',
-        'date'      => current_time('mysql'),
-    ];
+    $applications[] = array_merge(
+        [
+            'nombre'    => $nombre,
+            'email'     => $email,
+            'instagram' => $instagram,
+            'tiktok'    => $tiktok,
+            'mensaje'   => $mensaje,
+            'status'    => 'new',
+            'source'    => 'bubble-creators-form',
+            'date'      => current_time('mysql'),
+        ],
+        function_exists( 'bsc_privacy_form_metadata' ) ? bsc_privacy_form_metadata() : []
+    );
     update_option('bsc_creator_applications', $applications, false);
 
     $creator_email = bsc_get_creator_email_recipient();

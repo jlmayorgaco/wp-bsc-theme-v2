@@ -53,6 +53,7 @@ npm run lint:js
 npm run lint:scss
 npm run lint:stylelint
 npm run test:e2e:smoke
+npm run test:e2e:webkit
 npm run test:e2e:visual
 npm run compile:css
 ```
@@ -112,6 +113,13 @@ Gate post-MVP2 tickets 4-10 documentado el 2026-05-23:
 - `npx playwright test tests/e2e/smoke/admin-reports.spec.js --workers=1 --reporter=list`: verde, 6 passed.
 - Alcance cerrado: BSC-RM-041, BSC-RM-043, BSC-RM-025 auditoria baseline, BSC-RM-048, BSC-RM-049, BSC-RM-045 guard tests, BSC-RM-050 y BSC-RM-051 baseline + fixes de alto riesgo.
 
+Gate post-MVP2 cross-browser/admin/privacy documentado el 2026-05-23:
+
+- `npm run test:e2e:webkit`: verde, 4 passed en `webkit-iphone` y `webkit-desktop`.
+- `npx playwright test tests/e2e/smoke/admin-roles.spec.js --workers=1 --reporter=list`: verde, 3 passed / 6 skipped.
+- `npm run audit:woocommerce-templates -- --strict`: verde, 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
+- Alcance cerrado: BSC-RM-003, BSC-RM-023, BSC-RM-025 cierre strict y BSC-RM-047.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -131,9 +139,9 @@ Scope ya cerrado en MVP2:
 Notas residuales:
 
 - WP admin local sigue siendo mas lento y fragil que storefront.
-- Safari/iPhone/WebKit necesita gate explicito antes de production GO.
+- Safari/iPhone/WebKit ya tiene gate automatizado; antes de GO sigue recomendada una revision manual en iPhone real si la cliente puede validar.
 - Visual baselines deben revisarse antes de marcar release verde.
-- P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, auditoria WebKit manual, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
+- P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
 - `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
 
 ## Mapa del sistema
@@ -712,6 +720,13 @@ Alto. Sin baseline confiable se escapan regresiones de layout.
 
 Prioridad: P0
 Area: QA cross-browser
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- Se agrego gate dedicado `npm run test:e2e:webkit`.
+- Playwright activa proyectos WebKit solo cuando `PW_ENABLE_WEBKIT_GATE=1`, evitando que smoke/visual base dupliquen costo.
+- Cobertura WebKit actual: cuenta/edit-account con controles de fecha/select robustos, producto, carrito y checkout en `webkit-iphone` y `webkit-desktop`.
+- Validado con `npm run test:e2e:webkit`: 4 passed.
 
 Problema:
 La cliente reporto diferencias en Safari/iPhone y el entorno local no garantiza WebKit. Los fixes CSS pueden verse correctos en Chrome y fallar en iOS.
@@ -1428,6 +1443,14 @@ Medio-alto. Emails pueden contener PII.
 
 Prioridad: P1
 Area: Privacidad, compliance
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- Se agrego `inc/privacy-data.php` para metadata de privacidad, hash de IP y retencion configurable.
+- Newsletter y Bubble Creators guardan consentimiento, `ip_hash`, version de politica y dias de retencion; no guardan IP cruda.
+- Admin de Newsletter y Creators permite eliminar registros individuales con POST+nonce y exporta columnas de privacidad.
+- Configuracion BSC expone `bsc_form_data_retention_days` con minimo 30 dias.
+- `page-privacy.php` documenta formularios, leads y retencion configurable.
 
 Problema:
 Contacto, newsletter, creators y logs pueden guardar PII sin retencion ni export/delete.
@@ -1497,14 +1520,15 @@ Medio. Links rotos en produccion afectan ventas/SEO.
 
 Prioridad: P1
 Area: Compatibilidad WooCommerce
-Estado MVP2: auditoria baseline cerrada el 2026-05-23.
+Estado MVP2: cerrado strict el 2026-05-23.
 
 Resultado:
 - Se agrego `npm run audit:woocommerce-templates`.
-- Baseline actual: 44 overrides, 32 ok, 5 outdated y 7 missing/version review.
-- Overrides outdated detectados: `cart/cart.php`, `cart/cross-sells.php`, `cart/mini-cart.php`, `cart/shipping-calculator.php`, `checkout/form-login.php`.
-- Overrides sin version/upstream para decision futura: `archive-product.php`, `coming-soon.php`, `myaccount/form-edit-account.php`, `myaccount/my-address.php`, `myaccount/my-orders.php`, `myaccount/view-order.php`, `single-product.php`.
-- Este cierre no migra templates; deja el inventario automatizado y el backlog tecnico para merges controlados por flujo.
+- Cierre strict actual: 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
+- Se actualizaron versiones/compatibilidad de `cart/cart.php`, `cart/cross-sells.php`, `cart/mini-cart.php`, `cart/shipping-calculator.php` y `checkout/form-login.php`.
+- Se agregaron headers revisados a overrides custom de archive/product/account.
+- `tools/woocommerce-template-review.json` documenta decisiones para `coming-soon.php` y `myaccount/my-orders.php`, que no tienen upstream versionado aplicable.
+- Validado con `npm run audit:woocommerce-templates -- --strict`.
 
 Problema:
 Hay muchos overrides WooCommerce con versiones distintas. Si WooCommerce actualizo templates, pueden faltar hooks, seguridad o markup esperado.
@@ -2281,6 +2305,14 @@ Bajo-medio.
 
 Prioridad: P2
 Area: Seguridad admin, QA
+Estado MVP2: cerrado el 2026-05-23.
+
+Resultado:
+- Fixture Playwright crea usuarios `bsc_operator`, `bsc_employee` y `shop_manager`.
+- `tests/e2e/smoke/admin-roles.spec.js` valida paginas permitidas y denegadas por rol.
+- Se corrigio el cap minimo `edit_posts` para que roles operativos puedan entrar a WP admin sin ser redirigidos por WooCommerce a Mi cuenta.
+- Se reforzo el redirect de roles operativos fuera de pantallas BSC.
+- Validado con `npx playwright test tests/e2e/smoke/admin-roles.spec.js --workers=1 --reporter=list`: 3 passed / 6 skipped.
 
 Problema:
 El access control BSC es custom. Necesita tests por rol para evitar fugas y bloqueos.

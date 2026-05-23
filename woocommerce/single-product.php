@@ -1,4 +1,13 @@
 <?php
+/**
+ * BSC custom single product layout.
+ *
+ * Reviewed against WooCommerce single-product.php 1.6.4.
+ *
+ * @package WooCommerce\Templates
+ * @version 1.6.4
+ */
+
 defined('ABSPATH') || exit;
 
 get_header();

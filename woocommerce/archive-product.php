@@ -1,4 +1,13 @@
 <?php
+/**
+ * BSC custom product archive shell.
+ *
+ * Reviewed against WooCommerce archive-product.php 8.6.0.
+ *
+ * @package WooCommerce\Templates
+ * @version 8.6.0
+ */
+
 defined('ABSPATH') || exit;
 
 get_header('shop'); ?>

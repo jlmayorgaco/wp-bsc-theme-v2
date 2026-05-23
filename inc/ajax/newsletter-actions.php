@@ -24,13 +24,16 @@ function bsc_newsletter_subscribe() {
         wp_send_json_success(['message' => 'Ya eres parte de la comunidad BSC. Pronto tendras novedades.']);
     }
 
-    $subscribers[] = [
+    $subscribers[] = array_merge(
+        [
         'email'  => $email,
         'date'   => current_time('mysql'),
         'status' => 'new',
         'source' => 'newsletter-form',
         'notes'  => '',
-    ];
+        ],
+        function_exists( 'bsc_privacy_form_metadata' ) ? bsc_privacy_form_metadata() : []
+    );
     bsc_newsletter_save_subscribers($subscribers);
 
     $admin_email = get_option('admin_email');

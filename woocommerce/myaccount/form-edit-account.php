@@ -1,4 +1,13 @@
 <?php
+/**
+ * BSC custom account details form.
+ *
+ * Reviewed against WooCommerce form-edit-account.php 9.7.0.
+ *
+ * @package WooCommerce\Templates
+ * @version 9.7.0
+ */
+
 defined('ABSPATH') || exit;
 
 do_action('woocommerce_before_edit_account_form');
@@ -25,7 +34,9 @@ $default_first_name   = $current_user->first_name ? $current_user->first_name : 
 $default_last_name    = $current_user->last_name ? $current_user->last_name : '';
 ?>
 
-<form class="bsc__account-form" method="post">
+<form class="bsc__account-form" method="post" <?php do_action('woocommerce_edit_account_form_tag'); ?>>
+  <?php do_action('woocommerce_edit_account_form_start'); ?>
+
   <div class="bsc__account-grid">
 
     <div class="bsc__account-col">
@@ -118,6 +129,7 @@ $default_last_name    = $current_user->last_name ? $current_user->last_name : ''
   </div>
 
   <div class="bsc__account-submit">
+    <?php do_action('woocommerce_edit_account_form'); ?>
     <?php wp_nonce_field('save_account_details', 'save-account-details-nonce'); ?>
     <button type="submit" class="bsc__button bsc__button--compact-pill bsc__address-button"><?php echo esc_html( html_entity_decode( '&#161; Guardar datos !', ENT_QUOTES, 'UTF-8' ) ); ?></button>
     <input type="hidden" name="action" value="save_account_details" />

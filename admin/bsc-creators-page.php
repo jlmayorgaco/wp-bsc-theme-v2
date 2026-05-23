@@ -92,6 +92,18 @@ function bsc_creators_handle_actions(): void {
             wp_safe_redirect(add_query_arg(['page' => 'bsc-creators', 'bsc_notice' => 'updated'], admin_url('admin.php')));
             exit;
         }
+
+        if ('delete_application' === $action) {
+            $index = isset($_POST['application_id']) ? absint(wp_unslash($_POST['application_id'])) : -1;
+            $applications = function_exists('bsc_privacy_delete_indexed_row')
+                ? bsc_privacy_delete_indexed_row(bsc_creators_get_applications(), $index)
+                : array_values(array_diff_key(bsc_creators_get_applications(), [$index => true]));
+
+            bsc_creators_save_applications($applications);
+
+            wp_safe_redirect(add_query_arg(['page' => 'bsc-creators', 'bsc_notice' => 'deleted'], admin_url('admin.php')));
+            exit;
+        }
     }
 
     if (isset($_GET['bsc_export'], $_GET['_wpnonce']) && 'creators' === sanitize_key(wp_unslash($_GET['bsc_export']))) {
@@ -115,7 +127,7 @@ function bsc_creators_export_csv(): void {
 
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
-    fputcsv($out, ['Fecha', 'Estado', 'Nombre', 'Email', 'Instagram', 'TikTok', 'Origen', 'Mensaje', 'Notas']);
+    fputcsv($out, ['Fecha', 'Estado', 'Nombre', 'Email', 'Instagram', 'TikTok', 'Origen', 'Mensaje', 'Notas', 'Consentimiento', 'IP hash', 'Retencion dias']);
 
     foreach (bsc_creators_get_applications() as $application) {
         fputcsv(
@@ -130,6 +142,9 @@ function bsc_creators_export_csv(): void {
                 $application['source'] ?? '',
                 $application['mensaje'] ?? '',
                 $application['notes'] ?? '',
+                ! empty($application['consent']) ? 'si' : 'no',
+                $application['ip_hash'] ?? '',
+                $application['retention_days'] ?? '',
             ]
         );
     }
@@ -160,7 +175,9 @@ function bsc_render_creators_page(): void {
         <hr class="wp-header-end">
 
         <?php if (isset($_GET['bsc_notice'])) : ?>
-            <div class="bsc-admin-note bsc-admin-note--success">Solicitud actualizada.</div>
+            <div class="bsc-admin-note bsc-admin-note--success">
+                <?php echo esc_html('deleted' === sanitize_key(wp_unslash($_GET['bsc_notice'])) ? 'Solicitud eliminada.' : 'Solicitud actualizada.'); ?>
+            </div>
         <?php endif; ?>
 
         <form method="get" class="bsc-admin-creators__filters">
@@ -189,6 +206,7 @@ function bsc_render_creators_page(): void {
                     <th>Origen</th>
                     <th>Mensaje</th>
                     <th>Notas</th>
+                    <th>Privacidad</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -229,6 +247,12 @@ function bsc_render_creators_page(): void {
                     <td><?php echo esc_html(wp_trim_words((string) ($application['mensaje'] ?? ''), 18)); ?></td>
                     <td><?php echo esc_html(wp_trim_words((string) ($application['notes'] ?? ''), 14)); ?></td>
                     <td>
+                        <?php
+                        $retention_days = absint($application['retention_days'] ?? 0);
+                        echo esc_html($retention_days > 0 ? 'Retencion: ' . $retention_days . ' dias' : 'Sin retencion definida');
+                        ?>
+                    </td>
+                    <td>
                         <form method="post" class="bsc-admin-creators__status-form">
                             <?php wp_nonce_field('bsc_creators_action', 'bsc_creators_nonce'); ?>
                             <input type="hidden" name="bsc_creator_action" value="update_status">
@@ -243,11 +267,17 @@ function bsc_render_creators_page(): void {
                             <textarea name="application_notes" rows="2" placeholder="Notas internas"><?php echo esc_textarea($application['notes'] ?? ''); ?></textarea>
                             <button type="submit" class="button button-small">Guardar</button>
                         </form>
+                        <form method="post" class="bsc-admin-creators__delete-form">
+                            <?php wp_nonce_field('bsc_creators_action', 'bsc_creators_nonce'); ?>
+                            <input type="hidden" name="bsc_creator_action" value="delete_application">
+                            <input type="hidden" name="application_id" value="<?php echo esc_attr($index); ?>">
+                            <button type="submit" class="button button-small" onclick="return confirm('Eliminar esta solicitud y sus datos personales?');">Eliminar datos</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
             <?php if (0 === $visible_rows) : ?>
-                <tr><td colspan="10"><?php echo esc_html($status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavia.'); ?></td></tr>
+                <tr><td colspan="11"><?php echo esc_html($status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavia.'); ?></td></tr>
             <?php endif; ?>
             </tbody>
         </table>

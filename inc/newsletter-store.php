@@ -45,6 +45,10 @@ function bsc_newsletter_normalize_subscriber( $subscriber ): array {
         'status'     => bsc_newsletter_normalize_status( (string) ( $subscriber['status'] ?? 'new' ) ),
         'source'     => sanitize_text_field( (string) ( $subscriber['source'] ?? 'newsletter-form' ) ),
         'notes'      => sanitize_textarea_field( (string) ( $subscriber['notes'] ?? '' ) ),
+        'consent'    => ! empty( $subscriber['consent'] ),
+        'ip_hash'    => sanitize_text_field( (string) ( $subscriber['ip_hash'] ?? '' ) ),
+        'privacy_policy_version' => sanitize_text_field( (string) ( $subscriber['privacy_policy_version'] ?? '' ) ),
+        'retention_days' => absint( $subscriber['retention_days'] ?? 0 ),
         'updated_at' => sanitize_text_field( (string) ( $subscriber['updated_at'] ?? '' ) ),
         'updated_by' => absint( $subscriber['updated_by'] ?? 0 ),
     ];
