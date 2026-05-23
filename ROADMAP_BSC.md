@@ -1,6 +1,6 @@
 # BSC Unified Roadmap and Operating Manual
 
-Ultima consolidacion: 2026-05-22
+Ultima consolidacion: 2026-05-23
 Repositorio: wp-bsc-theme-v2
 Rama esperada de release: MVP2
 Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
@@ -67,6 +67,17 @@ Gate de cierre P1 documentado el 2026-05-22:
 - Header/mobile nav visual subset: verde en los viewports aplicables.
 - `npm run test:e2e:visual`: no verde por snapshots publicos ya desactualizados en home, categoria, producto, checkout, contacto y Bubble Creators. Este refresh de baselines queda fuera del cierre P1 porque requiere revision visual aprobada.
 - Account visual page conserva diffs minimos de baseline en pagina de pedidos de cuenta; smoke de `edit-account` si pasa y el ajuste Safari/iPhone de selects esta cubierto por CSS.
+
+Gate de cierre P3 documentado el 2026-05-23:
+
+- `npm run lint`: verde.
+- `npx playwright test tests/e2e/smoke/admin-creators.spec.js tests/e2e/smoke/admin-newsletter.spec.js tests/e2e/smoke/public-forms.spec.js --workers=1 --reporter=list`: verde, 11 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-dashboard.spec.js --workers=1 --reporter=list`: verde, 1 passed / 2 skipped.
+- `npx playwright test tests/e2e/smoke/console-errors.spec.js tests/e2e/smoke/site-smoke.spec.js --workers=1 --reporter=list`: verde, 62 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-emails.spec.js tests/e2e/smoke/admin-orders.spec.js --workers=1 --reporter=list`: verde, 8 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-monitoring.spec.js tests/e2e/smoke/admin-dashboard.spec.js --workers=1 --reporter=list`: verde, 2 passed / 4 skipped.
+- Commits de cierre P3 en `MVP2`: `8d6975f`, `f5b3bbf`, `8bea7b8`, `e3cc450`, `7c91c6e`.
+- Alcance cerrado: CRM admin para Creators/Newsletter, Dashboard operativo, recomendaciones, emails de pedido/followup y monitoreo post-launch.
 
 Scope ya cerrado en MVP2:
 
@@ -2469,6 +2480,15 @@ Bajo-medio. Suite puede tardar mas.
 ---
 
 # P3 - Producto, admin y mejoras operativas
+
+Estado del bloque: Cerrado en MVP2, 2026-05-23
+
+Evidencia:
+- CRM admin Creators/Newsletter: `8d6975f`
+- Dashboard operativo: `f5b3bbf`
+- Recomendaciones de productos: `8bea7b8`
+- Emails operativos de pedido/followup: `e3cc450`
+- Monitoreo post-launch: `7c91c6e`
 
 ## BSC-RM-056 - Admin CRM para Creators y Newsletter
 
