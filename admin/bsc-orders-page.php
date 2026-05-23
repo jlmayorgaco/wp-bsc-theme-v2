@@ -431,6 +431,19 @@ function bsc_send_shipping_email( int $order_id ): string {
     $tracking_code = get_post_meta( $order_id, '_bsc_tracking_code', true );
     $tracking_link = get_post_meta( $order_id, '_bsc_tracking_link', true );
 
+    if ( function_exists( 'bsc_send_order_email' ) ) {
+        $sent = bsc_send_order_email(
+            $order_id,
+            'shipped',
+            [
+                'tracking_code' => $tracking_code,
+                'tracking_link' => $tracking_link,
+            ]
+        );
+
+        return $sent ? '' : 'wp_mail() devolvio false';
+    }
+
     $subject = sprintf( 'Tu pedido #%s está en camino 🚚', $order->get_order_number() );
 
     ob_start();

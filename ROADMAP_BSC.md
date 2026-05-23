@@ -477,6 +477,7 @@ Unreleased/MVP2:
 - P3 admin CRM slice: panel Newsletter BSC con filtros, busqueda, CSV, estados y notas; panel Bubble Creators alineado a estados `nuevo/contactado/aprobado/descartado`, origen visible y notas internas.
 - P3 dashboard operativo: filtro de periodo en Dashboard BSC, ventas ocultas para roles sin permisos financieros y accesos rapidos filtrados por permiso.
 - P3 recomendaciones: helper central filtra productos publicados, comprables y en stock; estrategia deterministica por relacionados, categorias y fallback de ultimos productos.
+- P3 emails operativos: log por orden para correos transaccionales/followups con dedupe por tipo y tracking, visible en Emails BSC.
 - P2 release-slice cerrado: `lint:encoding` bloqueante contra mojibake, auditor incremental `audit:php-requests`, smoke de formularios publicos y gate Playwright de errores de consola.
 - Calidad frontend P2: limpieza de mojibake en comentarios/scripts/admin, `cart.js` sin emojis corruptos en `console.error`, y desactivado el slider legacy `bsc-filter-slider-script` en archivos de producto porque rompia categorias sin el markup antiguo.
 - QA P2: nuevos tests `tests/e2e/smoke/public-forms.spec.js` y `tests/e2e/smoke/console-errors.spec.js` cubren home/categoria/PDP/cart/contacto/creators en mobile, tablet y desktop.
@@ -2530,6 +2531,7 @@ Acceptance:
 
 Prioridad: P3
 Area: Operacion, emails
+Estado: Cerrado en MVP2, 2026-05-22
 
 Objetivo:
 Centralizar emails de tracking/followup, evitar dobles envios, permitir preview seguro y registrar envio por orden.
@@ -2540,8 +2542,9 @@ Archivos a inspeccionar:
 - `admin/bsc-followup-emails-page.php`
 
 Acceptance:
-- Cada email operativo tiene log de envio.
-- Reintento manual no duplica accidentalmente sin confirmacion.
+- Cerrado: Emails transaccionales y followups asociados a orden guardan entradas en `_bsc_email_log`.
+- Cerrado: Envio por estado usa dedupe por tipo/tracking para no duplicar accidentalmente.
+- Cerrado: Admin Emails BSC muestra log operativo reciente por pedido, tipo, estado, destino y asunto.
 
 ## BSC-RM-060 - Monitoreo post-launch
 
