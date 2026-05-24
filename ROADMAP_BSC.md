@@ -98,6 +98,18 @@ Gate release candidate documentado el 2026-05-23:
 - `npm run test:e2e:smoke -- --reporter=list`: verde, 124 passed / 35 skipped.
 - `npm run test:e2e:visual`: verde despues de refrescar baselines revisados.
 - Resultado visual por suite: public pages 24 passed, header/mobile nav 5 passed / 4 skipped, account/post-purchase 15 passed, email previews 30 passed.
+
+Gate conversion, SEO y medicion ecommerce documentado el 2026-05-23:
+
+- `npm run lint`: verde.
+- `npm run audit:woocommerce-templates -- --strict`: verde, 44 override(s), ok=42, outdated=0, missing=0, reviewed=2.
+- `npm run test:domain`: verde.
+- `npm run test:e2e:smoke:checkout -- --reporter=list`: verde, 53 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-dashboard.spec.js tests/e2e/smoke/admin-emails.spec.js tests/e2e/smoke/console-errors.spec.js --workers=1 --reporter=list`: verde, 20 passed / 4 skipped.
+- `npx playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --reporter=list`: verde, 30 passed despues de actualizar baselines de email.
+- `npm run test:e2e:webkit`: verde, 4 passed.
+- Smoke manual automatizado de busqueda `/?s=qa`: verde, renderiza `.bsc__search-page` sin errores de consola.
+- Feed Merchant Center `?feed=bsc-google-merchant`: verde, status 200, 312 items.
 - Baselines visuales refrescados para paginas publicas y cuenta; los cambios corresponden al estado actual de UI despues de P0-P3.
 - Home visual estabilizado antes de screenshot: el test detiene Swiper y fuerza el slide esperado por viewport para evitar diffs por autoplay.
 - Sin blocker tecnico detectado en lint, smoke o visual. Pendiente de GO: revision manual Safari/iPhone y validacion de configuracion productiva.
@@ -2798,6 +2810,209 @@ Acceptance:
 - Cerrado: Incidentes tienen owner editable, canal de escalacion y procedimiento por severidad.
 - Cerrado: Panel muestra senales de PHP logs, JS smoke, checkout/pedidos, emails, followup cron y rate limit spikes.
 - Cerrado: Rate limiter registra bloqueos recientes para detectar picos por scope.
+
+---
+
+# MVP2 - Conversion, SEO y medicion ecommerce
+
+Estado del bloque: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Cerrar una capa minima de crecimiento post-MVP: busqueda usable, medicion ecommerce, recuperacion de carrito, feed para Merchant Center, SEO estructurado y mejoras de conversion en catalogo/carrito/checkout sin salir del tema ni crear documentos paralelos.
+
+Evidencia QA:
+- `npm run lint`: verde.
+- `npm run audit:woocommerce-templates -- --strict`: verde, 44 override(s), ok=42, outdated=0, missing=0, reviewed=2.
+- `npm run test:domain`: verde.
+- `npm run test:e2e:smoke:checkout -- --reporter=list`: verde, 53 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-dashboard.spec.js tests/e2e/smoke/admin-emails.spec.js tests/e2e/smoke/console-errors.spec.js --workers=1 --reporter=list`: verde, 20 passed / 4 skipped.
+- `npx playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --reporter=list`: verde, 30 passed despues de actualizar baselines de email.
+- `npm run test:e2e:webkit`: verde, 4 passed.
+- Busqueda `/?s=qa`: smoke verde, sin errores de consola.
+- Feed Merchant Center `?feed=bsc-google-merchant`: status 200, 312 items.
+
+Rollback:
+- Revertir el commit del bloque.
+- Si se desactiva solo operacion, apagar desde `BSC > Configuracion`: GA4 Measurement ID vacio, feed Merchant desmarcado, carrito abandonado desmarcado.
+- Despues de deploy o rollback del feed, ejecutar flush de rewrites/cache si el hosting lo requiere.
+
+## BSC-RM-061 - Busqueda ecommerce product-first
+
+Prioridad: MVP2
+Area: UX, conversion, catalogo
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Convertir la busqueda publica en una experiencia de productos, no una lista generica de posts, y medir consultas sin resultado.
+
+Archivos tocados:
+- `search.php`
+- `js/search.js`
+- `inc/ajax/search-actions.php`
+- `sass/components/header/_header-search.scss`
+- `sass/pages/_page-shop.scss`
+- `style.css`
+
+Acceptance:
+- Cerrado: Resultados renderizan cards reales con `BSC_Products_Card`.
+- Cerrado: Solo aparecen productos publicados, comprables y en stock.
+- Cerrado: Autocomplete incluye "Ver todos los resultados" y navega a busqueda WordPress sin forzar archive de producto.
+- Cerrado: Busquedas sin resultados se registran en metricas ecommerce para decisiones de catalogo.
+- Cerrado: Pagina vacia muestra estado util y CTA a tienda.
+
+Riesgo:
+Medio-bajo. La busqueda usa consultas adicionales por titulo, SKU y categorias; si el catalogo crece mucho, conviene migrar a indice dedicado o cache transiente por query.
+
+## BSC-RM-062 - Analitica ecommerce operativa
+
+Prioridad: MVP2
+Area: Admin, medicion, crecimiento
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Tener eventos basicos para GA4/dataLayer y un resumen interno en Dashboard BSC sin depender solo de herramientas externas.
+
+Archivos tocados:
+- `inc/analytics/ga4.php`
+- `inc/analytics/metrics.php`
+- `js/analytics.js`
+- `admin/bsc-admin-menu.php`
+- `sass/admin/bsc-admin-dashboard.scss`
+- `admin/bsc-admin-dashboard.css`
+
+Acceptance:
+- Cerrado: GA4 Measurement ID configurable desde `BSC > Configuracion`; si queda vacio, dataLayer sigue disponible para GTM.
+- Cerrado: Eventos cubren `view_item`, `view_item_list`, `view_cart`, `begin_checkout`, `add_to_cart`, `add_payment_info` y `purchase`.
+- Cerrado: Dashboard muestra vistas de producto, add-to-cart rate, conversion checkout, busquedas sin resultado, recuperacion de carrito y productos mas vistos.
+- Cerrado: Retencion de metricas configurable entre 30 y 365 dias.
+
+Riesgo:
+Medio. Las metricas internas escriben en una opcion WordPress ligera; si aumenta mucho el trafico, mover a tabla propia o servicio externo.
+
+## BSC-RM-063 - Recuperacion de carrito abandonado
+
+Prioridad: MVP2
+Area: Conversion, emails, checkout
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Capturar carritos con email en checkout, enviar recordatorio y restaurar items mediante token seguro.
+
+Archivos tocados:
+- `inc/abandoned-cart.php`
+- `js/abandoned-cart.js`
+- `emails/bsc-abandoned-cart.php`
+- `emails/bsc-email-previews.php`
+- `emails/bsc-email-helpers.php`
+- `js/cart.js`
+- `page-privacy.php`
+
+Acceptance:
+- Cerrado: Checkout captura email/nombre/telefono e items cuando el carrito no esta vacio.
+- Cerrado: Cron horario procesa carritos despues del retraso configurado.
+- Cerrado: Email usa template propio y preview admin.
+- Cerrado: Link con token restaura productos comprables/en stock y redirige a checkout.
+- Cerrado: Conversion marca carrito recuperado cuando el email compra.
+- Cerrado: Politica de privacidad menciona medicion operativa y recordatorio de carrito.
+
+Riesgo:
+Medio. Debe revisarse consentimiento/legal antes de produccion final y confirmar remitente real del email.
+
+## BSC-RM-064 - SEO estructurado y feed Merchant Center
+
+Prioridad: MVP2
+Area: SEO, adquisicion, catalogo
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Exponer datos estructurados y feed XML para que productos tengan mejor superficie en Google/Search/Merchant.
+
+Archivos tocados:
+- `inc/seo/structured-data.php`
+- `inc/merchant-center-feed.php`
+- `functions.php`
+- `admin/bsc-admin-menu.php`
+
+Acceptance:
+- Cerrado: Productos imprimen JSON-LD de Product con marca, precio, disponibilidad e imagen.
+- Cerrado: Categorias/listados imprimen breadcrumb/item-list cuando aplica.
+- Cerrado: Open Graph basico usa titulo, descripcion e imagen coherente.
+- Cerrado: Feed Merchant Center sale en `?feed=bsc-google-merchant` y filtra productos no aptos.
+- Cerrado: Admin permite activar/desactivar feed y configurar marca fallback.
+
+Riesgo:
+Medio-bajo. En produccion hay que validar el feed en Merchant Center y completar GTIN/MPN cuando existan.
+
+## BSC-RM-065 - Conversion en catalogo, carrito y checkout
+
+Prioridad: MVP2
+Area: UX, conversion
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Mejorar decisiones de compra con ordenamiento, progreso de envio gratis y resumen mas claro antes de pagar.
+
+Archivos tocados:
+- `components/product-category.php`
+- `plugins/bsc-catalog/classes/class-bsc-catalog-filter-config.php`
+- `plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php`
+- `plugins/bsc-catalog/classes/class-bsc-catalog-product-query.php`
+- `plugins/bsc-catalog/classes/class-bsc-catalog-request-context.php`
+- `page-cart.php`
+- `components/checkout/checkout-summary.php`
+- `inc/checkout-review-summary-helpers.php`
+- `sass/pages/_page-cart.scss`
+- `sass/components/checkout/_checkout-summary.scss`
+
+Acceptance:
+- Cerrado: Catalogo permite ordenar por recomendados, recientes, precio asc/desc y popularidad.
+- Cerrado: Ordenamiento via sidebar se conecta al query real del catalogo.
+- Cerrado: Carrito vacio mantiene CTA y recomendados.
+- Cerrado: Carrito/checkout muestran progreso hacia envio gratis y resumen operativo.
+- Cerrado: Ajustes de cantidad siguen actualizando resumen y captura de carrito abandonado.
+
+Riesgo:
+Bajo-medio. El orden por popularidad depende de `total_sales`; si no hay historial suficiente, recomendados/menu order sigue siendo fallback.
+
+## BSC-RM-066 - Sistema visual unificado para emails BSC
+
+Prioridad: MVP2
+Area: Emails, marca, UX post-compra
+Estado: Cerrado en MVP2, 2026-05-23
+
+Objetivo:
+Unificar los templates de email transaccional/followup con una base visual reutilizable, assets propios y previews admin.
+
+Archivos tocados:
+- `emails/bsc-email-design-system.php`
+- `emails/bsc-email-header.php`
+- `emails/bsc-email-footer.php`
+- `emails/bsc-order-confirmed.php`
+- `emails/bsc-order-preparing.php`
+- `emails/bsc-order-shipped.php`
+- `emails/bsc-order-delivered.php`
+- `emails/bsc-order-cancelled.php`
+- `emails/bsc-birthday-email.php`
+- `emails/bsc-welcome-email.php`
+- `emails/bsc-password-reset-email.php`
+- `emails/bsc-followup-inactive.php`
+- `emails/bsc-followup-repurchase.php`
+- `emails/bsc-order-items-table.php`
+- `sass/emails/bsc-email-design.scss`
+- `emails/bsc-email-design.css`
+- `images/emails/*`
+- `tests/e2e/visual/email-previews.spec.js`
+- `tests/e2e/visual/email-previews.spec.js-snapshots/*`
+
+Acceptance:
+- Cerrado: Header/footer compartidos usan helpers de diseño y assets versionados en `images/emails/`.
+- Cerrado: Templates de pedido, bienvenida, password reset, cumpleaños y followups comparten tipografia, botones, hero y estructura table-based compatible con clientes de email.
+- Cerrado: El email de carrito abandonado entra al manifest y a previews admin.
+- Cerrado: CSS fuente vive en `sass/emails/` y salida compilada queda sincronizada por `npm run compile:css`/`lint:css-build`.
+- Cerrado: Baselines visuales de email actualizados y suite `email-previews` verde.
+
+Riesgo:
+Medio. Los emails HTML dependen de soporte de clientes reales; antes de produccion conviene enviar pruebas a Gmail, Outlook/iOS Mail y revisar clipping.
 
 ---
 

@@ -18,6 +18,16 @@ $menu-title-font: 'Helvetica', sans-serif;
   outline-offset: -2px;
 }
 
+.search-result-item--all {
+  justify-content: center;
+  min-height: 44px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  border-top: 1px solid #e7e7e7;
+}
+
 .search-result-image {
   width: 40px;
   height: 40px;

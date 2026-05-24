@@ -31,6 +31,9 @@ function bsc_search_products() {
     $cache_key = 'bsc_search_v' . bsc_get_search_cache_version() . '_' . md5($query);
     $cached    = get_transient($cache_key);
     if ( $cached !== false ) {
+        if ( function_exists( 'bsc_metrics_record_search' ) ) {
+            bsc_metrics_record_search( $query, count( $cached ) );
+        }
         wp_send_json_success(['products' => $cached]);
     }
 
@@ -107,6 +110,9 @@ function bsc_search_products() {
 
     if ( empty($product_ids) ) {
         set_transient($cache_key, [], 15 * MINUTE_IN_SECONDS);
+        if ( function_exists( 'bsc_metrics_record_search' ) ) {
+            bsc_metrics_record_search( $query, 0 );
+        }
         wp_send_json_success(['products' => []]);
     }
 
@@ -116,6 +122,9 @@ function bsc_search_products() {
     foreach ( $product_ids as $pid ) {
         $product = wc_get_product($pid);
         if ( ! $product ) continue;
+        if ( $product->get_status() !== 'publish' || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+            continue;
+        }
 
         // Brand: first category with -marca in slug
         $brand = '';
@@ -145,11 +154,15 @@ function bsc_search_products() {
             'brand'     => wp_strip_all_tags( $brand ),
             'price'     => strip_tags($product->get_price_html()),
             'sku'       => sanitize_text_field( $product->get_sku() ),
+            'availability' => $product->is_in_stock() ? 'instock' : 'outofstock',
         ];
     }
 
     // ── Cache and return ───────────────────────────────────────────────────
     set_transient($cache_key, $results, 15 * MINUTE_IN_SECONDS);
+    if ( function_exists( 'bsc_metrics_record_search' ) ) {
+        bsc_metrics_record_search( $query, count( $results ) );
+    }
     wp_send_json_success(['products' => $results]);
 }
 

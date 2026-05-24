@@ -4,9 +4,11 @@ class BSC_Products_Card {
     private $id;
     private $title;
     private $price;
+    private $raw_price = 0.0;
     private $regular_price;
     private $sale_price;
     private $stock_status;
+    private $sku = '';
     private $image;
     private $image_id = 0;
     private $categories = [];
@@ -21,6 +23,8 @@ class BSC_Products_Card {
         $this->id            = $product->get_id();
         $this->title         = get_the_title( $product->get_id() );
         $this->price         = $product->get_price_html();
+        $this->raw_price     = (float) wc_get_price_to_display( $product );
+        $this->sku           = (string) $product->get_sku();
         $this->regular_price = wc_price( $product->get_regular_price() );
         $this->sale_price    = wc_price( $product->get_sale_price() );
         $this->stock_status  = $product->get_stock_status();
@@ -116,6 +120,12 @@ class BSC_Products_Card {
         }
 
         $product_id = $this->id;
+        $analytics_attrs = sprintf(
+            ' data-product_name="%s" data-product_price="%s" data-product_brand="%s"',
+            esc_attr( $this->title ),
+            esc_attr( wc_format_decimal( $this->raw_price, wc_get_price_decimals() ) ),
+            esc_attr( $this->brand )
+        );
 
         if ( $this->type === 'variable' ) {
             echo '<a href="' . esc_url( $this->link ) . '" class="bsc__button bsc__button--product-card bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
@@ -141,7 +151,8 @@ class BSC_Products_Card {
                 class="bsc__button bsc__button--product-card bsc__button-add-to-cart bsc__button-add-to-cart--hidden"
                 data-quantity="1"
                 data-product_id="' . esc_attr( $product_id ) . '"
-                data-product_sku=""
+                data-product_sku="' . esc_attr( $this->sku ) . '"
+                ' . $analytics_attrs . '
                 aria-label="' . esc_attr( $label ) . '"
             ><span>' . esc_html( $label ) . '</span></button>';
 
@@ -169,7 +180,8 @@ class BSC_Products_Card {
             class="bsc__button bsc__button--product-card bsc__button-add-to-cart"
             data-quantity="1"
             data-product_id="' . esc_attr( $product_id ) . '"
-            data-product_sku=""
+            data-product_sku="' . esc_attr( $this->sku ) . '"
+            ' . $analytics_attrs . '
             aria-label="' . esc_attr( $label ) . '"
         ><span>' . esc_html( $label ) . '</span></button>';
     }

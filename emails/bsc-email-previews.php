@@ -48,6 +48,10 @@ function bsc_get_email_preview_definitions(): array {
 			'label'    => 'Se te acabo el producto',
 			'template' => 'bsc-followup-repurchase.php',
 		],
+		'abandoned-cart' => [
+			'label'    => 'Carrito abandonado',
+			'template' => 'bsc-abandoned-cart.php',
+		],
 	];
 }
 
@@ -69,12 +73,17 @@ function bsc_get_email_preview_url( string $slug ): string {
 
 function bsc_get_email_preview_customer(): WP_User {
 	$email = 'preview.customer@example.invalid';
+	$login = 'preview_customer_bsc';
 	$user  = get_user_by( 'email', $email );
+
+	if ( ! $user ) {
+		$user = get_user_by( 'login', $login );
+	}
 
 	if ( ! $user ) {
 		$user_id = wp_insert_user(
 			[
-				'user_login'   => 'preview_customer_bsc',
+				'user_login'   => $login,
 				'user_email'   => $email,
 				'user_pass'    => wp_generate_password( 24, true, true ),
 				'role'         => 'customer',
@@ -89,6 +98,16 @@ function bsc_get_email_preview_customer(): WP_User {
 		}
 
 		$user = get_user_by( 'id', $user_id );
+	}
+
+	if ( $user instanceof WP_User && $user->user_email !== $email ) {
+		wp_update_user(
+			[
+				'ID'         => $user->ID,
+				'user_email' => $email,
+			]
+		);
+		$user = get_user_by( 'id', $user->ID );
 	}
 
 	update_user_meta( $user->ID, 'billing_first_name', 'Preview' );
@@ -235,18 +254,38 @@ function bsc_get_email_preview_context( string $slug ): array {
 			];
 
 		case 'followup-repurchase':
+			$preview_products = [];
+			foreach ( [ '15 de enero de 2026', '18 de enero de 2026', '21 de enero de 2026' ] as $ordered_at ) {
+				$preview_products[] = [
+					'name'       => $product->get_name(),
+					'ordered_at' => $ordered_at,
+					'url'        => get_permalink( $product->get_id() ),
+					'image_url'  => $image_url,
+				];
+			}
+
 			return [
 				'customer_name' => 'Preview Customer',
-				'products'      => [
-					[
-						'name'       => $product->get_name(),
-						'ordered_at' => '15 de enero de 2026',
-						'url'        => get_permalink( $product->get_id() ),
-						'image_url'  => $image_url,
-					],
-				],
+				'products'      => $preview_products,
 				'shop_url'      => $shop_url,
 				'account_url'   => $account_url,
+			];
+
+		case 'abandoned-cart':
+			return [
+				'customer_name' => 'Preview Customer',
+				'items'         => [
+					[
+						'name'       => $product->get_name(),
+						'quantity'   => 1,
+						'url'        => get_permalink( $product->get_id() ),
+						'image_url'  => $image_url,
+						'price_html' => wp_strip_all_tags( $product->get_price_html() ),
+					],
+				],
+				'total_html'    => wp_strip_all_tags( wc_price( wc_get_price_to_display( $product ) ) ),
+				'recover_url'   => wc_get_checkout_url(),
+				'shop_url'      => $shop_url,
 			];
 
 		case 'order-confirmed':

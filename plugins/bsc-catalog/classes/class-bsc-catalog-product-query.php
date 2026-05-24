@@ -41,6 +41,8 @@ class BSC_Catalog_Product_Query {
             ],
         ];
 
+        $args = $this->apply_ordering($args, $context->get_orderby());
+
         if (class_exists('BSC_Stock')) {
             $args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
         }
@@ -73,6 +75,43 @@ class BSC_Catalog_Product_Query {
             }
 
             $args['tax_query'] = $tax_query;
+        }
+
+        return $args;
+    }
+
+    private function apply_ordering(array $args, string $orderby): array {
+        switch ($orderby) {
+            case 'date':
+                $args['orderby'] = 'date';
+                $args['order'] = 'DESC';
+                break;
+
+            case 'price':
+                $args['meta_key'] = '_price';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'ASC';
+                break;
+
+            case 'price-desc':
+                $args['meta_key'] = '_price';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'DESC';
+                break;
+
+            case 'popularity':
+                $args['meta_key'] = 'total_sales';
+                $args['orderby'] = 'meta_value_num';
+                $args['order'] = 'DESC';
+                break;
+
+            case 'menu_order':
+            default:
+                $args['orderby'] = [
+                    'menu_order' => 'ASC',
+                    'date'       => 'DESC',
+                ];
+                break;
         }
 
         return $args;

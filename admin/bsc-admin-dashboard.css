@@ -74,6 +74,26 @@
   margin-top: 8px;
 }
 
+.bsc-admin-dashboard__metrics {
+  margin: 20px 0 8px;
+}
+
+.bsc-admin-dashboard__section-title {
+  font-size: 1.15rem;
+  margin: 0 0 10px;
+}
+
+.bsc-admin-dashboard__grid--metrics {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.bsc-admin-dashboard__insight-panels {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  margin: 4px 0 18px;
+}
+
 .bsc-admin-dashboard__panel-title {
   font-size: 1rem;
   margin-bottom: 8px;
@@ -121,6 +141,14 @@
 
 .bsc-admin-settings__section-title--spaced {
   margin: 16px 0 0;
+}
+
+.bsc-admin-settings__inline-fields {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
 }
 
 /*# sourceMappingURL=bsc-admin-dashboard.css.map */

@@ -1,0 +1,79 @@
+// Source styles for the BSC email system.
+// Production templates inline critical declarations for email client support.
+
+$email-text: #303030;
+$email-pink: #f4b5c7;
+$email-blue: #cceff7;
+$email-yellow: #fff2bd;
+$email-width: 652px;
+
+.bsc-email-shell {
+  background: #ffffff;
+  color: $email-text;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  margin: 0 auto;
+  max-width: $email-width;
+  width: $email-width;
+}
+
+.bsc-email-title {
+  color: $email-text;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  line-height: 30px;
+  text-align: center;
+}
+
+.bsc-email-copy {
+  color: $email-text;
+  font-size: 16px;
+  letter-spacing: 0.8px;
+  line-height: 1.48;
+  text-align: center;
+}
+
+.bsc-email-button {
+  border-radius: 24px;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  line-height: 20px;
+  padding: 12px 28px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.bsc-email-button--dark {
+  background: $email-text;
+  color: #ffffff;
+}
+
+.bsc-email-button--pink {
+  background: $email-pink;
+  color: $email-text;
+}
+
+.bsc-email-button--blue {
+  background: $email-blue;
+  color: $email-text;
+}
+
+.bsc-email-order-summary {
+  color: $email-text;
+  font-size: 16px;
+  letter-spacing: 0.8px;
+  line-height: 23px;
+}
+
+@media only screen and (max-width: 680px) {
+  .bsc-email-shell {
+    width: 100% !important;
+  }
+
+  .bsc-email-mobile-pad {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}

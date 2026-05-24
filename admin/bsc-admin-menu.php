@@ -125,6 +125,24 @@ function bsc_dashboard_quick_links(): array {
     );
 }
 
+function bsc_dashboard_format_percent( float $value ): string {
+    return number_format_i18n( $value, 1 ) . '%';
+}
+
+function bsc_dashboard_empty_metrics(): array {
+    return [
+        'counters'           => function_exists( 'bsc_metrics_empty_counters' ) ? bsc_metrics_empty_counters() : [],
+        'top_products'       => [],
+        'no_result_searches' => [],
+        'abandoned_snapshot' => [
+            'active'    => 0,
+            'reminded'  => 0,
+            'recovered' => 0,
+            'converted' => 0,
+        ],
+    ];
+}
+
 function bsc_add_admin_menu(): void {
     if ( ! bsc_current_user_has_any_bsc_page_access() ) {
         return;
@@ -375,7 +393,8 @@ function bsc_render_dashboard(): void {
 
     $range               = bsc_dashboard_get_range();
     $can_view_financials = bsc_dashboard_user_can_view_financials();
-    $cache_key           = 'bsc_dashboard_kpis_' . md5( $range['cache_key'] . '|' . ( $can_view_financials ? 'finance' : 'ops' ) );
+    $can_view_metrics    = current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
+    $cache_key           = 'bsc_dashboard_kpis_' . md5( $range['cache_key'] . '|' . ( $can_view_financials ? 'finance' : 'ops' ) . '|metrics_v1' );
 
     if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bsc_dashboard_action'] ) ) {
         if ( ! isset( $_POST['bsc_dashboard_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_dashboard_nonce'] ) ), 'bsc_dashboard_action' ) ) {
@@ -453,9 +472,19 @@ function bsc_render_dashboard(): void {
             'low_stock_ids' => $low_stock_ids,
             'low_threshold' => $low_threshold,
             'quick_links'   => bsc_dashboard_quick_links(),
+            'metrics'       => $can_view_metrics && function_exists( 'bsc_metrics_get_summary' )
+                ? bsc_metrics_get_summary( $range['start_date'], $range['end_date'] )
+                : bsc_dashboard_empty_metrics(),
         ];
         set_transient($cache_key, $kpis, 30 * MINUTE_IN_SECONDS);
     }
+
+    $metrics              = is_array( $kpis['metrics'] ?? null ) ? $kpis['metrics'] : bsc_dashboard_empty_metrics();
+    $metric_counters      = array_merge( bsc_dashboard_empty_metrics()['counters'], is_array( $metrics['counters'] ?? null ) ? $metrics['counters'] : [] );
+    $abandoned_snapshot   = is_array( $metrics['abandoned_snapshot'] ?? null ) ? $metrics['abandoned_snapshot'] : bsc_dashboard_empty_metrics()['abandoned_snapshot'];
+    $add_to_cart_rate     = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['add_to_cart'], (float) $metric_counters['view_item'] ) : 0.0;
+    $checkout_conversion  = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['purchase'], (float) $metric_counters['begin_checkout'] ) : 0.0;
+    $cart_recovery_rate   = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['abandoned_cart_converted'], (float) $metric_counters['abandoned_cart_capture'] ) : 0.0;
     ?>
     <div class="wrap bsc-admin-dashboard">
         <h1 class="bsc-admin-dashboard__title">
@@ -510,6 +539,83 @@ function bsc_render_dashboard(): void {
                 <div class="bsc-admin-dashboard__label">Enviados</div>
             </div>
         </div>
+
+        <?php if ( $can_view_metrics ) : ?>
+        <section class="bsc-admin-dashboard__metrics" aria-labelledby="bsc-dashboard-ecommerce-metrics">
+            <h2 id="bsc-dashboard-ecommerce-metrics" class="bsc-admin-dashboard__section-title">Metricas ecommerce</h2>
+            <div class="bsc-admin-dashboard__grid bsc-admin-dashboard__grid--metrics">
+                <div class="bsc-admin-dashboard__card">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $metric_counters['view_item'] ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Vistas de producto</div>
+                </div>
+                <div class="bsc-admin-dashboard__card">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $add_to_cart_rate ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Add-to-cart rate</div>
+                </div>
+                <div class="bsc-admin-dashboard__card">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $checkout_conversion ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Conversion checkout</div>
+                </div>
+                <div class="bsc-admin-dashboard__card<?php echo (int) $metric_counters['search_no_results'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $metric_counters['search_no_results'] ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Busquedas sin resultado</div>
+                </div>
+                <div class="bsc-admin-dashboard__card">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $cart_recovery_rate ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Recuperacion carrito</div>
+                </div>
+                <div class="bsc-admin-dashboard__card">
+                    <div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $abandoned_snapshot['active'] ) ); ?></div>
+                    <div class="bsc-admin-dashboard__label">Carritos activos</div>
+                </div>
+            </div>
+
+            <div class="bsc-admin-dashboard__insight-panels">
+                <div>
+                    <h3 class="bsc-admin-dashboard__panel-title">Productos mas vistos</h3>
+                    <table class="wp-list-table widefat striped">
+                        <thead><tr><th>Producto</th><th>Vistas</th><th>Adds</th><th>Compras</th></tr></thead>
+                        <tbody>
+                        <?php foreach ( (array) ( $metrics['top_products'] ?? [] ) as $product_row ) : ?>
+                            <tr>
+                                <td>
+                                    <a href="<?php echo esc_url( (string) ( $product_row['edit_url'] ?? '' ) ); ?>">
+                                        <?php echo esc_html( (string) ( $product_row['title'] ?? 'Producto' ) ); ?>
+                                    </a>
+                                </td>
+                                <td><?php echo esc_html( number_format_i18n( (int) ( $product_row['views'] ?? 0 ) ) ); ?></td>
+                                <td><?php echo esc_html( number_format_i18n( (int) ( $product_row['add_to_cart'] ?? 0 ) ) ); ?></td>
+                                <td><?php echo esc_html( number_format_i18n( (int) ( $product_row['purchases'] ?? 0 ) ) ); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php if ( empty( $metrics['top_products'] ) ) : ?>
+                            <tr><td colspan="4" class="bsc-admin-dashboard__empty-row">Sin datos de productos para este periodo.</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <h3 class="bsc-admin-dashboard__panel-title">Busquedas sin resultado</h3>
+                    <table class="wp-list-table widefat striped">
+                        <thead><tr><th>Busqueda</th><th>Veces</th><th>Ultima vez</th></tr></thead>
+                        <tbody>
+                        <?php foreach ( (array) ( $metrics['no_result_searches'] ?? [] ) as $search_row ) : ?>
+                            <tr>
+                                <td><?php echo esc_html( (string) ( $search_row['query'] ?? '' ) ); ?></td>
+                                <td><?php echo esc_html( number_format_i18n( (int) ( $search_row['no_results'] ?? 0 ) ) ); ?></td>
+                                <td><?php echo esc_html( (string) ( $search_row['last_at'] ?? '' ) ); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php if ( empty( $metrics['no_result_searches'] ) ) : ?>
+                            <tr><td colspan="3" class="bsc-admin-dashboard__empty-row">No hay busquedas sin resultado en este periodo.</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <?php endif; ?>
 
         <!-- Bottom panels -->
         <div class="bsc-admin-dashboard__panels">
@@ -607,6 +713,13 @@ function bsc_render_settings_page(): void {
         update_option('bsc_email_from_name',           sanitize_text_field(wp_unslash($_POST['bsc_email_from_name'] ?? 'Bubble Skin Care')));
         update_option('bsc_email_from_address',        sanitize_email(wp_unslash($_POST['bsc_email_from_address'] ?? '')));
         update_option('bsc_low_stock_threshold',       max(0, intval(wp_unslash($_POST['bsc_low_stock_threshold'] ?? 3))));
+        $ga4_measurement_id = strtoupper(sanitize_text_field(wp_unslash($_POST['bsc_ga4_measurement_id'] ?? '')));
+        update_option('bsc_ga4_measurement_id', preg_match('/^G-[A-Z0-9]+$/', $ga4_measurement_id) ? $ga4_measurement_id : '');
+        update_option('bsc_merchant_feed_enabled', isset($_POST['bsc_merchant_feed_enabled']) ? 1 : 0);
+        update_option('bsc_merchant_feed_default_brand', sanitize_text_field(wp_unslash($_POST['bsc_merchant_feed_default_brand'] ?? get_bloginfo('name'))));
+        update_option('bsc_metrics_retention_days', max(30, min(365, intval(wp_unslash($_POST['bsc_metrics_retention_days'] ?? 120)))));
+        update_option('bsc_abandoned_cart_enabled', isset($_POST['bsc_abandoned_cart_enabled']) ? 1 : 0);
+        update_option('bsc_abandoned_cart_delay_hours', max(1, intval(wp_unslash($_POST['bsc_abandoned_cart_delay_hours'] ?? 4))));
 
         echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
     }
@@ -705,6 +818,60 @@ function bsc_render_settings_page(): void {
                             value="<?php echo esc_attr(get_option('bsc_low_stock_threshold',3)); ?>"
                             class="small-text" min="0">
                         <p class="description">Productos con stock bodega menor a este valor aparecen como alerta en el Dashboard.</p>
+                    </td>
+                </tr>
+
+                <tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Conversion y analitica</h2></th></tr>
+                <tr>
+                    <th><label for="bsc_ga4_measurement_id">GA4 Measurement ID</label></th>
+                    <td>
+                        <input type="text" id="bsc_ga4_measurement_id" name="bsc_ga4_measurement_id"
+                            value="<?php echo esc_attr(get_option('bsc_ga4_measurement_id','')); ?>"
+                            class="regular-text" placeholder="G-XXXXXXXXXX">
+                        <p class="description">Si se deja vacio, el sitio sigue empujando eventos a dataLayer para GTM.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Google Merchant Center</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bsc_merchant_feed_enabled" value="1" <?php checked((int) get_option('bsc_merchant_feed_enabled', 1), 1); ?>>
+                            Publicar feed XML de productos para Merchant Center.
+                        </label>
+                        <p class="description">
+                            URL del feed:
+                            <code><?php echo esc_html(function_exists('bsc_merchant_center_feed_url') ? bsc_merchant_center_feed_url() : home_url('/?feed=bsc-google-merchant')); ?></code>
+                        </p>
+                        <p class="bsc-admin-settings__inline-fields">
+                            <label for="bsc_merchant_feed_default_brand">Marca fallback</label>
+                            <input type="text" id="bsc_merchant_feed_default_brand" name="bsc_merchant_feed_default_brand"
+                                value="<?php echo esc_attr(get_option('bsc_merchant_feed_default_brand', get_bloginfo('name'))); ?>"
+                                class="regular-text">
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="bsc_metrics_retention_days">Retencion metricas ecommerce</label></th>
+                    <td>
+                        <input type="number" id="bsc_metrics_retention_days" name="bsc_metrics_retention_days"
+                            value="<?php echo esc_attr((string) get_option('bsc_metrics_retention_days', 120)); ?>"
+                            class="small-text" min="30" max="365" step="30">
+                        <p class="description">Dias que se conservan vistas, add-to-cart y busquedas internas para el dashboard.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Carrito abandonado</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="bsc_abandoned_cart_enabled" value="1" <?php checked((int) get_option('bsc_abandoned_cart_enabled', 1), 1); ?>>
+                            Capturar carritos con email y enviar recordatorio.
+                        </label>
+                        <p class="bsc-admin-followup__inline-setting">
+                            <input type="number" min="1" step="1" name="bsc_abandoned_cart_delay_hours"
+                                value="<?php echo esc_attr((string) get_option('bsc_abandoned_cart_delay_hours', 4)); ?>"
+                                class="small-text">
+                            horas despues de la ultima actividad
+                        </p>
                     </td>
                 </tr>
 

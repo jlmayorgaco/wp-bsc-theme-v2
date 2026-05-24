@@ -44,6 +44,10 @@ require_once get_template_directory() . '/inc/privacy-data.php';
 require_once get_template_directory() . '/inc/newsletter-store.php';
 require_once get_template_directory() . '/inc/bsc-static-pages.php';
 require_once get_template_directory() . '/inc/bsc-url-helpers.php';
+require_once get_template_directory() . '/inc/seo/structured-data.php';
+require_once get_template_directory() . '/inc/analytics/ga4.php';
+require_once get_template_directory() . '/inc/analytics/metrics.php';
+require_once get_template_directory() . '/inc/merchant-center-feed.php';
 
 if ( defined( 'JETPACK__VERSION' ) ) {
 	require get_template_directory() . '/inc/jetpack.php';
@@ -67,6 +71,7 @@ foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_modu
 require_once get_template_directory() . '/emails/bsc-email-helpers.php';
 require_once get_template_directory() . '/emails/bsc-email-previews.php';
 require_once get_template_directory() . '/emails/bsc-followup-emails.php';
+require_once get_template_directory() . '/inc/abandoned-cart.php';
 
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_template_directory() . '/emails/bsc-emails.php';

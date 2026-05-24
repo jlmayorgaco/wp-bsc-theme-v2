@@ -9,6 +9,7 @@ class BSC_Catalog_Request_Context {
     private int $max_price;
     private bool $has_min_price;
     private bool $has_max_price;
+    private string $orderby;
 
     private function __construct(
         string $group,
@@ -18,7 +19,8 @@ class BSC_Catalog_Request_Context {
         int $min_price,
         int $max_price,
         bool $has_min_price,
-        bool $has_max_price
+        bool $has_max_price,
+        string $orderby
     ) {
         $this->group = $group;
         $this->subgroup = $subgroup;
@@ -28,6 +30,7 @@ class BSC_Catalog_Request_Context {
         $this->max_price = $max_price;
         $this->has_min_price = $has_min_price;
         $this->has_max_price = $has_max_price;
+        $this->orderby = $orderby;
     }
 
     public static function from_request(array $request, ?BSC_Catalog_Filter_Config $config = null): self {
@@ -41,7 +44,8 @@ class BSC_Catalog_Request_Context {
             array_key_exists('min_price', $request) ? absint($request['min_price']) : $config->get_display_min_price(),
             array_key_exists('max_price', $request) ? absint($request['max_price']) : $config->get_display_max_price(),
             array_key_exists('min_price', $request),
-            array_key_exists('max_price', $request)
+            array_key_exists('max_price', $request),
+            $config->normalize_orderby($request['orderby'] ?? '')
         );
     }
 
@@ -70,7 +74,8 @@ class BSC_Catalog_Request_Context {
             array_key_exists('min_price', $query_params) ? absint($query_params['min_price']) : $config->get_display_min_price(),
             array_key_exists('max_price', $query_params) ? absint($query_params['max_price']) : $config->get_display_max_price(),
             array_key_exists('min_price', $query_params),
-            array_key_exists('max_price', $query_params)
+            array_key_exists('max_price', $query_params),
+            $config->normalize_orderby($query_params['orderby'] ?? '')
         );
     }
 
@@ -100,6 +105,10 @@ class BSC_Catalog_Request_Context {
 
     public function has_max_price(): bool {
         return $this->has_max_price;
+    }
+
+    public function get_orderby(): string {
+        return $this->orderby;
     }
 
     public function get_selected_values(string $field_name): array {
