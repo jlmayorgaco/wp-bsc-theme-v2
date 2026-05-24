@@ -63,7 +63,16 @@ if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) && isset( $_POST['email'] )
 <main class="bsc__auth">
   <div class="bsc__container">
     <div class="bsc__form-image">
-      <img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signup_cover.png' ); ?>" alt="Imagen de fondo de registro" />
+      <?php
+      bsc_responsive_theme_image(
+          'images/signin_signup/bsc_signup_cover.png',
+          'Imagen de fondo de registro',
+          [
+              'loading' => 'eager',
+          ],
+          '(max-width: 768px) 0px, 50vw'
+      );
+      ?>
     </div>
 
     <div class="bsc__form-container">

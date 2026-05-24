@@ -143,19 +143,19 @@
         [
             'slug'  => 'group-skin-care',
             'title' => 'SKIN CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-hair-care',
             'title' => 'HAIR CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
         ],
         [
             'slug'  => 'group-make-up',
             'title' => 'MAKE UP',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ]
@@ -163,21 +163,21 @@
         [
             'slug'  => 'dispositivos',
             'title' => 'DISPOSITIVOS',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'inner-beauty',
             'title' => 'INNER BEAUTY',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
         [
             'slug'  => 'spa-kbeauty',
             'title' => 'SPA KBEAUTY',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !'
 
         ],
@@ -195,7 +195,16 @@
             <div class="bsc-kb-card__imgwrap">
         
                 <div class="bsc-kb-card__back">
-                    <img src="<?php echo esc_url( $g['image'] ); ?>" alt="<?php echo esc_attr( $g['title'] ); ?>" loading="lazy">
+                    <?php
+                    bsc_responsive_theme_image(
+                        $g['image'],
+                        $g['title'],
+                        [
+                            'loading' => 'lazy',
+                        ],
+                        '(max-width: 768px) 100vw, 33vw'
+                    );
+                    ?>
                 </div> 
 
                 <div class="bsc-kb-card__front">
@@ -215,7 +224,17 @@
 
     <section class="section home__brands--section">
       <div class="section__back">
-        <img class="brands__bg" alt="" src="<?php echo get_template_directory_uri();?>/images/home_brands/bsc_home_brands_bg.jpg">
+        <?php
+        bsc_responsive_theme_image(
+            'images/home_brands/bsc_home_brands_bg.jpg',
+            '',
+            [
+                'class'   => 'brands__bg',
+                'loading' => 'lazy',
+            ],
+            '100vw'
+        );
+        ?>
       </div>
       <div class="section__front">
       <div class="section__container">
@@ -303,7 +322,17 @@
 
     <section class="section home__about--section">
       <div class="section__back">
-        <img class="about__bg" src="<?php echo get_template_directory_uri();?>/images/bsc_home_about_bg.jpg" alt="">
+        <?php
+        bsc_responsive_theme_image(
+            'images/bsc_home_about_bg.jpg',
+            '',
+            [
+                'class'   => 'about__bg',
+                'loading' => 'lazy',
+            ],
+            '100vw'
+        );
+        ?>
       </div>
       <div class="section__front">
         <div class="front__container">

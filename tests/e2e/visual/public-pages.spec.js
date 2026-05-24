@@ -5,6 +5,7 @@ const {
   gotoAndStabilize,
   gotoProductGridCategory,
   openFirstProductFromCategory,
+  waitForStableDocumentHeight,
 } = require('../helpers/ui');
 
 async function stabilizeHomeHero(page) {
@@ -100,6 +101,12 @@ test.describe('BSC visual baseline - public pages', () => {
       routes.groupCategory,
     ], testInfo.project.name);
     await gotoAndStabilize(page, routes.checkout);
+    await page.waitForFunction(() => {
+      return !document.querySelector(
+        '.blockUI, .blockOverlay, .woocommerce-checkout.processing, form.checkout.processing'
+      );
+    }).catch(() => null);
+    await waitForStableDocumentHeight(page, 6, 200);
 
     await expect(page).toHaveScreenshot('checkout.png', {
       animations: 'disabled',

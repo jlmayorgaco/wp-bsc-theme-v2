@@ -6,6 +6,7 @@ const ignoredDirs = new Set([
   '.git',
   'node_modules',
   'vendor',
+  'php-vendor',
   'test-results',
   'playwright-report',
   'Videos',

@@ -138,19 +138,22 @@ class BSC_Order_View {
     private function render_items(): void {
         foreach ( $this->order->get_items() as $item ) {
             $product = $item->get_product();
-
-            if ( ! $product instanceof WC_Product ) {
-                continue;
-            }
-
             $product_name   = $item->get_name();
             $product_qty    = $item->get_quantity();
             $product_total  = $item->get_total();
             $product_price  = wc_price( $product_total );
-            $product_id     = $product->get_id();
-            $product_link   = get_permalink( $product_id );
-            $brand_data     = $this->get_brand_data( $product );
-            $thumbnail_url  = $this->get_thumbnail_url( $product );
+            $product_link   = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+            $brand_data     = array(
+                'name' => '',
+                'link' => '',
+            );
+            $thumbnail_url  = get_template_directory_uri() . '/images/product-placeholder-wp.jpg';
+
+            if ( $product instanceof WC_Product ) {
+                $product_link  = get_permalink( $product->get_id() );
+                $brand_data    = $this->get_brand_data( $product );
+                $thumbnail_url = $this->get_thumbnail_url( $product );
+            }
             ?>
             <div class="bsc__order-review__item">
               <a href="<?php echo esc_url( $product_link ); ?>" class="bsc__order-review__image-link">

@@ -1,20 +1,20 @@
 === BSC2 ===
 
-Contributors: automattic
+Contributors: bubbleskincare
 Tags: custom-background, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready
 
-Requires at least: 4.5
-Tested up to: 5.4
-Requires PHP: 5.6
-Stable tag: 1.0.0
+Requires at least: 6.9
+Tested up to: 6.9
+Requires PHP: 8.2
+Stable tag: 2.1.0
 License: GNU General Public License v2 or later
 License URI: LICENSE
 
-A starter theme called BSC2.
+Custom WordPress and WooCommerce theme for Bubble Skin Care.
 
 == Description ==
 
-BSC 2.0 Theme
+Bubble Skin Care storefront and account experience.
 
 == Installation ==
 

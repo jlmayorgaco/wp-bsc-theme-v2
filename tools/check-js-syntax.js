@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 
 const rootDir = process.cwd();
 const targets = ['js', path.join('tests', 'e2e'), 'tools'];
-const ignoredDirs = new Set(['node_modules', 'test-results', 'playwright-report', 'Videos']);
+const ignoredDirs = new Set(['node_modules', 'test-results', 'playwright-report', 'Videos', 'php-vendor']);
 
 function collectJsFiles(dir) {
   if (!fs.existsSync(dir)) {

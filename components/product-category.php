@@ -220,33 +220,33 @@ class BSCShopPage
             [
                 'slug'  => 'skin-care',
                 'title' => 'SKIN CARE',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
             ],
             [
                 'slug'  => 'hair-care',
                 'title' => 'HAIR CARE',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
             ],
             [
                 'slug'  => 'make-up',
                 'title' => 'MAKE UP',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
             ]
             /*
             [
                 'slug'  => 'dispositivos',
                 'title' => 'DISPOSITIVOS',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
             ],
             [
                 'slug'  => 'inner-beauty',
                 'title' => 'INNER BEAUTY',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
             ],
             [
                 'slug'  => 'spa-kbeauty',
                 'title' => 'SPA KBEAUTY',
-                'image' => esc_url(get_stylesheet_directory_uri()) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
             ],
             */
         ];
@@ -259,20 +259,21 @@ class BSCShopPage
                 $term_link = get_term_link($term);
             }
 
-            printf(
-                '<article class="bsc-kb-card">
-                    <a href="%s" class="bsc-kb-card__link">
-                        <div class="bsc-kb-card__imgwrap">
-                            <img src="%s" alt="%s" loading="lazy">
-                        </div>
-                        <div class="bsc-kb-card__label">%s</div>
-                    </a>
-                </article>',
-                esc_url($term_link),
-                esc_url($g['image']),
-                esc_attr($g['title']),
-                esc_html($g['title'])
+            echo '<article class="bsc-kb-card">';
+            echo '<a href="' . esc_url($term_link) . '" class="bsc-kb-card__link">';
+            echo '<div class="bsc-kb-card__imgwrap">';
+            bsc_responsive_theme_image(
+                $g['image'],
+                $g['title'],
+                [
+                    'loading' => 'lazy',
+                ],
+                '(max-width: 768px) 100vw, 33vw'
             );
+            echo '</div>';
+            echo '<div class="bsc-kb-card__label">' . esc_html($g['title']) . '</div>';
+            echo '</a>';
+            echo '</article>';
         }
         echo '</section>';
     }

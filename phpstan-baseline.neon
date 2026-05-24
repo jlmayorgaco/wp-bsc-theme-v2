@@ -1,0 +1,1789 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Function wc_get_order_status_name not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-admin-menu.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: admin/bsc-admin-menu.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: admin/bsc-admin-menu.php
+
+		-
+			message: '#^Instantiated class WC_Coupon not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: admin/bsc-coupons-page.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-monitoring-page.php
+
+		-
+			message: '#^Class WC_Order_Item_Product not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 7
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Function wc_get_order_status_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Parameter \$order of function bsc_maybe_send_shipping_email_for_order\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/bsc-orders-page.php
+
+		-
+			message: '#^Function wc_placeholder_img_src not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: admin/bsc-products-page.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: admin/bsc-products-page.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/bsc-reports-page.php
+
+		-
+			message: '#^Function wc_get_order_status_name not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-reports-page.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-reports-page.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 6
+			path: admin/bsc-reports-page.php
+
+		-
+			message: '#^Function wc_create_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-showroom-page.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-showroom-page.php
+
+		-
+			message: '#^Function wc_get_products not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/bsc-showroom-page.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:from_order\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_address\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_city\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_contains\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_name\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_observations\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_phone\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_Label_ViewModel\:\:resolve_state\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-order-labels.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: admin/class-bsc-orders-table.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Admin_Orders_Table\:\:order_age_badge\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: admin/class-bsc-orders-table.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/checkout-cart.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/checkout-cart.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/checkout/checkout-cart.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: components/checkout/checkout-coupons.php
+
+		-
+			message: '#^Function woocommerce_checkout_payment not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/checkout-payment.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/checkout-summary.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/checkout/class-bsc-checkout-form-view.php
+
+		-
+			message: '#^Function woocommerce_form_field not found\.$#'
+			identifier: function.notFound
+			count: 10
+			path: components/checkout/class-bsc-checkout-form-view.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: components/checkout/class-bsc-checkout-main-view.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/class-bsc-checkout-main-view.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/checkout/class-bsc-checkout-view-router.php
+
+		-
+			message: '#^Function is_wc_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: components/checkout/class-bsc-checkout-view-router.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/views/checkout-view-cancelled.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/views/checkout-view-empty.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/views/checkout-view-thankyou.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/checkout/views/checkout-view-thankyou.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/footer.php
+
+		-
+			message: '#^Function wc_get_account_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/footer.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/footer.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/footer.php
+
+		-
+			message: '#^Function wc_get_account_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: components/header/header-menu-config.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/header/header-menu-config.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/header/header-menu-config.php
+
+		-
+			message: '#^Function wc_logout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/header/header-menu-config.php
+
+		-
+			message: '#^Function wc_get_account_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: components/my-account/my-account-header.php
+
+		-
+			message: '#^Function wc_format_datetime not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/orders/class-bsc-order-view.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: components/orders/class-bsc-order-view.php
+
+		-
+			message: '#^Parameter \$order of method BSC_Order_View\:\:__construct\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: components/orders/class-bsc-order-view.php
+
+		-
+			message: '#^Property BSC_Order_View\:\:\$order has unknown class WC_Order as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: components/orders/class-bsc-order-view.php
+
+		-
+			message: '#^Function wc_get_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/orders/orders-table.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/orders/orders-table.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/orders/orders-zero-state.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/products/card.php
+
+		-
+			message: '#^Function wc_format_decimal not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/products/card.php
+
+		-
+			message: '#^Function wc_get_price_decimals not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/products/card.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/products/card.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: components/products/card.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: components/swiper.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-design-system.php
+
+		-
+			message: '#^Parameter \$order of function bsc_email_render_order_summary\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-design-system.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-email-helpers.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-helpers.php
+
+		-
+			message: '#^Parameter \$order of function bsc_append_order_email_log\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-helpers.php
+
+		-
+			message: '#^Parameter \$order of function bsc_get_order_email_log\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-helpers.php
+
+		-
+			message: '#^Parameter \$order of function bsc_order_email_was_sent\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-helpers.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function bsc_get_email_preview_order\(\) has invalid return type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_create_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_order_statuses not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_products not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-email-previews.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-emails.php
+
+		-
+			message: '#^Action callback returns array but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Parameter \$order of function bsc_get_followup_contact_key\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Parameter \$order of function bsc_get_followup_order_recipient\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-followup-emails.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-order-cancelled.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-order-confirmed.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-order-delivered.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: emails/bsc-order-items-table.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-order-preparing.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 2
+			path: emails/bsc-order-shipped.php
+
+		-
+			message: '#^Action callback returns int but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: inc/abandoned-cart.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/abandoned-cart.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/abandoned-cart.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/abandoned-cart.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/abandoned-cart.php
+
+		-
+			message: '#^Call to static method get_refreshed_fragments\(\) on an unknown class WC_AJAX\.$#'
+			identifier: class.notFound
+			count: 2
+			path: inc/ajax/cart-actions.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 10
+			path: inc/ajax/cart-actions.php
+
+		-
+			message: '#^Function wc_clear_notices not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/ajax/cart-actions.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/cart-actions.php
+
+		-
+			message: '#^Function wc_stock_amount not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/cart-actions.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/checkout-actions.php
+
+		-
+			message: '#^Function woocommerce_form_field not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/checkout-actions.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 7
+			path: inc/ajax/coupons-actions.php
+
+		-
+			message: '#^Function wc_format_coupon_code not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/coupons-actions.php
+
+		-
+			message: '#^Function wc_is_same_coupon not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/ajax/coupons-actions.php
+
+		-
+			message: '#^Instantiated class WC_Coupon not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/ajax/coupons-actions.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function get_woocommerce_currency not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_cart not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_checkout not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_product not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_shop not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function is_wc_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Function wc_get_products not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Parameter \$order of function bsc_ga4_get_order_payload\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/analytics/ga4.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Class WC_Product_Variation not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_cart not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_checkout not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_product not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_shop not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function is_wc_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/analytics/metrics.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 5
+			path: inc/checkout-review-summary-helpers.php
+
+		-
+			message: '#^Function wc_get_account_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/customizer.php
+
+		-
+			message: '#^Class WC_Product_Variation not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/merchant-center-feed.php
+
+		-
+			message: '#^Function get_woocommerce_currency not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/merchant-center-feed.php
+
+		-
+			message: '#^Function wc_get_formatted_variation not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/merchant-center-feed.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/merchant-center-feed.php
+
+		-
+			message: '#^Function wc_get_products not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/merchant-center-feed.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/performance/frontend-cleanup.php
+
+		-
+			message: '#^Function is_product_tag not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/performance/frontend-cleanup.php
+
+		-
+			message: '#^Function is_account_page not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/routing/frontend-routing.php
+
+		-
+			message: '#^Function is_account_page not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_cart not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_checkout not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_product not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_product_tag not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_shop not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function is_wc_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/scripts/enqueue-scripts.php
+
+		-
+			message: '#^Function get_woocommerce_currency not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function is_product not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function is_shop not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function wc_format_decimal not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function wc_get_price_decimals not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function wc_get_price_to_display not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Function wc_get_products not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: inc/seo/structured-data.php
+
+		-
+			message: '#^Class WC_Order not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 8
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function is_cart not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function is_product not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function wc_add_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function wc_format_decimal not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Parameter \$order of function bsc_calculate_order_bubble_points\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Parameter \$order of function bsc_get_order_bubble_points_balance\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Parameter \$order of function bsc_get_order_bubble_points_earned\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Parameter \$order of function bsc_mark_order_archived\(\) has invalid type WC_Order\.$#'
+			identifier: class.notFound
+			count: 1
+			path: inc/woocommerce.php
+
+		-
+			message: '#^Class WC_Order_Item_Product not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: includes/class-bsc-stock.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: includes/class-bsc-stock.php
+
+		-
+			message: '#^Parameter \$item of method BSC_Stock\:\:get_order_item_source_label\(\) has invalid type WC_Order_Item_Product\.$#'
+			identifier: class.notFound
+			count: 1
+			path: includes/class-bsc-stock.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: plugins/bubble-points/includes/redeem.php
+
+		-
+			message: '#^Found usage of constant DOING_AJAX\. Use wp_doing_ajax\(\) instead\.$#'
+			identifier: phpstanWP.wpConstant.fetch
+			count: 1
+			path: plugins/bubble-points/index.php
+
+		-
+			message: '#^Function wc_create_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: plugins/bubble-points/seeds/demo1.php
+
+		-
+			message: '#^Function wc_format_datetime not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: plugins/bubble-points/views/coupons-bubble-points.php
+
+		-
+			message: '#^Function wc_price not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: plugins/bubble-points/views/coupons-bubble-points.php
+
+		-
+			message: '#^Instantiated class WC_Coupon not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: plugins/bubble-points/views/coupons-bubble-points.php
+
+		-
+			message: '#^Function is_product_category not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/archive-product.php
+
+		-
+			message: '#^Function wc_get_page_id not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-empty.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-empty.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/cart/cart-empty.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-shipping.php
+
+		-
+			message: '#^Function is_cart not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: woocommerce/cart/cart-shipping.php
+
+		-
+			message: '#^Function wc_cart_totals_shipping_method_label not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-shipping.php
+
+		-
+			message: '#^Function woocommerce_shipping_calculator not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-shipping.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 15
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_coupon_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_coupon_label not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_fee_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_order_total_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_shipping_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_subtotal_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_cart_totals_taxes_total_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function wc_tax_enabled not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function woocommerce_shipping_calculator not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart-totals.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_coupons_enabled not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_get_cart_remove_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_get_cart_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_get_formatted_cart_item_data not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function woocommerce_quantity_input not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cart.php
+
+		-
+			message: '#^Function wc_get_template_part not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cross-sells.php
+
+		-
+			message: '#^Function woocommerce_product_loop_end not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cross-sells.php
+
+		-
+			message: '#^Function woocommerce_product_loop_start not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/cross-sells.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/cart/mini-cart.php
+
+		-
+			message: '#^Function wc_get_cart_remove_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/mini-cart.php
+
+		-
+			message: '#^Function wc_get_formatted_cart_item_data not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/mini-cart.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/proceed-to-checkout-button.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/cart/proceed-to-checkout-button.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 7
+			path: woocommerce/cart/shipping-calculator.php
+
+		-
+			message: '#^Function wc_get_cart_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/cart/shipping-calculator.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/cart/shipping-calculator.php
+
+		-
+			message: '#^Function wc_get_cart_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/cart-errors.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-billing.php
+
+		-
+			message: '#^Function wc_ship_to_billing_address_only not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-billing.php
+
+		-
+			message: '#^Function woocommerce_form_field not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-billing.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-checkout.php
+
+		-
+			message: '#^Function wc_coupons_enabled not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-coupon.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-coupon.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-coupon.php
+
+		-
+			message: '#^Call to static method instance\(\) on an unknown class WC_Checkout\.$#'
+			identifier: class.notFound
+			count: 1
+			path: woocommerce/checkout/form-login.php
+
+		-
+			message: '#^Function wc_get_checkout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-login.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-login.php
+
+		-
+			message: '#^Function woocommerce_login_form not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-login.php
+
+		-
+			message: '#^Function wc_display_item_meta not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-pay.php
+
+		-
+			message: '#^Function wc_get_template not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-pay.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-pay.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-pay.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-shipping.php
+
+		-
+			message: '#^Function wc_ship_to_billing_address_only not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-shipping.php
+
+		-
+			message: '#^Function woocommerce_form_field not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/form-shipping.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-verify-email.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-verify-email.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/form-verify-email.php
+
+		-
+			message: '#^Function wc_format_datetime not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/order-receipt.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: woocommerce/checkout/payment.php
+
+		-
+			message: '#^Function wc_get_template not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/payment.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/payment.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/checkout/payment.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/checkout/review-order.php
+
+		-
+			message: '#^Function wc_cart_totals_fee_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/review-order.php
+
+		-
+			message: '#^Function wc_cart_totals_taxes_total_html not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/review-order.php
+
+		-
+			message: '#^Function wc_tax_enabled not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/review-order.php
+
+		-
+			message: '#^Function wc_terms_and_conditions_checkbox_text not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/terms.php
+
+		-
+			message: '#^Function wc_format_datetime not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/thankyou.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/checkout/thankyou.php
+
+		-
+			message: '#^Function wc_get_template not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/checkout/thankyou.php
+
+		-
+			message: '#^Function wc_get_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 3
+			path: woocommerce/myaccount/dashboard.php
+
+		-
+			message: '#^Function wc_logout_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/dashboard.php
+
+		-
+			message: '#^Function wc_shipping_enabled not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/dashboard.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/downloads.php
+
+		-
+			message: '#^Function wc_get_page_permalink not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/downloads.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/downloads.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/downloads.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/form-add-payment-method.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/form-add-payment-method.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/form-add-payment-method.php
+
+		-
+			message: '#^Function wc_get_post_data_by_key not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/form-edit-address.php
+
+		-
+			message: '#^Function wc_get_template not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/form-edit-address.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/form-edit-address.php
+
+		-
+			message: '#^Function woocommerce_form_field not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/form-edit-address.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/myaccount/form-login.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/form-lost-password.php
+
+		-
+			message: '#^Function wc_wp_theme_get_element_class_name not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/form-reset-password.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/lost-password-confirmation.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/my-address.php
+
+		-
+			message: '#^Function wc_get_account_formatted_address not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-address.php
+
+		-
+			message: '#^Function wc_get_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-address.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-downloads.php
+
+		-
+			message: '#^Function wc_format_datetime not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function wc_get_account_orders_actions not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function wc_get_order_status_name not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function wc_get_order_statuses not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function wc_get_order_types not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/my-orders.php
+
+		-
+			message: '#^Function is_wc_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 4
+			path: woocommerce/myaccount/navigation.php
+
+		-
+			message: '#^Function wc_get_orders not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/orders.php
+
+		-
+			message: '#^Function WC not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_account_payment_methods_columns not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_account_payment_methods_types not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_credit_card_type_label not found\.$#'
+			identifier: function.notFound
+			count: 2
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_customer_saved_methods_list not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_endpoint_url not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_print_notice not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/payment-methods.php
+
+		-
+			message: '#^Function wc_get_order not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/myaccount/view-order.php
+
+		-
+			message: '#^Function get_related_product_skus not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/single-product.php
+
+		-
+			message: '#^Function woocommerce_show_product_images not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/single-product.php
+
+		-
+			message: '#^Function woocommerce_template_single_price not found\.$#'
+			identifier: function.notFound
+			count: 1
+			path: woocommerce/single-product.php
