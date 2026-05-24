@@ -219,7 +219,7 @@ function bsc_render_coupons_page(): void {
                 $edit_url   = get_edit_post_link( get_the_ID() );
                 $is_expired = $coupon->get_date_expires() && $coupon->get_date_expires()->getTimestamp() < time();
             ?>
-            <tr class="<?php echo $is_expired ? 'bsc-admin-coupons__expired' : ''; ?>">
+            <tr class="<?php echo esc_attr($is_expired ? 'bsc-admin-coupons__expired' : ''); ?>">
                 <td>
                     <strong class="bsc-admin-coupons__code">
                         <?php echo esc_html( $coupon->get_code() ); ?>

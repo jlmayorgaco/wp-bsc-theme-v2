@@ -13,8 +13,9 @@ function bsc_ajax_update_product_stock(): void {
     }
 
     $product_id = absint($_POST['product_id'] ?? 0);
-    $type = in_array($_POST['type'] ?? '', ['bodega', 'tienda'], true)
-        ? sanitize_text_field(wp_unslash($_POST['type']))
+    $type_raw = isset($_POST['type']) ? sanitize_key(wp_unslash($_POST['type'])) : '';
+    $type = in_array($type_raw, ['bodega', 'tienda'], true)
+        ? $type_raw
         : 'bodega';
     $value = max(0, intval($_POST['value'] ?? 0));
     $meta_key = $type === 'tienda' ? '_stock_tienda' : '_stock_bodega';
@@ -80,8 +81,9 @@ function bsc_ajax_adjust_stock(): void {
     }
 
     $product_id = absint($_POST['product_id'] ?? 0);
-    $type = in_array($_POST['type'] ?? '', ['bodega', 'tienda'], true)
-        ? sanitize_text_field(wp_unslash($_POST['type']))
+    $type_raw = isset($_POST['type']) ? sanitize_key(wp_unslash($_POST['type'])) : '';
+    $type = in_array($type_raw, ['bodega', 'tienda'], true)
+        ? $type_raw
         : 'bodega';
     $delta = intval($_POST['delta'] ?? 0);
     $reason = sanitize_text_field(wp_unslash($_POST['reason'] ?? ''));
@@ -164,8 +166,9 @@ function bsc_render_products_page(): void {
     }
 
     $search = sanitize_text_field($_GET['s'] ?? '');
-    $status = in_array($_GET['status'] ?? '', ['publish', 'draft'], true)
-        ? sanitize_text_field($_GET['status'])
+    $status_raw = isset($_GET['status']) ? sanitize_key(wp_unslash($_GET['status'])) : '';
+    $status = in_array($status_raw, ['publish', 'draft'], true)
+        ? $status_raw
         : '';
     $paged = max(1, intval($_GET['paged'] ?? 1));
     $per_page = 20;

@@ -67,7 +67,7 @@ function bsc_bp_render_user_history_screen($user_id) {
 
     // Fetch paginated ledger
     $per_page = 25;
-    $paged    = max(1, (int)($_GET['paged'] ?? 1));
+    $paged    = max(1, absint(wp_unslash($_GET['paged'] ?? 1)));
     $data     = bsc_bp_get_user_ledger($user_id, $per_page, $paged); // must return ['rows'=>[], 'total'=>int]
     $rows     = isset($data['rows']) ? (array)$data['rows'] : [];
     $total    = isset($data['total']) ? (int)$data['total'] : 0;

@@ -1,0 +1,194 @@
+[
+  {
+    "file": "admin/class-bsc-order-labels.php",
+    "line": 321,
+    "text": "echo $pdf;",
+    "reason": "Intentional binary PDF response generated from escaped label data and emitted after PDF headers."
+  },
+  {
+    "file": "comments.php",
+    "line": 33,
+    "text": "printf(",
+    "reason": "Template printf uses escaped URL/text arguments in surrounding lines."
+  },
+  {
+    "file": "comments.php",
+    "line": 39,
+    "text": "printf(",
+    "reason": "Template printf uses escaped URL/text arguments in surrounding lines."
+  },
+  {
+    "file": "components/checkout/checkout-cart.php",
+    "line": 17,
+    "text": "echo $this->render_cart_item($key, $item);",
+    "reason": "Renderer returns controlled checkout cart markup with escaped item fields."
+  },
+  {
+    "file": "components/header/BSC_HeaderNav.class.php",
+    "line": 34,
+    "text": "echo $menu->renderButton();",
+    "reason": "Header menu renderer returns controlled markup and escapes dynamic labels/URLs internally."
+  },
+  {
+    "file": "components/header/BSC_HeaderNav.class.php",
+    "line": 48,
+    "text": "echo $menu->renderContent();",
+    "reason": "Header menu renderer returns controlled markup and escapes dynamic labels/URLs internally."
+  },
+  {
+    "file": "components/header/partials/header-desktop.php",
+    "line": 8,
+    "text": "echo $headerNav->renderNavButtons();",
+    "reason": "Header navigation component returns controlled escaped markup."
+  },
+  {
+    "file": "components/header/partials/header-desktop.php",
+    "line": 71,
+    "text": "echo $headerNav->renderNavContent();",
+    "reason": "Header navigation component returns controlled escaped markup."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 133,
+    "text": "printf(",
+    "reason": "Breadcrumb link printf escapes URL and term name in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 140,
+    "text": "printf(",
+    "reason": "Breadcrumb link printf escapes URL and term name in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 161,
+    "text": "printf(",
+    "reason": "Category card printf escapes URL, image URL, alt text and title in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 402,
+    "text": "printf(",
+    "reason": "Subcategory modal button printf escapes class, filter slug, label and label text."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 420,
+    "text": "printf(",
+    "reason": "Subcategory button printf escapes class, filter slug, label and label text."
+  },
+  {
+    "file": "components/swiper.php",
+    "line": 57,
+    "text": "printf(",
+    "reason": "Swiper image printf escapes URL, alt and generated attributes in surrounding arguments."
+  },
+  {
+    "file": "inc/analytics/ga4.php",
+    "line": 115,
+    "text": "printf(",
+    "reason": "GA4 script emits JSON encoded analytics payload in surrounding arguments."
+  },
+  {
+    "file": "inc/analytics/ga4.php",
+    "line": 119,
+    "text": "printf(",
+    "reason": "GA4 script emits JSON encoded analytics payload in surrounding arguments."
+  },
+  {
+    "file": "inc/seo/structured-data.php",
+    "line": 264,
+    "text": "printf( '<meta property=\"og:type\" content=\"product\">' . \"\\n\" );",
+    "reason": "Static Open Graph meta tag contains no dynamic data."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 89,
+    "text": "printf(",
+    "reason": "Filter input printf escapes class, type, name, value and label in surrounding arguments."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 113,
+    "text": "printf(",
+    "reason": "Price range printf uses integer config/context values."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 121,
+    "text": "printf(",
+    "reason": "Price range printf uses integer config/context values."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 143,
+    "text": "printf(",
+    "reason": "Sort option printf escapes option value, selected state and label."
+  },
+  {
+    "file": "plugins/bsc-importer/admin/importer-page.php",
+    "line": 630,
+    "text": "echo $json;",
+    "reason": "Importer export emits wp_json_encode output after JSON headers."
+  },
+  {
+    "file": "plugins/bubble-points/admin/user-history.php",
+    "line": 34,
+    "text": "printf('<h2>%s &mdash; %s</h2>',",
+    "reason": "User history heading escapes display name and email in surrounding arguments."
+  },
+  {
+    "file": "plugins/bubble-points/admin/user-history.php",
+    "line": 133,
+    "text": "printf(",
+    "reason": "Ledger table printf uses pre-escaped cells and controlled numeric formatting."
+  },
+  {
+    "file": "plugins/bubble-points/classes/class-bsc-bubble-points-coupon.php",
+    "line": 100,
+    "text": "echo $this->get_html();",
+    "reason": "Woo coupon shortcode renderer returns trusted WooCommerce coupon HTML."
+  },
+  {
+    "file": "plugins/bubble-points/seeds/demo1.php",
+    "line": 37,
+    "text": "if ( defined('WP_CLI') && WP_CLI ) { WP_CLI::log($msg); } else { echo $msg . \"\\n\"; }",
+    "reason": "Seed script emits fixed CLI/demo status text only."
+  },
+  {
+    "file": "scripts/script_custom_types.php",
+    "line": 53,
+    "text": "printf(",
+    "reason": "Home slide field printf escapes field name, label, type and value in surrounding arguments."
+  },
+  {
+    "file": "template-parts/content-none.php",
+    "line": 21,
+    "text": "printf(",
+    "reason": "Underscores template printf uses escaped admin URL and translated text."
+  },
+  {
+    "file": "woocommerce/checkout/form-verify-email.php",
+    "line": 34,
+    "text": "printf(",
+    "reason": "WooCommerce override printf uses escaped translated login link placeholders."
+  },
+  {
+    "file": "woocommerce/checkout/payment-method.php",
+    "line": 26,
+    "text": "<?php echo $gateway->get_title(); /* phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped */ ?> <?php echo $gateway->get_icon(); /* phpcs:ignore WordPress.XSS.EscapeOutput.Outp",
+    "reason": "WooCommerce gateway title/icon output follows WooCommerce template contract and already has PHPCS inline review."
+  },
+  {
+    "file": "woocommerce/myaccount/dashboard.php",
+    "line": 27,
+    "text": "printf(",
+    "reason": "WooCommerce dashboard greeting printf escapes account URLs and display name in surrounding arguments."
+  },
+  {
+    "file": "woocommerce/myaccount/dashboard.php",
+    "line": 41,
+    "text": "printf(",
+    "reason": "WooCommerce dashboard account links printf escapes URL placeholders in surrounding arguments."
+  }
+]

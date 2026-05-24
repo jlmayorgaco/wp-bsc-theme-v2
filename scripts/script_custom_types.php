@@ -85,7 +85,7 @@ function bsc_save_home_slide_meta($post_id) {
     $fields = ['slide_subtitle', 'slide_button_text', 'slide_button_link'];
 
     foreach ($fields as $field) {
-        $value = $_POST[$field] ?? '';
+        $value = wp_unslash($_POST[$field] ?? '');
         $clean = $field === 'slide_button_link'
             ? esc_url_raw($value)
             : sanitize_text_field($value);

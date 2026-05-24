@@ -7,11 +7,11 @@ add_action('admin_post_bsc_bp_inline_adjust', function () {
     wp_die('No permissions');
   }
 
-  $user_id  = (int)($_POST['user_id'] ?? 0);
+  $user_id  = absint(wp_unslash($_POST['user_id'] ?? 0));
   $nonce_ok = wp_verify_nonce($_REQUEST['_wpnonce'] ?? '', 'bsc_bp_inline_adjust_'.$user_id);
   if (!$nonce_ok) wp_die('Bad nonce');
 
-  $amount = (int)($_POST['amount'] ?? 0); // unsigned from UI
+  $amount = absint(wp_unslash($_POST['amount'] ?? 0)); // unsigned from UI
   $op     = sanitize_key($_POST['op'] ?? 'add'); // 'add' | 'reduce'
   $note   = sanitize_text_field($_POST['note'] ?? '');
 

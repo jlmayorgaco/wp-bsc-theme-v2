@@ -16,7 +16,8 @@ $repoDir = '/var/www/bubblesskincare.com/htdocs/wp-content/themes/wp-bsc-theme-v
 
 header('Content-Type: text/plain');
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+$requestMethod = filter_input(INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS) ?: '';
+if ($requestMethod !== 'POST') {
     http_response_code(405);
     exit('Method not allowed');
 }
@@ -29,7 +30,8 @@ if ($secret === '') {
 $payload = file_get_contents('php://input') ?: '';
 $signature = 'sha256=' . hash_hmac('sha256', $payload, $secret);
 
-if (!hash_equals($signature, $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '')) {
+$webhookSignature = filter_input(INPUT_SERVER, 'HTTP_X_HUB_SIGNATURE_256', FILTER_UNSAFE_RAW) ?: '';
+if (!hash_equals($signature, $webhookSignature)) {
     http_response_code(403);
     exit('Invalid signature');
 }

@@ -156,11 +156,11 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - `npm run lint`: verde; incluye encoding, URLs locales, inline styles no-email, JS, SCSS, Stylelint, CSS build sync y PHP syntax.
 - `composer validate --strict`: verde. Nota local: el `php.ini` de Local emite warning por `php_imagick.dll` apuntando a una build anterior, pero el comando sale OK.
 - `composer run lint:phpstan` / `phpstan analyse --configuration=phpstan.neon`: verde con baseline inicial de 472 errores historicos.
-- `composer run lint:wpcs`: ejecutable, pero no verde todavia; WPCS reporta 28.369 errores y 1.985 warnings en 221 archivos. Queda como deuda BSC-RM-068.
+- `composer run lint:wpcs`: ejecutable, pero no verde todavia; tras PHPCBF acotado y ajuste de reglas BSC reporta 27.791 errores y 1.926 warnings en 218 archivos. Queda como deuda legacy incremental BSC-RM-068.
 - `npm run audit:woocommerce-templates -- --strict`: verde, 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
 - `npm run audit:deps`: verde; `npm audit --omit=dev` sin vulnerabilidades, assets vendor 6/6, referencias externas inventariadas: 41.
-- `npm run audit:php-requests`: verde como inventario no bloqueante; 425 referencias a superglobals, 25 requieren revision manual.
-- `npm run audit:php-output`: verde como inventario no bloqueante; 46 lineas requieren revision manual.
+- `npm run audit:php-requests -- --strict`: verde; 425 referencias a superglobals, 4 casos revisados y 0 no revisados.
+- `npm run audit:php-output -- --strict`: verde; 32 lineas revisadas y 0 no revisadas.
 - `npm run test:domain`: verde.
 - `npm run test:e2e:visual`: verde completo; public pages 24 passed, header/mobile nav 5 passed / 4 skipped, account/post-purchase 15 passed, email previews 30 passed.
 - `npx playwright test tests/e2e/smoke/site-smoke.spec.js --workers=1 --reporter=list`: verde, 44 passed / 4 skipped.
@@ -170,7 +170,7 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - Se corrigio el fallback de sliders de home para que pestanas como `piel_seca` no queden vacias si no hay productos configurados/categorizados.
 - Se actualizo la compatibilidad de `myaccount/form-edit-account.php` y `myaccount/view-order.php` contra WooCommerce actual, preservando hooks sin duplicar la tabla default de order details.
 - Se agrego el importador BSC embebido en el theme para reemplazar la URL legacy `admin.php?page=bsc-plugin` sin depender del plugin anterior.
-- Pendiente fuera de este gate: Lighthouse/WebPageTest contra produccion, CDN/cache/object cache, limpieza WPCS completa, revision manual de los inventarios `audit:php-*` y migrar metricas/carritos de options a tablas si el trafico crece.
+- Pendiente fuera de este gate: Lighthouse/WebPageTest contra storefront productivo real, CDN/cache/object cache, limpieza WPCS completa y migrar metricas/carritos de options a tablas si el trafico crece.
 
 Scope ya cerrado en MVP2:
 
@@ -195,9 +195,9 @@ Notas residuales:
 - WP admin local sigue siendo mas lento y fragil que storefront.
 - Safari/iPhone/WebKit ya tiene gate automatizado; antes de GO sigue recomendada una revision manual en iPhone real si la cliente puede validar.
 - Visual baselines deben revisarse antes de marcar release verde.
-- Performance productiva real sigue pendiente: Lighthouse/WebPageTest en dominio final, cache de pagina, object cache, CDN y pesos finales de home/categorias.
-- WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; no debe marcarse obligatorio hasta cerrar BSC-RM-068 o crear baseline formal de estilo.
-- Los audits de request/output son inventarios no bloqueantes; las lineas marcadas requieren revision manual antes de elevarlos a `--strict`.
+- Performance productiva real sigue bloqueada por infraestructura: `https://bubbleskincare.co` no expone storefront y redirige a `/lander`; se requiere URL final/staging publico para WebPageTest.
+- WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; se redujo a 27.791 errores y 1.926 warnings en 218 archivos y debe seguir cerrandose por carpetas.
+- Los audits de request/output ya estan elevados a `--strict`; cualquier hallazgo nuevo no revisado falla.
 - P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
 - `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
 
@@ -2340,7 +2340,7 @@ Resultado:
 - `phpcs.xml.dist` queda alineado a PHP 8.2, WordPress/WooCommerce actuales, text domain `bsc-2-0` y prefijos `bsc`/`BSC`.
 - Se agregaron `phpstan.neon`, `phpstan-bootstrap.php` y `phpstan-baseline.neon`.
 - PHPStan esta verde con baseline inicial de 472 errores historicos.
-- WPCS ejecuta, pero no esta verde todavia: 28.369 errores y 1.985 warnings en 221 archivos. La limpieza queda como BSC-RM-068.
+- WPCS ejecuta, pero no esta verde todavia: 27.791 errores y 1.926 warnings en 218 archivos despues del primer PHPCBF acotado. La limpieza queda como deuda incremental BSC-RM-068.
 
 Problema:
 El lint actual parece centrado en JS/CSS/tests. PHP necesita gate para syntax, WordPress standards y patrones peligrosos.
@@ -2595,12 +2595,12 @@ Area: Calidad, seguridad frontend
 Estado MVP2: cerrado incremental el 2026-05-23.
 
 Resultado:
-- Se agrego `npm run audit:php-output` con baseline no bloqueante y modo strict disponible.
-- Baseline actual al 2026-05-24: 46 lineas para revision manual futura.
+- Se agrego `npm run audit:php-output` con baseline revisado y modo strict activo.
+- Baseline actual al 2026-05-24: 32 lineas revisadas, 0 no revisadas.
 - Se corrigieron escapes puntuales en carrito, footer, product card, thank-you/order-received, Bubble Points coupons, social links de creators, single product y clases dinamicas de checkout/reportes.
 - Se agrego cobertura de `wp_kses_post`, `esc_url`, `esc_attr` y `esc_html` en salidas de alto riesgo tocadas por este bloque.
-- `npm run audit:php-requests` queda como baseline complementario: 425 refs y 25 para revision manual.
-- No se declara strict global todavia; queda como deuda convertir los 35 hallazgos restantes en allowlist explicita o fixes por modulo.
+- `npm run audit:php-requests -- --strict` queda como baseline complementario: 425 refs, 4 revisadas, 0 no revisadas.
+- Strict global queda activo para ambos audits; cualquier hallazgo nuevo no revisado debe arreglarse o agregarse a allowlist con razon.
 
 Problema:
 El theme renderiza muchas URLs, HTML y atributos manualmente. Necesita convencion consistente para `esc_url`, `esc_attr`, `esc_html`, `wp_kses_post`.
@@ -3083,7 +3083,7 @@ Medio. Los emails HTML dependen de soporte de clientes reales; antes de producci
 
 Prioridad: Pre-GO
 Area: Performance, infraestructura
-Estado: Abierto, no bloqueante de codigo local.
+Estado: Bloqueado por infraestructura externa el 2026-05-24; codigo local reforzado.
 
 Problema:
 Las optimizaciones locales de imagenes y assets no sustituyen medicion real contra produccion/staging. LCP, cache, CDN, object cache y peso final dependen del hosting y del contenido final.
@@ -3096,18 +3096,21 @@ Implementacion minima:
 - Documentar thresholds objetivo y regresiones aceptadas.
 
 Acceptance:
-- Reporte productivo con LCP/CLS/INP y peso por pagina.
-- Cache/CDN configurados o decision documentada.
-- Lista de imagenes finales demasiado pesadas si aparecen.
+- Bloqueado: `https://bubbleskincare.co` no sirve storefront; responde HTML minimo con redireccion JS a `/lander`, por lo que Lighthouse/WebPageTest productivo no mide la tienda.
+- Baseline local `http://bsc.local/`: performance 75, accessibility 86, best practices 78, SEO 92, LCP 4.7s, CLS 0, TBT 0ms, transfer 1.606 KiB.
+- Baseline local `http://bsc.local/product-category/group-skin-care/`: performance 67, accessibility 81, best practices 74, SEO 92, LCP 9.0s, CLS 0.004, TBT 0ms, transfer 1.301 KiB.
+- Baseline local `http://bsc.local/login/`: performance 67, accessibility 86, best practices 78, SEO 92, LCP 6.9s, CLS 0, TBT 40ms, transfer 1.052 KiB.
+- Codigo local: login cover queda `fetchpriority="high"` y la primera imagen de producto en listados de categoria usa `loading="eager"`/`fetchpriority="high"` para reducir retraso de LCP.
+- Pendiente externo: proveer dominio/staging publico real, activar/validar page cache, object cache y CDN, y repetir Lighthouse/WebPageTest con cache caliente y fria.
 
 ## BSC-RM-068 - Reducir deuda WPCS hasta gate verde
 
 Prioridad: P2
 Area: Code quality PHP/WP
-Estado: Abierto.
+Estado: Cerrado incremental el 2026-05-24; gate total sigue como deuda legacy.
 
 Problema:
-WPCS ya esta instalado y ejecuta, pero el codigo historico no cumple WordPress Coding Standards. El gate actual reporta 28.369 errores y 1.985 warnings en 221 archivos.
+WPCS ya esta instalado y ejecuta, pero el codigo historico no cumple WordPress Coding Standards. El gate previo reportaba 28.369 errores y 1.985 warnings en 221 archivos.
 
 Implementacion minima:
 - Separar auto-fix seguro con PHPCBF por carpetas de bajo riesgo.
@@ -3116,17 +3119,20 @@ Implementacion minima:
 - Definir si WPCS sera gate estricto total o baseline incremental por carpeta.
 
 Acceptance:
-- `composer run lint:wpcs` verde o baseline incremental aprobado.
-- Cambios funcionales separados de cambios puramente de formato.
+- PHPCBF acotado corrigio 804 violaciones automaticas en `inc/responsive-images.php`, `page-login.php`, `components/products/card.php` y `plugins/bsc-catalog/classes/*`.
+- `phpcs.xml.dist` mantiene prefijos reales `bsc`/`BSC` y excluye solo el aviso de prefijo corto porque el prefijo de marca ya esta definido.
+- Estado actual global: 27.791 errores y 1.926 warnings en 218 archivos; PHPCBF aun puede corregir 26.870 violaciones.
+- Subset trabajado bajo a 97 errores y 3 warnings restantes en 4 archivos; queda para refactor manual por docblocks, nombres camelCase legacy, Yoda conditions y output intencional.
+- Pendiente: no marcar WPCS total como gate obligatorio hasta cerrar por carpetas legacy o introducir un baseline tecnico dedicado.
 
 ## BSC-RM-069 - Elevar audits PHP request/output a strict
 
 Prioridad: P2
 Area: Seguridad, hardening
-Estado: Abierto.
+Estado: Cerrado el 2026-05-24.
 
 Problema:
-Los inventarios `audit:php-requests` y `audit:php-output` ya existen, pero aun tienen hallazgos manuales. Al 2026-05-24: 425 referencias a superglobals, 25 para revision manual; 46 lineas de output para revision manual.
+Los inventarios `audit:php-requests` y `audit:php-output` existian, pero aun tenian hallazgos manuales. Al inicio del cierre: 425 referencias a superglobals, 25 para revision manual; 46 lineas de output para revision manual.
 
 Implementacion minima:
 - Revisar cada hallazgo marcado por los audits.
@@ -3135,8 +3141,10 @@ Implementacion minima:
 - Bajar el conteo manual a cero o crear allowlist explicita revisada.
 
 Acceptance:
-- `npm run audit:php-requests -- --strict` verde o allowlist revisada.
-- `npm run audit:php-output -- --strict` verde o allowlist revisada.
+- `npm run audit:php-requests -- --strict`: verde; 425 referencias, 4 revisadas, 0 no revisadas.
+- `npm run audit:php-output -- --strict`: verde; 32 lineas revisadas, 0 no revisadas.
+- Se corrigieron lecturas directas en admin/products, product edit, followup emails, order labels, catalog filters, Bubble Points y custom types.
+- Se agregaron allowlists revisadas en `tools/php-request-audit-reviewed.json` y `tools/php-output-audit-reviewed.json`; cualquier nuevo hallazgo no revisado falla en strict.
 
 ---
 

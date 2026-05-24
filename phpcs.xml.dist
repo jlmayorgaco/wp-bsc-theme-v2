@@ -47,6 +47,7 @@
 	</rule>
 
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed"/>
 		<properties>
 			<property name="prefixes" type="array">
 				<element value="bsc"/>

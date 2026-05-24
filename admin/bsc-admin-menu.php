@@ -526,7 +526,7 @@ function bsc_render_dashboard(): void {
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pedidos_periodo']); ?></div>
                 <div class="bsc-admin-dashboard__label">Pedidos <?php echo esc_html($range['label']); ?></div>
             </div>
-            <div class="bsc-admin-dashboard__card<?php echo $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
+            <div class="bsc-admin-dashboard__card<?php echo esc_attr($kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''); ?>">
                 <div class="bsc-admin-dashboard__value"><?php echo esc_html($kpis['pendientes']); ?></div>
                 <div class="bsc-admin-dashboard__label">Pendientes</div>
             </div>

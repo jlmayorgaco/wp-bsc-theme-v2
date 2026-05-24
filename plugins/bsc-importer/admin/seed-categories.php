@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 defined('ABSPATH') || exit;
 
@@ -421,11 +421,11 @@ function bsc_theme_importer_after_upload_categories() {
             }, $sk_tipo_piel_categories),
         ],
         // Non-dynamically generated sections with name and slug structure
-        'Rutina BÃ¡sica' => [
+        'Rutina Básica' => [
             'slug' => 'bsc-menu-rutina-basica',
             'children' => [
                 ['name' => 'Limpiador Acuoso', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s2-limpiadores-acuosos'],
-                ['name' => 'TÃ³nico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
+                ['name' => 'Tónico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
                 ['name' => 'Hidratante', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s9-hidratantes'],
                 ['name' => 'Protector Solar', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s10-protectores-solares-crema'],
             ],
@@ -435,7 +435,7 @@ function bsc_theme_importer_after_upload_categories() {
             'children' => [
                 ['name' => 'Limpiador Aceitoso', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s1-limpiadores-aceitosos'],
                 ['name' => 'Limpiador Acuoso', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s2-limpiadores-acuosos'],
-                ['name' => 'TÃ³nico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
+                ['name' => 'Tónico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
                 ['name' => 'Serum', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s7-serums'],
                 ['name' => 'Hidratante', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s9-hidratantes'],
                 ['name' => 'Protector Solar', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s10-protectores-solares-crema'],
@@ -447,7 +447,7 @@ function bsc_theme_importer_after_upload_categories() {
                 ['name' => 'Limpiador Aceitoso', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s1-limpiadores-aceitosos'],
                 ['name' => 'Limpiador Acuoso', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s2-limpiadores-acuosos'],
                 ['name' => 'Exfoliante', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s3-exfoliantes'],
-                ['name' => 'TÃ³nico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
+                ['name' => 'Tónico', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos'],
                 ['name' => 'Mascarilla', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s5-mascarillas'],
                 ['name' => 'Esencias', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s6-esencias'],
                 ['name' => 'Serum', 'url' => '/product-category/group-skin-care/sk-rutina/sk-rutina-s7-serums'],
@@ -460,7 +460,7 @@ function bsc_theme_importer_after_upload_categories() {
             'slug' => 'bsc-menu-blog',
             'children' => [
                 ['name' => 'Entrevistas', 'url' => '/pages/interviews'],
-                ['name' => 'ReseÃ±as', 'url' => '/pages/reviews'],
+                ['name' => 'Reseñas', 'url' => '/pages/reviews'],
                 ['name' => 'Tendencias', 'url' => '/pages/trends'],
                 ['name' => 'Skin Care', 'url' => '/product-category/group-skin-care'],
                 ['name' => 'Hair Care', 'url' => '/product-category/group-hair-care'],

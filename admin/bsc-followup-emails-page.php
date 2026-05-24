@@ -42,9 +42,9 @@ function bsc_render_followup_emails_page(): void {
 			update_option( 'bsc_password_reset_email_enabled', isset( $_POST['bsc_password_reset_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_birthday_email_enabled', isset( $_POST['bsc_birthday_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_inactive_email_enabled', isset( $_POST['bsc_inactive_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_inactive_email_days', max( 1, (int) ( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) );
+			update_option( 'bsc_inactive_email_days', max( 1, absint( wp_unslash( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) ) );
 			update_option( 'bsc_repurchase_email_enabled', isset( $_POST['bsc_repurchase_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_default_repurchase_days', max( 1, (int) ( $_POST['bsc_default_repurchase_days'] ?? $defaults['bsc_default_repurchase_days'] ) ) );
+			update_option( 'bsc_default_repurchase_days', max( 1, absint( wp_unslash( $_POST['bsc_default_repurchase_days'] ?? $defaults['bsc_default_repurchase_days'] ) ) ) );
 
 			$notice = 'Configuración guardada.';
 		}

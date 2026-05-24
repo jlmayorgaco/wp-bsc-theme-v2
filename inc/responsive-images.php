@@ -56,10 +56,10 @@ function bsc_get_theme_image_srcset_items( string $relative_path, string $extens
 	$files         = glob( $pattern );
 
 	if ( ! is_array( $files ) || empty( $files ) ) {
-		return [];
+		return array();
 	}
 
-	$items = [];
+	$items = array();
 
 	foreach ( $files as $file ) {
 		$basename = basename( $file );
@@ -68,8 +68,8 @@ function bsc_get_theme_image_srcset_items( string $relative_path, string $extens
 			continue;
 		}
 
-		$width        = (int) $matches[1];
-		$variant_path = ( '.' === $directory ? '' : trailingslashit( $directory ) ) . $basename;
+		$width           = (int) $matches[1];
+		$variant_path    = ( '.' === $directory ? '' : trailingslashit( $directory ) ) . $basename;
 		$items[ $width ] = esc_url( bsc_get_theme_image_url( $variant_path ) ) . ' ' . $width . 'w';
 	}
 
@@ -87,13 +87,13 @@ function bsc_get_theme_image_srcset_items( string $relative_path, string $extens
  * @param string               $sizes         Responsive sizes attribute.
  * @return string
  */
-function bsc_get_responsive_theme_image_html( string $relative_path, string $alt = '', array $attrs = [], string $sizes = '100vw' ): string {
+function bsc_get_responsive_theme_image_html( string $relative_path, string $alt = '', array $attrs = array(), string $sizes = '100vw' ): string {
 	$relative_path = bsc_normalize_theme_image_path( $relative_path );
 	$file          = bsc_get_theme_image_file( $relative_path );
 	$attrs         = array_merge(
-		[
+		array(
 			'decoding' => 'async',
-		],
+		),
 		$attrs
 	);
 
@@ -159,6 +159,6 @@ function bsc_get_responsive_theme_image_html( string $relative_path, string $alt
  * @param string               $sizes         Responsive sizes attribute.
  * @return void
  */
-function bsc_responsive_theme_image( string $relative_path, string $alt = '', array $attrs = [], string $sizes = '100vw' ): void {
+function bsc_responsive_theme_image( string $relative_path, string $alt = '', array $attrs = array(), string $sizes = '100vw' ): void {
 	echo bsc_get_responsive_theme_image_html( $relative_path, $alt, $attrs, $sizes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }

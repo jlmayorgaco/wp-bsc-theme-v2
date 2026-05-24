@@ -68,7 +68,9 @@ class BSCShopPage
      */
     private function computeUrlDepth(): int
     {
-        $path = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = isset($_SERVER['REQUEST_URI'])
+            ? esc_url_raw(wp_unslash((string) $_SERVER['REQUEST_URI']))
+            : '/';
         $cleanPath = trim(parse_url($path, PHP_URL_PATH) ?? '', '/');
         $segments = explode('/', $cleanPath);
 
@@ -457,6 +459,7 @@ class BSCShopPage
 
         if ($products_query->have_posts()) {
 
+            $card_index = 0;
             while ($products_query->have_posts()) {
                 $products_query->the_post();
                 global $product;
@@ -493,7 +496,9 @@ class BSCShopPage
                 // Render card normal
                 $card = new BSC_Products_Card();
                 $card->setProduct($product);
+                $card->setImagePriority($card_index === 0);
                 $card->render();
+                $card_index++;
 
                 echo '</div>';
             }
@@ -578,7 +583,8 @@ class BSCShopPage
 
         if (class_exists('BSC_Catalog_Filter_Config') && class_exists('BSC_Catalog_Product_Query')) {
             $config = new BSC_Catalog_Filter_Config();
-            $context = BSC_Catalog_Request_Context::from_request(array_merge($_GET, [
+            $request_params = BSC_Catalog_Request_Context::sanitize_request_array($_GET);
+            $context = BSC_Catalog_Request_Context::from_request(array_merge($request_params, [
                 'group'    => $this->grandparent instanceof WP_Term ? $this->grandparent->slug : '',
                 'category' => $category->slug,
                 'orderby'  => $orderby,
@@ -590,13 +596,16 @@ class BSCShopPage
         $query = new WP_Query($args);
 
         if ($query->have_posts()) {
+            $card_index = 0;
             while ($query->have_posts()) {
                 $query->the_post();
                 global $product;
                 if ($product instanceof WC_Product) {
                     $card = new BSC_Products_Card();
                     $card->setProduct($product);
+                    $card->setImagePriority($card_index === 0);
                     $card->render();
+                    $card_index++;
                 }
             }
             wp_reset_postdata();

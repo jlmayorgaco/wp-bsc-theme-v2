@@ -132,8 +132,9 @@ function bsc_render_product_edit_page(): void {
 
         $new_title = sanitize_text_field(wp_unslash($_POST['post_title'] ?? ''));
         $new_excerpt = wp_kses_post(wp_unslash($_POST['post_excerpt'] ?? ''));
-        $new_status = in_array($_POST['post_status'] ?? '', ['publish', 'draft'], true)
-            ? sanitize_key($_POST['post_status'])
+        $post_status_raw = isset($_POST['post_status']) ? sanitize_key(wp_unslash($_POST['post_status'])) : '';
+        $new_status = in_array($post_status_raw, ['publish', 'draft'], true)
+            ? $post_status_raw
             : 'draft';
 
         wp_update_post([
@@ -171,8 +172,9 @@ function bsc_render_product_edit_page(): void {
 
         $stock_bodega = max(0, intval($_POST['_stock_bodega'] ?? 0));
         $stock_tienda = max(0, intval($_POST['_stock_tienda'] ?? 0));
-        $envio_tipo = in_array($_POST['_envio_tipo'] ?? '', ['bodega', 'tienda', 'ambos'], true)
-            ? sanitize_text_field(wp_unslash($_POST['_envio_tipo']))
+        $envio_tipo_raw = isset($_POST['_envio_tipo']) ? sanitize_key(wp_unslash($_POST['_envio_tipo'])) : '';
+        $envio_tipo = in_array($envio_tipo_raw, ['bodega', 'tienda', 'ambos'], true)
+            ? $envio_tipo_raw
             : 'bodega';
 
         $current_stock = BSC_Stock::get_stock($product_id);
@@ -294,7 +296,7 @@ function bsc_render_product_edit_page(): void {
                         <input type="hidden" name="_thumbnail_id" id="bsc-thumbnail-id" value="<?php echo esc_attr($thumbnail_id ?: ''); ?>">
                         <input type="hidden" name="_remove_thumbnail" id="bsc-remove-thumbnail-flag" value="">
                         <button type="button" class="button" id="bsc-select-main-image">Seleccionar imagen</button>
-                        <button type="button" class="button bsc-admin-product-edit__button-spaced<?php echo $thumbnail_id ? '' : ' is-hidden'; ?>" id="bsc-remove-main-image">Quitar imagen</button>
+                        <button type="button" class="button bsc-admin-product-edit__button-spaced<?php echo esc_attr($thumbnail_id ? '' : ' is-hidden'); ?>" id="bsc-remove-main-image">Quitar imagen</button>
                     </div>
 
                     <div class="postbox bsc-admin-product-edit__card">
@@ -370,7 +372,7 @@ function bsc_render_product_edit_page(): void {
                                 </div>
                                 <input type="hidden" name="<?php echo esc_attr($key); ?>" id="<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($attachment_id ?: ''); ?>">
                                 <button type="button" class="button bsc-cover-select" data-field="<?php echo esc_attr($key); ?>">
-                                    <?php echo $attachment_id ? 'Cambiar imagen' : 'Seleccionar imagen'; ?>
+                                    <?php echo esc_html($attachment_id ? 'Cambiar imagen' : 'Seleccionar imagen'); ?>
                                 </button>
                                 <?php if ($attachment_id) : ?>
                                     <button type="button" class="button bsc-cover-remove bsc-admin-cover-remove" data-field="<?php echo esc_attr($key); ?>">Eliminar</button>
