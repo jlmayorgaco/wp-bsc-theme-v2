@@ -811,5 +811,6 @@ module.exports = {
   removeCheckoutCoupon,
   removeCheckoutCouponDirect,
   selectCheckoutBillingDestination,
+  waitForStableDocumentHeight,
   watchConsoleErrors,
 };

@@ -51,19 +51,19 @@ get_header();
         [
             'slug'  => 'group-skin-care',
             'title' => 'SKIN CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Tu rutina <strong>coreana empieza aqui</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dias.',
         ],
         [
             'slug'  => 'group-hair-care',
             'title' => 'HAIR CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Cuidado capilar coreano para limpiar, hidratar y tratar tu pelo con rutinas faciles de seguir.',
         ],
         [
             'slug'  => 'group-make-up',
             'title' => 'MAKE UP',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+            'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
             'text'  => 'Maquillaje coreano para un acabado fresco, luminoso y comodo durante todo el dia.',
         ],
     ];
@@ -79,7 +79,16 @@ get_header();
           <a href="<?php echo esc_url( $term_link ); ?>" class="bsc-kb-card__link">
             <div class="bsc-kb-card__imgwrap">
               <div class="bsc-kb-card__back">
-                <img src="<?php echo esc_url( $group['image'] ); ?>" alt="<?php echo esc_attr( $group['title'] ); ?>" loading="lazy">
+                <?php
+                bsc_responsive_theme_image(
+                    $group['image'],
+                    $group['title'],
+                    [
+                        'loading' => 'lazy',
+                    ],
+                    '(max-width: 768px) 100vw, 33vw'
+                );
+                ?>
               </div>
 
               <div class="bsc-kb-card__front">

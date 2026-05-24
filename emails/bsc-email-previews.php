@@ -216,6 +216,9 @@ function bsc_get_email_preview_context( string $slug ): array {
 	$product     = bsc_get_email_preview_product();
 	$image_id    = $product->get_image_id();
 	$image_url   = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '';
+	if ( ! $image_url ) {
+		$image_url = get_template_directory_uri() . '/images/bsc__placeholder_product.jpg';
+	}
 
 	switch ( $slug ) {
 		case 'welcome':

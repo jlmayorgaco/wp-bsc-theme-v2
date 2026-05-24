@@ -2,10 +2,10 @@
 /**
  * Template: Custom View Order Page for WooCommerce
  *
- * Reviewed against WooCommerce view-order.php 10.1.0.
+ * Reviewed against WooCommerce view-order.php 10.6.0.
  *
  * @package WooCommerce\Templates
- * @version 10.1.0
+ * @version 10.6.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -29,5 +29,16 @@ $order_view->set_actions(
     )
 );
 $order_view->render();
+
+$bsc_restore_order_details_callback = has_action( 'woocommerce_view_order', 'woocommerce_order_details_table' );
+if ( false !== $bsc_restore_order_details_callback ) {
+    remove_action( 'woocommerce_view_order', 'woocommerce_order_details_table', 10 );
+}
+
+do_action( 'woocommerce_view_order', $order_id );
+
+if ( false !== $bsc_restore_order_details_callback ) {
+    add_action( 'woocommerce_view_order', 'woocommerce_order_details_table', 10 );
+}
 
 do_action( 'woocommerce_after_view_order', $order );

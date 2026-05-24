@@ -99,7 +99,7 @@ class BSC_Products_Sliders {
 
     private function getFallbackProductIds(int $limit, array $exclude_ids = []): array {
         // BSC-039: check transient cache first (1 hour TTL, invalidated on product save)
-        $cache_key = 'bsc_slider_' . md5($this->slug . '_' . $limit . '_' . implode(',', $exclude_ids));
+        $cache_key = 'bsc_slider_v2_' . md5($this->slug . '_' . $limit . '_' . implode(',', $exclude_ids));
         $cached    = get_transient($cache_key);
         if ( $cached !== false ) {
             return $cached;
@@ -164,16 +164,27 @@ class BSC_Products_Sliders {
                 $args['order'] = 'DESC';
         }
 
-        $ids = array_values(
+        $ids = $this->queryFallbackProductIds($args);
+
+        if (empty($ids) && $this->slug !== 'ultimos_lanzamientos') {
+            unset($args['tax_query']);
+            $args['orderby'] = 'date';
+            $args['order'] = 'DESC';
+            $ids = $this->queryFallbackProductIds($args);
+        }
+
+        set_transient($cache_key, $ids, HOUR_IN_SECONDS);
+
+        return $ids;
+    }
+
+    private function queryFallbackProductIds(array $args): array {
+        return array_values(
             array_filter(
                 array_map('absint', get_posts($args)),
                 fn($product_id) => $this->isEligibleProductId((int) $product_id)
             )
         );
-
-        set_transient($cache_key, $ids, HOUR_IN_SECONDS);
-
-        return $ids;
     }
 
     private function isEligibleProductId(int $product_id): bool {
@@ -195,4 +206,3 @@ class BSC_Products_Sliders {
 }
 
 ?>
-

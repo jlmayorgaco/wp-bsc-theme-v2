@@ -22,19 +22,19 @@ get_header('shop'); ?>
             [
                 'slug'  => 'group-skin-care',
                 'title' => 'SKIN CARE',
-                'image' => get_stylesheet_directory_uri() . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
                 'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más.',
             ],
             [
                 'slug'  => 'group-hair-care',
                 'title' => 'HAIR CARE',
-                'image' => get_stylesheet_directory_uri() . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
                 'text'  => 'Cuida tu cabello con lo mejor del <strong>K-Beauty</strong>: mascarillas, aceites y tratamientos coreanos.',
             ],
             [
                 'slug'  => 'group-make-up',
                 'title' => 'MAKE UP',
-                'image' => get_stylesheet_directory_uri() . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+                'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
                 'text'  => 'Realza tu belleza con maquillaje <strong>K-Beauty</strong>: labiales, bases, blushes y más.',
             ],
         ];
@@ -48,9 +48,18 @@ get_header('shop'); ?>
                     <a href="<?php echo esc_url($term_link); ?>" class="bsc-kb-card__link">
                         <div class="bsc-kb-card__imgwrap">
                             <div class="bsc-kb-card__back">
-                                <img src="<?php echo esc_url($g['image']); ?>"
-                                     alt="<?php echo esc_attr($g['title']); ?>"
-                                     loading="lazy" width="400" height="500">
+                                <?php
+                                bsc_responsive_theme_image(
+                                    $g['image'],
+                                    $g['title'],
+                                    [
+                                        'loading' => 'lazy',
+                                        'width'   => '400',
+                                        'height'  => '500',
+                                    ],
+                                    '(max-width: 768px) 100vw, 33vw'
+                                );
+                                ?>
                             </div>
                             <div class="bsc-kb-card__front">
                                 <img class="bsc-kb-card__icon"

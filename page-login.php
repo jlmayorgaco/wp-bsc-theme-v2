@@ -7,7 +7,16 @@ $login_error = isset( $_GET['login'] ) && $_GET['login'] === 'failed';
 <main class="login">
   <div class="login__container">
     <div class="login__image">
-      <img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signin_cover.png' ); ?>" alt="Imagen de fondo de ingreso" />
+      <?php
+      bsc_responsive_theme_image(
+          'images/signin_signup/bsc_signin_cover.png',
+          'Imagen de fondo de ingreso',
+          [
+              'loading' => 'eager',
+          ],
+          '(max-width: 768px) 0px, 50vw'
+      );
+      ?>
     </div>
 
     <div class="login__form">

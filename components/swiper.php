@@ -13,10 +13,12 @@ if ($slides_query->have_posts()) {
         // BSC-003: use WP featured image; fallback to placeholder if none is set.
         // To use real banners: upload Home-01-100.jpg / Home-02-100.jpg to WP Media
         // and set as Featured Image on each Home Slide CPT post.
-        $thumb = get_the_post_thumbnail_url(get_the_ID(), 'full');
+        $thumb_id = get_post_thumbnail_id(get_the_ID());
+        $thumb    = $thumb_id ? get_the_post_thumbnail_url(get_the_ID(), 'full') : '';
         $slides[] = [
             'title'       => get_the_title(),
             'subtitle'    => get_post_meta(get_the_ID(), '_slide_subtitle', true),
+            'image_id'    => $thumb_id,
             'image'       => $thumb ?: get_template_directory_uri() . '/images/bsc__placeholder_product.jpg',
             'button_text' => get_post_meta(get_the_ID(), '_slide_button_text', true),
             'button_link' => get_post_meta(get_the_ID(), '_slide_button_link', true),
@@ -35,14 +37,33 @@ if (count($repeated_slides) > 0) : ?>
           <?php foreach ($repeated_slides as $i => $slide): ?>
             <div class="swiper-slide bsc-swiper__slide">
               <div class="slide__image">
-                <img
-                  src="<?php echo esc_url($slide['image']); ?>"
-                  alt="<?php echo esc_html($slide['title']); ?>"
-                  width="1440"
-                  height="700"
-                  <?php if ($i === 0) : ?>loading="eager" fetchpriority="high"<?php else : ?>loading="lazy"<?php endif; ?>
-                  decoding="<?php echo esc_attr( $i === 0 ? 'sync' : 'async' ); ?>"
-                >
+                <?php
+                $image_attrs = [
+                    'alt'      => $slide['title'],
+                    'width'    => '1440',
+                    'height'   => '700',
+                    'loading'  => 0 === $i ? 'eager' : 'lazy',
+                    'decoding' => 0 === $i ? 'sync' : 'async',
+                    'sizes'    => '100vw',
+                ];
+
+                if (0 === $i) {
+                    $image_attrs['fetchpriority'] = 'high';
+                }
+
+                if (!empty($slide['image_id'])) {
+                    echo wp_get_attachment_image((int) $slide['image_id'], 'full', false, $image_attrs);
+                } else {
+                    printf(
+                        '<img src="%s" alt="%s" width="1440" height="700" loading="%s" decoding="%s"%s>',
+                        esc_url($slide['image']),
+                        esc_attr($slide['title']),
+                        esc_attr($image_attrs['loading']),
+                        esc_attr($image_attrs['decoding']),
+                        0 === $i ? ' fetchpriority="high"' : ''
+                    );
+                }
+                ?>
               </div>
               <div class="slide__content">
                 <div class="slide__container">

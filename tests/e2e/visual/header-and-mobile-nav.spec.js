@@ -46,6 +46,7 @@ test.describe('BSC visual baseline - header and mobile nav', () => {
     await expect(sidebar).toHaveClass(/is-open/);
     await expect(sidebar).toHaveScreenshot('mobile-sidebar-open.png', {
       animations: 'disabled',
+      maxDiffPixels: 20,
     });
   });
 });

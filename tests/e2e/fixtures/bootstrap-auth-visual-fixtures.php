@@ -121,6 +121,42 @@ function bsc_playwright_fixture_visual_category_slug(): string {
     return BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG;
 }
 
+function bsc_playwright_fixture_get_or_create_product_category(string $slug, string $name, int $parent = 0): WP_Term {
+    $existing = get_term_by('slug', $slug, 'product_cat');
+
+    if ($existing instanceof WP_Term) {
+        wp_update_term($existing->term_id, 'product_cat', [
+            'name'   => $name,
+            'parent' => $parent,
+        ]);
+
+        $updated = get_term($existing->term_id, 'product_cat');
+
+        if ($updated instanceof WP_Term) {
+            return $updated;
+        }
+    }
+
+    $inserted = wp_insert_term($name, 'product_cat', [
+        'slug'   => $slug,
+        'parent' => $parent,
+    ]);
+
+    if (is_wp_error($inserted)) {
+        fwrite(STDERR, "Failed to create fixture product category {$slug}: {$inserted->get_error_message()}\n");
+        exit(1);
+    }
+
+    $term = get_term((int) $inserted['term_id'], 'product_cat');
+
+    if (!$term instanceof WP_Term) {
+        fwrite(STDERR, "Failed to load fixture product category {$slug}.\n");
+        exit(1);
+    }
+
+    return $term;
+}
+
 function bsc_playwright_fixture_visual_category_grid_url(): string {
     return trailingslashit(
         home_url(
@@ -183,14 +219,16 @@ function bsc_playwright_fixture_visual_products(): array {
 }
 
 function bsc_playwright_fixture_visual_parent_term(): WP_Term {
-    $parent = get_term_by('slug', bsc_playwright_fixture_visual_parent_slug(), 'product_cat');
+    $group = bsc_playwright_fixture_get_or_create_product_category(
+        bsc_playwright_fixture_visual_group_slug(),
+        'Group Skin Care'
+    );
 
-    if (!$parent instanceof WP_Term) {
-        fwrite(STDERR, "Expected fixture parent product category was not found.\n");
-        exit(1);
-    }
-
-    return $parent;
+    return bsc_playwright_fixture_get_or_create_product_category(
+        bsc_playwright_fixture_visual_parent_slug(),
+        'SK Rutina',
+        (int) $group->term_id
+    );
 }
 
 function bsc_playwright_fixture_get_or_create_visual_category(): WP_Term {
@@ -244,6 +282,8 @@ function bsc_playwright_fixture_get_or_create_visual_product(array $definition, 
     $product->save();
 
     update_post_meta($product->get_id(), BSC_PLAYWRIGHT_FIXTURE_META_KEY, 'public_visual');
+    update_post_meta($product->get_id(), '_stock_bodega', 12);
+    update_post_meta($product->get_id(), '_stock_tienda', 4);
 
     return wc_get_product($product->get_id());
 }

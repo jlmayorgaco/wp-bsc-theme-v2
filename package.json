@@ -18,6 +18,7 @@
     "postcss-scss": "^4.0.9",
     "rtlcss": "^3.5.0",
     "sass": "^1.89.1",
+    "sharp": "^0.34.5",
     "stylelint": "^17.12.0",
     "swiper": "^12.1.4"
   },
@@ -47,6 +48,10 @@
     "lint:js": "node tools/check-js-syntax.js",
     "lint:php": "node tools/lint-php.js",
     "lint": "npm run lint:encoding && npm run lint:local-urls && npm run lint:inline-styles && npm run lint:js && npm run lint:scss && npm run lint:stylelint && npm run lint:css-build && npm run lint:php",
+    "optimize:images": "node tools/optimize-visible-images.js",
+    "lint:wpcs": "composer run lint:wpcs",
+    "lint:phpstan": "composer run lint:phpstan",
+    "lint:quality": "npm run lint && composer run lint:quality",
     "audit:php-requests": "node tools/audit-php-request-inputs.js",
     "audit:php-output": "node tools/audit-php-output-escaping.js",
     "audit:assets": "node tools/audit-assets.js",
@@ -66,6 +71,6 @@
     "test:e2e:visual:update": "playwright test tests/e2e/visual/public-pages.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/header-and-mobile-nav.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/account-and-post-purchase.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --update-snapshots",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "bundle": "dir-archiver --src . --dest ../wp-bsc-theme-v2.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock test-results playwright-report Videos"
+    "bundle": "dir-archiver --src . --dest ../wp-bsc-theme-v2.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist sass style.css.map yarn.lock test-results playwright-report Videos tools/php-vendor admin.zip admin2.zip"
   }
 }

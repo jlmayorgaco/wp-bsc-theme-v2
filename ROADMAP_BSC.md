@@ -1,6 +1,6 @@
 # BSC Unified Roadmap and Operating Manual
 
-Ultima consolidacion: 2026-05-23
+Ultima consolidacion: 2026-05-24
 Repositorio: wp-bsc-theme-v2
 Rama esperada de release: MVP2
 Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
@@ -53,10 +53,18 @@ npm run lint:php
 npm run lint:js
 npm run lint:scss
 npm run lint:stylelint
+npm run optimize:images
+npm run audit:deps
+npm run audit:php-requests
+npm run audit:php-output
+npm run audit:woocommerce-templates -- --strict
+npm run test:domain
 npm run test:e2e:smoke
 npm run test:e2e:webkit
 npm run test:e2e:visual
 npm run compile:css
+composer run lint:phpstan
+composer run lint:wpcs
 ```
 
 Regla CSS/Sass:
@@ -142,6 +150,28 @@ Gate pre-GO deploy/url documentado el 2026-05-23:
 - Se documento checklist productivo de URLs, correos, cache, rollback y search-replace dry-run.
 - Alcance cerrado: BSC-RM-024 y BSC-RM-054.
 
+Gate performance/quality hardening documentado el 2026-05-24:
+
+- `npm run optimize:images`: verde; genera variantes AVIF/WebP responsive para imagenes visibles de home, shop/categorias, login y registro.
+- `npm run lint`: verde; incluye encoding, URLs locales, inline styles no-email, JS, SCSS, Stylelint, CSS build sync y PHP syntax.
+- `composer validate --strict`: verde. Nota local: el `php.ini` de Local emite warning por `php_imagick.dll` apuntando a una build anterior, pero el comando sale OK.
+- `composer run lint:phpstan` / `phpstan analyse --configuration=phpstan.neon`: verde con baseline inicial de 472 errores historicos.
+- `composer run lint:wpcs`: ejecutable, pero no verde todavia; WPCS reporta 28.369 errores y 1.985 warnings en 221 archivos. Queda como deuda BSC-RM-068.
+- `npm run audit:woocommerce-templates -- --strict`: verde, 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
+- `npm run audit:deps`: verde; `npm audit --omit=dev` sin vulnerabilidades, assets vendor 6/6, referencias externas inventariadas: 41.
+- `npm run audit:php-requests`: verde como inventario no bloqueante; 425 referencias a superglobals, 25 requieren revision manual.
+- `npm run audit:php-output`: verde como inventario no bloqueante; 46 lineas requieren revision manual.
+- `npm run test:domain`: verde.
+- `npm run test:e2e:visual`: verde completo; public pages 24 passed, header/mobile nav 5 passed / 4 skipped, account/post-purchase 15 passed, email previews 30 passed.
+- `npx playwright test tests/e2e/smoke/site-smoke.spec.js --workers=1 --reporter=list`: verde, 44 passed / 4 skipped.
+- `npx playwright test tests/e2e/smoke/admin-importer.spec.js --workers=1 --reporter=list`: verde, 1 passed / 2 skipped.
+- Se removieron `admin.zip` y `admin2.zip` del repo y se excluyeron del bundle/git ignore.
+- Se agrego helper responsive de imagenes del theme, uso de `picture` con AVIF/WebP y fallback, y `wp_get_attachment_image` para slides de WP Media.
+- Se corrigio el fallback de sliders de home para que pestanas como `piel_seca` no queden vacias si no hay productos configurados/categorizados.
+- Se actualizo la compatibilidad de `myaccount/form-edit-account.php` y `myaccount/view-order.php` contra WooCommerce actual, preservando hooks sin duplicar la tabla default de order details.
+- Se agrego el importador BSC embebido en el theme para reemplazar la URL legacy `admin.php?page=bsc-plugin` sin depender del plugin anterior.
+- Pendiente fuera de este gate: Lighthouse/WebPageTest contra produccion, CDN/cache/object cache, limpieza WPCS completa, revision manual de los inventarios `audit:php-*` y migrar metricas/carritos de options a tablas si el trafico crece.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -157,12 +187,17 @@ Scope ya cerrado en MVP2:
 - P1 release-slice: rate limit centralizado para AJAX publico critico, acciones admin mutables por POST+nonce, validacion de cupones, workflow admin de Bubble Creators, previews de email admin-only/noindex, invalidacion de cache de busqueda, redencion Bubble Points con guardrails, accesibilidad de mega menu/search, fix de selects en cuenta para Safari/iPhone, imagenes de cards con sizes/decoding y helper Playwright compatible con lazy images.
 - Post-MVP2 tickets 4-10: reportes de stock con paginacion/busqueda/sort server-side; CSS source of truth con `lint:css-build`; auditoria Woo templates; tests edge checkout; seed QA estable; guard tests de stock/Bubble Points; auditoria de dependencias/assets; baseline de escaping/requests.
 - Post-MVP2 CSS/Sass hardening: tokens publicos separados de CSS emitido, migracion inicial de checkout/header/cuenta/shop/contacto/creators/tabs a tokens semanticos, Stylelint SCSS, guard de inline styles estaticos y `.gitattributes` para finales de linea consistentes.
+- Performance/quality hardening del 2026-05-24: imagenes visibles con AVIF/WebP responsive, Composer/WPCS/PHPStan configurados con metadata real BSC, baseline PHPStan inicial, artifacts ZIP de release eliminados/excluidos, Woo overrides estrictos actualizados y suite visual/smoke revalidada.
+- Importador BSC embebido: la ruta admin legacy `admin.php?page=bsc-plugin` queda servida por el theme bundle y cubierta por smoke desktop.
 
 Notas residuales:
 
 - WP admin local sigue siendo mas lento y fragil que storefront.
 - Safari/iPhone/WebKit ya tiene gate automatizado; antes de GO sigue recomendada una revision manual en iPhone real si la cliente puede validar.
 - Visual baselines deben revisarse antes de marcar release verde.
+- Performance productiva real sigue pendiente: Lighthouse/WebPageTest en dominio final, cache de pagina, object cache, CDN y pesos finales de home/categorias.
+- WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; no debe marcarse obligatorio hasta cerrar BSC-RM-068 o crear baseline formal de estilo.
+- Los audits de request/output son inventarios no bloqueantes; las lineas marcadas requieren revision manual antes de elevarlos a `--strict`.
 - P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
 - `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
 
@@ -1601,12 +1636,14 @@ Medio. Links rotos en produccion afectan ventas/SEO.
 
 Prioridad: P1
 Area: Compatibilidad WooCommerce
-Estado MVP2: cerrado strict el 2026-05-23.
+Estado MVP2: cerrado strict el 2026-05-24.
 
 Resultado:
 - Se agrego `npm run audit:woocommerce-templates`.
 - Cierre strict actual: 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
 - Se actualizaron versiones/compatibilidad de `cart/cart.php`, `cart/cross-sells.php`, `cart/mini-cart.php`, `cart/shipping-calculator.php` y `checkout/form-login.php`.
+- Se actualizaron `myaccount/form-edit-account.php` a compatibilidad WooCommerce 10.5.0 y `myaccount/view-order.php` a 10.6.0.
+- `view-order.php` preserva hooks de terceros con `woocommerce_view_order` sin duplicar la tabla default `woocommerce_order_details_table`.
 - Se agregaron headers revisados a overrides custom de archive/product/account.
 - `tools/woocommerce-template-review.json` documenta decisiones para `coming-soon.php` y `myaccount/my-orders.php`, que no tienen upstream versionado aplicable.
 - Validado con `npm run audit:woocommerce-templates -- --strict`.
@@ -2099,6 +2136,17 @@ Medio. Desencolar mal puede romper interacciones.
 
 Prioridad: P1
 Area: Performance, UI
+Estado MVP2: cerrado tecnico el 2026-05-24; pendiente medicion productiva real.
+
+Resultado:
+- Se agrego `inc/responsive-images.php` con helpers para renderizar imagenes del theme como `<picture>` con AVIF/WebP, `srcset`, `sizes`, `width`, `height`, `loading` y fallback original.
+- Se agrego `tools/optimize-visible-images.js` y `npm run optimize:images`.
+- Se generaron variantes AVIF/WebP para imagenes visibles de home, marcas, about, shop/categorias, login y registro.
+- Se reemplazaron imagenes estaticas en `front-page.php`, `components/shop.php`, `components/product-category.php`, `woocommerce/archive-product.php`, `template-bsc-shop-landing.php`, `page-login.php` y `page-register.php`.
+- `components/swiper.php` usa `wp_get_attachment_image()` cuando el slide viene de WP Media para obtener `srcset/sizes` nativos.
+- Se ajustaron SCSS de home/shop/signin para wrappers `picture` y se recompilo CSS/RTL.
+- Se corrigio el fallback de `components/products/slider.php`: si una pestana de favoritos no tiene productos configurados/categorizados, cae a productos recientes elegibles y cambia cache key a `bsc_slider_v2_*`.
+- QA visual completo verde con `npm run test:e2e:visual`.
 
 Problema:
 Cards, sliders, menu y hero usan imagenes de producto/categoria. Si cargan tamanos originales o sin lazy/eager correcto, empeora LCP y scroll.
@@ -2126,8 +2174,8 @@ Criterios de aceptacion:
 - LCP mejora o no empeora.
 
 QA:
-- Lighthouse/PageSpeed local o WebPageTest staging.
-- Visual snapshots.
+- Cerrado local: `npm run optimize:images`, `npm run lint`, `npm run test:e2e:visual`.
+- Pendiente productivo: Lighthouse/WebPageTest staging/produccion, CDN/cache headers y peso final de home/categorias.
 
 Riesgo:
 Medio. Cambiar sizes puede afectar nitidez.
@@ -2284,7 +2332,15 @@ Medio. CSS desalineado genera regresiones invisibles.
 
 Prioridad: P2
 Area: Code quality PHP
-Estado MVP2: cerrado en corte P2 2026-05-22.
+Estado MVP2: cerrado incremental el 2026-05-24.
+
+Resultado:
+- `npm run lint:php` cubre syntax PHP del theme, modulos internos y tests/fixtures.
+- `composer.json` queda actualizado con metadata real BSC, PHP `>=8.2`, WPCS, PHPCompatibility, PHPStan y WP-CLI i18n.
+- `phpcs.xml.dist` queda alineado a PHP 8.2, WordPress/WooCommerce actuales, text domain `bsc-2-0` y prefijos `bsc`/`BSC`.
+- Se agregaron `phpstan.neon`, `phpstan-bootstrap.php` y `phpstan-baseline.neon`.
+- PHPStan esta verde con baseline inicial de 472 errores historicos.
+- WPCS ejecuta, pero no esta verde todavia: 28.369 errores y 1.985 warnings en 221 archivos. La limpieza queda como BSC-RM-068.
 
 Problema:
 El lint actual parece centrado en JS/CSS/tests. PHP necesita gate para syntax, WordPress standards y patrones peligrosos.
@@ -2305,6 +2361,8 @@ Criterios de aceptacion:
 - Nuevas lecturas `$_POST` directas quedan visibles.
 - `npm run lint` incluye `lint:encoding`, `lint:js`, `lint:scss` y `lint:php`.
 - `npm run audit:php-requests` inventaria superglobals y puede endurecerse con `--strict`.
+- `composer run lint:phpstan` queda verde con baseline.
+- `composer run lint:wpcs` queda disponible como gate ejecutable, aunque aun no bloqueante.
 
 QA:
 - Introducir prueba controlada o verificar comando sobre repo actual.
@@ -2503,7 +2561,7 @@ Resultado:
 - Se agrego `npm run audit:assets` y `npm run audit:deps`.
 - `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilidades.
 - Assets locales requeridos: 6/6 presentes para Font Awesome y Swiper.
-- Baseline de referencias externas: 33 refs; incluye redes sociales/WhatsApp, fuentes, SVG namespaces y refs de tests. No bloquea mientras los vendor criticos sean locales.
+- Baseline de referencias externas al 2026-05-24: 41 refs; incluye redes sociales/WhatsApp, fuentes, SVG namespaces, Merchant/schema.org y refs de formularios. No bloquea mientras los vendor criticos sean locales.
 
 Problema:
 El theme usa npm packages, vendor PHP, FontAwesome, Swiper y posiblemente fonts externas. Se necesita inventario de versiones y vulnerabilidades.
@@ -2538,10 +2596,10 @@ Estado MVP2: cerrado incremental el 2026-05-23.
 
 Resultado:
 - Se agrego `npm run audit:php-output` con baseline no bloqueante y modo strict disponible.
-- Baseline actual: 35 lineas para revision manual futura.
+- Baseline actual al 2026-05-24: 46 lineas para revision manual futura.
 - Se corrigieron escapes puntuales en carrito, footer, product card, thank-you/order-received, Bubble Points coupons, social links de creators, single product y clases dinamicas de checkout/reportes.
 - Se agrego cobertura de `wp_kses_post`, `esc_url`, `esc_attr` y `esc_html` en salidas de alto riesgo tocadas por este bloque.
-- `npm run audit:php-requests` queda como baseline complementario: 382 refs y 22 para revision manual.
+- `npm run audit:php-requests` queda como baseline complementario: 425 refs y 25 para revision manual.
 - No se declara strict global todavia; queda como deuda convertir los 35 hallazgos restantes en allowlist explicita o fixes por modulo.
 
 Problema:
@@ -2572,6 +2630,13 @@ Medio. Escapar tarde puede cambiar markup esperado.
 
 Prioridad: P2
 Area: Arquitectura
+Estado MVP2: cerrado parcial el 2026-05-24; queda refactor mayor de modulos internos como seguimiento.
+
+Resultado:
+- `plugins/bsc-catalog/index.php` carga el bridge de shortcodes legacy para mantener compatibilidad mientras el catalogo queda modularizado.
+- Se agrego `plugins/bsc-importer/` como importador embebido en el theme bundle.
+- La ruta legacy `wp-admin/admin.php?page=bsc-plugin` queda cubierta por el importador del theme y oculta el menu del plugin anterior si esta cargado.
+- QA: `npx playwright test tests/e2e/smoke/admin-importer.spec.js --workers=1 --reporter=list` verde, 1 passed / 2 skipped.
 
 Problema:
 El theme carga "plugins" internos desde `plugins/*/index.php`. Es pragmatico, pero mezcla responsabilidades y puede crear orden de carga fragil.
@@ -3013,6 +3078,65 @@ Acceptance:
 
 Riesgo:
 Medio. Los emails HTML dependen de soporte de clientes reales; antes de produccion conviene enviar pruebas a Gmail, Outlook/iOS Mail y revisar clipping.
+
+## BSC-RM-067 - Performance productiva real y cache/CDN
+
+Prioridad: Pre-GO
+Area: Performance, infraestructura
+Estado: Abierto, no bloqueante de codigo local.
+
+Problema:
+Las optimizaciones locales de imagenes y assets no sustituyen medicion real contra produccion/staging. LCP, cache, CDN, object cache y peso final dependen del hosting y del contenido final.
+
+Implementacion minima:
+- Correr Lighthouse y WebPageTest contra dominio final o staging publico.
+- Revisar peso de home, categoria, producto, login/registro y checkout.
+- Activar o validar cache de pagina, object cache y CDN.
+- Confirmar headers de imagenes AVIF/WebP, CSS/JS y fonts.
+- Documentar thresholds objetivo y regresiones aceptadas.
+
+Acceptance:
+- Reporte productivo con LCP/CLS/INP y peso por pagina.
+- Cache/CDN configurados o decision documentada.
+- Lista de imagenes finales demasiado pesadas si aparecen.
+
+## BSC-RM-068 - Reducir deuda WPCS hasta gate verde
+
+Prioridad: P2
+Area: Code quality PHP/WP
+Estado: Abierto.
+
+Problema:
+WPCS ya esta instalado y ejecuta, pero el codigo historico no cumple WordPress Coding Standards. El gate actual reporta 28.369 errores y 1.985 warnings en 221 archivos.
+
+Implementacion minima:
+- Separar auto-fix seguro con PHPCBF por carpetas de bajo riesgo.
+- Revisar manualmente archivos de checkout, ordenes, admin y Woo overrides antes de cambios grandes.
+- Evitar commits gigantes que mezclen formato con comportamiento.
+- Definir si WPCS sera gate estricto total o baseline incremental por carpeta.
+
+Acceptance:
+- `composer run lint:wpcs` verde o baseline incremental aprobado.
+- Cambios funcionales separados de cambios puramente de formato.
+
+## BSC-RM-069 - Elevar audits PHP request/output a strict
+
+Prioridad: P2
+Area: Seguridad, hardening
+Estado: Abierto.
+
+Problema:
+Los inventarios `audit:php-requests` y `audit:php-output` ya existen, pero aun tienen hallazgos manuales. Al 2026-05-24: 425 referencias a superglobals, 25 para revision manual; 46 lineas de output para revision manual.
+
+Implementacion minima:
+- Revisar cada hallazgo marcado por los audits.
+- Confirmar nonce/capability/sanitizacion en mutaciones admin y AJAX.
+- Confirmar escaping contextual en output dinamico.
+- Bajar el conteo manual a cero o crear allowlist explicita revisada.
+
+Acceptance:
+- `npm run audit:php-requests -- --strict` verde o allowlist revisada.
+- `npm run audit:php-output -- --strict` verde o allowlist revisada.
 
 ---
 
