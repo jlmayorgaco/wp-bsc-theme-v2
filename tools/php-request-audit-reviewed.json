@@ -1,0 +1,30 @@
+[
+  {
+    "file": "inc/ajax/checkout-actions.php",
+    "line": 21,
+    "global": "$_POST",
+    "text": "$_POST['billing_country'] = $country;",
+    "reason": "Checkout city reload intentionally backfills sanitized country for WC_Checkout::get_value()."
+  },
+  {
+    "file": "inc/ajax/checkout-actions.php",
+    "line": 22,
+    "global": "$_POST",
+    "text": "$_POST['billing_state'] = $state;",
+    "reason": "Checkout city reload intentionally backfills sanitized state for WC_Checkout::get_value()."
+  },
+  {
+    "file": "plugins/bsc-importer/admin/importer-page.php",
+    "line": 137,
+    "global": "$_FILES",
+    "text": "$file = $_FILES[$field_name];",
+    "reason": "Importer upload reads the PHP file superglobal, then validates upload error, filename, type, size and uploaded temp path."
+  },
+  {
+    "file": "plugins/bsc-importer/admin/importer-page.php",
+    "line": 529,
+    "global": "$_FILES",
+    "text": "$size = bsc_theme_importer_upload_product_photos_zip($_FILES['product_photos_zip']);",
+    "reason": "Importer ZIP upload is nonce/capability protected and bsc_theme_importer_upload_product_photos_zip validates extension, size, temp file and ZIP entries."
+  }
+]

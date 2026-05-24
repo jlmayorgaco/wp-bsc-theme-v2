@@ -50,7 +50,7 @@ function bsc_bp_render_admin_screen() {
         // preserve routing params
         foreach (['page','post_type'] as $keep) {
             if (isset($_GET[$keep])) {
-                printf('<input type="hidden" name="%s" value="%s" />', esc_attr($keep), esc_attr($_GET[$keep]));
+                printf('<input type="hidden" name="%s" value="%s" />', esc_attr($keep), esc_attr(sanitize_text_field(wp_unslash($_GET[$keep]))));
             }
         }
         $table->search_box(__('Search users', 'bsc'), 'bsc-bp');
@@ -69,4 +69,3 @@ function bsc_bp_render_settings_screen() {
     echo '<div class="wrap"><h1>'.esc_html__('Bubble Points – Settings', 'bsc').'</h1>';
     echo '<p>'.esc_html__('Settings coming soon (earn rules, expiry, UI toggles).', 'bsc').'</p></div>';
 }
-

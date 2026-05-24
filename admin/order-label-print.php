@@ -34,7 +34,7 @@ $label_print_js_url   = trailingslashit( get_template_directory_uri() ) . 'js/ad
   class="bsc-order-label-print"
   data-default-width-mm="<?php echo esc_attr( $default_width_mm ); ?>"
   data-default-height-mm="<?php echo esc_attr( $default_height_mm ); ?>"
-  data-autoprint="<?php echo $autoprint ? '1' : '0'; ?>">
+        data-autoprint="<?php echo esc_attr($autoprint ? '1' : '0'); ?>">
 
   <div class="bsc-labels-toolbar">
     <button class="bsc-labels-toolbar__btn bsc-labels-toolbar__btn--primary"

@@ -243,7 +243,7 @@ function bsc_render_orders_page(): void {
                 $count = $tab_counts[ $slug ] ?? 0;
             ?>
             <a href="<?php echo esc_url( $tab_url ); ?>"
-               class="bsc-orders-tab<?php echo $is_active ? ' bsc-orders-tab--active' : ''; ?>">
+                                class="bsc-orders-tab<?php echo esc_attr($is_active ? ' bsc-orders-tab--active' : ''); ?>">
                 <?php echo esc_html( $config['label'] ); ?>
                 <span class="bsc-tab-count"><?php echo esc_html( $count ); ?></span>
             </a>

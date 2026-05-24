@@ -57,7 +57,7 @@ class BSC_Order_Progress_Bar {
             </div>
             <div class="labels">
                 <?php foreach ($config['labels'] as $label): ?>
-                    <div class="label <?php echo $label['is_active'] ? 'label--focus' : 'label--non-focus'; ?>">
+        <div class="label <?php echo esc_attr($label['is_active'] ? 'label--focus' : 'label--non-focus'); ?>">
                         <span class="label__line">|</span>
                         <span class="label__text"><?php echo esc_html($label['text']); ?></span>
                     </div>

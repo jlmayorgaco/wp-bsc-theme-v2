@@ -740,8 +740,8 @@ function bsc_theme_importer_render_admin_page()
                     <span><?php esc_html_e('productos', 'bubblesskincare'); ?></span>
                 </div>
             </div>
-            <div class="bsc-importer-admin__summary-item <?php echo $zip_status['exists'] ? 'is-ready' : 'is-pending'; ?>">
-                <span class="dashicons <?php echo $zip_status['exists'] ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>" aria-hidden="true"></span>
+            <div class="bsc-importer-admin__summary-item <?php echo esc_attr($zip_status['exists'] ? 'is-ready' : 'is-pending'); ?>">
+                <span class="dashicons <?php echo esc_attr($zip_status['exists'] ? 'dashicons-yes-alt' : 'dashicons-warning'); ?>" aria-hidden="true"></span>
                 <div>
                     <strong><?php echo $zip_status['exists'] ? esc_html($zip_status['size']) : esc_html__('Pendiente', 'bubblesskincare'); ?></strong>
                     <span><?php esc_html_e('ZIP fotos', 'bubblesskincare'); ?></span>
@@ -802,15 +802,17 @@ function bsc_theme_importer_render_admin_page()
                         <div class="bsc-importer-task__body">
                             <h3><?php esc_html_e('Fotos por SKU', 'bubblesskincare'); ?></h3>
                             <p><?php esc_html_e('ZIP con carpetas SK_*, HC_* o MK_*. Solo se aceptan JPG, PNG y WebP.', 'bubblesskincare'); ?></p>
-                            <div class="bsc-importer-admin__zip-status <?php echo $zip_status['exists'] ? 'is-ready' : 'is-missing'; ?>">
-                                <span class="dashicons <?php echo $zip_status['exists'] ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>" aria-hidden="true"></span>
+                            <div class="bsc-importer-admin__zip-status <?php echo esc_attr($zip_status['exists'] ? 'is-ready' : 'is-missing'); ?>">
+                                <span class="dashicons <?php echo esc_attr($zip_status['exists'] ? 'dashicons-yes-alt' : 'dashicons-warning'); ?>" aria-hidden="true"></span>
                                 <div>
                                     <strong><?php echo $zip_status['exists'] ? esc_html__('ZIP listo', 'bubblesskincare') : esc_html__('Sin ZIP cargado', 'bubblesskincare'); ?></strong>
                                     <span>
                                         <?php
-                                        echo $zip_status['exists']
-                                            ? esc_html($zip_status['size'] . ' - ' . $zip_status['modified'])
-                                            : esc_html('Destino: ' . $zip_subpath);
+                                        echo esc_html(
+                                            $zip_status['exists']
+                                                ? $zip_status['size'] . ' - ' . $zip_status['modified']
+                                                : 'Destino: ' . $zip_subpath
+                                        );
                                         ?>
                                     </span>
                                 </div>
@@ -870,8 +872,8 @@ function bsc_theme_importer_render_admin_page()
                         </div>
                     </div>
                     <ul class="bsc-importer-admin__checklist">
-                        <li class="<?php echo $woocommerce_ready ? 'is-ok' : 'is-error'; ?>">
-                            <span class="dashicons <?php echo $woocommerce_ready ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>" aria-hidden="true"></span>
+                        <li class="<?php echo esc_attr($woocommerce_ready ? 'is-ok' : 'is-error'); ?>">
+                            <span class="dashicons <?php echo esc_attr($woocommerce_ready ? 'dashicons-yes-alt' : 'dashicons-warning'); ?>" aria-hidden="true"></span>
                             <?php echo $woocommerce_ready ? esc_html__('WooCommerce activo', 'bubblesskincare') : esc_html__('WooCommerce requerido', 'bubblesskincare'); ?>
                         </li>
                         <li class="<?php echo class_exists('ZipArchive') ? 'is-ok' : 'is-error'; ?>">

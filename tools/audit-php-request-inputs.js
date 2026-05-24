@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDir = process.cwd();
+const reviewedFile = path.join(__dirname, 'php-request-audit-reviewed.json');
 const ignoredDirs = new Set([
   '.git',
   'node_modules',
@@ -20,6 +21,27 @@ const maxExamples = Number(process.env.BSC_PHP_REQUEST_AUDIT_EXAMPLES || 30);
 const superglobalPattern = /\$_(POST|GET|REQUEST|SERVER|COOKIE|FILES)\b/g;
 const sanitizerPattern =
   /wp_unslash|sanitize_|esc_url_raw|absint|intval|floatval|wc_clean|filter_input|wp_verify_nonce|check_ajax_referer|check_admin_referer|isset\s*\(|empty\s*\(|array_key_exists\s*\(/;
+
+function normalizePath(filePath) {
+  return filePath.replace(/\\/g, '/');
+}
+
+function findingKey(finding) {
+  return `${normalizePath(finding.file)}:${finding.line}:${finding.global}:${finding.text}`;
+}
+
+function loadReviewedFindings() {
+  if (!fs.existsSync(reviewedFile)) {
+    return new Set();
+  }
+
+  const records = JSON.parse(fs.readFileSync(reviewedFile, 'utf8'));
+  if (!Array.isArray(records)) {
+    throw new Error(`${reviewedFile} must contain an array.`);
+  }
+
+  return new Set(records.map(findingKey));
+}
 
 function collectPhpFiles(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -43,10 +65,11 @@ function collectPhpFiles(dir) {
 
 const findings = [];
 const reviewRequired = [];
+const reviewedFindings = loadReviewedFindings();
 const counts = new Map();
 
 for (const filePath of collectPhpFiles(rootDir)) {
-  const relativePath = path.relative(rootDir, filePath);
+  const relativePath = normalizePath(path.relative(rootDir, filePath));
   const source = fs.readFileSync(filePath, 'utf8');
 
   source.split(/\r?\n/).forEach((line, index) => {
@@ -82,19 +105,25 @@ console.log(
 );
 
 if (reviewRequired.length) {
+  const unreviewed = reviewRequired.filter(
+    (finding) => !reviewedFindings.has(findingKey(finding))
+  );
+  const reviewedCount = reviewRequired.length - unreviewed.length;
+
   console.log(
-    `${reviewRequired.length} reference(s) need manual review or a narrower sanitizer pattern.`
+    `${reviewRequired.length} reference(s) need manual review or a narrower sanitizer pattern ` +
+      `(${reviewedCount} reviewed, ${unreviewed.length} unreviewed).`
   );
 
-  for (const finding of reviewRequired.slice(0, maxExamples)) {
+  for (const finding of unreviewed.slice(0, maxExamples)) {
     console.log(`${finding.file}:${finding.line}: ${finding.global} ${finding.text}`);
   }
 
-  if (reviewRequired.length > maxExamples) {
-    console.log(`...and ${reviewRequired.length - maxExamples} more.`);
+  if (unreviewed.length > maxExamples) {
+    console.log(`...and ${unreviewed.length - maxExamples} more.`);
   }
-}
 
-if (strictMode && reviewRequired.length) {
-  process.exit(1);
+  if (strictMode && unreviewed.length) {
+    process.exit(1);
+  }
 }
