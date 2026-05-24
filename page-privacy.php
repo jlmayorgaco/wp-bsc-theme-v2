@@ -17,7 +17,7 @@ bsc_render_static_page_template(
 
 			<div class="bsc__info-block">
 				<h2>Uso de la informacion</h2>
-				<p>La informacion se usa para operar la tienda, validar pagos, despachar pedidos, atender solicitudes y enviar notificaciones asociadas al servicio.</p>
+				<p>La informacion se usa para operar la tienda, validar pagos, despachar pedidos, atender solicitudes, medir navegacion y busquedas de forma operativa, enviar notificaciones asociadas al servicio y, si dejas tus datos en checkout, recordarte un carrito pendiente por tiempo limitado.</p>
 			</div>
 
 			<div class="bsc__info-block">

@@ -561,8 +561,9 @@ class BSCShopPage
     private function renderProducts(WP_Term $category): WP_Query
     {
         $paged = max(1, get_query_var('paged'));
+        $orderby = isset($_GET['orderby']) ? sanitize_key(wp_unslash($_GET['orderby'])) : 'menu_order';
 
-        $query = new WP_Query($this->addAvailableStockConstraint([
+        $args = $this->addAvailableStockConstraint([
             'post_type'      => 'product',
             'post_status'    => 'publish',
             'posts_per_page' => 24,
@@ -572,7 +573,20 @@ class BSCShopPage
                 'field'    => 'slug',
                 'terms'    => $category->slug,
             ]],
-        ]));
+        ]);
+
+        if (class_exists('BSC_Catalog_Filter_Config') && class_exists('BSC_Catalog_Product_Query')) {
+            $config = new BSC_Catalog_Filter_Config();
+            $context = BSC_Catalog_Request_Context::from_request(array_merge($_GET, [
+                'group'    => $this->grandparent instanceof WP_Term ? $this->grandparent->slug : '',
+                'category' => $category->slug,
+                'orderby'  => $orderby,
+            ]), $config);
+            $catalog_args = (new BSC_Catalog_Product_Query($config))->get_query_args($context);
+            $args = array_merge($args, array_intersect_key($catalog_args, array_flip(['orderby', 'order', 'meta_key'])));
+        }
+
+        $query = new WP_Query($args);
 
         if ($query->have_posts()) {
             while ($query->have_posts()) {

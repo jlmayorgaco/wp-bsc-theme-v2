@@ -122,6 +122,57 @@ $container-width: bsc.$container-wide;
     margin-top: $spacing-xl;
     text-align: center;
   }
+
+  &.bsc__search-page {
+    .bsc__search-header {
+      max-width: 760px;
+      margin: 0 auto $spacing-xl;
+      text-align: center;
+    }
+
+    .bsc__search-results-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: $spacing-sm;
+      margin: 0 auto $spacing-md;
+
+      input[type="search"] {
+        min-height: 44px;
+        padding: 10px 14px;
+        border: 1px solid bsc.$border-muted;
+        border-radius: 4px;
+        font-size: 14px;
+        letter-spacing: 0;
+      }
+
+      .bsc__button {
+        min-height: 44px;
+        padding-inline: 22px;
+        white-space: nowrap;
+      }
+    }
+
+    .bsc__search-count {
+      margin: 0;
+      color: bsc.$text-muted;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .bsc__search-empty {
+      grid-column: 1 / -1;
+      padding: $spacing-xl 0;
+      text-align: center;
+    }
+  }
+}
+
+@include bsc.media-max("tablet") {
+  .bsc__shop.bsc__search-page {
+    .bsc__search-results-form {
+      grid-template-columns: 1fr;
+    }
+  }
 }
 
 .bsc__category-grid {

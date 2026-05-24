@@ -77,3 +77,37 @@ if ( ! function_exists( 'bsc_get_checkout_summary_payload' ) ) {
 		];
 	}
 }
+
+if ( ! function_exists( 'bsc_get_free_shipping_progress_payload' ) ) {
+	function bsc_get_free_shipping_progress_payload(): array {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return [
+				'threshold'      => 0,
+				'current'        => 0,
+				'remaining'      => 0,
+				'percent'        => 0,
+				'qualified'      => false,
+				'message'        => '',
+				'remaining_html' => '',
+			];
+		}
+
+		$threshold = max( 0, (float) get_option( 'bsc_free_shipping_threshold', 300000 ) );
+		$current   = max( 0, (float) WC()->cart->get_subtotal() - (float) WC()->cart->get_discount_total() );
+		$qualified = $threshold <= 0 || $current >= $threshold || ( function_exists( 'bsc_cart_has_free_shipping_coupon' ) && bsc_cart_has_free_shipping_coupon() );
+		$remaining = $qualified ? 0 : max( 0, $threshold - $current );
+		$percent   = $threshold > 0 ? min( 100, (int) floor( ( $current / $threshold ) * 100 ) ) : 100;
+
+		return [
+			'threshold'      => $threshold,
+			'current'        => $current,
+			'remaining'      => $remaining,
+			'percent'        => $qualified ? 100 : $percent,
+			'qualified'      => $qualified,
+			'message'        => $qualified
+				? 'Tu pedido ya tiene envio gratis.'
+				: sprintf( 'Te faltan %s para envio gratis.', wp_strip_all_tags( wc_price( $remaining ) ) ),
+			'remaining_html' => wc_price( $remaining ),
+		];
+	}
+}

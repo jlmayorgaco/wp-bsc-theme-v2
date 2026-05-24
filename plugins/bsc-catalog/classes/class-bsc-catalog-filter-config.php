@@ -48,4 +48,19 @@ class BSC_Catalog_Filter_Config {
     public function get_default_query_max_price(): int {
         return (int) ($this->config['price']['query_max'] ?? 999999);
     }
+
+    public function get_orderby_options(): array {
+        return [
+            'menu_order' => 'Recomendados',
+            'date'       => 'Mas recientes',
+            'price'      => 'Precio menor a mayor',
+            'price-desc' => 'Precio mayor a menor',
+            'popularity' => 'Mas vendidos',
+        ];
+    }
+
+    public function normalize_orderby($orderby): string {
+        $orderby = sanitize_key((string) $orderby);
+        return array_key_exists($orderby, $this->get_orderby_options()) ? $orderby : 'menu_order';
+    }
 }

@@ -244,5 +244,11 @@ function bsc_get_email_template_manifest(): array {
 			'trigger' => 'Cron diario segun timeout por producto',
 			'file'    => 'bsc-followup-repurchase.php',
 		],
+		[
+			'slug'    => 'abandoned-cart',
+			'label'   => 'Carrito abandonado',
+			'trigger' => 'Cron horario segun ultima actividad de checkout',
+			'file'    => 'bsc-abandoned-cart.php',
+		],
 	];
 }

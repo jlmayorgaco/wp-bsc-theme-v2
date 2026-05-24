@@ -1,49 +1,64 @@
 <?php
 /**
- * BSC-053: Order cancelled email (wc-cancelled status).
- * Variables: $order (WC_Order)
+ * Order cancelled email template.
+ *
+ * Variables:
+ * - $order (WC_Order)
  */
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
-$customer_name = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
-$order_number  = $order->get_order_number();
-$email_title   = 'Tu pedido fue cancelado';
-$emoji         = '😔';
+require_once __DIR__ . '/bsc-email-design-system.php';
 
-require_once __DIR__ . '/bsc-email-header.php';
-?>
+$customer_name    = bsc_email_name_from_order( $order ?? null, 'Bubble Lover' );
+$order_number     = $order instanceof WC_Order ? $order->get_order_number() : '';
+$email_title      = '¡ Tu pedido fue cancelado !';
+$email_hero       = 'bsc-email-hero-sad-blue.png';
+$email_hero_width = 153;
+$email_preheader  = sprintf( 'Tu pedido #%s fue cancelado.', $order_number );
+$support_url      = function_exists( 'bsc_get_email_whatsapp_url' ) ? bsc_get_email_whatsapp_url() : 'https://wa.me/573156922859';
 
-        <!-- Message -->
-        <tr>
-          <td style="padding:0 40px 24px;text-align:center">
-            <p style="font-size:15px;color:#555;margin:0;line-height:1.6">
-              Hola <?php echo esc_html( $customer_name ?: 'amiga' ); ?>,<br>
-              tu pedido <strong>#<?php echo esc_html( $order_number ); ?></strong> fue cancelado.<br>
-              Si tienes dudas o crees que esto fue un error, por favor contáctanos.
-            </p>
-          </td>
-        </tr>
+require __DIR__ . '/bsc-email-header.php';
 
-        <!-- Status box -->
-        <tr>
-          <td style="padding:0 40px 28px">
-            <div style="background:#fff5f5;border-radius:12px;padding:18px 24px;border-left:4px solid #fc8181;text-align:center">
-              <p style="margin:0;font-size:15px;font-weight:700;color:#222">Estado: Cancelado ❌</p>
-              <p style="margin:6px 0 0;font-size:13px;color:#888">¿Fue un error? Escríbenos y con gusto te ayudamos.</p>
-            </div>
-          </td>
-        </tr>
+bsc_email_render_message(
+	sprintf(
+		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> fue cancelado.<br>Si crees que fue un error o deseas ayuda para finalizar tu compra,<br>nuestro equipo estará feliz de ayudarte :)',
+		esc_html( $customer_name ),
+		esc_html( $order_number )
+	),
+	24,
+	18
+);
 
-        <!-- Contact CTA -->
-        <tr>
-          <td style="padding:0 40px 28px;text-align:center">
-            <a href="https://wa.me/573156922859"
-               style="display:inline-block;padding:12px 28px;background:#333;color:#fff;text-decoration:none;border-radius:30px;font-size:14px;font-weight:700">
-              Contáctanos por WhatsApp ↗
-            </a>
-          </td>
-        </tr>
+bsc_email_render_status_bar( 'Cancelado', 100, '¡Cancelado!', '¡Enviado!', '#d9d9d9' );
 
-<?php
-require_once __DIR__ . '/bsc-order-items-table.php';
-require_once __DIR__ . '/bsc-email-footer.php';
+bsc_email_render_button_row(
+	[
+		[
+			'url'       => $support_url,
+			'label'     => '¡ Ir a soporte Whatsapp !',
+			'variant'   => 'blue',
+			'min_width' => 300,
+		],
+	],
+	0,
+	42
+);
+
+if ( $order instanceof WC_Order ) {
+	require __DIR__ . '/bsc-order-items-table.php';
+}
+
+bsc_email_render_button_row(
+	[
+		[
+			'url'       => bsc_email_shop_url(),
+			'label'     => '¡ Ir a la tienda !',
+			'variant'   => 'dark',
+			'min_width' => 210,
+		],
+	],
+	0,
+	34
+);
+
+require __DIR__ . '/bsc-email-footer.php';

@@ -130,6 +130,7 @@ jQuery(function ($) {
     navigator.vibrate?.(80);
 
     if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
+    if (typeof window.bscCaptureAbandonedCart === 'function') window.bscCaptureAbandonedCart();
   });
 
   /**
@@ -241,6 +242,7 @@ jQuery(function ($) {
 
       refreshCartFragments();
       if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
+      if (typeof window.bscCaptureAbandonedCart === 'function') window.bscCaptureAbandonedCart();
 
       if (wasRemoved || newQty === 0) {
         if (serverKey) {
@@ -322,6 +324,7 @@ jQuery(function ($) {
 
         if (typeof refreshCartFragments === 'function') refreshCartFragments();
         if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
+        if (typeof window.bscCaptureAbandonedCart === 'function') window.bscCaptureAbandonedCart();
         jQuery(document.body).trigger('update_checkout');
       }
     }).fail(() => {

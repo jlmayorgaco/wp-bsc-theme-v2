@@ -27,6 +27,7 @@ class BSC_Checkout_Review_Summary {
 
 		echo '<div class="bsc bsc__review-summary" id="bsc-review-summary">';
 		echo '  <div class="review-summary__container">';
+		$this->render_free_shipping_progress();
 
 		$this->render_row(
 			$count_label,
@@ -63,6 +64,27 @@ class BSC_Checkout_Review_Summary {
 		echo "<div class=\"$row_class\">";
 		echo "  <div class=\"review-summary__label\">$label</div>";
 		echo "  <div class=\"review-summary__value\" id=\"$id\">$value</div>";
+		echo '</div>';
+	}
+
+	protected function render_free_shipping_progress(): void {
+		$progress = function_exists( 'bsc_get_free_shipping_progress_payload' )
+			? bsc_get_free_shipping_progress_payload()
+			: [];
+
+		if ( empty( $progress ) || (float) ( $progress['threshold'] ?? 0 ) <= 0 ) {
+			return;
+		}
+
+		$percent = max( 0, min( 100, (int) ( $progress['percent'] ?? 0 ) ) );
+		$bucket  = (int) ( round( $percent / 10 ) * 10 );
+		$class   = ! empty( $progress['qualified'] )
+			? 'review-summary__shipping-progress is-qualified shipping-progress--' . $bucket
+			: 'review-summary__shipping-progress shipping-progress--' . $bucket;
+
+		echo '<div class="' . esc_attr( $class ) . '">';
+		echo '  <div class="shipping-progress__label">' . esc_html( (string) ( $progress['message'] ?? '' ) ) . '</div>';
+		echo '  <div class="shipping-progress__track" aria-hidden="true"><span></span></div>';
 		echo '</div>';
 	}
 }

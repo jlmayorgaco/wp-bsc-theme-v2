@@ -128,6 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
       resultsList.appendChild(li);
     });
+
+    const query = resultsList.dataset.query || '';
+    if (query) {
+      const viewAll = document.createElement('li');
+      viewAll.classList.add('search-result-item', 'search-result-item--all');
+      viewAll.tabIndex = 0;
+      viewAll.setAttribute('role', 'option');
+      viewAll.setAttribute('aria-selected', 'false');
+      viewAll.textContent = 'Ver todos los resultados';
+
+      const goToSearch = () => {
+        const baseUrl =
+          window.bsc_search && window.bsc_search.search_url
+            ? window.bsc_search.search_url
+            : '/';
+
+        window.location.href = baseUrl + '?s=' + encodeURIComponent(query);
+      };
+
+      viewAll.addEventListener('click', goToSearch);
+      viewAll.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          goToSearch();
+        }
+      });
+
+      resultsList.appendChild(viewAll);
+    }
   }
 
   function initSearchInstance({
@@ -257,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const query = searchInput.value.trim();
       clearSearchResults();
+      resultsList.dataset.query = query;
 
       if (query.length < 2) return;
 

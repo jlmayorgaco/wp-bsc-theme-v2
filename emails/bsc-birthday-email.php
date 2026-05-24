@@ -1,44 +1,53 @@
 <?php
 /**
- * BSC-082: Birthday email template.
+ * Birthday email template.
  *
  * Variables:
  * - $user (WP_User)
  * - $shop_url (string)
+ * - $coupon_code (string optional)
  */
 defined( 'ABSPATH' ) || exit;
 
-$email_title  = 'Feliz cumpleaños';
-$emoji        = '🎂';
-$display_name = $user instanceof WP_User ? ( $user->first_name ?: $user->display_name ) : 'amiga';
+require_once __DIR__ . '/bsc-email-design-system.php';
 
-require_once __DIR__ . '/bsc-email-header.php';
+$display_name     = bsc_email_name_from_user( $user ?? null, 'Bubble Lover' );
+$shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
+$coupon_code      = sanitize_text_field( (string) ( $coupon_code ?? get_option( 'bsc_birthday_coupon_code', 'BSC_SC5RBW2D' ) ) );
+$email_title      = '¡ Feliz cumpleañooos !';
+$email_hero       = 'bsc-email-hero-cake.png';
+$email_hero_width = 275;
+$email_preheader  = 'Tienes un regalito de cumpleaños en BSC.';
+
+require __DIR__ . '/bsc-email-header.php';
+
+bsc_email_render_message(
+	sprintf(
+		'Hola <strong>%s</strong>, Gracias por hacer parte de Bubbles y<br>dejarnos acompañarte en tu rutina coreana un año más. Esperamos<br>que tengas un día demasiado lindo, glowy y lleno de K-beauty :)',
+		esc_html( $display_name )
+	),
+	24,
+	24
+);
 ?>
+				<tr>
+					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:900;letter-spacing:.7px;line-height:22px;padding:0 44px 16px;">
+						Tienes un regalito de cumpleaños...
+					</td>
+				</tr>
+<?php
+bsc_email_render_coupon( $coupon_code, '10% OFF en BSC', 'Válido por 1 semana | Usos restantes: 1', '#f4b5c7' );
+bsc_email_render_button_row(
+	[
+		[
+			'url'       => $shop_url,
+			'label'     => '¡ Redimir mi descuento !',
+			'variant'   => 'dark',
+			'min_width' => 260,
+		],
+	],
+	0,
+	28
+);
 
-        <tr>
-          <td style="padding:0 40px 24px;text-align:center">
-            <p style="font-size:15px;color:#555;margin:0;line-height:1.7">
-              Hola <?php echo esc_html( $display_name ); ?>,<br>
-              hoy celebramos contigo. Gracias por ser parte de BSC y por dejarnos acompañar tu rutina de cuidado.
-            </p>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="padding:0 40px 28px">
-            <div style="background:#fdf4f8;border-radius:12px;padding:18px 24px;border-left:4px solid #f8c0cd;text-align:center">
-              <p style="margin:0;font-size:15px;font-weight:700;color:#222">Que tengas un día lindo y muy glow</p>
-              <p style="margin:6px 0 0;font-size:13px;color:#888">Te dejamos la tienda abierta para que sigas armando tu rutina favorita.</p>
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="padding:0 40px 32px;text-align:center">
-            <a href="<?php echo esc_url( $shop_url ); ?>" style="display:inline-block;padding:12px 30px;background:#333;color:#fff;text-decoration:none;border-radius:30px;font-size:15px;font-weight:700">
-              Ver productos
-            </a>
-          </td>
-        </tr>
-
-<?php require_once __DIR__ . '/bsc-email-footer.php'; ?>
+require __DIR__ . '/bsc-email-footer.php';

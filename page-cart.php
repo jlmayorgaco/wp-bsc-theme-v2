@@ -94,7 +94,7 @@ $render_cart_recommendations = static function (int $products_limit = 5): void {
                         </td>
 
                         <td class="bsc__cart-qty">
-                        <div class="bsc__quantity-controls" data-min="0" data-product_id="<?php echo esc_attr($product_id); ?>">
+                        <div class="bsc__quantity-controls" data-min="0" data-product_id="<?php echo esc_attr($product_id); ?>" data-item-key="<?php echo esc_attr($cart_item_key); ?>">
                             <button class="bsc__qty-minus" type="button">&minus;</button>
                             <span class="bsc__qty-value"><?php echo esc_html($qty); ?></span>
                             <button class="bsc__qty-plus" type="button">+</button>
@@ -121,6 +121,22 @@ $render_cart_recommendations = static function (int $products_limit = 5): void {
         <div class="container__col col-2">
             <div class="bsc__cart-summary">
                 <h2 class="bsc__subtitle">Resumen</h2>
+                <?php
+                $free_shipping_progress = function_exists('bsc_get_free_shipping_progress_payload')
+                    ? bsc_get_free_shipping_progress_payload()
+                    : [];
+                if (!empty($free_shipping_progress) && (float) ($free_shipping_progress['threshold'] ?? 0) > 0) :
+                    $progress_percent = max(0, min(100, (int) ($free_shipping_progress['percent'] ?? 0)));
+                    $progress_bucket = (int) (round($progress_percent / 10) * 10);
+                    $progress_class = !empty($free_shipping_progress['qualified'])
+                        ? 'review-summary__shipping-progress is-qualified shipping-progress--' . $progress_bucket
+                        : 'review-summary__shipping-progress shipping-progress--' . $progress_bucket;
+                ?>
+                    <div class="<?php echo esc_attr($progress_class); ?>">
+                        <div class="shipping-progress__label"><?php echo esc_html((string) ($free_shipping_progress['message'] ?? '')); ?></div>
+                        <div class="shipping-progress__track" aria-hidden="true"><span></span></div>
+                    </div>
+                <?php endif; ?>
                 <?php woocommerce_cart_totals(); ?>
             </div>
         </div>

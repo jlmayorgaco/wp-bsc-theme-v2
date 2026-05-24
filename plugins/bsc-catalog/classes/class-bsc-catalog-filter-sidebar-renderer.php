@@ -20,6 +20,7 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 
         echo '<form id="bscFiltersForm" class="bsc__filters">';
         $this->render_hidden_inputs($context);
+        $this->render_sort_group($context);
 
         foreach ($this->config->get_group_filters($context->get_group()) as $filter) {
             $this->render_group($filter, $context);
@@ -123,6 +124,24 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
         echo '<label class="bsc__filters-price-label"><output class="bsc__filters-price-output" id="max_price_output">' . esc_html((string) $context->get_max_price()) . '</output>$</label>';
         echo '</div>';
         echo '</div>';
+        echo '</div>';
+    }
+
+    private function render_sort_group(BSC_Catalog_Request_Context $context): void {
+        echo '<div class="bsc__filters-group bsc__filters-group--sort">';
+        echo '<label class="bsc__filters-sort-label" for="bsc_catalog_orderby">Ordenar por</label>';
+        echo '<select class="bsc__filters-sort-select" id="bsc_catalog_orderby" name="orderby">';
+
+        foreach ($this->config->get_orderby_options() as $value => $label) {
+            printf(
+                '<option value="%s" %s>%s</option>',
+                esc_attr($value),
+                selected($context->get_orderby(), $value, false),
+                esc_html($label)
+            );
+        }
+
+        echo '</select>';
         echo '</div>';
     }
 }
