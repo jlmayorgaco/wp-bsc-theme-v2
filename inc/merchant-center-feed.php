@@ -40,6 +40,10 @@ function bsc_merchant_center_get_brand( WC_Product $product, ?WC_Product $parent
 }
 
 function bsc_merchant_center_get_identifier( WC_Product $product ): array {
+	if ( function_exists( 'bsc_seo_get_product_identifier' ) ) {
+		return bsc_seo_get_product_identifier( $product );
+	}
+
 	$gtin_meta_keys = array( '_global_unique_id', '_gtin', '_wc_gpf_gtin', '_bsc_gtin', 'gtin' );
 	$mpn_meta_keys  = array( '_mpn', '_wc_gpf_mpn', '_bsc_mpn', 'mpn' );
 	$gtin           = '';
@@ -70,17 +74,33 @@ function bsc_merchant_center_get_identifier( WC_Product $product ): array {
 }
 
 function bsc_merchant_center_get_item_id( WC_Product $product ): string {
-	$item_id = $product->get_sku() ?: 'BSC-' . $product->get_id();
+	$item_id = $product->get_sku();
+	if ( '' === $item_id ) {
+		$item_id = 'BSC-' . $product->get_id();
+	}
 	$item_id = preg_replace( '/\s+/', '-', trim( (string) $item_id ) );
 
 	return substr( $item_id, 0, 50 );
 }
 
 function bsc_merchant_center_get_description( WC_Product $product, ?WC_Product $parent = null ): string {
-	$description = $product->get_short_description() ?: $product->get_description();
+	$description = bsc_seo_get_post_meta_value( $product->get_id(), '_bsc_seo_description' );
+
+	if ( '' === $description ) {
+		$description = $product->get_short_description();
+		if ( '' === $description ) {
+			$description = $product->get_description();
+		}
+	}
 
 	if ( '' === trim( wp_strip_all_tags( $description ) ) && $parent instanceof WC_Product ) {
-		$description = $parent->get_short_description() ?: $parent->get_description();
+		$description = bsc_seo_get_post_meta_value( $parent->get_id(), '_bsc_seo_description' );
+		if ( '' === $description ) {
+			$description = $parent->get_short_description();
+			if ( '' === $description ) {
+				$description = $parent->get_description();
+			}
+		}
 	}
 
 	$description = preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $description ) );
@@ -89,11 +109,13 @@ function bsc_merchant_center_get_description( WC_Product $product, ?WC_Product $
 }
 
 function bsc_merchant_center_get_title( WC_Product $product, ?WC_Product $parent = null ): string {
-	$title = wp_strip_all_tags( $product->get_name() );
+	$title = bsc_seo_get_post_meta_value( $product->get_id(), '_bsc_seo_title' );
+	$title = '' !== $title ? $title : wp_strip_all_tags( $product->get_name() );
 
 	if ( $product instanceof WC_Product_Variation && $parent instanceof WC_Product ) {
 		$variation = wp_strip_all_tags( wc_get_formatted_variation( $product, true, false, true ) );
-		$title     = wp_strip_all_tags( $parent->get_name() );
+		$title     = bsc_seo_get_post_meta_value( $parent->get_id(), '_bsc_seo_title' );
+		$title     = '' !== $title ? $title : wp_strip_all_tags( $parent->get_name() );
 
 		if ( '' !== $variation ) {
 			$title .= ' - ' . $variation;

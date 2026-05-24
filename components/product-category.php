@@ -517,6 +517,9 @@ class BSCShopPage {
 
 		echo '</div>'; // #bscProductsContainer
 		echo '</div>'; // .shop__catalog-layout
+		if ( function_exists( 'bsc_seo_render_product_category_content' ) ) {
+			bsc_seo_render_product_category_content( $cat );
+		}
 		echo '</section>';
 		echo '</section>';
 		echo '</div>';
@@ -568,6 +571,10 @@ class BSCShopPage {
 				)
 			);
 			echo '</div>';
+		}
+
+		if ( function_exists( 'bsc_seo_render_product_category_content' ) ) {
+			bsc_seo_render_product_category_content( $cat );
 		}
 
 		echo '</section></div>';
