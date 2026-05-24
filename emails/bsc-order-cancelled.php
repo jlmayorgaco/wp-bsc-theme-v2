@@ -32,14 +32,14 @@ bsc_email_render_message(
 bsc_email_render_status_bar( 'Cancelado', 100, '¡Cancelado!', '¡Enviado!', '#d9d9d9' );
 
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $support_url,
 			'label'     => '¡ Ir a soporte Whatsapp !',
 			'variant'   => 'blue',
 			'min_width' => 300,
-		],
-	],
+		),
+	),
 	0,
 	42
 );
@@ -49,14 +49,14 @@ if ( $order instanceof WC_Order ) {
 }
 
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => bsc_email_shop_url(),
 			'label'     => '¡ Ir a la tienda !',
 			'variant'   => 'dark',
 			'min_width' => 210,
-		],
-	],
+		),
+	),
 	0,
 	34
 );

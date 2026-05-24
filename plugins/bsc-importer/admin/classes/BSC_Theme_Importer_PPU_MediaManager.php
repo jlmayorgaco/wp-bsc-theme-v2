@@ -1,61 +1,65 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
-class BSC_Theme_Importer_PPU_MediaManager
-{
-    public function uploadImage($filePath): ?int
-    {
-        $filePath = (string) $filePath;
+class BSC_Theme_Importer_PPU_MediaManager {
 
-        if (!is_readable($filePath) || !is_file($filePath)) {
-            return null;
-        }
+	public function uploadImage( $filePath ): ?int {
+		$filePath = (string) $filePath;
 
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        require_once ABSPATH . 'wp-admin/includes/media.php';
-        require_once ABSPATH . 'wp-admin/includes/image.php';
+		if (!is_readable( $filePath ) || !is_file( $filePath )) {
+			return null;
+		}
 
-        $fileName = sanitize_file_name(basename($filePath));
-        $fileInfo = wp_check_filetype_and_ext($filePath, $fileName);
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
 
-        if (empty($fileInfo['type']) || strpos((string) $fileInfo['type'], 'image/') !== 0) {
-            return null;
-        }
+		$fileName = sanitize_file_name( basename( $filePath ) );
+		$fileInfo = wp_check_filetype_and_ext( $filePath, $fileName );
 
-        $tmp = wp_tempnam($fileName);
+		if (empty( $fileInfo['type'] ) || strpos( (string) $fileInfo['type'], 'image/' ) !== 0) {
+			return null;
+		}
 
-        if (!$tmp || !copy($filePath, $tmp)) {
-            if ($tmp) {
-                wp_delete_file($tmp);
-            }
+		$tmp = wp_tempnam( $fileName );
 
-            return null;
-        }
+		if (!$tmp || !copy( $filePath, $tmp )) {
+			if ($tmp) {
+				wp_delete_file( $tmp );
+			}
 
-        $fileArray = [
-            'name'     => $fileName,
-            'tmp_name' => $tmp,
-            'type'     => $fileInfo['type'],
-            'size'     => filesize($tmp),
-            'error'    => 0,
-        ];
+			return null;
+		}
 
-        $attachmentId = media_handle_sideload($fileArray, 0, null, [
-            'post_title'   => preg_replace('/\.[^.]+$/', '', $fileName),
-            'post_content' => '',
-            'post_status'  => 'inherit',
-        ]);
+		$fileArray = array(
+			'name'     => $fileName,
+			'tmp_name' => $tmp,
+			'type'     => $fileInfo['type'],
+			'size'     => filesize( $tmp ),
+			'error'    => 0,
+		);
 
-        if (is_wp_error($attachmentId)) {
-            wp_delete_file($tmp);
-            BSC_Theme_Importer_PPU_Init::log('Image upload failed for ' . $filePath . ': ' . $attachmentId->get_error_message(), trailingslashit(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory()) . 'process.log');
-            return null;
-        }
+		$attachmentId = media_handle_sideload(
+			$fileArray,
+			0,
+			null,
+			array(
+				'post_title'   => preg_replace( '/\.[^.]+$/', '', $fileName ),
+				'post_content' => '',
+				'post_status'  => 'inherit',
+			)
+		);
 
-        update_post_meta((int) $attachmentId, '_wp_attachment_image_alt', preg_replace('/\.[^.]+$/', '', $fileName));
-        update_post_meta((int) $attachmentId, '_bsc_theme_importer_photo', '1');
+		if (is_wp_error( $attachmentId )) {
+			wp_delete_file( $tmp );
+			BSC_Theme_Importer_PPU_Init::log( 'Image upload failed for ' . $filePath . ': ' . $attachmentId->get_error_message(), trailingslashit( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() ) . 'process.log' );
+			return null;
+		}
 
-        return (int) $attachmentId;
-    }
+		update_post_meta( (int) $attachmentId, '_wp_attachment_image_alt', preg_replace( '/\.[^.]+$/', '', $fileName ) );
+		update_post_meta( (int) $attachmentId, '_bsc_theme_importer_photo', '1' );
+
+		return (int) $attachmentId;
+	}
 }

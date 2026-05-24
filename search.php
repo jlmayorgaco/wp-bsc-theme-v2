@@ -17,74 +17,74 @@ if ( ! function_exists( 'bsc_search_get_product_ids' ) ) {
 	function bsc_search_get_product_ids( string $query, int $limit, int $paged ): array {
 		$query = sanitize_text_field( $query );
 		if ( '' === $query || ! class_exists( 'WooCommerce' ) ) {
-			return [
-				'ids'   => [],
+			return array(
+				'ids'   => array(),
 				'total' => 0,
-			];
+			);
 		}
 
-		$collected_ids = [];
+		$collected_ids = array();
 
-		$title_query = new WP_Query(
-			[
+		$title_query   = new WP_Query(
+			array(
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
 				's'              => $query,
 				'fields'         => 'ids',
 				'posts_per_page' => $limit * 2,
 				'no_found_rows'  => true,
-			]
+			)
 		);
 		$collected_ids = array_merge( $collected_ids, array_map( 'absint', $title_query->posts ) );
 
-		$sku_query = new WP_Query(
-			[
+		$sku_query     = new WP_Query(
+			array(
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
 				'fields'         => 'ids',
 				'posts_per_page' => $limit,
 				'no_found_rows'  => true,
-				'meta_query'     => [
-					[
+				'meta_query'     => array(
+					array(
 						'key'     => '_sku',
 						'value'   => $query,
 						'compare' => 'LIKE',
-					],
-				],
-			]
+					),
+				),
+			)
 		);
 		$collected_ids = array_merge( $collected_ids, array_map( 'absint', $sku_query->posts ) );
 
 		$matching_terms = get_terms(
-			[
+			array(
 				'taxonomy'   => 'product_cat',
 				'name__like' => $query,
 				'fields'     => 'ids',
 				'hide_empty' => true,
-			]
+			)
 		);
 
 		if ( ! empty( $matching_terms ) && ! is_wp_error( $matching_terms ) ) {
-			$term_query = new WP_Query(
-				[
+			$term_query    = new WP_Query(
+				array(
 					'post_type'      => 'product',
 					'post_status'    => 'publish',
 					'fields'         => 'ids',
 					'posts_per_page' => $limit,
 					'no_found_rows'  => true,
-					'tax_query'      => [
-						[
+					'tax_query'      => array(
+						array(
 							'taxonomy' => 'product_cat',
 							'field'    => 'term_id',
 							'terms'    => array_map( 'absint', $matching_terms ),
-						],
-					],
-				]
+						),
+					),
+				)
 			);
 			$collected_ids = array_merge( $collected_ids, array_map( 'absint', $term_query->posts ) );
 		}
 
-		$eligible_ids = [];
+		$eligible_ids = array();
 		foreach ( array_values( array_unique( $collected_ids ) ) as $product_id ) {
 			$product = wc_get_product( $product_id );
 			if (
@@ -100,10 +100,10 @@ if ( ! function_exists( 'bsc_search_get_product_ids' ) ) {
 		$total  = count( $eligible_ids );
 		$offset = max( 0, ( $paged - 1 ) * $limit );
 
-		return [
+		return array(
 			'ids'   => array_slice( $eligible_ids, $offset, $limit ),
 			'total' => $total,
-		];
+		);
 	}
 }
 
@@ -164,14 +164,20 @@ if ( function_exists( 'bsc_metrics_record_search' ) ) {
 				echo '<div class="shop__pagination">';
 				echo wp_kses_post(
 					paginate_links(
-						[
-							'base'      => add_query_arg( [ 's' => $search_query, 'paged' => '%#%' ], home_url( '/' ) ),
+						array(
+							'base'      => add_query_arg(
+								array(
+									's'     => $search_query,
+									'paged' => '%#%',
+								),
+								home_url( '/' )
+							),
 							'format'    => '',
 							'current'   => $paged,
 							'total'     => $total_pages,
 							'prev_text' => '&laquo; Anterior',
 							'next_text' => 'Siguiente &raquo;',
-						]
+						)
 					)
 				);
 				echo '</div>';

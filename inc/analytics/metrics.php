@@ -8,15 +8,15 @@
 defined( 'ABSPATH' ) || exit;
 
 function bsc_metrics_default_store(): array {
-	return [
-		'days'         => [],
-		'product_days' => [],
-		'search_days'  => [],
-	];
+	return array(
+		'days'         => array(),
+		'product_days' => array(),
+		'search_days'  => array(),
+	);
 }
 
 function bsc_metrics_get_store(): array {
-	$store = get_option( 'bsc_ecommerce_metrics', [] );
+	$store = get_option( 'bsc_ecommerce_metrics', array() );
 
 	if ( ! is_array( $store ) ) {
 		return bsc_metrics_default_store();
@@ -37,9 +37,9 @@ function bsc_metrics_prune_store( array $store ): array {
 	$retention_days = bsc_metrics_retention_days();
 	$cutoff         = strtotime( '-' . $retention_days . ' days', current_time( 'timestamp' ) );
 
-	foreach ( [ 'days', 'product_days', 'search_days' ] as $bucket ) {
+	foreach ( array( 'days', 'product_days', 'search_days' ) as $bucket ) {
 		if ( empty( $store[ $bucket ] ) || ! is_array( $store[ $bucket ] ) ) {
-			$store[ $bucket ] = [];
+			$store[ $bucket ] = array();
 			continue;
 		}
 
@@ -55,7 +55,7 @@ function bsc_metrics_prune_store( array $store ): array {
 }
 
 function bsc_metrics_empty_counters(): array {
-	return [
+	return array(
 		'view_item'                => 0,
 		'view_item_list'           => 0,
 		'view_cart'                => 0,
@@ -69,7 +69,7 @@ function bsc_metrics_empty_counters(): array {
 		'abandoned_cart_email'     => 0,
 		'abandoned_cart_recovered' => 0,
 		'abandoned_cart_converted' => 0,
-	];
+	);
 }
 
 function bsc_metrics_current_date(): string {
@@ -113,16 +113,16 @@ function bsc_metrics_record_product_event( int $product_id, string $event, int $
 	$date  = bsc_metrics_current_date();
 
 	if ( empty( $store['product_days'][ $date ] ) || ! is_array( $store['product_days'][ $date ] ) ) {
-		$store['product_days'][ $date ] = [];
+		$store['product_days'][ $date ] = array();
 	}
 
 	if ( empty( $store['product_days'][ $date ][ $product_id ] ) || ! is_array( $store['product_days'][ $date ][ $product_id ] ) ) {
-		$store['product_days'][ $date ][ $product_id ] = [
+		$store['product_days'][ $date ][ $product_id ] = array(
 			'views'       => 0,
 			'add_to_cart' => 0,
 			'purchases'   => 0,
 			'revenue'     => 0.0,
-		];
+		);
 	}
 
 	if ( 'view_item' === $event ) {
@@ -161,27 +161,27 @@ function bsc_metrics_record_search( string $query, int $results_count ): void {
 		$store['days'][ $date ] = array_merge( bsc_metrics_empty_counters(), $store['days'][ $date ] );
 	}
 
-	$store['days'][ $date ]['search']++;
+	++$store['days'][ $date ]['search'];
 	if ( 0 === $results ) {
-		$store['days'][ $date ]['search_no_results']++;
+		++$store['days'][ $date ]['search_no_results'];
 	}
 
 	if ( empty( $store['search_days'][ $date ] ) || ! is_array( $store['search_days'][ $date ] ) ) {
-		$store['search_days'][ $date ] = [];
+		$store['search_days'][ $date ] = array();
 	}
 
 	if ( empty( $store['search_days'][ $date ][ $search_hash ] ) || ! is_array( $store['search_days'][ $date ][ $search_hash ] ) ) {
-		$store['search_days'][ $date ][ $search_hash ] = [
+		$store['search_days'][ $date ][ $search_hash ] = array(
 			'query'      => $normalized_query,
 			'count'      => 0,
 			'no_results' => 0,
 			'last_at'    => '',
-		];
+		);
 	}
 
-	$store['search_days'][ $date ][ $search_hash ]['count']++;
+	++$store['search_days'][ $date ][ $search_hash ]['count'];
 	if ( 0 === $results ) {
-		$store['search_days'][ $date ][ $search_hash ]['no_results']++;
+		++$store['search_days'][ $date ][ $search_hash ]['no_results'];
 	}
 	$store['search_days'][ $date ][ $search_hash ]['last_at'] = current_time( 'mysql' );
 
@@ -263,18 +263,18 @@ function bsc_metrics_date_in_range( string $date, string $start_date, string $en
 }
 
 function bsc_metrics_get_abandoned_cart_snapshot(): array {
-	$rows = get_option( 'bsc_abandoned_carts', [] );
+	$rows = get_option( 'bsc_abandoned_carts', array() );
 
 	if ( ! is_array( $rows ) ) {
-		$rows = [];
+		$rows = array();
 	}
 
-	$snapshot = [
+	$snapshot = array(
 		'active'    => 0,
 		'reminded'  => 0,
 		'recovered' => 0,
 		'converted' => 0,
-	];
+	);
 
 	foreach ( $rows as $row ) {
 		if ( ! is_array( $row ) ) {
@@ -282,19 +282,19 @@ function bsc_metrics_get_abandoned_cart_snapshot(): array {
 		}
 
 		if ( empty( $row['converted_at'] ) ) {
-			$snapshot['active']++;
+			++$snapshot['active'];
 		}
 
 		if ( ! empty( $row['reminded_at'] ) ) {
-			$snapshot['reminded']++;
+			++$snapshot['reminded'];
 		}
 
 		if ( ! empty( $row['recovered_at'] ) ) {
-			$snapshot['recovered']++;
+			++$snapshot['recovered'];
 		}
 
 		if ( ! empty( $row['converted_at'] ) ) {
-			$snapshot['converted']++;
+			++$snapshot['converted'];
 		}
 	}
 
@@ -304,8 +304,8 @@ function bsc_metrics_get_abandoned_cart_snapshot(): array {
 function bsc_metrics_get_summary( string $start_date, string $end_date ): array {
 	$store    = bsc_metrics_get_store();
 	$counters = bsc_metrics_empty_counters();
-	$products = [];
-	$searches = [];
+	$products = array();
+	$searches = array();
 
 	foreach ( $store['days'] as $date => $day_counters ) {
 		if ( ! is_array( $day_counters ) || ! bsc_metrics_date_in_range( (string) $date, $start_date, $end_date ) ) {
@@ -334,15 +334,15 @@ function bsc_metrics_get_summary( string $start_date, string $end_date ): array 
 			}
 
 			if ( empty( $products[ $product_id ] ) ) {
-				$products[ $product_id ] = [
-					'product_id'   => $product_id,
-					'title'        => get_the_title( $product_id ),
-					'views'        => 0,
-					'add_to_cart'  => 0,
-					'purchases'    => 0,
-					'revenue'      => 0.0,
-					'edit_url'     => admin_url( 'admin.php?page=bsc-product-edit&id=' . $product_id ),
-				];
+				$products[ $product_id ] = array(
+					'product_id'  => $product_id,
+					'title'       => get_the_title( $product_id ),
+					'views'       => 0,
+					'add_to_cart' => 0,
+					'purchases'   => 0,
+					'revenue'     => 0.0,
+					'edit_url'    => admin_url( 'admin.php?page=bsc-product-edit&id=' . $product_id ),
+				);
 			}
 
 			$products[ $product_id ]['views']       += (int) ( $row['views'] ?? 0 );
@@ -368,12 +368,12 @@ function bsc_metrics_get_summary( string $start_date, string $end_date ): array 
 			}
 
 			if ( empty( $searches[ $hash ] ) ) {
-				$searches[ $hash ] = [
+				$searches[ $hash ] = array(
 					'query'      => $query,
 					'count'      => 0,
 					'no_results' => 0,
 					'last_at'    => '',
-				];
+				);
 			}
 
 			$searches[ $hash ]['count']      += (int) ( $row['count'] ?? 0 );
@@ -400,12 +400,12 @@ function bsc_metrics_get_summary( string $start_date, string $end_date ): array 
 		}
 	);
 
-	return [
+	return array(
 		'counters'           => $counters,
 		'top_products'       => array_slice( array_values( $products ), 0, 8 ),
 		'no_result_searches' => array_slice( array_values( $no_result_searches ), 0, 8 ),
 		'abandoned_snapshot' => bsc_metrics_get_abandoned_cart_snapshot(),
-	];
+	);
 }
 
 function bsc_metrics_rate( float $numerator, float $denominator ): float {

@@ -10,7 +10,7 @@
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
-	<?php if ( ! function_exists('is_account_page') || ! is_account_page() ) : ?>
+	<?php if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) : ?>
 	<header class="entry-header">
 		<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 	</header><!-- .entry-header -->

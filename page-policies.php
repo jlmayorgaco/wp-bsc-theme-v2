@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-policies',
 		'title'             => 'Politicas y Terminos',
 		'subtitle'          => 'Condiciones generales de compra y uso del sitio',
@@ -26,5 +26,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

@@ -29,14 +29,14 @@ bsc_email_render_message(
 );
 
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $reset_url,
 			'label'     => '¡ Cambiar mi contraseña !',
 			'variant'   => 'dark',
 			'min_width' => 310,
-		],
-	],
+		),
+	),
 	0,
 	24
 );

@@ -23,24 +23,24 @@ do_action( 'woocommerce_before_account_navigation' );
 ?>
 
 <nav class="woocommerce-MyAccount-navigation" aria-label="<?php esc_html_e( 'Account pages', 'woocommerce' ); ?>">
- <?php
+<?php
 	require_once get_template_directory() . '/components/my-account/my-account-header.php';
 	$headerMyAccount = new BSC_MY_ACCOUNT_HEADER();
-	$current_route = '';
+	$current_route   = '';
 
-	if ( is_wc_endpoint_url( 'orders' ) || is_wc_endpoint_url( 'view-order' ) ) {
-		$current_route = 'orders';
-	} elseif ( is_wc_endpoint_url( 'edit-address' ) ) {
-		$current_route = 'edit-address';
-	} elseif ( is_wc_endpoint_url( 'edit-account' ) ) {
-		$current_route = 'edit-account';
-	} elseif ( function_exists( 'is_page' ) && is_page( 'bubble-points' ) ) {
-		$current_route = 'bubble-points';
-	}
+if ( is_wc_endpoint_url( 'orders' ) || is_wc_endpoint_url( 'view-order' ) ) {
+	$current_route = 'orders';
+} elseif ( is_wc_endpoint_url( 'edit-address' ) ) {
+	$current_route = 'edit-address';
+} elseif ( is_wc_endpoint_url( 'edit-account' ) ) {
+	$current_route = 'edit-account';
+} elseif ( function_exists( 'is_page' ) && is_page( 'bubble-points' ) ) {
+	$current_route = 'bubble-points';
+}
 
 	$headerMyAccount->setCurrentRoute( $current_route );
 	$headerMyAccount->render();
- ?>
+?>
 </nav>
 
 <?php do_action( 'woocommerce_after_account_navigation' ); ?>

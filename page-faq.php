@@ -5,7 +5,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-faq',
 		'title'             => 'Preguntas Frecuentes',
 		'title_html'        => '<strong>Preguntas</strong> frecuentes',
@@ -126,5 +126,5 @@ bsc_render_static_page_template(
 			</section>
 			<?php
 		},
-	]
+	)
 );

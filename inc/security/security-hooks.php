@@ -48,18 +48,18 @@ function bsc_get_request_ip(): string {
 		: 'unknown';
 
 	if ( defined( 'BSC_TRUST_PROXY_HEADERS' ) && BSC_TRUST_PROXY_HEADERS ) {
-		$proxy_headers = [
+		$proxy_headers = array(
 			'HTTP_CF_CONNECTING_IP',
 			'HTTP_X_REAL_IP',
 			'HTTP_X_FORWARDED_FOR',
-		];
+		);
 
 		foreach ( $proxy_headers as $header ) {
 			if ( empty( $_SERVER[ $header ] ) ) {
 				continue;
 			}
 
-			$value = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
+			$value     = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
 			$candidate = trim( explode( ',', $value )[0] );
 
 			if ( filter_var( $candidate, FILTER_VALIDATE_IP ) ) {
@@ -98,11 +98,11 @@ function bsc_rate_limit( string $scope, int $limit, int $window_seconds ): void 
 	}
 
 	wp_send_json_error(
-		[
+		array(
 			'message'     => __( 'Demasiadas solicitudes. Intenta de nuevo en un momento.', 'bsc-2-0' ),
 			'status'      => 'rate_limited',
 			'retry_after' => $window_seconds,
-		],
+		),
 		429
 	);
 }
@@ -110,34 +110,34 @@ function bsc_rate_limit( string $scope, int $limit, int $window_seconds ): void 
 add_action( 'bsc_rate_limit_blocked', 'bsc_record_rate_limit_blocked', 10, 3 );
 
 function bsc_record_rate_limit_blocked( string $scope, string $ip, int $user_id ): void {
-	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+	$rows = get_option( 'bsc_rate_limit_blocked_log', array() );
 
 	if ( ! is_array( $rows ) ) {
-		$rows = [];
+		$rows = array();
 	}
 
-	$rows[] = [
+	$rows[] = array(
 		'blocked_at' => current_time( 'mysql' ),
 		'scope'      => sanitize_key( $scope ),
 		'ip'         => sanitize_text_field( $ip ),
 		'user_id'    => max( 0, $user_id ),
-	];
+	);
 
 	update_option( 'bsc_rate_limit_blocked_log', array_slice( $rows, -100 ), false );
 }
 
 function bsc_get_recent_rate_limit_blocks( int $limit = 20 ): array {
-	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+	$rows = get_option( 'bsc_rate_limit_blocked_log', array() );
 
 	if ( ! is_array( $rows ) ) {
-		return [];
+		return array();
 	}
 
 	return array_reverse( array_slice( $rows, -1 * max( 1, $limit ) ) );
 }
 
 function bsc_count_rate_limit_blocks_since( int $seconds ): int {
-	$rows = get_option( 'bsc_rate_limit_blocked_log', [] );
+	$rows = get_option( 'bsc_rate_limit_blocked_log', array() );
 
 	if ( ! is_array( $rows ) ) {
 		return 0;
@@ -154,7 +154,7 @@ function bsc_count_rate_limit_blocks_since( int $seconds ): int {
 		$timestamp = strtotime( (string) ( $row['blocked_at'] ?? '' ) );
 
 		if ( false !== $timestamp && $timestamp >= $threshold ) {
-			$count++;
+			++$count;
 		}
 	}
 

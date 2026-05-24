@@ -8,9 +8,10 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 	}
 
 	public function render( ?BSC_Catalog_Request_Context $context = null ): void {
-		$request_uri  = isset( $_SERVER['REQUEST_URI'] )
+		$request_uri = isset( $_SERVER['REQUEST_URI'] )
 			? esc_url_raw( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) )
 			: '/';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only catalog filter query.
 		$query_params = BSC_Catalog_Request_Context::sanitize_request_array( $_GET );
 
 		$context = $context ?: BSC_Catalog_Request_Context::from_request_uri(
@@ -92,7 +93,7 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 				esc_attr( $input_type ),
 				esc_attr( $input_name ),
 				esc_attr( $child->slug ),
-				$checked,
+				esc_attr( $checked ),
 				esc_html( $child->name )
 			);
 			echo '</label>';
@@ -111,19 +112,19 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		echo '<div class="bsc__filters-price-wrapper">';
 
 		printf(
-			"<input class='bsc__filters-range bsc__filters-range--min' type='range' min='%d' max='%d' step='%d' name='min_price' id='min_price' value='%d'>",
-			$display_min,
-			$display_max,
-			$step,
-			$context->get_min_price()
+			"<input class='bsc__filters-range bsc__filters-range--min' type='range' min='%s' max='%s' step='%s' name='min_price' id='min_price' value='%s'>",
+			esc_attr( (string) $display_min ),
+			esc_attr( (string) $display_max ),
+			esc_attr( (string) $step ),
+			esc_attr( (string) $context->get_min_price() )
 		);
 
 		printf(
-			"<input class='bsc__filters-range bsc__filters-range--max' type='range' min='%d' max='%d' step='%d' name='max_price' id='max_price' value='%d'>",
-			$display_min,
-			$display_max,
-			$step,
-			$context->get_max_price()
+			"<input class='bsc__filters-range bsc__filters-range--max' type='range' min='%s' max='%s' step='%s' name='max_price' id='max_price' value='%s'>",
+			esc_attr( (string) $display_min ),
+			esc_attr( (string) $display_max ),
+			esc_attr( (string) $step ),
+			esc_attr( (string) $context->get_max_price() )
 		);
 
 		echo '<div class="bsc__filters-price-values">';

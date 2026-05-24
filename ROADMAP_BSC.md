@@ -156,7 +156,7 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - `npm run lint`: verde; incluye encoding, URLs locales, inline styles no-email, JS, SCSS, Stylelint, CSS build sync y PHP syntax.
 - `composer validate --strict`: verde. Nota local: el `php.ini` de Local emite warning por `php_imagick.dll` apuntando a una build anterior, pero el comando sale OK.
 - `composer run lint:phpstan` / `phpstan analyse --configuration=phpstan.neon`: verde con baseline inicial de 472 errores historicos.
-- `composer run lint:wpcs`: ejecutable, pero no verde todavia; tras PHPCBF acotado y ajuste de reglas BSC reporta 27.791 errores y 1.926 warnings en 218 archivos. Queda como deuda legacy incremental BSC-RM-068.
+- `composer run lint:wpcs`: ejecutable, pero no verde todavia; tras el pase PHPCBF amplio reporta 2.340 errores y 153 warnings en 208 archivos. El subset de riesgo seguridad/DB (`ValidatedSanitizedInput`, `NonceVerification`, `EscapeOutput`, `DirectDatabaseQuery`, `PreparedSQL`) queda verde en 238 archivos.
 - `npm run audit:woocommerce-templates -- --strict`: verde, 44 overrides, 42 ok, 0 outdated, 0 missing y 2 custom-reviewed.
 - `npm run audit:deps`: verde; `npm audit --omit=dev` sin vulnerabilidades, assets vendor 6/6, referencias externas inventariadas: 41.
 - `npm run audit:php-requests -- --strict`: verde; 425 referencias a superglobals, 4 casos revisados y 0 no revisados.
@@ -196,7 +196,7 @@ Notas residuales:
 - Safari/iPhone/WebKit ya tiene gate automatizado; antes de GO sigue recomendada una revision manual en iPhone real si la cliente puede validar.
 - Visual baselines deben revisarse antes de marcar release verde.
 - Performance productiva real sigue bloqueada por infraestructura: `https://bubbleskincare.co` no expone storefront y redirige a `/lander`; se requiere URL final/staging publico para WebPageTest.
-- WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; se redujo a 27.791 errores y 1.926 warnings en 218 archivos y debe seguir cerrandose por carpetas.
+- WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; se redujo a 2.340 errores y 153 warnings en 208 archivos. El subset de riesgo seguridad/DB esta verde y lo restante debe cerrarse por docblocks, text domain, naming legacy y convenciones WPCS.
 - Los audits de request/output ya estan elevados a `--strict`; cualquier hallazgo nuevo no revisado falla.
 - P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
 - `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
@@ -2340,7 +2340,7 @@ Resultado:
 - `phpcs.xml.dist` queda alineado a PHP 8.2, WordPress/WooCommerce actuales, text domain `bsc-2-0` y prefijos `bsc`/`BSC`.
 - Se agregaron `phpstan.neon`, `phpstan-bootstrap.php` y `phpstan-baseline.neon`.
 - PHPStan esta verde con baseline inicial de 472 errores historicos.
-- WPCS ejecuta, pero no esta verde todavia: 27.791 errores y 1.926 warnings en 218 archivos despues del primer PHPCBF acotado. La limpieza queda como deuda incremental BSC-RM-068.
+- WPCS ejecuta, pero no esta verde todavia: 2.340 errores y 153 warnings en 208 archivos despues del pase PHPCBF amplio. El subset de riesgo seguridad/DB esta verde; la limpieza restante queda como deuda incremental BSC-RM-068.
 
 Problema:
 El lint actual parece centrado en JS/CSS/tests. PHP necesita gate para syntax, WordPress standards y patrones peligrosos.
@@ -3107,7 +3107,7 @@ Acceptance:
 
 Prioridad: P2
 Area: Code quality PHP/WP
-Estado: Cerrado incremental el 2026-05-24; gate total sigue como deuda legacy.
+Estado: Cerrado incremental el 2026-05-24; gate de riesgo verde, gate total sigue como deuda legacy.
 
 Problema:
 WPCS ya esta instalado y ejecuta, pero el codigo historico no cumple WordPress Coding Standards. El gate previo reportaba 28.369 errores y 1.985 warnings en 221 archivos.
@@ -3119,10 +3119,11 @@ Implementacion minima:
 - Definir si WPCS sera gate estricto total o baseline incremental por carpeta.
 
 Acceptance:
-- PHPCBF acotado corrigio 804 violaciones automaticas en `inc/responsive-images.php`, `page-login.php`, `components/products/card.php` y `plugins/bsc-catalog/classes/*`.
+- PHPCBF amplio corrigio 26.934 violaciones automaticas en 179 archivos.
 - `phpcs.xml.dist` mantiene prefijos reales `bsc`/`BSC` y excluye solo el aviso de prefijo corto porque el prefijo de marca ya esta definido.
-- Estado actual global: 27.791 errores y 1.926 warnings en 218 archivos; PHPCBF aun puede corregir 26.870 violaciones.
-- Subset trabajado bajo a 97 errores y 3 warnings restantes en 4 archivos; queda para refactor manual por docblocks, nombres camelCase legacy, Yoda conditions y output intencional.
+- Estado actual global: 2.340 errores y 153 warnings en 208 archivos; no quedan fixes mecanicos relevantes de PHPCBF.
+- Subset de riesgo seguridad/DB queda verde en 238 archivos con los sniffs `WordPress.Security.ValidatedSanitizedInput`, `WordPress.Security.NonceVerification`, `WordPress.Security.EscapeOutput`, `WordPress.DB.DirectDatabaseQuery` y `WordPress.DB.PreparedSQL`.
+- Remanente principal: docblocks obligatorios, text domain legacy, nombres camelCase de clases/variables, Yoda conditions, capacidades custom y algunos warnings de performance que requieren decision tecnica.
 - Pendiente: no marcar WPCS total como gate obligatorio hasta cerrar por carpetas legacy o introducir un baseline tecnico dedicado.
 
 ## BSC-RM-069 - Elevar audits PHP request/output a strict

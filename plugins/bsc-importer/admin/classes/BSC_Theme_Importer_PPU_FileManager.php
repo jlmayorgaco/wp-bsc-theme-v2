@@ -1,196 +1,195 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
-class BSC_Theme_Importer_PPU_FileManager
-{
-    private string $baseDir;
-    private string $zipFile;
-    private string $photosDir;
+class BSC_Theme_Importer_PPU_FileManager {
 
-    public function __construct($baseDir)
-    {
-        $this->baseDir = untrailingslashit((string) $baseDir);
-        $this->zipFile = trailingslashit(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory()) . BSC_Theme_Importer_PPU_Config::getPhotoZipFilename();
-        $this->photosDir = trailingslashit(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory()) . BSC_Theme_Importer_PPU_Config::getExtractedFolderName();
-    }
+	private string $baseDir;
+	private string $zipFile;
+	private string $photosDir;
 
-    public function getSubfolders(): array
-    {
-        if (!is_dir($this->photosDir)) {
-            return [];
-        }
+	public function __construct( $baseDir ) {
+		$this->baseDir   = untrailingslashit( (string) $baseDir );
+		$this->zipFile   = trailingslashit( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() ) . BSC_Theme_Importer_PPU_Config::getPhotoZipFilename();
+		$this->photosDir = trailingslashit( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() ) . BSC_Theme_Importer_PPU_Config::getExtractedFolderName();
+	}
 
-        $folders = array_filter((array) glob($this->photosDir . '/*'), 'is_dir');
-        natcasesort($folders);
+	public function getSubfolders(): array {
+		if (!is_dir( $this->photosDir )) {
+			return array();
+		}
 
-        return array_values($folders);
-    }
+		$folders = array_filter( (array) glob( $this->photosDir . '/*' ), 'is_dir' );
+		natcasesort( $folders );
 
-    public function getFilesInFolder($folder): array
-    {
-        if (!is_dir($folder)) {
-            return [];
-        }
+		return array_values( $folders );
+	}
 
-        $files = array_filter((array) glob(trailingslashit((string) $folder) . '*'), static function ($file): bool {
-            if (!is_file($file)) {
-                return false;
-            }
+	public function getFilesInFolder( $folder ): array {
+		if (!is_dir( $folder )) {
+			return array();
+		}
 
-            $extension = strtolower((string) pathinfo($file, PATHINFO_EXTENSION));
-            return in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true);
-        });
+		$files = array_filter(
+			(array) glob( trailingslashit( (string) $folder ) . '*' ),
+			static function ( $file ): bool {
+				if (!is_file( $file )) {
+					return false;
+				}
 
-        usort($files, static function ($left, $right): int {
-            return strnatcasecmp(basename((string) $left), basename((string) $right));
-        });
+				$extension = strtolower( (string) pathinfo( $file, PATHINFO_EXTENSION ) );
+				return in_array( $extension, array( 'jpg', 'jpeg', 'png', 'webp' ), true );
+			}
+		);
 
-        return array_values($files);
-    }
+		usort(
+			$files,
+			static function ( $left, $right ): int {
+				return strnatcasecmp( basename( (string) $left ), basename( (string) $right ) );
+			}
+		);
 
-    public function isFolderValid($folderName): bool
-    {
-        $prefixes = array_map('preg_quote', BSC_Theme_Importer_PPU_Config::getSupportedPrefixes());
-        return (bool) preg_match('/^(' . implode('|', $prefixes) . ')_\d+$/', (string) $folderName);
-    }
+		return array_values( $files );
+	}
 
-    public function extractGroupAndProductId($folderName): ?array
-    {
-        $prefixes = array_map('preg_quote', BSC_Theme_Importer_PPU_Config::getSupportedPrefixes());
+	public function isFolderValid( $folderName ): bool {
+		$prefixes = array_map( 'preg_quote', BSC_Theme_Importer_PPU_Config::getSupportedPrefixes() );
+		return (bool) preg_match( '/^(' . implode( '|', $prefixes ) . ')_\d+$/', (string) $folderName );
+	}
 
-        if (preg_match('/^(' . implode('|', $prefixes) . ')_(\d+)$/', (string) $folderName, $matches)) {
-            return [
-                'group'      => $matches[1],
-                'product_id' => $matches[2],
-                'sku'        => "BSC:{$matches[1]}:{$matches[2]}",
-            ];
-        }
+	public function extractGroupAndProductId( $folderName ): ?array {
+		$prefixes = array_map( 'preg_quote', BSC_Theme_Importer_PPU_Config::getSupportedPrefixes() );
 
-        return null;
-    }
+		if (preg_match( '/^(' . implode( '|', $prefixes ) . ')_(\d+)$/', (string) $folderName, $matches )) {
+			return array(
+				'group'      => $matches[1],
+				'product_id' => $matches[2],
+				'sku'        => "BSC:{$matches[1]}:{$matches[2]}",
+			);
+		}
 
-    public function getUploadDirectory(): string
-    {
-        return BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory();
-    }
+		return null;
+	}
 
-    public function cleanAndExtractZip(): void
-    {
-        if (!file_exists($this->zipFile)) {
-            throw new RuntimeException("ZIP file not found: {$this->zipFile}");
-        }
+	public function getUploadDirectory(): string {
+		return BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory();
+	}
 
-        if (!wp_mkdir_p(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory())) {
-            throw new RuntimeException('Could not create product photo upload directory.');
-        }
+	public function cleanAndExtractZip(): void {
+		if (!file_exists( $this->zipFile )) {
+            // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Escaped by importer UI before display.
+			throw new RuntimeException( "ZIP file not found: {$this->zipFile}" );
+		}
 
-        if (file_exists($this->photosDir) && is_dir($this->photosDir)) {
-            $this->deleteFolder($this->photosDir);
-        }
+		if (!wp_mkdir_p( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() )) {
+			throw new RuntimeException( 'Could not create product photo upload directory.' );
+		}
 
-        $this->unzipFile($this->zipFile, BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory());
-        $this->normalizeExtractedFolder(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory());
+		if (file_exists( $this->photosDir ) && is_dir( $this->photosDir )) {
+			$this->deleteFolder( $this->photosDir );
+		}
 
-        if (!is_dir($this->photosDir)) {
-            throw new RuntimeException("Expected extracted folder not found: {$this->photosDir}");
-        }
-    }
+		$this->unzipFile( $this->zipFile, BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() );
+		$this->normalizeExtractedFolder( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() );
 
-    private function deleteFolder(string $folder): void
-    {
-        $base = realpath(BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory());
-        $target = realpath($folder);
-        $baseWithSeparator = $base ? rtrim($base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR : '';
+		if (!is_dir( $this->photosDir )) {
+            // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Escaped by importer UI before display.
+			throw new RuntimeException( "Expected extracted folder not found: {$this->photosDir}" );
+		}
+	}
 
-        if (!$base || !$target || $target === $base || strpos($target, $baseWithSeparator) !== 0) {
-            throw new RuntimeException('Refusing to delete a folder outside the product photo directory.');
-        }
+	private function deleteFolder( string $folder ): void {
+		$base              = realpath( BSC_Theme_Importer_PPU_Config::getPhotoZipDirectory() );
+		$target            = realpath( $folder );
+		$baseWithSeparator = $base ? rtrim( $base, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR : '';
 
-        foreach ((array) scandir($folder) as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
+		if (!$base || !$target || $target === $base || strpos( $target, $baseWithSeparator ) !== 0) {
+			throw new RuntimeException( 'Refusing to delete a folder outside the product photo directory.' );
+		}
 
-            $itemPath = $folder . DIRECTORY_SEPARATOR . $item;
+		foreach ( (array) scandir( $folder ) as $item) {
+			if ($item === '.' || $item === '..') {
+				continue;
+			}
 
-            if (is_dir($itemPath)) {
-                $this->deleteFolder($itemPath);
-            } else {
-                wp_delete_file($itemPath);
-            }
-        }
+			$itemPath = $folder . DIRECTORY_SEPARATOR . $item;
 
-        rmdir($folder);
-    }
+			if (is_dir( $itemPath )) {
+				$this->deleteFolder( $itemPath );
+			} else {
+				wp_delete_file( $itemPath );
+			}
+		}
 
-    private function unzipFile(string $zipFilePath, string $extractTo): void
-    {
-        $zip = new ZipArchive();
+		rmdir( $folder );
+	}
 
-        if ($zip->open($zipFilePath) !== true) {
-            throw new RuntimeException("Failed to open ZIP file: {$zipFilePath}");
-        }
+	private function unzipFile( string $zipFilePath, string $extractTo ): void {
+		$zip = new ZipArchive();
 
-        $extractRoot = realpath($extractTo);
+		if ($zip->open( $zipFilePath ) !== true) {
+            // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Escaped by importer UI before display.
+			throw new RuntimeException( "Failed to open ZIP file: {$zipFilePath}" );
+		}
 
-        if (!$extractRoot) {
-            $zip->close();
-            throw new RuntimeException("Extraction directory does not exist: {$extractTo}");
-        }
+		$extractRoot = realpath( $extractTo );
 
-        for ($index = 0; $index < $zip->numFiles; $index++) {
-            $entry = $zip->getNameIndex($index);
+		if (!$extractRoot) {
+			$zip->close();
+            // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Escaped by importer UI before display.
+			throw new RuntimeException( "Extraction directory does not exist: {$extractTo}" );
+		}
 
-            if (!$entry || $this->isUnsafeZipEntry($entry)) {
-                $zip->close();
-                throw new RuntimeException('ZIP contains an unsafe path.');
-            }
+		for ($index = 0; $index < $zip->numFiles; $index++) {
+			$entry = $zip->getNameIndex( $index );
 
-            if (!$this->isAllowedZipEntry($entry)) {
-                $zip->close();
-                throw new RuntimeException('ZIP contains a non-image file: ' . basename((string) $entry));
-            }
-        }
+			if (!$entry || $this->isUnsafeZipEntry( $entry )) {
+				$zip->close();
+				throw new RuntimeException( 'ZIP contains an unsafe path.' );
+			}
 
-        $zip->extractTo($extractTo);
-        $zip->close();
-    }
+			if (!$this->isAllowedZipEntry( $entry )) {
+				$zip->close();
+                // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Escaped by importer UI before display.
+				throw new RuntimeException( 'ZIP contains a non-image file: ' . basename( (string) $entry ) );
+			}
+		}
 
-    private function isUnsafeZipEntry(string $entry): bool
-    {
-        $normalized = str_replace('\\', '/', $entry);
-        $parts = array_filter(explode('/', $normalized), static fn($part): bool => $part !== '');
+		$zip->extractTo( $extractTo );
+		$zip->close();
+	}
 
-        return in_array('..', $parts, true)
-            || strpos($normalized, ':') !== false
-            || substr($normalized, 0, 1) === '/';
-    }
+	private function isUnsafeZipEntry( string $entry ): bool {
+		$normalized = str_replace( '\\', '/', $entry );
+		$parts      = array_filter( explode( '/', $normalized ), static fn( $part ): bool => $part !== '' );
 
-    private function isAllowedZipEntry(string $entry): bool
-    {
-        $normalized = str_replace('\\', '/', $entry);
+		return in_array( '..', $parts, true )
+			|| strpos( $normalized, ':' ) !== false
+			|| substr( $normalized, 0, 1 ) === '/';
+	}
 
-        if (substr($normalized, -1) === '/' || strpos($normalized, '__MACOSX/') === 0) {
-            return true;
-        }
+	private function isAllowedZipEntry( string $entry ): bool {
+		$normalized = str_replace( '\\', '/', $entry );
 
-        $basename = strtolower(basename($normalized));
+		if (substr( $normalized, -1 ) === '/' || strpos( $normalized, '__MACOSX/' ) === 0) {
+			return true;
+		}
 
-        if (in_array($basename, ['.ds_store', 'thumbs.db'], true)) {
-            return true;
-        }
+		$basename = strtolower( basename( $normalized ) );
 
-        return in_array(strtolower(pathinfo($normalized, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp'], true);
-    }
+		if (in_array( $basename, array( '.ds_store', 'thumbs.db' ), true )) {
+			return true;
+		}
 
-    private function normalizeExtractedFolder(string $extractTo): void
-    {
-        $originalFolder = trailingslashit($extractTo) . 'FOTOS PAG WEB NOMENCLATURA';
-        $newFolder = trailingslashit($extractTo) . BSC_Theme_Importer_PPU_Config::getExtractedFolderName();
+		return in_array( strtolower( pathinfo( $normalized, PATHINFO_EXTENSION ) ), array( 'jpg', 'jpeg', 'png', 'webp' ), true );
+	}
 
-        if (is_dir($originalFolder) && !is_dir($newFolder)) {
-            rename($originalFolder, $newFolder);
-        }
-    }
+	private function normalizeExtractedFolder( string $extractTo ): void {
+		$originalFolder = trailingslashit( $extractTo ) . 'FOTOS PAG WEB NOMENCLATURA';
+		$newFolder      = trailingslashit( $extractTo ) . BSC_Theme_Importer_PPU_Config::getExtractedFolderName();
+
+		if (is_dir( $originalFolder ) && !is_dir( $newFolder )) {
+			rename( $originalFolder, $newFolder );
+		}
+	}
 }

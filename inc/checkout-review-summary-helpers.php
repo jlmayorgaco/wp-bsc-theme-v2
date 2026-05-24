@@ -49,39 +49,39 @@ if ( ! function_exists( 'bsc_get_checkout_shipping_method_label' ) ) {
 if ( ! function_exists( 'bsc_get_checkout_summary_payload' ) ) {
 	function bsc_get_checkout_summary_payload(): array {
 		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-			return [
-				'cart_count'                => 0,
+			return array(
+				'cart_count'               => 0,
 				'subtotal_html'            => '',
 				'subtotal_discounted_html' => '',
 				'shipping_total_html'      => '',
 				'cart_total_html'          => '',
-			];
+			);
 		}
 
-		$cart                 = WC()->cart;
-		$shipping_total       = (float) $cart->get_shipping_total();
-		$shipping_display     = $shipping_total <= 0 ? 'Gratis' : wc_price( $shipping_total );
+		$cart                  = WC()->cart;
+		$shipping_total        = (float) $cart->get_shipping_total();
+		$shipping_display      = $shipping_total <= 0 ? 'Gratis' : wc_price( $shipping_total );
 		$shipping_method_label = bsc_get_checkout_shipping_method_label();
-		$shipping_separator   = html_entity_decode( '&ndash;', ENT_QUOTES, 'UTF-8' );
-		$subtotal_discounted  = max( 0, (float) $cart->get_subtotal() - (float) $cart->get_discount_total() );
-		$shipping_text        = $shipping_method_label !== ''
+		$shipping_separator    = html_entity_decode( '&ndash;', ENT_QUOTES, 'UTF-8' );
+		$subtotal_discounted   = max( 0, (float) $cart->get_subtotal() - (float) $cart->get_discount_total() );
+		$shipping_text         = $shipping_method_label !== ''
 			? sprintf( '%s %s %s', $shipping_method_label, $shipping_separator, $shipping_display )
 			: $shipping_display;
 
-		return [
-			'cart_count'                => (int) $cart->get_cart_contents_count(),
+		return array(
+			'cart_count'               => (int) $cart->get_cart_contents_count(),
 			'subtotal_html'            => wc_price( $cart->get_subtotal() ),
 			'subtotal_discounted_html' => wc_price( $subtotal_discounted ),
 			'shipping_total_html'      => $shipping_text,
 			'cart_total_html'          => $cart->get_cart_total(),
-		];
+		);
 	}
 }
 
 if ( ! function_exists( 'bsc_get_free_shipping_progress_payload' ) ) {
 	function bsc_get_free_shipping_progress_payload(): array {
 		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-			return [
+			return array(
 				'threshold'      => 0,
 				'current'        => 0,
 				'remaining'      => 0,
@@ -89,7 +89,7 @@ if ( ! function_exists( 'bsc_get_free_shipping_progress_payload' ) ) {
 				'qualified'      => false,
 				'message'        => '',
 				'remaining_html' => '',
-			];
+			);
 		}
 
 		$threshold = max( 0, (float) get_option( 'bsc_free_shipping_threshold', 300000 ) );
@@ -98,7 +98,7 @@ if ( ! function_exists( 'bsc_get_free_shipping_progress_payload' ) ) {
 		$remaining = $qualified ? 0 : max( 0, $threshold - $current );
 		$percent   = $threshold > 0 ? min( 100, (int) floor( ( $current / $threshold ) * 100 ) ) : 100;
 
-		return [
+		return array(
 			'threshold'      => $threshold,
 			'current'        => $current,
 			'remaining'      => $remaining,
@@ -108,6 +108,6 @@ if ( ! function_exists( 'bsc_get_free_shipping_progress_payload' ) ) {
 				? 'Tu pedido ya tiene envio gratis.'
 				: sprintf( 'Te faltan %s para envio gratis.', wp_strip_all_tags( wc_price( $remaining ) ) ),
 			'remaining_html' => wc_price( $remaining ),
-		];
+		);
 	}
 }

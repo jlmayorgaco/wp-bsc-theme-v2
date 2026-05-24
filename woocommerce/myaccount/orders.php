@@ -25,24 +25,29 @@ do_action( 'woocommerce_before_account_orders', $has_orders ); ?>
 
 <?php if ( $has_orders ) : ?>
 
-	<?php 
-		require_once get_template_directory() . '/components/orders/orders-table.php'; 
+	<?php
+		require_once get_template_directory() . '/components/orders/orders-table.php';
 		$ordersTable = new BSC_Orders_Table();
-		$ordersTable->set_customer_orders(wc_get_orders([
-			'customer_id' => get_current_user_id(),
-			'paginate'    => true,
-			'paged'       => 1,
-		]));
-		$ordersTable->set_button_class('bsc__button');
+		$ordersTable->set_customer_orders(
+			wc_get_orders(
+				array(
+					'customer_id' => get_current_user_id(),
+					'paginate'    => true,
+					'paged'       => 1,
+				)
+			)
+		);
+		$ordersTable->set_button_class( 'bsc__button' );
 		$ordersTable->render();
 	?>
 
 
 <?php else : ?>
-	<?php 
-		require_once get_template_directory() . '/components/orders/orders-zero-state.php'; 
+	<?php
+		require_once get_template_directory() . '/components/orders/orders-zero-state.php';
 		order_zero_state();
 	?>
 <?php endif; ?>
 
-<?php do_action( 'woocommerce_after_account_orders', $has_orders ); ?>
+<?php
+do_action( 'woocommerce_after_account_orders', $has_orders );

@@ -8,6 +8,7 @@ add_action( 'admin_enqueue_scripts', 'bsc_enqueue_monitoring_admin_assets' );
 add_action( 'admin_init', 'bsc_handle_monitoring_settings_save' );
 
 function bsc_enqueue_monitoring_admin_assets(): void {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page routing.
 	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
 	if ( 'bsc-monitoring' !== $page ) {
@@ -21,29 +22,29 @@ function bsc_enqueue_monitoring_admin_assets(): void {
 	wp_enqueue_style(
 		'bsc-monitoring',
 		get_template_directory_uri() . '/admin/bsc-monitoring.css',
-		[ 'bsc-admin-ui' ],
+		array( 'bsc-admin-ui' ),
 		file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
 	);
 }
 
 function bsc_monitoring_default_settings(): array {
-	return [
+	return array(
 		'owner_name'         => 'Operacion BSC',
 		'owner_email'        => get_option( 'bsc_contact_email', get_option( 'admin_email' ) ),
 		'escalation_channel' => 'WhatsApp operaciones / hosting',
 		'daily_check_time'   => '09:00',
-	];
+	);
 }
 
 function bsc_monitoring_get_settings(): array {
 	$defaults = bsc_monitoring_default_settings();
 
-	return [
+	return array(
 		'owner_name'         => (string) get_option( 'bsc_monitoring_owner_name', $defaults['owner_name'] ),
 		'owner_email'        => (string) get_option( 'bsc_monitoring_owner_email', $defaults['owner_email'] ),
 		'escalation_channel' => (string) get_option( 'bsc_monitoring_escalation_channel', $defaults['escalation_channel'] ),
 		'daily_check_time'   => (string) get_option( 'bsc_monitoring_daily_check_time', $defaults['daily_check_time'] ),
-	];
+	);
 }
 
 function bsc_handle_monitoring_settings_save(): void {
@@ -59,16 +60,16 @@ function bsc_handle_monitoring_settings_save(): void {
 
 	check_admin_referer( 'bsc_monitoring_save', 'bsc_monitoring_nonce' );
 
-	$owner_name = isset( $_POST['bsc_monitoring_owner_name'] )
+	$owner_name         = isset( $_POST['bsc_monitoring_owner_name'] )
 		? sanitize_text_field( wp_unslash( $_POST['bsc_monitoring_owner_name'] ) )
 		: '';
-	$owner_email = isset( $_POST['bsc_monitoring_owner_email'] )
+	$owner_email        = isset( $_POST['bsc_monitoring_owner_email'] )
 		? sanitize_email( wp_unslash( $_POST['bsc_monitoring_owner_email'] ) )
 		: '';
 	$escalation_channel = isset( $_POST['bsc_monitoring_escalation_channel'] )
 		? sanitize_text_field( wp_unslash( $_POST['bsc_monitoring_escalation_channel'] ) )
 		: '';
-	$daily_check_time = isset( $_POST['bsc_monitoring_daily_check_time'] )
+	$daily_check_time   = isset( $_POST['bsc_monitoring_daily_check_time'] )
 		? sanitize_text_field( wp_unslash( $_POST['bsc_monitoring_daily_check_time'] ) )
 		: '';
 
@@ -79,10 +80,10 @@ function bsc_handle_monitoring_settings_save(): void {
 
 	wp_safe_redirect(
 		add_query_arg(
-			[
+			array(
 				'page'       => 'bsc-monitoring',
 				'bsc_notice' => 'saved',
-			],
+			),
 			admin_url( 'admin.php' )
 		)
 	);
@@ -90,12 +91,12 @@ function bsc_handle_monitoring_settings_save(): void {
 }
 
 function bsc_monitoring_status_label( string $status ): string {
-	$labels = [
+	$labels = array(
 		'ok'       => 'OK',
 		'warning'  => 'Atencion',
 		'critical' => 'Critico',
 		'info'     => 'Info',
-	];
+	);
 
 	return $labels[ $status ] ?? 'Info';
 }
@@ -124,13 +125,13 @@ function bsc_monitoring_count_orders( array $statuses, int $hours ): int {
 	$after = wp_date( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $hours * HOUR_IN_SECONDS ) );
 
 	$result = wc_get_orders(
-		[
+		array(
 			'limit'      => 1,
 			'paginate'   => true,
 			'return'     => 'ids',
 			'status'     => $statuses,
 			'date_after' => $after,
-		]
+		)
 	);
 
 	return (int) ( $result->total ?? 0 );
@@ -169,30 +170,30 @@ function bsc_monitoring_rate_limit_blocks_since( int $hours ): int {
 
 function bsc_monitoring_recent_rate_limit_rows(): array {
 	if ( ! function_exists( 'bsc_get_recent_rate_limit_blocks' ) ) {
-		return [];
+		return array();
 	}
 
 	return bsc_get_recent_rate_limit_blocks( 12 );
 }
 
 function bsc_monitoring_build_checks(): array {
-	$email_rows         = function_exists( 'bsc_get_recent_order_email_log_rows' ) ? bsc_get_recent_order_email_log_rows( 50 ) : [];
+	$email_rows         = function_exists( 'bsc_get_recent_order_email_log_rows' ) ? bsc_get_recent_order_email_log_rows( 50 ) : array();
 	$email_failures     = bsc_monitoring_count_email_failures( $email_rows );
 	$last_email_sent_at = (string) ( $email_rows[0]['sent_at'] ?? '' );
-	$failed_orders_24h  = bsc_monitoring_count_orders( [ 'failed' ], 24 );
-	$cancelled_24h      = bsc_monitoring_count_orders( [ 'cancelled' ], 24 );
-	$orders_24h         = bsc_monitoring_count_orders( [ 'processing', 'completed', 'preparing', 'shipped' ], 24 );
+	$failed_orders_24h  = bsc_monitoring_count_orders( array( 'failed' ), 24 );
+	$cancelled_24h      = bsc_monitoring_count_orders( array( 'cancelled' ), 24 );
+	$orders_24h         = bsc_monitoring_count_orders( array( 'processing', 'completed', 'preparing', 'shipped' ), 24 );
 	$rate_blocks_24h    = bsc_monitoring_rate_limit_blocks_since( 24 );
 	$next_followup      = wp_next_scheduled( 'bsc_run_daily_followup_emails' );
-	$last_followup      = get_option( 'bsc_followup_email_last_run_summary', [] );
+	$last_followup      = get_option( 'bsc_followup_email_last_run_summary', array() );
 	$last_followup_at   = is_array( $last_followup ) ? (string) ( $last_followup['ran_at'] ?? '' ) : '';
 	$last_followup_age  = bsc_monitoring_hours_since_mysql( $last_followup_at );
 	$php_log_active     = defined( 'WP_DEBUG_LOG' ) && (bool) WP_DEBUG_LOG;
 	$js_gate_exists     = file_exists( get_template_directory() . '/tests/e2e/smoke/console-errors.spec.js' );
 
-	$checks = [];
+	$checks = array();
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'PHP logs',
 		'status'      => $php_log_active ? 'ok' : 'warning',
 		'value'       => $php_log_active ? 'WP_DEBUG_LOG activo' : 'Log no detectable',
@@ -200,35 +201,35 @@ function bsc_monitoring_build_checks(): array {
 			? 'Revisar debug.log o el archivo configurado despues de cada deploy.'
 			: 'Confirmar en hosting que PHP errors queda cubierto por logs del servidor.',
 		'action'      => 'Revisar logs PHP 24h',
-	];
+	);
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'JS storefront',
 		'status'      => $js_gate_exists ? 'ok' : 'warning',
 		'value'       => $js_gate_exists ? 'Smoke console activo' : 'Smoke no encontrado',
 		'description' => 'El gate `console-errors.spec.js` cubre errores de consola en rutas publicas criticas.',
 		'action'      => 'Ejecutar smoke JS',
-	];
+	);
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'Checkout y pedidos',
 		'status'      => $failed_orders_24h > 0 ? 'critical' : ( $cancelled_24h > 0 ? 'warning' : 'ok' ),
 		'value'       => sprintf( '%d ok / %d failed / %d cancelados', $orders_24h, $failed_orders_24h, $cancelled_24h ),
 		'description' => 'Senal rapida de conversion y problemas de pago en las ultimas 24 horas.',
 		'action'      => 'Revisar Pedidos BSC',
 		'url'         => admin_url( 'admin.php?page=bsc-orders' ),
-	];
+	);
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'Emails de pedido',
 		'status'      => $email_failures > 0 ? 'critical' : ( empty( $email_rows ) ? 'warning' : 'ok' ),
 		'value'       => empty( $email_rows ) ? 'Sin eventos recientes' : sprintf( '%d fallos recientes', $email_failures ),
 		'description' => $last_email_sent_at !== '' ? 'Ultimo evento: ' . $last_email_sent_at : 'Aun no hay log de emails asociados a orden.',
 		'action'      => 'Abrir Emails BSC',
 		'url'         => admin_url( 'admin.php?page=bsc-followup-emails' ),
-	];
+	);
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'Followup cron',
 		'status'      => ! $next_followup || ( null !== $last_followup_age && $last_followup_age > 36 ) ? 'warning' : 'ok',
 		'value'       => $next_followup ? 'Programado' : 'Sin programar',
@@ -236,15 +237,15 @@ function bsc_monitoring_build_checks(): array {
 			? 'Proxima ejecucion: ' . wp_date( 'Y-m-d H:i', $next_followup ) . ( $last_followup_at !== '' ? ' | Ultima: ' . $last_followup_at : '' )
 			: 'Revisar WP-Cron o ejecutar seguimiento manual desde Emails BSC.',
 		'action'      => 'Validar WP-Cron',
-	];
+	);
 
-	$checks[] = [
+	$checks[] = array(
 		'title'       => 'Rate limit',
 		'status'      => $rate_blocks_24h >= 10 ? 'critical' : ( $rate_blocks_24h > 0 ? 'warning' : 'ok' ),
 		'value'       => sprintf( '%d bloqueos 24h', $rate_blocks_24h ),
 		'description' => 'Picos altos pueden indicar abuso, bots o UI enviando requests duplicados.',
 		'action'      => 'Revisar scopes',
-	];
+	);
 
 	return $checks;
 }
@@ -257,6 +258,8 @@ function bsc_render_monitoring_page(): void {
 	$settings        = bsc_monitoring_get_settings();
 	$checks          = bsc_monitoring_build_checks();
 	$rate_limit_rows = bsc_monitoring_recent_rate_limit_rows();
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag after redirect.
+	$monitoring_saved = isset( $_GET['bsc_notice'] ) && 'saved' === sanitize_key( wp_unslash( $_GET['bsc_notice'] ) );
 	?>
 	<div class="wrap bsc-admin-monitoring">
 		<h1>Monitoreo post-launch</h1>
@@ -264,7 +267,7 @@ function bsc_render_monitoring_page(): void {
 			Checklist operativo para revisar senales basicas despues de deploy y durante los primeros dias de operacion.
 		</p>
 
-		<?php if ( isset( $_GET['bsc_notice'] ) && 'saved' === sanitize_key( wp_unslash( $_GET['bsc_notice'] ) ) ) : ?>
+		<?php if ( $monitoring_saved ) : ?>
 			<div class="bsc-admin-note bsc-admin-note--success">Configuracion de monitoreo guardada.</div>
 		<?php endif; ?>
 

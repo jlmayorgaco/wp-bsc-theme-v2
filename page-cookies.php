@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-cookies',
 		'title'             => 'Politica de Cookies',
 		'subtitle'          => 'Como usamos cookies y tecnologias similares',
@@ -30,5 +30,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

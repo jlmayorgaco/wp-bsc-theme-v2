@@ -42,20 +42,20 @@ bsc_email_render_message(
 				</tr>
 <?php
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $account_url,
 			'label'     => '¡ Completar mi perfil !',
 			'variant'   => 'pink',
 			'min_width' => 220,
-		],
-		[
+		),
+		array(
 			'url'       => $shop_url,
 			'label'     => '¡ Ir a la tienda !',
 			'variant'   => 'dark',
 			'min_width' => 180,
-		],
-	],
+		),
+	),
 	0,
 	62
 );

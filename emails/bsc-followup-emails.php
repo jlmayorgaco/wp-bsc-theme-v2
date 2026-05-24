@@ -5,16 +5,16 @@
 defined( 'ABSPATH' ) || exit;
 
 function bsc_get_followup_email_defaults(): array {
-	return [
-		'bsc_followup_emails_enabled'   => 1,
-		'bsc_welcome_email_enabled'     => 1,
+	return array(
+		'bsc_followup_emails_enabled'      => 1,
+		'bsc_welcome_email_enabled'        => 1,
 		'bsc_password_reset_email_enabled' => 1,
-		'bsc_birthday_email_enabled'    => 1,
-		'bsc_inactive_email_enabled'    => 1,
-		'bsc_inactive_email_days'       => 60,
-		'bsc_repurchase_email_enabled'  => 1,
-		'bsc_default_repurchase_days'   => 30,
-	];
+		'bsc_birthday_email_enabled'       => 1,
+		'bsc_inactive_email_enabled'       => 1,
+		'bsc_inactive_email_days'          => 60,
+		'bsc_repurchase_email_enabled'     => 1,
+		'bsc_default_repurchase_days'      => 30,
+	);
 }
 
 function bsc_get_followup_email_setting( string $key ) {
@@ -59,39 +59,39 @@ function bsc_schedule_followup_email_jobs(): void {
 add_action( 'init', 'bsc_schedule_followup_email_jobs' );
 
 function bsc_get_followup_paid_statuses(): array {
-	return [ 'processing', 'preparing', 'shipped', 'completed' ];
+	return array( 'processing', 'preparing', 'shipped', 'completed' );
 }
 
 function bsc_get_followup_orders_desc(): array {
 	if ( ! class_exists( 'WooCommerce' ) ) {
-		return [];
+		return array();
 	}
 
-	$orders      = [];
-	$page        = 1;
-	$max_pages   = 1;
-	$per_page    = 100;
-	$query_args  = [
+	$orders     = array();
+	$page       = 1;
+	$max_pages  = 1;
+	$per_page   = 100;
+	$query_args = array(
 		'status'   => bsc_get_followup_paid_statuses(),
 		'orderby'  => 'date',
 		'order'    => 'DESC',
 		'limit'    => $per_page,
 		'paginate' => true,
-	];
+	);
 
 	do {
 		$query_result = wc_get_orders(
 			array_merge(
 				$query_args,
-				[
+				array(
 					'page' => $page,
-				]
+				)
 			)
 		);
 
 		$page_orders = is_object( $query_result ) && isset( $query_result->orders ) && is_array( $query_result->orders )
 			? $query_result->orders
-			: [];
+			: array();
 
 		foreach ( $page_orders as $order ) {
 			if ( $order instanceof WC_Order ) {
@@ -100,7 +100,7 @@ function bsc_get_followup_orders_desc(): array {
 		}
 
 		$max_pages = max( 1, (int) ( $query_result->max_num_pages ?? 1 ) );
-		$page++;
+		++$page;
 	} while ( $page <= $max_pages );
 
 	return $orders;
@@ -140,11 +140,11 @@ function bsc_get_followup_order_recipient( WC_Order $order ): array {
 		}
 	}
 
-	return [
+	return array(
 		'user_id' => $user_id,
 		'email'   => $email,
 		'name'    => $name !== '' ? $name : 'amiga',
-	];
+	);
 }
 
 function bsc_get_followup_date_label( int $timestamp ): string {
@@ -152,7 +152,7 @@ function bsc_get_followup_date_label( int $timestamp ): string {
 }
 
 function bsc_get_product_repurchase_days( int $product_id ): int {
-	$raw = get_post_meta( $product_id, '_bsc_repurchase_days', true );
+	$raw  = get_post_meta( $product_id, '_bsc_repurchase_days', true );
 	$days = (int) $raw;
 
 	if ( $days > 0 ) {
@@ -165,24 +165,24 @@ function bsc_get_product_repurchase_days( int $product_id ): int {
 function bsc_parse_birthday_month_day( string $raw ): array {
 	$raw = trim( $raw );
 	if ( $raw === '' ) {
-		return [];
+		return array();
 	}
 
 	if ( preg_match( '/^(\\d{4})-(\\d{2})-(\\d{2})$/', $raw, $matches ) ) {
-		return [
+		return array(
 			'month' => $matches[2],
 			'day'   => $matches[3],
-		];
+		);
 	}
 
 	if ( preg_match( '/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/', $raw, $matches ) ) {
-		return [
+		return array(
 			'month' => $matches[2],
 			'day'   => $matches[1],
-		];
+		);
 	}
 
-	return [];
+	return array();
 }
 
 function bsc_handle_new_customer_welcome_email( int $user_id ): void {
@@ -208,11 +208,11 @@ function bsc_handle_new_customer_welcome_email( int $user_id ): void {
 		(string) $user->user_email,
 		$subject,
 		'bsc-welcome-email.php',
-		[
+		array(
 			'user'        => $user,
 			'account_url' => bsc_get_email_account_url(),
 			'shop_url'    => bsc_get_email_shop_url(),
-		]
+		)
 	);
 
 	if ( $sent ) {
@@ -235,10 +235,10 @@ function bsc_customize_password_reset_email( array $defaults, string $key, strin
 	$defaults['subject'] = 'Recupera tu contraseña — Bubble Skin Care';
 	$defaults['message'] = bsc_render_email_template(
 		'bsc-password-reset-email.php',
-		[
+		array(
 			'user'      => $user_data,
 			'reset_url' => $reset_url,
-		]
+		)
 	);
 	$defaults['headers'] = bsc_get_email_headers();
 
@@ -276,17 +276,17 @@ function bsc_process_birthday_followup_emails(): int {
 		return 0;
 	}
 
-	$today_month = wp_date( 'm', current_time( 'timestamp' ), wp_timezone() );
-	$today_day   = wp_date( 'd', current_time( 'timestamp' ), wp_timezone() );
+	$today_month  = wp_date( 'm', current_time( 'timestamp' ), wp_timezone() );
+	$today_day    = wp_date( 'd', current_time( 'timestamp' ), wp_timezone() );
 	$current_year = wp_date( 'Y', current_time( 'timestamp' ), wp_timezone() );
-	$sent_count  = 0;
+	$sent_count   = 0;
 
 	$user_ids = get_users(
-		[
-			'fields'     => 'ids',
-			'meta_key'   => 'bsc_birthday',
+		array(
+			'fields'       => 'ids',
+			'meta_key'     => 'bsc_birthday',
 			'meta_compare' => 'EXISTS',
-		]
+		)
 	);
 
 	foreach ( $user_ids as $user_id ) {
@@ -310,15 +310,15 @@ function bsc_process_birthday_followup_emails(): int {
 			(string) $user->user_email,
 			'Feliz cumpleaños de parte de BSC',
 			'bsc-birthday-email.php',
-			[
+			array(
 				'user'     => $user,
 				'shop_url' => bsc_get_email_shop_url(),
-			]
+			)
 		);
 
 		if ( $sent ) {
 			update_user_meta( (int) $user_id, '_bsc_birthday_email_year', $current_year );
-			$sent_count++;
+			++$sent_count;
 		}
 	}
 
@@ -336,7 +336,7 @@ function bsc_process_inactivity_followup_emails(): int {
 
 	$threshold_days = max( 1, (int) bsc_get_followup_email_setting( 'bsc_inactive_email_days' ) );
 	$cutoff         = current_time( 'timestamp' ) - ( $threshold_days * DAY_IN_SECONDS );
-	$latest_orders  = [];
+	$latest_orders  = array();
 	$sent_count     = 0;
 
 	foreach ( bsc_get_followup_orders_desc() as $order ) {
@@ -367,19 +367,19 @@ function bsc_process_inactivity_followup_emails(): int {
 			$recipient['email'],
 			'Te extrañamos en Bubble Skin Care',
 			'bsc-followup-inactive.php',
-			[
+			array(
 				'customer_name'   => $recipient['name'],
 				'order'           => $order,
 				'last_order_date' => bsc_get_followup_date_label( $date_created->getTimestamp() ),
 				'shop_url'        => bsc_get_email_shop_url(),
 				'account_url'     => bsc_get_email_account_url(),
-			]
+			)
 		);
 
 		if ( $sent ) {
 			$order->update_meta_data( '_bsc_inactivity_email_sent_at', current_time( 'mysql' ) );
 			$order->save_meta_data();
-			$sent_count++;
+			++$sent_count;
 		}
 	}
 
@@ -396,13 +396,13 @@ function bsc_process_repurchase_followup_emails(): int {
 	}
 
 	$now              = current_time( 'timestamp' );
-	$latest_purchases = [];
-	$grouped_payloads = [];
+	$latest_purchases = array();
+	$grouped_payloads = array();
 	$sent_count       = 0;
 
 	foreach ( bsc_get_followup_orders_desc() as $order ) {
-		$contact_key  = bsc_get_followup_contact_key( $order );
-		$ordered_at   = $order->get_date_created();
+		$contact_key = bsc_get_followup_contact_key( $order );
+		$ordered_at  = $order->get_date_created();
 
 		if ( ! $ordered_at ) {
 			continue;
@@ -419,13 +419,13 @@ function bsc_process_repurchase_followup_emails(): int {
 				continue;
 			}
 
-			$latest_purchases[ $record_key ] = [
+			$latest_purchases[ $record_key ] = array(
 				'contact_key' => $contact_key,
 				'order'       => $order,
 				'product_id'  => $product_id,
 				'ordered_at'  => $ordered_at->getTimestamp(),
 				'recipient'   => bsc_get_followup_order_recipient( $order ),
-			];
+			);
 		}
 	}
 
@@ -455,22 +455,22 @@ function bsc_process_repurchase_followup_emails(): int {
 
 		$contact_key = (string) $purchase['contact_key'];
 		if ( ! isset( $grouped_payloads[ $contact_key ] ) ) {
-			$grouped_payloads[ $contact_key ] = [
-				'email'   => $recipient['email'],
-				'name'    => $recipient['name'],
-				'products' => [],
-				'marks'   => [],
-			];
+			$grouped_payloads[ $contact_key ] = array(
+				'email'    => $recipient['email'],
+				'name'     => $recipient['name'],
+				'products' => array(),
+				'marks'    => array(),
+			);
 		}
 
-		$grouped_payloads[ $contact_key ]['products'][ $product_id ] = [
-			'id'          => $product_id,
-			'name'        => $product->get_name(),
-			'url'         => get_permalink( $product_id ),
-			'image_url'   => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
-			'ordered_at'  => bsc_get_followup_date_label( (int) $purchase['ordered_at'] ),
-			'days'        => $days,
-		];
+		$grouped_payloads[ $contact_key ]['products'][ $product_id ] = array(
+			'id'         => $product_id,
+			'name'       => $product->get_name(),
+			'url'        => get_permalink( $product_id ),
+			'image_url'  => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
+			'ordered_at' => bsc_get_followup_date_label( (int) $purchase['ordered_at'] ),
+			'days'       => $days,
+		);
 
 		$grouped_payloads[ $contact_key ]['marks'][ $order->get_id() ][] = $product_id;
 	}
@@ -480,12 +480,12 @@ function bsc_process_repurchase_followup_emails(): int {
 			$payload['email'],
 			'Es momento de reponer tu rutina BSC',
 			'bsc-followup-repurchase.php',
-			[
+			array(
 				'customer_name' => $payload['name'],
 				'products'      => array_values( $payload['products'] ),
 				'shop_url'      => bsc_get_email_shop_url(),
 				'account_url'   => bsc_get_email_account_url(),
-			]
+			)
 		);
 
 		if ( ! $sent ) {
@@ -504,20 +504,20 @@ function bsc_process_repurchase_followup_emails(): int {
 			$order->save_meta_data();
 		}
 
-		$sent_count++;
+		++$sent_count;
 	}
 
 	return $sent_count;
 }
 
 function bsc_run_followup_email_jobs(): array {
-	$summary = [
-		'ran_at'      => current_time( 'mysql' ),
-		'birthday'    => 0,
-		'inactive'    => 0,
-		'repurchase'  => 0,
-		'module_on'   => bsc_is_followup_emails_enabled() ? 1 : 0,
-	];
+	$summary = array(
+		'ran_at'     => current_time( 'mysql' ),
+		'birthday'   => 0,
+		'inactive'   => 0,
+		'repurchase' => 0,
+		'module_on'  => bsc_is_followup_emails_enabled() ? 1 : 0,
+	);
 
 	if ( ! bsc_is_followup_emails_enabled() ) {
 		update_option( 'bsc_followup_email_last_run_summary', $summary, false );
