@@ -115,18 +115,16 @@ body.bsc-packing-view {
   body.bsc-packing-view {
     padding: 8px;
   }
-
   .bsc-packing-view__toolbar {
     display: none;
   }
-
   .bsc-packing-view__order-card {
     border: 1px solid #999;
   }
-
   .bsc-packing-action,
   .bsc-packing-stock {
     font-size: 11px;
   }
-
 }
+
+/*# sourceMappingURL=bsc-packing-view.css.map */

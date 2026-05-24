@@ -1,27 +1,37 @@
 (function () {
+  var stockForm = document.querySelector('[data-bsc-stock-search-form]');
+  var perPageSelect = document.getElementById('bsc-stock-per-page');
   var searchInput = document.getElementById('bsc-stock-search');
-  var countEl = document.getElementById('bsc-stock-count');
-  var rows = document.querySelectorAll('#bsc-stock-table .bsc-admin-reports__stock-row');
 
-  if (!searchInput || !countEl || !rows.length) {
+  if (!stockForm) {
     return;
   }
 
-  searchInput.addEventListener('input', function () {
-    var query = searchInput.value.toLowerCase().trim();
-    var visible = 0;
+  function submitStockForm() {
+    if (typeof stockForm.requestSubmit === 'function') {
+      stockForm.requestSubmit();
+      return;
+    }
 
-    rows.forEach(function (row) {
-      var text = row.textContent.toLowerCase();
-      var matches = !query || text.indexOf(query) !== -1;
+    stockForm.submit();
+  }
 
-      row.classList.toggle('bsc-admin-reports__stock-row--hidden', !matches);
+  if (perPageSelect) {
+    perPageSelect.addEventListener('change', submitStockForm);
+  }
 
-      if (matches) {
-        visible += 1;
+  if (searchInput) {
+    searchInput.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') {
+        return;
       }
-    });
 
-    countEl.textContent = query ? visible + ' resultado(s)' : '';
-  });
+      if (searchInput.value === '') {
+        return;
+      }
+
+      searchInput.value = '';
+      submitStockForm();
+    });
+  }
 })();

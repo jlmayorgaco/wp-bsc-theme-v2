@@ -1,6 +1,6 @@
 <?php
 /**
- * BSC-082: Welcome email template.
+ * Welcome email template.
  *
  * Variables:
  * - $user (WP_User)
@@ -9,41 +9,55 @@
  */
 defined( 'ABSPATH' ) || exit;
 
-$email_title   = 'Bienvenida a Bubble Skin Care';
-$emoji         = '🌸';
-$display_name  = $user instanceof WP_User ? ( $user->first_name ?: $user->display_name ) : 'amiga';
+require_once __DIR__ . '/bsc-email-design-system.php';
 
-require_once __DIR__ . '/bsc-email-header.php';
+$display_name     = bsc_email_name_from_user( $user ?? null, 'Bubble Lover' );
+$account_url      = (string) ( $account_url ?? bsc_email_account_url() );
+$shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
+$email_title      = '¡ Bienvenido Bubble Lover !';
+$email_hero       = 'bsc-email-hero-smile-pink.png';
+$email_hero_width = 293;
+$email_preheader  = 'Tu cuenta BSC ya está activa.';
+
+require __DIR__ . '/bsc-email-header.php';
+
+bsc_email_render_message(
+	sprintf(
+		'Hola <strong>%s</strong>, ya haces parte de Bubble Skin Care.<br>Desde ahora tendrás acceso a tus pedidos, bubble points<br>y todo lo necesario para seguir construyendo tu rutina coreana con<br>nosotros. ¡ Gracias por confiar en BSC :) !',
+		esc_html( $display_name )
+	),
+	24,
+	38
+);
 ?>
+				<tr>
+					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:32px;font-weight:400;letter-spacing:8px;line-height:36px;padding:0 0 14px;">
+						♡♡♡
+					</td>
+				</tr>
+				<tr>
+					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:17px;font-weight:900;letter-spacing:.8px;line-height:23px;padding:0 44px 34px;">
+						¡Tu cuenta ya esta activa!
+					</td>
+				</tr>
+<?php
+bsc_email_render_button_row(
+	array(
+		array(
+			'url'       => $account_url,
+			'label'     => '¡ Completar mi perfil !',
+			'variant'   => 'pink',
+			'min_width' => 220,
+		),
+		array(
+			'url'       => $shop_url,
+			'label'     => '¡ Ir a la tienda !',
+			'variant'   => 'dark',
+			'min_width' => 180,
+		),
+	),
+	0,
+	62
+);
 
-        <tr>
-          <td style="padding:0 40px 24px;text-align:center">
-            <p style="font-size:15px;color:#555;margin:0;line-height:1.7">
-              Hola <?php echo esc_html( $display_name ); ?>,<br>
-              ya haces parte de la familia BSC. Desde ahora puedes guardar tus datos,
-              revisar tus pedidos y seguir armando tu rutina de skincare con nosotras.
-            </p>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="padding:0 40px 28px">
-            <div style="background:#fdf4f8;border-radius:12px;padding:18px 24px;border-left:4px solid #f8c0cd;text-align:center">
-              <p style="margin:0;font-size:15px;font-weight:700;color:#222">Tu cuenta ya está activa</p>
-              <p style="margin:6px 0 0;font-size:13px;color:#888">Completa tu perfil y empieza a explorar la tienda.</p>
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="padding:0 40px 32px;text-align:center">
-            <a href="<?php echo esc_url( $account_url ); ?>" style="display:inline-block;margin:0 6px 12px;padding:12px 26px;background:#f8c0cd;color:#222;text-decoration:none;border-radius:30px;font-size:15px;font-weight:700">
-              Completar mi perfil
-            </a>
-            <a href="<?php echo esc_url( $shop_url ); ?>" style="display:inline-block;margin:0 6px 12px;padding:12px 26px;background:#333;color:#fff;text-decoration:none;border-radius:30px;font-size:15px;font-weight:700">
-              Ir a la tienda
-            </a>
-          </td>
-        </tr>
-
-<?php require_once __DIR__ . '/bsc-email-footer.php'; ?>
+require __DIR__ . '/bsc-email-footer.php';

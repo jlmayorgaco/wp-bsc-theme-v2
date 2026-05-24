@@ -1,163 +1,184 @@
 <?php
-if (!defined('ABSPATH')) exit;
+if (!defined( 'ABSPATH' )) {
+	exit;
+}
 
-if (!class_exists('WP_List_Table')) {
-    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+if (!class_exists( 'WP_List_Table' )) {
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
 class BSC_BP_List_Table extends WP_List_Table {
 
-    public function __construct() {
-        parent::__construct([
-            'singular' => 'user',
-            'plural'   => 'users',
-            'ajax'     => false,
-        ]);
-    }
+	public function __construct() {
+		parent::__construct(
+			array(
+				'singular' => 'user',
+				'plural'   => 'users',
+				'ajax'     => false,
+			)
+		);
+	}
 
-    /* ----------------------------
-     * Columns & Sorting
-     * -------------------------- */
-    public function get_columns() {
-        return [
-            'user'     => __('User', 'bsc'),
-            'email'    => __('Email', 'bsc'),
-            'points'   => __('Points', 'bsc'),
-            'last_txn' => __('Last movement', 'bsc'),
-            'actions'  => __('Actions', 'bsc'),
-        ];
-    }
+	/*
+	----------------------------
+	 * Columns & Sorting
+	 * -------------------------- */
+	public function get_columns() {
+		return array(
+			'user'     => __( 'User', 'bsc' ),
+			'email'    => __( 'Email', 'bsc' ),
+			'points'   => __( 'Points', 'bsc' ),
+			'last_txn' => __( 'Last movement', 'bsc' ),
+			'actions'  => __( 'Actions', 'bsc' ),
+		);
+	}
 
-    public function get_sortable_columns() {
-        // sort by points or last_txn (date)
-        return [
-            'points'   => ['points', true],
-            'last_txn' => ['last_txn', false],
-        ];
-    }
+	public function get_sortable_columns() {
+		// sort by points or last_txn (date)
+		return array(
+			'points'   => array( 'points', true ),
+			'last_txn' => array( 'last_txn', false ),
+		);
+	}
 
-    public function no_items() {
-        esc_html_e('No users found.', 'bsc');
-    }
+	public function no_items() {
+		esc_html_e( 'No users found.', 'bsc' );
+	}
 
-    /* ----------------------------
-     * Data Preparation
-     * -------------------------- */
-    public function prepare_items() {
-        $per_page = $this->get_items_per_page('bsc_bp_users_per_page', 20);
-        $paged    = max(1, $this->get_pagenum());
-        $search   = isset($_REQUEST['s']) ? trim(wp_unslash($_REQUEST['s'])) : '';
+	/*
+	----------------------------
+	 * Data Preparation
+	 * -------------------------- */
+	public function prepare_items() {
+		$per_page = $this->get_items_per_page( 'bsc_bp_users_per_page', 20 );
+		$paged    = max( 1, $this->get_pagenum() );
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List-table search is read-only.
+		$search = isset( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : '';
 
-        $orderby  = isset($_GET['orderby']) ? sanitize_key($_GET['orderby']) : 'points';
-        $order    = isset($_GET['order']) ? strtoupper($_GET['order']) : 'DESC';
-        if (!in_array($orderby, ['points','last_txn'], true)) $orderby = 'points';
-        if ($order !== 'ASC') $order = 'DESC';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List-table sorting is read-only.
+		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'points';
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List-table sorting is read-only.
+		$order = isset( $_GET['order'] ) ? strtoupper( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
+		if (!in_array( $orderby, array( 'points', 'last_txn' ), true )) {
+			$orderby = 'points';
+		}
+		if ($order !== 'ASC') {
+			$order = 'DESC';
+		}
 
-        // IMPORTANT: set headers so WP_List_Table knows what to render
-        $columns  = $this->get_columns();
-        $hidden   = [];
-        $sortable = $this->get_sortable_columns();
-        $this->_column_headers = [$columns, $hidden, $sortable, 'user']; // 'user' = primary column
+		// IMPORTANT: set headers so WP_List_Table knows what to render
+		$columns               = $this->get_columns();
+		$hidden                = array();
+		$sortable              = $this->get_sortable_columns();
+		$this->_column_headers = array( $columns, $hidden, $sortable, 'user' ); // 'user' = primary column
 
-        $data = $this->query_users_with_points($per_page, $paged, $search, $orderby, $order);
-        $this->items = $data['rows'];
+		$data        = $this->query_users_with_points( $per_page, $paged, $search, $orderby, $order );
+		$this->items = $data['rows'];
 
-        $this->set_pagination_args([
-            'total_items' => $data['total'],
-            'per_page'    => $per_page,
-            'total_pages' => max(1, (int)ceil($data['total'] / $per_page)),
-        ]);
-    }
+		$this->set_pagination_args(
+			array(
+				'total_items' => $data['total'],
+				'per_page'    => $per_page,
+				'total_pages' => max( 1, (int) ceil( $data['total'] / $per_page ) ),
+			)
+		);
+	}
 
-    /* ----------------------------
-     * Column Renderers
-     * -------------------------- */
-    public function column_user($item) {
-        $avatar     = get_avatar($item->ID, 24);
-        $history_url = admin_url('admin.php?page=bsc-bubble-points&user_id='.(int)$item->ID);
-        return sprintf(
-            '%s <a href="%s"><strong>%s</strong></a>',
-            $avatar ? $avatar : '',
-            esc_url($history_url),
-            esc_html($item->display_name)
-        );
-    }
+	/*
+	----------------------------
+	 * Column Renderers
+	 * -------------------------- */
+	public function column_user( $item ) {
+		$avatar      = get_avatar( $item->ID, 24 );
+		$history_url = admin_url( 'admin.php?page=bsc-bubble-points&user_id=' . (int) $item->ID );
+		return sprintf(
+			'%s <a href="%s"><strong>%s</strong></a>',
+			$avatar ? $avatar : '',
+			esc_url( $history_url ),
+			esc_html( $item->display_name )
+		);
+	}
 
-    public function column_default($item, $column_name) {
-        switch ($column_name) {
-            case 'email':
-                return esc_html($item->user_email);
+	public function column_default( $item, $column_name ) {
+		switch ($column_name) {
+			case 'email':
+				return esc_html( $item->user_email );
 
-            case 'points':
-                return number_format_i18n((int)$item->points);
+			case 'points':
+				return number_format_i18n( (int) $item->points );
 
-            case 'last_txn':
-                if (!$item->last_txn) return '—';
-                $fmt = get_option('date_format').' '.get_option('time_format');
-                return esc_html(mysql2date($fmt, $item->last_txn));
+			case 'last_txn':
+				if (!$item->last_txn) {
+					return '—';
+				}
+				$fmt = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+				return esc_html( mysql2date( $fmt, $item->last_txn ) );
 
-            case 'actions':
-                return $this->column_actions($item);
+			case 'actions':
+				return $this->column_actions( $item );
 
-            default:
-                return '';
-        }
-    }
+			default:
+				return '';
+		}
+	}
 
-    public function column_actions($item) {
-        $user_id     = (int)$item->ID;
-        $history_url = admin_url('admin.php?page=bsc-bubble-points&user_id='.$user_id);
+	public function column_actions( $item ) {
+		$user_id     = (int) $item->ID;
+		$history_url = admin_url( 'admin.php?page=bsc-bubble-points&user_id=' . $user_id );
 
-        // One form, two submit buttons (add / reduce)
-        $action_url = wp_nonce_url(
-            admin_url('admin-post.php?action=bsc_bp_inline_adjust'),
-            'bsc_bp_inline_adjust_'.$user_id
-        );
+		// One form, two submit buttons (add / reduce)
+		$action_url = wp_nonce_url(
+			admin_url( 'admin-post.php?action=bsc_bp_inline_adjust' ),
+			'bsc_bp_inline_adjust_' . $user_id
+		);
 
-        ob_start(); ?>
-        <a class="button button-small" href="<?php echo esc_url($history_url); ?>">
-            <?php esc_html_e('View history', 'bsc'); ?>
-        </a>
+		ob_start(); ?>
+		<a class="button button-small" href="<?php echo esc_url( $history_url ); ?>">
+			<?php esc_html_e( 'View history', 'bsc' ); ?>
+		</a>
 
-        <form method="post" action="<?php echo esc_url($action_url); ?>" class="bsc-bp-inline-form">
-            <input type="hidden" name="user_id" value="<?php echo (int)$user_id; ?>" />
-            <label class="screen-reader-text" for="delta-<?php echo (int)$user_id; ?>"><?php esc_html_e('Points delta', 'bsc'); ?></label>
-            <input id="delta-<?php echo (int)$user_id; ?>" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" class="bsc-bp-inline-form__amount" required />
-            <input type="text" name="note" placeholder="<?php esc_attr_e('Note', 'bsc'); ?>" class="bsc-bp-inline-form__note" />
-            <button class="button button-small" type="submit" name="op" value="add"><?php esc_html_e('Add', 'bsc'); ?></button>
-            <button class="button button-small" type="submit" name="op" value="reduce"><?php esc_html_e('Reduce', 'bsc'); ?></button>
-        </form>
-        <?php
-        return ob_get_clean();
-    }
+		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="bsc-bp-inline-form">
+			<input type="hidden" name="user_id" value="<?php echo (int) $user_id; ?>" />
+			<label class="screen-reader-text" for="delta-<?php echo (int) $user_id; ?>"><?php esc_html_e( 'Points delta', 'bsc' ); ?></label>
+			<input id="delta-<?php echo (int) $user_id; ?>" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" class="bsc-bp-inline-form__amount" required />
+			<input type="text" name="note" placeholder="<?php esc_attr_e( 'Note', 'bsc' ); ?>" class="bsc-bp-inline-form__note" />
+			<button class="button button-small" type="submit" name="op" value="add"><?php esc_html_e( 'Add', 'bsc' ); ?></button>
+			<button class="button button-small" type="submit" name="op" value="reduce"><?php esc_html_e( 'Reduce', 'bsc' ); ?></button>
+		</form>
+		<?php
+		return ob_get_clean();
+	}
 
 
-    /* ----------------------------
-     * Query (all users; points default to 0)
-     * -------------------------- */
-    private function query_users_with_points($per_page, $paged, $search, $orderby, $order) {
-        global $wpdb;
+	/*
+	----------------------------
+	 * Query (all users; points default to 0)
+	 * -------------------------- */
+	private function query_users_with_points( $per_page, $paged, $search, $orderby, $order ) {
+		global $wpdb;
 
-        $users  = $wpdb->users;
-        $umeta  = $wpdb->usermeta;
-        $ledger = $wpdb->prefix . 'bsc_points_ledger';
+		$users  = $wpdb->users;
+		$umeta  = $wpdb->usermeta;
+		$ledger = $wpdb->prefix . 'bsc_points_ledger';
 
-        $params = [];
-        $search_where = '';
+		$params       = array();
+		$search_where = '';
 
-        if ($search !== '') {
-            $like = '%' . $wpdb->esc_like($search) . '%';
-            $search_where = "WHERE (u.user_login LIKE %s OR u.user_email LIKE %s OR u.display_name LIKE %s)";
-            $params[] = $like; $params[] = $like; $params[] = $like;
-        }
+		if ($search !== '') {
+			$like         = '%' . $wpdb->esc_like( $search ) . '%';
+			$search_where = 'WHERE (u.user_login LIKE %s OR u.user_email LIKE %s OR u.display_name LIKE %s)';
+			$params[]     = $like;
+			$params[]     = $like;
+			$params[]     = $like;
+		}
 
-        $order_by_sql = ($orderby === 'last_txn') ? 'last_txn' : 'points';
-        $order = ($order === 'ASC') ? 'ASC' : 'DESC';
+		$order_by_sql = ( $orderby === 'last_txn' ) ? 'last_txn' : 'points';
+		$order        = ( $order === 'ASC' ) ? 'ASC' : 'DESC';
 
-        $params[] = (int)$per_page;
-        $params[] = (int)(($paged - 1) * $per_page);
+		$params[] = (int) $per_page;
+		$params[] = (int) ( ( $paged - 1 ) * $per_page );
 
-        $sql = "
+		$sql = "
             SELECT
                 u.ID,
                 u.display_name,
@@ -175,11 +196,14 @@ class BSC_BP_List_Table extends WP_List_Table {
             ORDER BY {$order_by_sql} {$order}
             LIMIT %d OFFSET %d
         ";
-        $rows = $wpdb->get_results($wpdb->prepare($sql, ...$params));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list table query uses allowlisted ORDER BY and prepared values.
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$params ) );
 
-        // Total users (respect search)
-        $count_params = $params; array_pop($count_params); array_pop($count_params);
-        $sql_total = "
+		// Total users (respect search)
+		$count_params = $params;
+		array_pop( $count_params );
+		array_pop( $count_params );
+		$sql_total = "
             SELECT COUNT(*)
             FROM (
                 SELECT u.ID
@@ -191,15 +215,20 @@ class BSC_BP_List_Table extends WP_List_Table {
                 GROUP BY u.ID
             ) t
         ";
-        $total = (int)$wpdb->get_var($wpdb->prepare($sql_total, ...$count_params));
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list table count query uses prepared search values.
+		$total = (int) $wpdb->get_var( $wpdb->prepare( $sql_total, ...$count_params ) );
 
-        return ['rows' => $rows, 'total' => $total];
-    }
+		return array(
+			'rows'  => $rows,
+			'total' => $total,
+		);
+	}
 
-    /* ----------------------------
-     * Extra UI (optional)
-     * -------------------------- */
-    public function extra_tablenav($which) {
-        // Room for filters in future
-    }
+	/*
+	----------------------------
+	 * Extra UI (optional)
+	 * -------------------------- */
+	public function extra_tablenav( $which ) {
+		// Room for filters in future
+	}
 }

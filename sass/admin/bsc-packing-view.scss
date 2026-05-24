@@ -1,0 +1,134 @@
+@use "foundation" as admin;
+
+* {
+  box-sizing: border-box;
+}
+
+body.bsc-packing-view {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  color: admin.$text-strong;
+  margin: 0;
+  padding: 16px;
+}
+
+.bsc-packing-view h1 {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.bsc-packing-view__toolbar {
+  margin-bottom: 16px;
+}
+
+.bsc-packing-view__toolbar button {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.bsc-packing-view__toolbar button + button {
+  margin-left: 8px;
+}
+
+.bsc-packing-view__order-card {
+  border: 1px solid admin.$border-neutral;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+}
+
+.bsc-packing-view__order-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.bsc-packing-view__order-number {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bsc-packing-view__order-status {
+  background: admin.$brand-pink-strong;
+  color: admin.$text-black;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.bsc-packing-view__details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.bsc-packing-view__details-row--full {
+  grid-column: span 2;
+}
+
+.bsc-packing-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bsc-packing-view th,
+.bsc-packing-view td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid admin.$border-muted;
+  font-size: 12px;
+}
+
+.bsc-packing-view th {
+  background: #f5f5f5;
+  font-weight: 700;
+}
+
+.bsc-packing-view .total-row td {
+  font-weight: 700;
+  border-top: 2px solid admin.$border-neutral;
+}
+
+.bsc-packing-stock {
+  white-space: nowrap;
+}
+
+.bsc-packing-action {
+  min-width: 180px;
+}
+
+.bsc-packing-source-label {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #1b5e20;
+  font-weight: 700;
+}
+
+.bsc-packing-view tr.is-packed {
+  background: #fbfefb;
+}
+
+@media print {
+  body.bsc-packing-view {
+    padding: 8px;
+  }
+
+  .bsc-packing-view__toolbar {
+    display: none;
+  }
+
+  .bsc-packing-view__order-card {
+    border: 1px solid #999;
+  }
+
+  .bsc-packing-action,
+  .bsc-packing-stock {
+    font-size: 11px;
+  }
+
+}

@@ -5,7 +5,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-shipping-returns',
 		'title'             => 'Politica de envios',
 		'title_html'        => 'Pol&iacute;tica de <strong>env&iacute;os</strong>',
@@ -139,5 +139,5 @@ bsc_render_static_page_template(
 			</section>
 			<?php
 		},
-	]
+	)
 );

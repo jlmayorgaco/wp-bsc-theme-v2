@@ -1,0 +1,121 @@
+@use "foundation" as admin;
+
+.bsc-admin-toolbar {
+  @include admin.inline-stack($gap: admin.$space-4, $align: flex-end, $justify: space-between);
+  margin: 12px 0 16px;
+}
+
+.bsc-admin-toolbar__group {
+  @include admin.inline-stack;
+}
+
+.bsc-admin-toolbar__group--grow {
+  flex: 1 1 auto;
+}
+
+.bsc-admin-actions {
+  @include admin.inline-stack;
+}
+
+.bsc-admin-note {
+  @include admin.admin-card($padding: 12px 14px);
+  margin: 16px 0;
+  color: admin.$text-admin;
+}
+
+.bsc-admin-note--warning {
+  @include admin.status-surface(admin.$surface-warning, admin.$warning-border, admin.$warning);
+}
+
+.bsc-admin-note--success {
+  @include admin.status-surface(admin.$surface-success, admin.$success-border, admin.$success);
+}
+
+.bsc-admin-note--muted {
+  background: admin.$surface-muted;
+}
+
+.bsc-admin-badge {
+  @include admin.inline-stack($gap: admin.$space-1, $justify: center, $wrap: nowrap);
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bsc-admin-badge--success {
+  @include admin.status-surface(admin.$surface-success, admin.$success-border, admin.$success);
+}
+
+.bsc-admin-badge--warning {
+  @include admin.status-surface(admin.$surface-warning, admin.$warning-border, admin.$warning);
+}
+
+.bsc-admin-badge--muted {
+  @include admin.status-surface(admin.$surface-muted, admin.$border-strong, admin.$text-neutral);
+}
+
+.bsc-admin-badge--locked {
+  @include admin.status-surface(admin.$info-surface, admin.$info-border, admin.$info);
+}
+
+.bsc-admin-inline-editor {
+  @include admin.inline-stack;
+}
+
+.bsc-admin-inline-editor__field.is-pending {
+  border-color: admin.$pending;
+  box-shadow: 0 0 0 1px admin.$pending;
+}
+
+.bsc-admin-inline-editor__save {
+  min-width: 74px;
+}
+
+.bsc-admin-inline-editor__pending {
+  @include admin.inline-stack($wrap: nowrap);
+  display: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: admin.$surface-warning;
+  color: admin.$warning;
+  border: 1px solid admin.$warning-border;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bsc-admin-inline-editor__pending.is-visible {
+  display: inline-flex;
+}
+
+.bsc-admin-toast {
+  position: fixed;
+  top: 42px;
+  right: 20px;
+  z-index: 99999;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: admin.$toast-surface;
+  color: admin.$surface;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.bsc-admin-toast--error {
+  background: admin.$toast-danger;
+}
+
+.bsc-admin-toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}

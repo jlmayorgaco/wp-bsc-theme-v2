@@ -1,0 +1,126 @@
+.bsc-admin-monitoring__intro {
+  color: #50575e;
+  max-width: 760px;
+}
+
+.bsc-admin-monitoring__owner {
+  align-items: flex-start;
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+  margin: 16px 0 24px;
+  padding: 18px;
+}
+
+.bsc-admin-monitoring__owner h2,
+.bsc-admin-monitoring__card h3 {
+  margin-top: 0;
+}
+
+.bsc-admin-monitoring__settings-form {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+.bsc-admin-monitoring__settings-form label {
+  color: #1d2327;
+  display: grid;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.bsc-admin-monitoring__settings-form input {
+  max-width: 100%;
+}
+
+.bsc-admin-monitoring__settings-form .button {
+  align-self: end;
+  justify-self: start;
+}
+
+.bsc-admin-monitoring__grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.bsc-admin-monitoring__card {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-left: 4px solid #646970;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.bsc-admin-monitoring__card--ok {
+  border-left-color: #22c55e;
+}
+
+.bsc-admin-monitoring__card--warning {
+  border-left-color: #f97316;
+}
+
+.bsc-admin-monitoring__card--critical {
+  border-left-color: #dc2626;
+}
+
+.bsc-admin-monitoring__card-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.bsc-admin-monitoring__value {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.bsc-admin-monitoring__action {
+  color: #50575e;
+  display: inline-block;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.bsc-admin-monitoring__section {
+  margin-top: 28px;
+}
+
+.bsc-admin-monitoring__checklist {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  margin-left: 0;
+  max-width: 980px;
+  padding: 16px 20px 16px 36px;
+}
+
+.bsc-admin-monitoring__checklist li {
+  margin: 8px 0;
+}
+
+.bsc-admin-monitoring__table {
+  max-width: 980px;
+}
+
+.bsc-admin-monitoring__badge--critical {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+@media (max-width: 782px) {
+  .bsc-admin-monitoring__owner,
+  .bsc-admin-monitoring__settings-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*# sourceMappingURL=bsc-monitoring.css.map */

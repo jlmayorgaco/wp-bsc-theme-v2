@@ -1,158 +1,209 @@
 <?php
 
-    $categories = [
-        'ultimos_lanzamientos' => 'Últimos Lanzamientos',
-        'piel_seca' => 'Piel Seca',
-        'piel_normal' => 'Piel Normal',
-        'piel_mixta' => 'Piel Mixta',
-        'piel_grasa' => 'Piel Grasa',
-        'hair_care' => 'Hair Care',
-        'maquillaje' => 'Maquillaje',
-    ];
-class BSC_Products_Sliders {
+	$categories = array(
+		'ultimos_lanzamientos' => 'Últimos Lanzamientos',
+		'piel_seca'            => 'Piel Seca',
+		'piel_normal'          => 'Piel Normal',
+		'piel_mixta'           => 'Piel Mixta',
+		'piel_grasa'           => 'Piel Grasa',
+		'hair_care'            => 'Hair Care',
+		'maquillaje'           => 'Maquillaje',
+	);
+	class BSC_Products_Sliders {
 
-    private $skus = [];
-    private $label = '';
-    private $slug = '';
-    private $max_products = 5;
+		private $skus         = array();
+		private $label        = '';
+		private $slug         = '';
+		private $max_products = 5;
 
-    public function setMax($max_products){
-        $this->max_products = $max_products;
-    }
+		public function setMax( $max_products ) {
+			$this->max_products = $max_products;
+		}
 
-    public function setSkus(array $skus): void {
-        // Clean and normalize SKUs
-        $this->skus = array_filter(array_map('trim', $skus));
-    }
+		public function setSkus( array $skus ): void {
+			// Clean and normalize SKUs
+			$this->skus = array_filter( array_map( 'trim', $skus ) );
+		}
 
-    public function setLabel(string $label): void {
-        $this->label = esc_html($label);
-    }
+		public function setLabel( string $label ): void {
+			$this->label = esc_html( $label );
+		}
 
-    public function setSlug(string $slug): void {
-        $this->slug = sanitize_title($slug);
-    }
+		public function setSlug( string $slug ): void {
+			$this->slug = sanitize_title( $slug );
+		}
 
-    public function render(): void {
+		public function render(): void {
 
-        // Convert SKUs to IDs
-        $product_ids = array_filter(array_map('wc_get_product_id_by_sku', $this->skus));
-        $needed = $this->max_products - count($product_ids);
+			// Convert SKUs to eligible product IDs.
+			$product_ids = array_values(
+				array_filter(
+					array_map( 'wc_get_product_id_by_sku', $this->skus ),
+					fn( $product_id ) => $this->isEligibleProductId( (int) $product_id )
+				)
+			);
+			$needed      = $this->max_products - count( $product_ids );
 
+			if ($needed > 0) {
+				$fallback_ids = $this->getFallbackProductIds( $needed, $product_ids );
+				$product_ids  = array_unique( array_merge( $product_ids, $fallback_ids ) );
+			}
 
-        if ($needed > 0) {
-            $fallback_ids = $this->getFallbackProductIds($needed, $product_ids);
-            $product_ids = array_unique(array_merge($product_ids, $fallback_ids));
-        }
+			if (empty( $product_ids )) {
+				return;
+			}
 
-       
+			$query = new WP_Query(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => 'publish',
+					'post__in'               => $product_ids,
+					'orderby'                => 'post__in',
+					'posts_per_page'         => $this->max_products,
+					'meta_query'             => array(
+						array(
+							'key'   => '_stock_status',
+							'value' => 'instock',
+						),
+					),
+					'no_found_rows'          => true,     // skip COUNT(*) — no pagination needed in sliders
+					'cache_results'          => true,
+					'update_post_meta_cache' => true,     // BSC-040: pre-load meta in batch
+					'update_post_term_cache' => true,     // BSC-040: pre-load terms in batch
+				)
+			);
 
-        if (empty($product_ids)) return;
+			if (!$query->have_posts()) {
+				return;
+			}
 
-        $query = new WP_Query([
-            'post_type'              => 'product',
-            'post__in'               => $product_ids,
-            'orderby'                => 'post__in',
-            'posts_per_page'         => $this->max_products,
-            'no_found_rows'          => true,     // skip COUNT(*) — no pagination needed in sliders
-            'cache_results'          => true,
-            'update_post_meta_cache' => true,     // BSC-040: pre-load meta in batch
-            'update_post_term_cache' => true,     // BSC-040: pre-load terms in batch
-        ]);
+			$slug_class = $this->slug ? "bsc__slider--{$this->slug}" : '';
 
-        if (!$query->have_posts()) return;
+			if (!empty( $this->label )) {
+				echo "<h2 class='bsc__slider-title'>" . esc_html( $this->label ) . '</h2>';
+			}
+			echo "<div class='bsc__slider " . esc_attr( $slug_class ) . "'>";
 
-        $slug_class = $this->slug ? "bsc__slider--{$this->slug}" : '';
+			while ($query->have_posts()) {
+				$query->the_post();
+				global $product;
 
-        if (!empty($this->label)) {
-            echo "<h2 class='bsc__slider-title'>{$this->label}</h2>";
-        }
-        echo "<div class='bsc__slider {$slug_class}'>";
+				if ($product instanceof WC_Product && $this->isEligibleProductId( $product->get_id() )) {
+					$card = new BSC_Products_Card();
+					$card->setProduct( $product );
+					$card->render();
+				}
+			}
 
-        while ($query->have_posts()) {
-            $query->the_post();
-            global $product;
+			echo '</div>';
 
-            if ($product instanceof WC_Product) {
-                $card = new BSC_Products_Card();
-                $card->setProduct($product);
-                $card->render();
-            }
-        }
+			wp_reset_postdata();
+		}
 
-        echo "</div>";
+		private function getFallbackProductIds( int $limit, array $exclude_ids = array() ): array {
+			// BSC-039: check transient cache first (1 hour TTL, invalidated on product save)
+			$cache_key = 'bsc_slider_v2_' . md5( $this->slug . '_' . $limit . '_' . implode( ',', $exclude_ids ) );
+			$cached    = get_transient( $cache_key );
+			if ( $cached !== false ) {
+				return $cached;
+			}
 
-        wp_reset_postdata();
-    }
+			$args = array(
+				'post_type'              => 'product',
+				'post_status'            => 'publish',
+				'posts_per_page'         => $limit,
+				'fields'                 => 'ids',
+				'orderby'                => 'date',  // deterministic — avoids MySQL RAND() full-table scan
+				'order'                  => 'DESC',
+				'post__not_in'           => $exclude_ids,
+				'meta_query'             => array(
+					array(
+						'key'   => '_stock_status',
+						'value' => 'instock',
+					),
+				),
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			);
 
-    private function getFallbackProductIds(int $limit, array $exclude_ids = []): array {
-        // BSC-039: check transient cache first (1 hour TTL, invalidated on product save)
-        $cache_key = 'bsc_slider_' . md5($this->slug . '_' . $limit . '_' . implode(',', $exclude_ids));
-        $cached    = get_transient($cache_key);
-        if ( $cached !== false ) {
-            return $cached;
-        }
+			switch ($this->slug) {
+				case 'ultimos_lanzamientos':
+					$args['orderby'] = 'date';
+					$args['order']   = 'DESC';
+					break;
 
-        $args = [
-            'post_type'              => 'product',
-            'post_status'            => 'publish',
-            'posts_per_page'         => $limit,
-            'fields'                 => 'ids',
-            'orderby'                => 'date',  // deterministic — avoids MySQL RAND() full-table scan
-            'order'                  => 'DESC',
-            'post__not_in'           => $exclude_ids,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-        ];
+				case 'piel_seca':
+				case 'piel_normal':
+				case 'piel_mixta':
+				case 'piel_grasa':
+					$args['tax_query'][] = array(
+						'taxonomy' => 'product_cat',
+						'field'    => 'slug',
+						'terms'    => array( 'sk-tipo-' . str_replace( '_', '-', $this->slug ) ),
+						'operator' => 'IN',
+					);
+					break;
 
-        switch ($this->slug) {
-            case 'ultimos_lanzamientos':
-                $args['orderby'] = 'date';
-                $args['order'] = 'DESC';
-                break;
+				case 'hair_care':
+					$args['tax_query'][] = array(
+						'taxonomy'         => 'product_cat',
+						'field'            => 'slug',
+						'terms'            => array( 'group-hair-care' ),
+						'include_children' => true,
+					);
+					break;
 
-            case 'piel_seca':
-            case 'piel_normal':
-            case 'piel_mixta':
-            case 'piel_grasa':
-                $args['tax_query'][] = [
-                    'taxonomy' => 'product_cat',
-                    'field'    => 'slug',
-                    'terms'    => ['sk-tipo-' . str_replace('_', '-', $this->slug)],
-                    'operator' => 'IN',
-                ];
-                break;
+				case 'maquillaje':
+					$args['tax_query'][] = array(
+						'taxonomy'         => 'product_cat',
+						'field'            => 'slug',
+						'terms'            => array( 'group-make-up' ),
+						'include_children' => true,
+					);
+					break;
 
-            case 'hair_care':
-                $args['tax_query'][] = [
-                    'taxonomy'         => 'product_cat',
-                    'field'            => 'slug',
-                    'terms'            => ['group-hair-care'],
-                    'include_children' => true,
-                ];
-                break;
+				default:
+					$args['orderby'] = 'date';
+					$args['order']   = 'DESC';
+			}
 
-            case 'maquillaje':
-                $args['tax_query'][] = [
-                    'taxonomy'         => 'product_cat',
-                    'field'            => 'slug',
-                    'terms'            => ['group-make-up'],
-                    'include_children' => true,
-                ];
-                break;
+			$ids = $this->queryFallbackProductIds( $args );
 
-            default:
-                $args['orderby'] = 'date';
-                $args['order'] = 'DESC';
-        }
+			if (empty( $ids ) && $this->slug !== 'ultimos_lanzamientos') {
+				unset( $args['tax_query'] );
+				$args['orderby'] = 'date';
+				$args['order']   = 'DESC';
+				$ids             = $this->queryFallbackProductIds( $args );
+			}
 
-        $ids = get_posts($args);
+			set_transient( $cache_key, $ids, HOUR_IN_SECONDS );
 
-        set_transient($cache_key, $ids, HOUR_IN_SECONDS);
+			return $ids;
+		}
 
-        return $ids;
-    }
-}
+		private function queryFallbackProductIds( array $args ): array {
+			return array_values(
+				array_filter(
+					array_map( 'absint', get_posts( $args ) ),
+					fn( $product_id ) => $this->isEligibleProductId( (int) $product_id )
+				)
+			);
+		}
 
-?>
+		private function isEligibleProductId( int $product_id ): bool {
+			if ($product_id <= 0) {
+				return false;
+			}
 
+			$product = wc_get_product( $product_id );
+
+			if (function_exists( 'bsc_recommendation_product_is_eligible' )) {
+				return bsc_recommendation_product_is_eligible( $product );
+			}
+
+			return $product instanceof WC_Product
+			&& $product->get_status() === 'publish'
+			&& $product->is_purchasable()
+			&& $product->is_in_stock();
+		}
+	}

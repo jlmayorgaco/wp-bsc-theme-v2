@@ -1,15 +1,17 @@
-$contact-font: "Helvetica", "Helvetica Neue", Arial, sans-serif;
-$contact-text: #333333;
-$contact-border: #222222;
-$contact-yellow: #fff7bf;
-$contact-blue: #bfeaf3;
-$contact-pink: #f7b8c9;
-$contact-placeholder: #aaaaaa;
+@use "../tokens/public" as bsc;
+
+$contact-font: bsc.$font-main;
+$contact-text: bsc.$text;
+$contact-border: bsc.$border;
+$contact-yellow: bsc.$brand-yellow;
+$contact-blue: bsc.$brand-blue;
+$contact-pink: bsc.$brand;
+$contact-placeholder: bsc.$text-muted;
 
 .page-contact-us {
   width: 100%;
   overflow: hidden;
-  background: #ffffff;
+  background: bsc.$surface;
   color: $contact-text;
   font-family: $contact-font;
   letter-spacing: 1.1px;
@@ -23,7 +25,7 @@ $contact-placeholder: #aaaaaa;
 
   .bsc__contact-hero__mark {
     display: block;
-    width: 142px;
+    width: 200px;
     margin: 0 auto 31px;
   }
 
@@ -71,7 +73,7 @@ $contact-placeholder: #aaaaaa;
     padding: 31px 24px 25px;
     border: 1px solid $contact-border;
     border-radius: 10px;
-    background: #ffffff;
+    background: bsc.$surface;
     color: $contact-text;
     display: flex;
     flex-direction: column;
@@ -97,7 +99,7 @@ $contact-placeholder: #aaaaaa;
     height: 56px;
     border: 2px solid $contact-border;
     border-radius: 50%;
-    background: #ffffff;
+    background: bsc.$surface;
     color: $contact-text;
     display: flex;
     align-items: center;
@@ -186,12 +188,12 @@ $contact-placeholder: #aaaaaa;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 178px;
+    min-width: 200px;
     padding: 10px 22px;
     border-radius: 999px;
     background: $contact-text;
-    color: #ffffff;
-    font-size: 16px;
+    color: bsc.$surface;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: 1px;
@@ -200,7 +202,7 @@ $contact-placeholder: #aaaaaa;
 
     &:hover,
     &:focus {
-      color: #ffffff;
+      color: bsc.$surface;
       opacity: 0.9;
       transform: translateY(-1px);
     }
@@ -310,9 +312,12 @@ $contact-placeholder: #aaaaaa;
   }
 
   .bsc__contact-notice--success {
-    border: 1px solid #b9e3c7;
-    background: #e9f8ef;
-    color: #25623c;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--bsc-color-text);
+        display: block;
+        font-weight: bold;
+    letter-spacing: 1px;
   }
 
   .bsc__contact-notice--error {
@@ -375,7 +380,7 @@ $contact-placeholder: #aaaaaa;
     }
 
     .bsc__contact-hero__mark {
-      width: 126px;
+      width: 200px;
       margin-bottom: 27px;
     }
 
@@ -385,6 +390,9 @@ $contact-placeholder: #aaaaaa;
       letter-spacing: 2.4px;
     }
 
+    .bsc__contact-hero p{
+      max-width: 344px;
+    }
     .bsc__contact-hero p,
     .bsc__contact-form-heading p {
       font-size: 16px;
@@ -424,6 +432,12 @@ $contact-placeholder: #aaaaaa;
       width: 100%;
       min-width: 0;
       max-width: 260px;
+    }
+
+    .bsc__contact-shop{
+      width: 250px !important;
+      min-width: 250px;
+      max-width: 250px;
     }
   }
 }

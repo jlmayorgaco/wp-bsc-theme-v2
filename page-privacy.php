@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-privacy',
 		'title'             => 'Politicas de Privacidad',
 		'subtitle'          => 'Conoce como protegemos y tratamos tus datos',
@@ -17,7 +17,12 @@ bsc_render_static_page_template(
 
 			<div class="bsc__info-block">
 				<h2>Uso de la informacion</h2>
-				<p>La informacion se usa para operar la tienda, validar pagos, despachar pedidos, atender solicitudes y enviar notificaciones asociadas al servicio.</p>
+				<p>La informacion se usa para operar la tienda, validar pagos, despachar pedidos, atender solicitudes, medir navegacion y busquedas de forma operativa, enviar notificaciones asociadas al servicio y, si dejas tus datos en checkout, recordarte un carrito pendiente por tiempo limitado.</p>
+			</div>
+
+			<div class="bsc__info-block">
+				<h2>Formularios y solicitudes</h2>
+				<p>Los formularios de contacto, Newsletter y Bubble Creators pueden recopilar correo electronico, redes sociales y mensaje enviado por la persona. Los leads guardados en el panel interno usan retencion configurable y no almacenan IP en texto plano.</p>
 			</div>
 
 			<div class="bsc__info-block">
@@ -26,5 +31,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

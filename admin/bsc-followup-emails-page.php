@@ -6,6 +6,7 @@ defined( 'ABSPATH' ) || exit;
 
 add_action( 'admin_enqueue_scripts', 'bsc_enqueue_followup_admin_assets' );
 function bsc_enqueue_followup_admin_assets(): void {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin routing parameter.
 	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
 	if ( 'bsc-followup-emails' !== $page ) {
@@ -27,11 +28,13 @@ function bsc_render_followup_emails_page(): void {
 		wp_die( esc_html__( 'No tienes permisos para ver esta página.', 'bsc-2-0' ) );
 	}
 
-	$defaults = bsc_get_followup_email_defaults();
-	$notice   = '';
-	$run_now_summary = [];
+	$defaults        = bsc_get_followup_email_defaults();
+	$notice          = '';
+	$run_now_summary = array();
 
-	if ( 'POST' === $_SERVER['REQUEST_METHOD'] && isset( $_POST['bsc_followup_emails_nonce'] ) ) {
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
+
+	if ( 'POST' === $request_method && isset( $_POST['bsc_followup_emails_nonce'] ) ) {
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_followup_emails_nonce'] ) ), 'bsc_followup_emails_action' ) ) {
 			wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
 		}
@@ -42,21 +45,24 @@ function bsc_render_followup_emails_page(): void {
 			update_option( 'bsc_password_reset_email_enabled', isset( $_POST['bsc_password_reset_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_birthday_email_enabled', isset( $_POST['bsc_birthday_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_inactive_email_enabled', isset( $_POST['bsc_inactive_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_inactive_email_days', max( 1, (int) ( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) );
+			update_option( 'bsc_inactive_email_days', max( 1, absint( wp_unslash( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) ) );
 			update_option( 'bsc_repurchase_email_enabled', isset( $_POST['bsc_repurchase_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_default_repurchase_days', max( 1, (int) ( $_POST['bsc_default_repurchase_days'] ?? $defaults['bsc_default_repurchase_days'] ) ) );
+			update_option( 'bsc_default_repurchase_days', max( 1, absint( wp_unslash( $_POST['bsc_default_repurchase_days'] ?? $defaults['bsc_default_repurchase_days'] ) ) ) );
 
 			$notice = 'Configuración guardada.';
 		}
 
 		if ( isset( $_POST['bsc_run_followup_now'] ) ) {
 			$run_now_summary = bsc_run_followup_email_jobs();
-			$notice = 'Seguimiento ejecutado manualmente.';
+			$notice          = 'Seguimiento ejecutado manualmente.';
 		}
 	}
 
-	$last_run = get_option( 'bsc_followup_email_last_run_summary', [] );
-	$manifest = bsc_get_email_template_manifest();
+	$last_run       = get_option( 'bsc_followup_email_last_run_summary', array() );
+	$manifest       = bsc_get_email_template_manifest();
+	$email_log_rows = function_exists( 'bsc_get_recent_order_email_log_rows' )
+		? bsc_get_recent_order_email_log_rows( 20 )
+		: array();
 	?>
 	<div class="wrap">
 		<h1>Emails BSC</h1>
@@ -171,6 +177,42 @@ function bsc_render_followup_emails_page(): void {
 				</p>
 			<?php else : ?>
 				<p>No hay ejecuciones registradas todavía.</p>
+			<?php endif; ?>
+		</div>
+
+		<div class="bsc-admin-followup__section">
+			<h2>Log operativo de correos de pedidos</h2>
+			<?php if ( ! empty( $email_log_rows ) ) : ?>
+				<table class="widefat striped bsc-admin-followup__templates-table">
+					<thead>
+						<tr>
+							<th>Fecha</th>
+							<th>Pedido</th>
+							<th>Tipo</th>
+							<th>Estado</th>
+							<th>Destino</th>
+							<th>Asunto</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $email_log_rows as $row ) : ?>
+							<tr>
+								<td><?php echo esc_html( $row['sent_at'] ); ?></td>
+								<td>
+									<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders&s=' . rawurlencode( (string) $row['order_number'] ) ) ); ?>">
+										#<?php echo esc_html( $row['order_number'] ); ?>
+									</a>
+								</td>
+								<td><?php echo esc_html( $row['type'] ); ?></td>
+								<td><?php echo esc_html( $row['status'] ); ?></td>
+								<td><?php echo esc_html( $row['to'] ); ?></td>
+								<td><?php echo esc_html( $row['subject'] ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php else : ?>
+				<p>No hay correos de pedidos registrados todavia.</p>
 			<?php endif; ?>
 		</div>
 

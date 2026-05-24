@@ -7,75 +7,90 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_post_bsc_preview_email', 'bsc_render_email_preview_page' );
 
 function bsc_get_email_preview_definitions(): array {
-	return [
-		'welcome' => [
+	return array(
+		'welcome'             => array(
 			'label'    => 'Usuario nuevo',
 			'template' => 'bsc-welcome-email.php',
-		],
-		'password-reset' => [
+		),
+		'password-reset'      => array(
 			'label'    => 'Recuperar contrasena',
 			'template' => 'bsc-password-reset-email.php',
-		],
-		'birthday' => [
+		),
+		'birthday'            => array(
 			'label'    => 'Cumpleanos',
 			'template' => 'bsc-birthday-email.php',
-		],
-		'order-confirmed' => [
+		),
+		'order-confirmed'     => array(
 			'label'    => 'Compra confirmada',
 			'template' => 'bsc-order-confirmed.php',
-		],
-		'order-preparing' => [
+		),
+		'order-preparing'     => array(
 			'label'    => 'Pedido en preparacion',
 			'template' => 'bsc-order-preparing.php',
-		],
-		'order-shipped' => [
+		),
+		'order-shipped'       => array(
 			'label'    => 'Pedido enviado',
 			'template' => 'bsc-order-shipped.php',
-		],
-		'order-delivered' => [
+		),
+		'order-delivered'     => array(
 			'label'    => 'Pedido entregado',
 			'template' => 'bsc-order-delivered.php',
-		],
-		'order-cancelled' => [
+		),
+		'order-cancelled'     => array(
 			'label'    => 'Pedido cancelado',
 			'template' => 'bsc-order-cancelled.php',
-		],
-		'followup-inactive' => [
+		),
+		'followup-inactive'   => array(
 			'label'    => 'Hace mucho no compras',
 			'template' => 'bsc-followup-inactive.php',
-		],
-		'followup-repurchase' => [
+		),
+		'followup-repurchase' => array(
 			'label'    => 'Se te acabo el producto',
 			'template' => 'bsc-followup-repurchase.php',
-		],
-	];
+		),
+		'abandoned-cart'      => array(
+			'label'    => 'Carrito abandonado',
+			'template' => 'bsc-abandoned-cart.php',
+		),
+	);
 }
 
 function bsc_get_email_preview_url( string $slug ): string {
+	$args = array(
+		'action'   => 'bsc_preview_email',
+		'template' => sanitize_key( $slug ),
+	);
+
+	if ( is_user_logged_in() ) {
+		$args['_wpnonce'] = wp_create_nonce( 'bsc_preview_email_' . sanitize_key( $slug ) );
+	}
+
 	return add_query_arg(
-		[
-			'action'   => 'bsc_preview_email',
-			'template' => sanitize_key( $slug ),
-		],
+		$args,
 		admin_url( 'admin-post.php' )
 	);
 }
 
 function bsc_get_email_preview_customer(): WP_User {
-	$email = 'preview.customer@bsc.local';
+	$email = 'preview.customer@example.invalid';
+	$login = 'preview_customer_bsc';
 	$user  = get_user_by( 'email', $email );
 
 	if ( ! $user ) {
+		$user = get_user_by( 'login', $login );
+	}
+
+	if ( ! $user ) {
 		$user_id = wp_insert_user(
-			[
-				'user_login'   => 'preview_customer_bsc',
+			array(
+				'user_login'   => $login,
 				'user_email'   => $email,
 				'user_pass'    => wp_generate_password( 24, true, true ),
 				'role'         => 'customer',
 				'display_name' => 'Preview Customer',
 				'first_name'   => 'Preview',
 				'last_name'    => 'Customer',
-			]
+			)
 		);
 
 		if ( is_wp_error( $user_id ) ) {
@@ -83,6 +98,16 @@ function bsc_get_email_preview_customer(): WP_User {
 		}
 
 		$user = get_user_by( 'id', $user_id );
+	}
+
+	if ( $user instanceof WP_User && $user->user_email !== $email ) {
+		wp_update_user(
+			array(
+				'ID'         => $user->ID,
+				'user_email' => $email,
+			)
+		);
+		$user = get_user_by( 'id', $user->ID );
 	}
 
 	update_user_meta( $user->ID, 'billing_first_name', 'Preview' );
@@ -101,13 +126,13 @@ function bsc_get_email_preview_customer(): WP_User {
 
 function bsc_get_email_preview_product(): WC_Product {
 	$products = wc_get_products(
-		[
+		array(
 			'status'  => 'publish',
 			'limit'   => 1,
 			'orderby' => 'date',
 			'order'   => 'ASC',
 			'return'  => 'objects',
-		]
+		)
 	);
 
 	if ( empty( $products ) || ! $products[0] instanceof WC_Product ) {
@@ -118,9 +143,9 @@ function bsc_get_email_preview_product(): WC_Product {
 }
 
 function bsc_get_email_preview_order(): WC_Order {
-	$user = bsc_get_email_preview_customer();
+	$user   = bsc_get_email_preview_customer();
 	$orders = wc_get_orders(
-		[
+		array(
 			'customer_id' => $user->ID,
 			'limit'       => 1,
 			'orderby'     => 'date',
@@ -129,7 +154,7 @@ function bsc_get_email_preview_order(): WC_Order {
 			'meta_value'  => '1',
 			'return'      => 'objects',
 			'status'      => array_keys( wc_get_order_statuses() ),
-		]
+		)
 	);
 
 	if ( ! empty( $orders ) && $orders[0] instanceof WC_Order ) {
@@ -138,15 +163,15 @@ function bsc_get_email_preview_order(): WC_Order {
 
 	$product = bsc_get_email_preview_product();
 	$order   = wc_create_order(
-		[
+		array(
 			'customer_id' => $user->ID,
 			'created_via' => 'bsc-email-preview',
-		]
+		)
 	);
 
 	$order->add_product( $product, 1 );
 	$order->set_address(
-		[
+		array(
 			'first_name' => 'Preview',
 			'last_name'  => 'Customer',
 			'email'      => $user->user_email,
@@ -157,11 +182,11 @@ function bsc_get_email_preview_order(): WC_Order {
 			'state'      => 'Bogota',
 			'postcode'   => '110111',
 			'country'    => 'CO',
-		],
+		),
 		'billing'
 	);
 	$order->set_address(
-		[
+		array(
 			'first_name' => 'Preview',
 			'last_name'  => 'Customer',
 			'address_1'  => 'Calle 123 #45-67',
@@ -170,7 +195,7 @@ function bsc_get_email_preview_order(): WC_Order {
 			'state'      => 'Bogota',
 			'postcode'   => '110111',
 			'country'    => 'CO',
-		],
+		),
 		'shipping'
 	);
 	$order->set_payment_method( 'bacs' );
@@ -191,66 +216,89 @@ function bsc_get_email_preview_context( string $slug ): array {
 	$product     = bsc_get_email_preview_product();
 	$image_id    = $product->get_image_id();
 	$image_url   = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '';
+	if ( ! $image_url ) {
+		$image_url = get_template_directory_uri() . '/images/bsc__placeholder_product.jpg';
+	}
 
 	switch ( $slug ) {
 		case 'welcome':
-			return [
+			return array(
 				'user'        => $user,
 				'account_url' => $account_url,
 				'shop_url'    => $shop_url,
-			];
+			);
 
 		case 'password-reset':
-			return [
+			return array(
 				'user'      => $user,
 				'reset_url' => wp_lostpassword_url(),
-			];
+			);
 
 		case 'birthday':
-			return [
+			return array(
 				'user'     => $user,
 				'shop_url' => $shop_url,
-			];
+			);
 
 		case 'order-shipped':
-			return [
+			return array(
 				'order'         => $order,
 				'tracking_code' => 'BSC-TRK-2026-001',
 				'tracking_link' => 'https://example.com/tracking/BSC-TRK-2026-001',
-			];
+			);
 
 		case 'followup-inactive':
-			return [
+			return array(
 				'customer_name'   => 'Preview Customer',
 				'order'           => $order,
 				'last_order_date' => '15 de enero de 2026',
 				'shop_url'        => $shop_url,
 				'account_url'     => $account_url,
-			];
+			);
 
 		case 'followup-repurchase':
-			return [
+			$preview_products = array();
+			foreach ( array( '15 de enero de 2026', '18 de enero de 2026', '21 de enero de 2026' ) as $ordered_at ) {
+				$preview_products[] = array(
+					'name'       => $product->get_name(),
+					'ordered_at' => $ordered_at,
+					'url'        => get_permalink( $product->get_id() ),
+					'image_url'  => $image_url,
+				);
+			}
+
+			return array(
 				'customer_name' => 'Preview Customer',
-				'products'      => [
-					[
-						'name'       => $product->get_name(),
-						'ordered_at' => '15 de enero de 2026',
-						'url'        => get_permalink( $product->get_id() ),
-						'image_url'  => $image_url,
-					],
-				],
+				'products'      => $preview_products,
 				'shop_url'      => $shop_url,
 				'account_url'   => $account_url,
-			];
+			);
+
+		case 'abandoned-cart':
+			return array(
+				'customer_name' => 'Preview Customer',
+				'items'         => array(
+					array(
+						'name'       => $product->get_name(),
+						'quantity'   => 1,
+						'url'        => get_permalink( $product->get_id() ),
+						'image_url'  => $image_url,
+						'price_html' => wp_strip_all_tags( $product->get_price_html() ),
+					),
+				),
+				'total_html'    => wp_strip_all_tags( wc_price( wc_get_price_to_display( $product ) ) ),
+				'recover_url'   => wc_get_checkout_url(),
+				'shop_url'      => $shop_url,
+			);
 
 		case 'order-confirmed':
 		case 'order-preparing':
 		case 'order-delivered':
 		case 'order-cancelled':
 		default:
-			return [
+			return array(
 				'order' => $order,
-			];
+			);
 	}
 }
 
@@ -261,6 +309,10 @@ function bsc_render_email_preview_page(): void {
 
 	$slug        = sanitize_key( (string) ( $_GET['template'] ?? '' ) );
 	$definitions = bsc_get_email_preview_definitions();
+
+	if ( isset( $_GET['_wpnonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'bsc_preview_email_' . $slug ) ) {
+		wp_die( esc_html__( 'Solicitud no válida.', 'bsc-2-0' ) );
+	}
 
 	if ( ! isset( $definitions[ $slug ] ) ) {
 		wp_die( esc_html__( 'Template de preview no encontrado.', 'bsc-2-0' ) );
@@ -277,6 +329,7 @@ function bsc_render_email_preview_page(): void {
 
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=UTF-8' );
+	header( 'X-Robots-Tag: noindex, noarchive, nosnippet', true );
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	exit;
 }

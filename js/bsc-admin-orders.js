@@ -28,6 +28,7 @@
       event.preventDefault();
     }
 
+    $('#bsc-bulk-msg').text(strings.selectFirst || 'Selecciona al menos un pedido primero.');
     showSaved($('#bsc-bulk-msg'));
     return false;
   }
@@ -64,8 +65,15 @@
     var $badge = $row.find('.bsc-order-badge').first();
     var cleanStatus = String(status || '').replace(/^wc-/, '');
     var labelMap = {
+      pending: 'Pendiente',
+      'on-hold': 'En espera',
       processing: 'Recibido',
+      preparing: 'En preparación',
+      shipped: 'Enviado',
       completed: 'Terminado',
+      cancelled: 'Cancelado',
+      failed: 'Fallido',
+      refunded: 'Reembolsado',
     };
 
     if (!$badge.length || !labelMap[cleanStatus]) {
@@ -214,6 +222,31 @@
 
   $(document).on('click', '#bsc-csv-btn', function (event) {
     if (!requireSelection(event)) {
+      return;
+    }
+
+    $('#bsc-orders-form').removeAttr('target');
+  });
+
+  $(document).on('click', '#bsc-bulk-status-btn', function (event) {
+    var $status = $('#bsc-bulk-status');
+
+    if (!requireSelection(event)) {
+      return;
+    }
+
+    if (!$status.val()) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      $('#bsc-bulk-msg').text(strings.selectStatus || 'Selecciona el estado que quieres aplicar.');
+      showSaved($('#bsc-bulk-msg'));
+      return;
+    }
+
+    if (!window.confirm(strings.bulkStatusConfirm || 'Vas a cambiar el estado de los pedidos seleccionados. ¿Continuar?')) {
+      event.preventDefault();
       return;
     }
 

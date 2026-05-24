@@ -1,5 +1,5 @@
 .bsc-coupon-create-panel {
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px 24px;
@@ -46,7 +46,12 @@
 }
 
 .bsc-admin-coupons__actions-col {
-  width: 120px;
+  width: 150px;
+}
+
+.bsc-admin-coupons__delete-form {
+  display: inline-flex;
+  margin: 0 0 0 4px;
 }
 
 .bsc-admin-coupons__expired {
@@ -65,7 +70,7 @@
 }
 
 .bsc-admin-coupons__description {
-  color: #666;
+  color: #666666;
   font-size: 12px;
 }
 
@@ -73,3 +78,5 @@
   color: #c53030;
   border-color: #c53030;
 }
+
+/*# sourceMappingURL=bsc-coupons.css.map */

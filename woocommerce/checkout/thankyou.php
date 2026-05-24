@@ -41,24 +41,24 @@ defined( 'ABSPATH' ) || exit;
 
 				<li class="woocommerce-order-overview__order order">
 					<?php esc_html_e( 'Número de orden:', 'bsc-2-0' ); ?>
-					<strong><?php echo $order->get_order_number(); ?></strong>
+					<strong><?php echo esc_html( $order->get_order_number() ); ?></strong>
 				</li>
 
 				<li class="woocommerce-order-overview__date date">
 					<?php esc_html_e( 'Fecha:', 'bsc-2-0' ); ?>
-					<strong><?php echo wc_format_datetime( $order->get_date_created() ); ?></strong>
+					<strong><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></strong>
 				</li>
 
 				<?php if ( is_user_logged_in() && $order->get_user_id() === get_current_user_id() && $order->get_billing_email() ) : ?>
 					<li class="woocommerce-order-overview__email email">
 						<?php esc_html_e( 'Correo electrónico:', 'bsc-2-0' ); ?>
-						<strong><?php echo $order->get_billing_email(); ?></strong>
+						<strong><?php echo esc_html( $order->get_billing_email() ); ?></strong>
 					</li>
 				<?php endif; ?>
 
 				<li class="woocommerce-order-overview__total total">
 					<?php esc_html_e( 'Total:', 'bsc-2-0' ); ?>
-					<strong><?php echo $order->get_formatted_order_total(); ?></strong>
+					<strong><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong>
 				</li>
 
 				<?php if ( $order->get_payment_method_title() ) : ?>

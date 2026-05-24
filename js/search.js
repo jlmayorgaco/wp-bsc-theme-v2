@@ -9,25 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.innerWidth <= MOBILE_BREAKPOINT;
   }
 
-  // ── Shared AJAX search runner ─────────────────────────────────────────────
-  async function runSearch(query, resultsList) {
-    // BSC-038: serve from client cache when available
+  async function runSearch(query, resultsList, signal) {
     if (searchCache[query]) {
       renderResults(searchCache[query], resultsList);
       return;
     }
 
-    resultsList.innerHTML = '<li class="search-loading">Buscando…</li>';
+    setSingleResultMessage(resultsList, 'search-loading', 'Buscando...');
 
     const ajaxUrl =
       window.bsc_search && window.bsc_search.ajax_url
         ? window.bsc_search.ajax_url
         : '/wp-admin/admin-ajax.php';
-
-    const placeholderImg =
-      window.bsc_search && window.bsc_search.placeholder_img
-        ? window.bsc_search.placeholder_img
-        : '';
 
     const nonce =
       window.bsc_search && window.bsc_search.nonce
@@ -36,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const res = await fetch(
-        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query) + '&nonce=' + encodeURIComponent(nonce)
+        ajaxUrl + '?action=bsc_search_products&q=' + encodeURIComponent(query) + '&nonce=' + encodeURIComponent(nonce),
+        { signal }
       );
 
       if (!res.ok) {
@@ -46,11 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (!data.success || !data.data.products || data.data.products.length === 0) {
-        resultsList.innerHTML = '<li class="search-empty">No se encontraron productos.</li>';
+        setSingleResultMessage(resultsList, 'search-empty', 'No se encontraron productos.');
         return;
       }
 
-      // BSC-038: store in client cache (evict oldest entry if over limit)
       const cacheKeys = Object.keys(searchCache);
       if (cacheKeys.length >= SEARCH_CACHE_MAX) {
         delete searchCache[cacheKeys[0]];
@@ -59,7 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderResults(data.data.products, resultsList);
     } catch (err) {
-      resultsList.innerHTML = '<li class="search-empty">Error al buscar. Intenta de nuevo.</li>';
+      if (err.name === 'AbortError') {
+        return;
+      }
+
+      setSingleResultMessage(resultsList, 'search-empty', 'Error al buscar. Intenta de nuevo.');
     }
   }
 
@@ -74,9 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
     products.forEach((product) => {
       const li = document.createElement('li');
       li.classList.add('search-result-item');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
 
       const img = document.createElement('img');
-      img.alt = product.name;
+      img.alt = product.name || '';
       img.classList.add('search-result-image');
 
       if (product.image) {
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const name = document.createElement('span');
       name.classList.add('search-result-name');
-      name.textContent = product.name;
+      name.textContent = product.name || '';
       info.appendChild(name);
 
       if (product.brand) {
@@ -112,15 +112,53 @@ document.addEventListener('DOMContentLoaded', () => {
       li.appendChild(img);
       li.appendChild(info);
 
-      li.addEventListener('click', () => {
-        window.location.href = product.permalink;
+      const goToProduct = () => {
+        if (product.permalink) {
+          window.location.href = product.permalink;
+        }
+      };
+
+      li.addEventListener('click', goToProduct);
+      li.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          goToProduct();
+        }
       });
 
       resultsList.appendChild(li);
     });
+
+    const query = resultsList.dataset.query || '';
+    if (query) {
+      const viewAll = document.createElement('li');
+      viewAll.classList.add('search-result-item', 'search-result-item--all');
+      viewAll.tabIndex = 0;
+      viewAll.setAttribute('role', 'option');
+      viewAll.setAttribute('aria-selected', 'false');
+      viewAll.textContent = 'Ver todos los resultados';
+
+      const goToSearch = () => {
+        const baseUrl =
+          window.bsc_search && window.bsc_search.search_url
+            ? window.bsc_search.search_url
+            : '/';
+
+        window.location.href = baseUrl + '?s=' + encodeURIComponent(query);
+      };
+
+      viewAll.addEventListener('click', goToSearch);
+      viewAll.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          goToSearch();
+        }
+      });
+
+      resultsList.appendChild(viewAll);
+    }
   }
 
-  // ── Init a search instance ────────────────────────────────────────────────
   function initSearchInstance({
     type,
     toggleBtn,
@@ -131,6 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!searchContainer || !searchInput || !resultsList) return null;
 
     let searchTimeout = null;
+    let activeIndex = -1;
+    let activeController = null;
+    const listId = resultsList.id || `bsc-search-results-${type}`;
+    resultsList.id = listId;
+    resultsList.setAttribute('role', 'listbox');
+    searchInput.setAttribute('role', 'combobox');
+    searchInput.setAttribute('aria-autocomplete', 'list');
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.setAttribute('aria-controls', listId);
 
     function isThisInstanceActive() {
       return type === 'mobile' ? isMobileView() : !isMobileView();
@@ -139,21 +186,58 @@ document.addEventListener('DOMContentLoaded', () => {
     function openSearch() {
       if (!isThisInstanceActive()) return;
       searchContainer.classList.add('visible');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+      searchInput.setAttribute('aria-expanded', 'true');
       searchInput.focus();
     }
 
     function closeSearch() {
       searchContainer.classList.remove('visible');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+      searchInput.setAttribute('aria-expanded', 'false');
+      searchInput.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
     }
 
     function clearSearchResults() {
       resultsList.innerHTML = '';
+      searchInput.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
     }
 
     function resetSearch() {
       closeSearch();
       searchInput.value = '';
       clearSearchResults();
+    }
+
+    function getOptions() {
+      return Array.from(resultsList.querySelectorAll('[role="option"]:not([aria-disabled="true"])'));
+    }
+
+    function setActiveOption(index) {
+      const options = getOptions();
+
+      if (!options.length) {
+        activeIndex = -1;
+        searchInput.removeAttribute('aria-activedescendant');
+        return;
+      }
+
+      activeIndex = Math.max(0, Math.min(index, options.length - 1));
+
+      options.forEach((option, optionIndex) => {
+        const optionId = option.id || `${listId}-option-${optionIndex}`;
+        option.id = optionId;
+        const isActive = optionIndex === activeIndex;
+        option.classList.toggle('is-active', isActive);
+        option.setAttribute('aria-selected', isActive ? 'true' : 'false');
+
+        if (isActive) {
+          searchInput.setAttribute('aria-activedescendant', optionId);
+          option.scrollIntoView({ block: 'nearest' });
+        }
+      });
     }
 
     if (toggleBtn) {
@@ -196,15 +280,43 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isThisInstanceActive()) return;
 
       clearTimeout(searchTimeout);
+      if (activeController) {
+        activeController.abort();
+      }
 
       const query = searchInput.value.trim();
       clearSearchResults();
+      resultsList.dataset.query = query;
 
       if (query.length < 2) return;
 
       searchTimeout = setTimeout(() => {
-        runSearch(query, resultsList);
+        activeController = new AbortController();
+        runSearch(query, resultsList, activeController.signal);
       }, 400);
+    });
+
+    searchInput.addEventListener('keydown', (event) => {
+      if (!isThisInstanceActive()) return;
+
+      const options = getOptions();
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveOption(activeIndex + 1);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveOption(activeIndex <= 0 ? options.length - 1 : activeIndex - 1);
+      } else if (event.key === 'Home' && options.length) {
+        event.preventDefault();
+        setActiveOption(0);
+      } else if (event.key === 'End' && options.length) {
+        event.preventDefault();
+        setActiveOption(options.length - 1);
+      } else if (event.key === 'Enter' && activeIndex >= 0 && options[activeIndex]) {
+        event.preventDefault();
+        options[activeIndex].click();
+      }
     });
 
     return {
@@ -217,7 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // ── Desktop search ────────────────────────────────────────────────────────
   const desktopSearch = initSearchInstance({
     type: 'desktop',
     toggleBtn: document.querySelector('.btn-search-toggle'),
@@ -226,7 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsList: document.querySelector('.bsc__header--desktop .search-results')
   });
 
-  // ── Mobile search ─────────────────────────────────────────────────────────
   const mobileSearch = initSearchInstance({
     type: 'mobile',
     toggleBtn: document.querySelector('#mobile-search-btn'),
@@ -235,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultsList: document.querySelector('.bsc-mobile-search-panel .search-results')
   });
 
-  // ── Reset states on resize between desktop/mobile ─────────────────────────
   let lastIsMobile = isMobileView();
 
   window.addEventListener('resize', () => {
@@ -250,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSearchPosition();
   });
 
-  // ── Desktop search dropdown position ──────────────────────────────────────
   function updateSearchPosition() {
     const root = document.documentElement;
     if (!root) return;
@@ -271,10 +379,18 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSearchPosition();
 });
 
-
-
 function decodeHtmlEntities(str) {
   const txt = document.createElement('textarea');
   txt.innerHTML = str;
   return txt.value;
+}
+
+function setSingleResultMessage(resultsList, className, message) {
+  resultsList.innerHTML = '';
+  const item = document.createElement('li');
+  item.className = className;
+  item.setAttribute('role', 'option');
+  item.setAttribute('aria-disabled', 'true');
+  item.textContent = message;
+  resultsList.appendChild(item);
 }

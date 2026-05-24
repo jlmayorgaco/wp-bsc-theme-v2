@@ -1,153 +1,153 @@
 .bsc-showroom__intro {
-    color: #666;
-    margin-top: -8px;
+  color: #666666;
+  margin-top: -8px;
 }
 
 .bsc-showroom__layout {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 24px;
-    align-items: start;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+  margin-top: 20px;
 }
 
 .bsc-showroom__card,
 .bsc-showroom__recent-sales {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
 }
 
 .bsc-showroom__card {
-    padding: 24px;
+  padding: 24px;
 }
 
 .bsc-showroom__recent-sales {
-    padding: 20px;
+  padding: 20px;
 }
 
 .bsc-showroom__section-title,
 .bsc-showroom__recent-title {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .bsc-showroom__search-bar,
 .bsc-showroom__payment-options {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
 }
 
 .bsc-showroom__search-bar {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .bsc-showroom__payment-options {
-    gap: 16px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .bsc-showroom__text-input,
 .bsc-showroom__qty-input,
 .bsc-showroom__cart-qty-input {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .bsc-showroom__text-input {
-    width: 100%;
-    padding: 8px 10px;
+  width: 100%;
+  padding: 8px 10px;
 }
 
 .bsc-showroom__product-search {
-    flex: 1;
-    padding: 8px 12px;
-    font-size: 14px;
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 .bsc-showroom__qty-input {
-    width: 70px;
-    padding: 8px;
-    text-align: center;
+  width: 70px;
+  padding: 8px;
+  text-align: center;
 }
 
 .bsc-showroom__search-results {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    background: #fff;
-    position: relative;
-    z-index: 10;
-    max-height: 220px;
-    overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #ffffff;
+  position: relative;
+  z-index: 10;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .bsc-showroom__search-results--hidden,
 .bsc-showroom__cart-table--hidden,
 .bsc-showroom__notice--hidden {
-    display: none;
+  display: none;
 }
 
 .bsc-showroom__search-result,
 .bsc-showroom__search-empty {
-    padding: 10px 14px;
-    font-size: 13px;
+  padding: 10px 14px;
+  font-size: 13px;
 }
 
 .bsc-showroom__search-result {
-    cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .bsc-showroom__search-result:hover,
 .bsc-showroom__search-result:focus {
-    background: #f5f5f5;
+  background: #f5f5f5;
 }
 
 .bsc-showroom__search-result-meta {
-    color: #888;
+  color: #888;
 }
 
 .bsc-showroom__search-result-stock {
-    color: #46b450;
+  color: #46b450;
 }
 
 .bsc-showroom__search-empty,
 .bsc-showroom__cart-empty,
 .bsc-showroom__empty-state {
-    color: #aaa;
-    font-size: 13px;
-    text-align: center;
+  color: #888;
+  font-size: 13px;
+  text-align: center;
 }
 
 .bsc-showroom__cart-table,
 .bsc-showroom__recent-table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .bsc-showroom__cart-table {
-    margin-top: 16px;
+  margin-top: 16px;
 }
 
 .bsc-showroom__cart-head-row,
 .bsc-showroom__recent-head-row {
-    background: #f9f9f9;
+  background: #f9f9f9;
 }
 
 .bsc-showroom__cart-head-cell {
-    padding: 8px 10px;
-    font-size: 13px;
-    border-bottom: 2px solid #eee;
+  padding: 8px 10px;
+  font-size: 13px;
+  border-bottom: 2px solid #eee;
 }
 
 .bsc-showroom__cart-head-cell--left,
 .bsc-showroom__recent-head-cell {
-    text-align: left;
+  text-align: left;
 }
 
 .bsc-showroom__cart-head-cell--center {
-    text-align: center;
+  text-align: center;
 }
 
 .bsc-showroom__cart-head-cell--right,
@@ -156,154 +156,153 @@
 .bsc-showroom__recent-cell--right,
 .bsc-showroom__cart-total-label,
 .bsc-showroom__cart-total-value {
-    text-align: right;
+  text-align: right;
 }
 
 .bsc-showroom__cart-head-cell--qty {
-    width: 60px;
+  width: 60px;
 }
 
 .bsc-showroom__cart-head-cell--price,
 .bsc-showroom__cart-head-cell--subtotal {
-    width: 90px;
+  width: 90px;
 }
 
 .bsc-showroom__cart-head-cell--actions {
-    width: 32px;
+  width: 32px;
 }
 
 .bsc-showroom__cart-cell,
 .bsc-showroom__recent-cell {
-    padding: 8px 10px;
-    border-bottom: 1px solid #f5f5f5;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f5f5f5;
 }
 
 .bsc-showroom__cart-cell--center {
-    text-align: center;
+  text-align: center;
 }
 
 .bsc-showroom__cart-cell--compact {
-    padding: 4px 6px;
+  padding: 4px 6px;
 }
 
 .bsc-showroom__cart-qty-input {
-    width: 55px;
-    padding: 4px;
-    text-align: center;
+  width: 55px;
+  padding: 4px;
+  text-align: center;
 }
 
 .bsc-showroom__remove-item {
-    padding: 2px 8px;
+  padding: 2px 8px;
 }
 
 .bsc-showroom__cart-total-label,
 .bsc-showroom__cart-total-value {
-    padding: 10px;
-    font-weight: 700;
-    font-size: 15px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 15px;
 }
 
 .bsc-showroom__cart-empty {
-    padding: 16px 0;
+  padding: 16px 0;
 }
 
 .bsc-showroom__divider {
-    margin: 20px 0;
+  margin: 20px 0;
 }
 
 .bsc-showroom__customer-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .bsc-showroom__customer-field--full {
-    grid-column: span 2;
+  grid-column: span 2;
 }
 
 .bsc-showroom__field-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 4px;
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .bsc-showroom__payment-option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .bsc-showroom__notice {
-    padding: 10px 14px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    font-size: 14px;
-    border: 1px solid transparent;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  border: 1px solid transparent;
 }
 
 .bsc-showroom__notice--success {
-    background: #d7f4d7;
-    color: #276629;
-    border-color: #b5d9bc;
+  background: #d7f4d7;
+  color: #276629;
+  border-color: #b5d9bc;
 }
 
 .bsc-showroom__notice--error {
-    background: #fdecea;
-    color: #b3261e;
-    border-color: #f5c2bf;
+  background: #fdecea;
+  color: #b3261e;
+  border-color: #f5c2bf;
 }
 
 .bsc-showroom__submit {
-    height: 40px;
-    font-size: 15px;
-    padding: 0 24px;
+  height: 40px;
+  font-size: 15px;
+  padding: 0 24px;
 }
 
 .bsc-showroom__recent-title {
-    font-size: 14px;
-    letter-spacing: 0.5px;
-    color: #555;
-    text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: #555555;
+  text-transform: uppercase;
 }
 
 .bsc-showroom__recent-table {
-    font-size: 13px;
+  font-size: 13px;
 }
 
 .bsc-showroom__recent-head-cell {
-    padding: 6px 8px;
-    border-bottom: 1px solid #eee;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
 }
 
 .bsc-showroom__recent-cell {
-    padding: 6px 8px;
+  padding: 6px 8px;
 }
 
 .bsc-showroom__empty-state {
-    padding: 12px 0;
+  padding: 12px 0;
 }
 
 @media (max-width: 1280px) {
-    .bsc-showroom__layout {
-        grid-template-columns: 1fr;
-    }
+  .bsc-showroom__layout {
+    grid-template-columns: 1fr;
+  }
 }
-
 @media (max-width: 782px) {
-    .bsc-showroom__search-bar,
-    .bsc-showroom__payment-options {
-        flex-wrap: wrap;
-    }
-
-    .bsc-showroom__customer-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .bsc-showroom__customer-field--full {
-        grid-column: auto;
-    }
+  .bsc-showroom__search-bar,
+  .bsc-showroom__payment-options {
+    flex-wrap: wrap;
+  }
+  .bsc-showroom__customer-grid {
+    grid-template-columns: 1fr;
+  }
+  .bsc-showroom__customer-field--full {
+    grid-column: auto;
+  }
 }
+
+/*# sourceMappingURL=bsc-showroom.css.map */

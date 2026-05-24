@@ -38,7 +38,7 @@ if ( ! function_exists( 'bsc_render_static_page_template' ) ) {
 					<h1 class="bsc__static-hero__title">
 						<?php
 						if ( '' !== $title_html ) {
-							echo wp_kses( $title_html, [ 'strong' => [] ] );
+							echo wp_kses( $title_html, array( 'strong' => array() ) );
 						} else {
 							echo esc_html( $title );
 						}
@@ -54,7 +54,10 @@ if ( ! function_exists( 'bsc_render_static_page_template' ) ) {
 			<section class="bsc__static-content">
 				<div class="bsc__static-content__container">
 					<?php if ( have_posts() ) : ?>
-						<?php while ( have_posts() ) : the_post(); ?>
+						<?php
+						while ( have_posts() ) :
+							the_post();
+							?>
 							<div class="<?php echo esc_attr( $wrapper_class ); ?>">
 								<?php
 								$raw_content = trim( (string) get_post_field( 'post_content', get_the_ID() ) );

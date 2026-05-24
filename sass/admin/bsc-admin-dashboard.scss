@@ -1,0 +1,154 @@
+@use "foundation" as admin;
+
+.bsc-admin-dashboard__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bsc-admin-dashboard__refresh-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.bsc-admin-dashboard__refresh-form .page-title-action {
+  top: 0;
+  cursor: pointer;
+}
+
+.bsc-admin-dashboard__filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  padding: 12px;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+  border-radius: 6px;
+}
+
+.bsc-admin-dashboard__filters label {
+  font-weight: 600;
+}
+
+.bsc-admin-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.bsc-admin-dashboard__card {
+  background: admin.$surface;
+  border: 1px solid admin.$border;
+  border-radius: 10px;
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.bsc-admin-dashboard__card--warning {
+  border-color: admin.$warning-soft;
+  background: admin.$surface-warning-soft;
+}
+
+.bsc-admin-dashboard__value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: admin.$text-strong;
+  line-height: 1.2;
+}
+
+.bsc-admin-dashboard__label {
+  font-size: 0.78rem;
+  color: admin.$text-muted;
+  margin-top: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bsc-admin-dashboard__panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.bsc-admin-dashboard__metrics {
+  margin: 20px 0 8px;
+}
+
+.bsc-admin-dashboard__section-title {
+  font-size: 1.15rem;
+  margin: 0 0 10px;
+}
+
+.bsc-admin-dashboard__grid--metrics {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.bsc-admin-dashboard__insight-panels {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  margin: 4px 0 18px;
+}
+
+.bsc-admin-dashboard__panel-title {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.bsc-admin-dashboard__empty-row {
+  text-align: center;
+  color: admin.$text-muted;
+}
+
+.bsc-admin-dashboard__panel-action {
+  margin-top: 8px;
+}
+
+.bsc-admin-dashboard__low-stock-table {
+  background: admin.$surface-danger;
+  border: 1px solid #fc8181;
+}
+
+.bsc-admin-dashboard__low-stock-value {
+  font-weight: 700;
+  color: admin.$danger;
+}
+
+.bsc-admin-dashboard__low-stock-ok {
+  color: #276749;
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  padding: 10px 16px;
+  border-radius: 6px;
+}
+
+.bsc-admin-dashboard__quick-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+}
+
+.bsc-admin-settings__section-title {
+  margin: 0;
+}
+
+.bsc-admin-settings__section-title--spaced {
+  margin: 16px 0 0;
+}
+
+.bsc-admin-settings__inline-fields {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}

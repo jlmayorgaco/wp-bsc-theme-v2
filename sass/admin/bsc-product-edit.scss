@@ -1,0 +1,242 @@
+@use "foundation" as admin;
+
+.bsc-admin-product-edit__title-meta {
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.bsc-admin-product-edit__form {
+  margin-top: 16px;
+  max-width: 960px;
+}
+
+.bsc-admin-product-edit__grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.bsc-admin-product-edit__card {
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+
+.bsc-admin-product-edit__section-title {
+  border-bottom: 1px solid admin.$border-muted;
+  font-size: 1rem;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+}
+
+.bsc-admin-product-edit__field {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.bsc-admin-product-edit__field--checkbox {
+  margin-top: 12px;
+}
+
+.bsc-admin-product-edit__field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bsc-admin-product-edit__field-help {
+  color: admin.$text-secondary;
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.bsc-admin-product-edit__field-note {
+  color: admin.$text-secondary;
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.bsc-admin-product-edit__number-input {
+  width: 100px;
+}
+
+.bsc-admin-product-edit__number-input--wide {
+  width: 120px;
+}
+
+.bsc-admin-product-edit__preview-image {
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 8px;
+  max-width: 180px;
+}
+
+.bsc-admin-product-edit__gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.bsc-admin-product-edit__gallery-thumb {
+  border-radius: 4px;
+  height: 72px;
+  object-fit: cover;
+  width: 72px;
+}
+
+.bsc-admin-product-edit__button-spaced {
+  margin-left: 6px;
+}
+
+.bsc-admin-product-edit__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.bsc-admin-product-edit__hidden {
+  display: none;
+}
+
+.bsc-admin-product-edit__actions {
+  margin-top: 8px;
+}
+
+.bsc-admin-product-edit__action-link {
+  margin-left: 8px;
+}
+
+.bsc-admin-product-edit__empty {
+  color: admin.$text-muted;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.bsc-admin-product-edit__branch-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+
+.bsc-admin-product-edit__branch {
+  border: 1px solid #dde0e3;
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+
+.bsc-admin-product-edit__branch-title {
+  color: #23282d;
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.bsc-admin-product-edit__branch-search {
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  box-sizing: border-box;
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding: 3px 6px;
+  width: 100%;
+}
+
+.bsc-admin-product-edit__leaf {
+  align-items: center;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 4px;
+  margin: 2px 4px;
+  white-space: nowrap;
+}
+
+.bsc-admin-product-edit__leaf.is-hidden,
+.bsc-admin-product-edit__subgroup.is-hidden {
+  display: none;
+}
+
+.bsc-admin-product-edit__subgroup-header {
+  border-top: 1px dashed #e0e0e0;
+  color: admin.$text-secondary;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 6px 0 2px;
+  padding-top: 6px;
+}
+
+.bsc-admin-product-edit__subgroup-empty {
+  color: admin.$text-muted;
+  font-size: 11px;
+}
+
+.bsc-admin-cover-field {
+  margin-bottom: 16px;
+}
+
+#bsc_product_covers .bsc-admin-cover-field {
+  margin-bottom: 18px;
+}
+
+.bsc-admin-cover-label {
+  margin: 0 0 4px;
+}
+
+.bsc-admin-cover-preview {
+  margin-bottom: 6px;
+  min-height: 40px;
+}
+
+.bsc-admin-cover-image {
+  border-radius: 3px;
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.bsc-admin-cover-remove {
+  margin-left: 4px;
+}
+
+.bsc-admin-cover-divider {
+  margin: 16px 0;
+}
+
+.bsc-admin-cover-extra-heading {
+  margin: 0 0 8px;
+}
+
+.bsc-admin-stock-field {
+  margin-bottom: 14px;
+}
+
+.bsc-admin-stock-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.bsc-admin-stock-label-note {
+  color: admin.$text-muted;
+  font-weight: 400;
+}
+
+.bsc-admin-stock-input {
+  border: 1px solid admin.$border;
+  border-radius: 3px;
+  padding: 4px 6px;
+  width: 100%;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+@media (max-width: 1080px) {
+  .bsc-admin-product-edit__grid {
+    grid-template-columns: 1fr;
+  }
+}

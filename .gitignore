@@ -32,6 +32,9 @@ test-results/
 # Local review captures
 Videos/
 
+# Composer QA dependencies
+tools/php-vendor/
+
 # Codex local working state
 .Codex/tickets/
 .Codex/tmp/

@@ -1,0 +1,50 @@
+@use "../../../admin/foundation" as admin;
+
+.bsc-bp-inline-form,
+.bsc-bp-history-form {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bsc-bp-inline-form {
+    margin-left: 8px;
+}
+
+.bsc-bp-inline-form__amount {
+    width: 110px;
+}
+
+.bsc-bp-inline-form__note {
+    width: 160px;
+}
+
+.bsc-bp-admin__back-link {
+    margin-bottom: 12px;
+}
+
+.bsc-bp-history-form {
+    margin: 12px 0;
+    gap: 8px;
+}
+
+.bsc-bp-history-form__label {
+    margin-right: 4px;
+}
+
+.bsc-bp-history-form__label--spaced {
+    margin: 0 4px;
+}
+
+.bsc-bp-history-form__note {
+    min-width: 260px;
+}
+
+.bsc-bp-history__delta--positive {
+    color: green;
+}
+
+.bsc-bp-history__delta--negative {
+    color: admin.$danger-strong;
+}

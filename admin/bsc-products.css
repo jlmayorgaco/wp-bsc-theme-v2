@@ -39,7 +39,7 @@
 }
 
 .bsc-admin-products__sale-price {
-  color: #aaa;
+  color: #888;
   font-size: 11px;
 }
 
@@ -75,7 +75,7 @@
 }
 
 .bsc-admin-products__pagination-label {
-  color: #666;
+  color: #666666;
 }
 
 .bsc-admin-products__modal {
@@ -96,7 +96,7 @@
 }
 
 .bsc-admin-products__modal-dialog {
-  background: #fff;
+  background: #ffffff;
   border-radius: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   left: 50%;
@@ -142,3 +142,5 @@
 .bsc-admin-products__delta--negative {
   color: #c53030;
 }
+
+/*# sourceMappingURL=bsc-products.css.map */

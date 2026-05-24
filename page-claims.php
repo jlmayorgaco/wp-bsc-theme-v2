@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-claims',
 		'title'             => 'Peticiones, Quejas y Reclamos',
 		'subtitle'          => 'Canales y tiempos para atender tus solicitudes',
@@ -30,5 +30,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

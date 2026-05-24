@@ -76,6 +76,55 @@
       }
     }
   }
+
+  .review-summary__shipping-progress {
+    margin: 0 0 14px;
+    padding: 12px 0 14px;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.14);
+  }
+
+  .shipping-progress__label {
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.35;
+  }
+
+  .shipping-progress__track {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(51, 51, 51, 0.18);
+    border-radius: 999px;
+
+    span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: #333;
+      border-radius: inherit;
+      transition: width 0.25s ease;
+    }
+  }
+
+  @for $i from 0 through 10 {
+    .shipping-progress--#{$i * 10} .shipping-progress__track span {
+      width: #{($i * 10) * 1%};
+    }
+  }
+
+  .review-summary__shipping-progress.is-qualified {
+    .shipping-progress__label {
+      color: #1f5132;
+    }
+
+    .shipping-progress__track span {
+      background: #2c8f55;
+    }
+  }
 }
 
 .payment_method_wompi_wwp{

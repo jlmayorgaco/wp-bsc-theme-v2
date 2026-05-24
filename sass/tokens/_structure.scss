@@ -28,21 +28,3 @@ $bsc-radius-pill: 30px !default;
 
 $bsc-control-height: 45px !default;
 $bsc-input-height: 42px !default;
-
-.bsc {
-  --space--xs: #{$bsc-spacing-xs};
-  --space--sm: #{$bsc-spacing-sm};
-  --space--md: #{$bsc-spacing-md};
-  --space--lg: #{$bsc-spacing-lg};
-  --space--xl: #{$bsc-spacing-xl};
-  --space--2xl: #{$bsc-spacing-2xl};
-  --space--section-y: #{$bsc-section-space};
-
-  --radius--sm: #{$bsc-radius-sm};
-  --radius--md: #{$bsc-radius-md};
-  --radius--lg: #{$bsc-radius-lg};
-  --radius--pill: #{$bsc-radius-pill};
-
-  --size--control-h: #{$bsc-control-height};
-  --size--input-h: #{$bsc-input-height};
-}

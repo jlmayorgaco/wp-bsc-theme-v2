@@ -84,12 +84,12 @@ $theme_uri = get_template_directory_uri();
 
 			<div class="bc__form-row">
 				<div class="bc__form-field">
-					<label for="bc-instagram">Instagram</label>
-					<input type="text" id="bc-instagram" name="instagram" placeholder="@tu_usuario" required>
+					<label for="bc-instagram">Link de Instagram</label>
+					<input type="url" id="bc-instagram" name="instagram" placeholder="https://www.instagram.com/tu_usuario/" inputmode="url" autocomplete="url" required>
 				</div>
 				<div class="bc__form-field">
-					<label for="bc-tiktok">TikTok</label>
-					<input type="text" id="bc-tiktok" name="tiktok" placeholder="@tu_usuario" required>
+					<label for="bc-tiktok">Link de TikTok</label>
+					<input type="url" id="bc-tiktok" name="tiktok" placeholder="https://www.tiktok.com/@tu_usuario" inputmode="url" autocomplete="url" required>
 				</div>
 			</div>
 
@@ -105,7 +105,7 @@ $theme_uri = get_template_directory_uri();
 
 		<div class="bc__form-success" id="bc-form-success">
 			<div class="bc__form-success-inner">
-				<img src="<?php echo esc_url( $theme_uri ); ?>/images/BSC_COMING_SOON_FACE.png" alt="">
+				<img class="bc__form-success-face" src="<?php echo esc_url( $theme_uri ); ?>/images/BSC_COMING_SOON_FACE.png" alt="">
 				<p id="bc-form-success-msg"></p>
 			</div>
 		</div>

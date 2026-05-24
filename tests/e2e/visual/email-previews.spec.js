@@ -3,15 +3,15 @@ const { fixture } = require('../helpers/env');
 const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
 
 const previewCases = [
-  { slug: 'welcome', expected: 'Bienvenida a Bubble Skin Care' },
+  { slug: 'welcome', expected: 'Bienvenido Bubble Lover' },
   { slug: 'password-reset', expected: 'Recupera tu contrase' },
   { slug: 'birthday', expected: 'Feliz cumple' },
-  { slug: 'order-confirmed', expected: 'Tu pago fue recibido' },
+  { slug: 'order-confirmed', expected: 'Gracias por tu compra' },
   { slug: 'order-preparing', expected: 'Estamos preparando tu pedido' },
   { slug: 'order-shipped', expected: 'Tu pedido est' },
   { slug: 'order-delivered', expected: 'Tu pedido fue entregado' },
   { slug: 'order-cancelled', expected: 'Tu pedido fue cancelado' },
-  { slug: 'followup-inactive', expected: 'Hace rato no te vemos por aqu' },
+  { slug: 'followup-inactive', expected: 'Te extra' },
   { slug: 'followup-repurchase', expected: 'Tu rutina puede estar por acabarse' },
 ];
 

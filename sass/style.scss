@@ -1,12 +1,12 @@
 /*!
 Theme Name: BSC2
-Theme URI: http://underscores.me/
-Author: jlmayorga.com
-Author URI: http://jl.mayorga.co
-Description: BSC 2.0 Theme
-Version: 1.0.0
-Tested up to: 5.4
-Requires PHP: 5.6
+Theme URI: https://bubbleskincare.co
+Author: Bubble Skin Care
+Author URI: https://bubbleskincare.co
+Description: Custom WordPress and WooCommerce theme for Bubble Skin Care.
+Version: 2.1.0
+Tested up to: 6.9
+Requires PHP: 8.2
 License: GNU General Public License v2 or later
 License URI: LICENSE
 Text Domain: bsc-2-0
@@ -24,6 +24,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 
 // Import variables and mixins.
+
+@use "tokens/css-vars";
 
 @use "generic/box-sizing";
 @use "generic/normalize";
@@ -43,12 +45,6 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "pages/page-bubble-creators";
 @use "pages/page-contact-us";
 @use "pages/page-static-info";
-
-@use "tokens/colors";
-@use "tokens/widths";
-@use "tokens/columns";
-@use "tokens/structure";
-@use "tokens/typography";
 
 @use "components/header/header";
 @use "components/footer/footer";

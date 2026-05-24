@@ -1,0 +1,58 @@
+@use "foundation" as admin;
+
+.bsc-admin-access__intro {
+  color: admin.$text-soft;
+  max-width: 600px;
+}
+
+.bsc-admin-access__role-header {
+  text-align: center;
+  width: 150px;
+}
+
+.bsc-admin-access__table td {
+  vertical-align: middle;
+}
+
+.bsc-admin-access__slug {
+  color: admin.$text-muted;
+  font-family: monospace;
+}
+
+.bsc-admin-access__checkbox-wrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.bsc-admin-access__checkbox-wrap input[disabled] {
+  cursor: not-allowed;
+}
+
+.bsc-admin-access__submit {
+  margin-top: 16px;
+}
+
+.bsc-admin-followup__section-title {
+  margin: 0;
+}
+
+.bsc-admin-followup__section-title--spaced {
+  margin: 16px 0 0;
+}
+
+.bsc-admin-followup__inline-setting {
+  margin: 8px 0 0;
+}
+
+.bsc-admin-followup__notice {
+  margin-top: 16px;
+}
+
+.bsc-admin-followup__section {
+  margin-top: 24px;
+}
+
+.bsc-admin-followup__templates-table {
+  max-width: 980px;
+}

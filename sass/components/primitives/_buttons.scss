@@ -1,4 +1,5 @@
 @use "../../mixins/mixins" as mixins;
+@use "../../tokens/public" as bsc;
 
 .bsc__button {
   @include mixins.bsc-button-base(
@@ -12,9 +13,9 @@
 .bsc__button--outline {
   @include mixins.bsc-button-base(
     $bg: transparent,
-    $color: #333,
-    $hover-bg: #333,
-    $hover-color: #fff,
+    $color: bsc.$text,
+    $hover-bg: bsc.$text,
+    $hover-color: bsc.$surface,
     $outline: true,
     $padding: 0.75rem 1rem,
     $radius: 20px,
@@ -51,7 +52,7 @@
     $font-size: 17px,
     $height: auto,
     $hover-bg: #f8d7da,
-    $hover-color: #333
+    $hover-color: bsc.$text
   );
 
   width: 100%;
@@ -63,7 +64,7 @@
   @include mixins.bsc-button-base(
     $bg: var(--color--primary),
     $hover-bg: var(--color--primary),
-    $hover-color: #fff,
+    $hover-color: bsc.$surface,
     $padding: 0.5rem 1rem,
     $radius: 6px,
     $font-size: 0.875rem,
@@ -74,7 +75,7 @@
 
   &:hover {
     background-color: var(--color--primary);
-    border: 1px solid #333;
+    border: 1px solid bsc.$border;
   }
 }
 

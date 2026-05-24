@@ -1,0 +1,45 @@
+@use "foundation" as admin;
+
+.bsc-admin-creators__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-creators__filters {
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bsc-admin-creators__filters label {
+  font-weight: 600;
+}
+
+.bsc-admin-creators__table {
+  margin-top: 8px;
+}
+
+.bsc-admin-creators__link-empty {
+  color: admin.$text-subtle;
+}
+
+.bsc-admin-creators__status-form {
+  display: grid;
+  grid-template-columns: minmax(120px, 150px) minmax(180px, 1fr) auto;
+  align-items: start;
+  gap: 6px;
+}
+
+.bsc-admin-creators__status-form select {
+  max-width: 130px;
+}
+
+.bsc-admin-creators__status-form textarea {
+  width: 100%;
+  min-height: 48px;
+  resize: vertical;
+}

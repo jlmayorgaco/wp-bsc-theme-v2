@@ -35,6 +35,18 @@ test.describe('BSC admin orders smoke', () => {
     await expect(bulkWarning).toBeVisible();
 
     await bulkWarning.waitFor({ state: 'hidden', timeout: 5000 });
+
+    await expect(page.locator('#bsc-bulk-status')).toContainText('En preparación');
+    await expect(page.locator('#bsc-bulk-status')).toContainText('Enviado');
+
+    const firstCheckbox = page.locator('input[name="order_ids[]"]').first();
+
+    if ((await firstCheckbox.count()) > 0) {
+      await firstCheckbox.check();
+      await page.locator('#bsc-bulk-status-btn').click();
+      await expect(bulkWarning).toContainText('Selecciona el estado');
+      await expect(bulkWarning).toBeVisible();
+    }
   });
 
   test('packing view opens in a new tab for a selected order', async ({ page }, testInfo) => {

@@ -1,4 +1,5 @@
 @use "../../pages/page-checkout" as checkout;
+@use "../../tokens/public" as bsc;
 
 // -------------------------------------------------------
 // checkout-cart.scss
@@ -15,17 +16,9 @@ $checkout-cart-item-width-tablet: 100%;
 $checkout-cart-img-width: 90px;
 $checkout-cart-img-height: 100px;
 
-$checkout-cart-gap: 20px;
-$checkout-cart-padding: 1rem;
-$checkout-cart-margin-bottom: 2rem;
-
-$checkout-cart-color-text: #333;
-$checkout-cart-color-border: #333;
-$checkout-cart-color-border-soft: #ccc;
-$checkout-cart-color-bg: #fff;
-
-$checkout-cart-radius-sm: 5px;
-$checkout-cart-radius-md: 30px;
+$checkout-cart-gap: bsc.$space-lg;
+$checkout-cart-padding: bsc.$space-md;
+$checkout-cart-margin-bottom: bsc.$space-xl;
 
 $checkout-cart-font-name: 12px;
 $checkout-cart-font-brand: 14px;
@@ -38,9 +31,6 @@ $checkout-cart-badge-size: 30px;
 $checkout-cart-btn-width: 32px;
 $checkout-cart-btn-gap: 10px;
 
-$bp-tablet: 768px;
-$bp-mobile: 480px;
-
 // =======================================================
 // 2) Mixins
 // =======================================================
@@ -48,22 +38,6 @@ $bp-mobile: 480px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-@mixin mq($max) {
-  @media (max-width: $max) {
-    @content;
-  }
-}
-
-@mixin reset-link($color: inherit, $weight: inherit) {
-  color: $color;
-  font-weight: $weight;
-  text-decoration: none;
-
-  &:visited {
-    color: $color;
-  }
 }
 
 // =======================================================
@@ -108,8 +82,8 @@ $bp-mobile: 480px;
             width: 100%;
             height: $checkout-cart-img-height;
             object-fit: cover;
-            border: 1px solid $checkout-cart-color-border-soft;
-            border-radius: $checkout-cart-radius-sm;
+            border: 1px solid bsc.$border-soft;
+            border-radius: bsc.$radius-sm;
           }
 
           label {
@@ -120,14 +94,14 @@ $bp-mobile: 480px;
             right: -3px;
             width: $checkout-cart-badge-size;
             height: $checkout-cart-badge-size;
-            background: $checkout-cart-color-bg;
-            border: 1px solid $checkout-cart-color-border;
+            background: bsc.$surface;
+            border: 1px solid bsc.$border;
             border-radius: 50%;
             font-size: $checkout-cart-font-badge;
             font-weight: bold;
 
             span {
-              color: $checkout-cart-color-text;
+              color: bsc.$text;
               font-weight: 100;
             }
           }
@@ -139,7 +113,7 @@ $bp-mobile: 480px;
         min-width: 0;
         height: var(--checkout--review--img-h);
         position: relative;
-        border-bottom: 1px solid $checkout-cart-color-border;
+        border-bottom: 1px solid bsc.$border;
 
         .row {
           display: flex;
@@ -161,7 +135,7 @@ $bp-mobile: 480px;
               letter-spacing: 1px;
 
               a {
-                @include reset-link($checkout-cart-color-text);
+                @include bsc.link-reset(bsc.$text);
               }
             }
 
@@ -174,7 +148,7 @@ $bp-mobile: 480px;
               text-transform: uppercase;
 
               a {
-                @include reset-link($checkout-cart-color-text, 900);
+                @include bsc.link-reset(bsc.$text, 900);
               }
             }
           }
@@ -185,7 +159,7 @@ $bp-mobile: 480px;
 
             .item__total {
               margin: 0;
-              color: $checkout-cart-color-text;
+              color: bsc.$text;
               font-size: $checkout-cart-font-total;
               font-weight: bold;
               text-align: right;
@@ -210,10 +184,10 @@ $bp-mobile: 480px;
             padding-top: 2px;
             padding-bottom: 2px;
             margin-right: $checkout-cart-btn-gap;
-            color: $checkout-cart-color-text;
-            background: $checkout-cart-color-bg;
-            border: 1px solid $checkout-cart-color-bg;
-            border-radius: $checkout-cart-radius-md;
+            color: bsc.$text;
+            background: bsc.$surface;
+            border: 1px solid bsc.$surface;
+            border-radius: bsc.$radius-pill;
             cursor: pointer;
             font-size: $checkout-cart-font-btn;
             font-weight: bold;
@@ -224,7 +198,7 @@ $bp-mobile: 480px;
               width: 12px;
               height: 12px;
               padding-left: 2px;
-              color: $checkout-cart-color-text;
+              color: bsc.$text;
               font-size: $checkout-cart-font-btn-inner;
               text-align: center;
             }
@@ -251,7 +225,7 @@ $bp-mobile: 480px;
 // =======================================================
 // 4) Tablet
 // =======================================================
-@include mq($bp-tablet) {
+@include bsc.media-max("tablet") {
   .bsc__checkout-cart {
     .checkout-cart__container {
       padding-inline: 1rem;
@@ -278,7 +252,7 @@ $bp-mobile: 480px;
 // =======================================================
 // 5) Mobile
 // =======================================================
-@include mq($bp-mobile) {
+@include bsc.media-max("phone-sm") {
   .bsc__checkout-cart {
     --checkout--review--img-h: 88px;
 

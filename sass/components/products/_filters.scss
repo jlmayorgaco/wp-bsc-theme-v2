@@ -144,6 +144,34 @@ $font-weight-bold: 600;
   // ===================================================
   // Price Filter Wrapper
   // ===================================================
+  &-group--sort {
+    padding: $spacing-md 0;
+    border-bottom: 1px solid $color-border;
+  }
+
+  &-sort-label {
+    display: block;
+    margin-bottom: $spacing-sm;
+    font-family: $font-family-base;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    letter-spacing: 0;
+    color: $color-text-primary;
+    text-transform: uppercase;
+  }
+
+  &-sort-select {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    color: $color-text-primary;
+    background: $color-surface;
+    border: 1px solid $color-border-muted;
+    border-radius: 4px;
+    font-size: $font-size-sm;
+    letter-spacing: 0;
+  }
+
   &-group--price {
     .bsc__filters-price-wrapper {
       display: flex;

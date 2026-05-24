@@ -4,15 +4,18 @@
  * Enqueue scripts and styles.
  */
 
-add_action('init', function () {
-	switch_to_locale('es_ES');
-});
+add_action(
+	'init',
+	function () {
+		switch_to_locale( 'es_ES' );
+	}
+);
 
 function bsc_2_0_scripts() {
-	wp_enqueue_style('bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION);
-	wp_style_add_data('bsc-2-0-style', 'rtl', 'replace');
+	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION );
+	wp_style_add_data( 'bsc-2-0-style', 'rtl', 'replace' );
 
-	// Scripts globales â€” necesarios en todas las pÃ¡ginas
+	// Scripts globales - necesarios en todas las paginas
 	wp_enqueue_script(
 		'bsc-2-0-navigation',
 		get_template_directory_uri() . '/js/navigation.js',
@@ -21,7 +24,18 @@ function bsc_2_0_scripts() {
 		true
 	);
 
-	// Mobile menu â€” extracted from header.php inline script
+	wp_localize_script(
+		'bsc-2-0-navigation',
+		'bsc_ajax',
+		array(
+			'ajax_url'  => admin_url( 'admin-ajax.php' ),
+			'theme_uri' => get_template_directory_uri(),
+			'cart_url'  => function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' ),
+			'nonce'     => wp_create_nonce( 'bsc_ajax_action' ),
+		)
+	);
+
+	// Mobile menu - extracted from header.php inline script
 	wp_enqueue_script(
 		'bsc-2-0-mobile-menu',
 		get_template_directory_uri() . '/js/mobile-menu.js',
@@ -38,25 +52,51 @@ function bsc_2_0_scripts() {
 		true
 	);
 
-	wp_localize_script('bsc-2-0-search', 'bsc_search', [
-		'ajax_url'        => admin_url('admin-ajax.php'),
-		'placeholder_img' => get_template_directory_uri() . '/images/bsc__placeholder_product.jpg',
-		'nonce'           => wp_create_nonce('bsc_ajax_action'),
-	]);
+	wp_localize_script(
+		'bsc-2-0-search',
+		'bsc_search',
+		array(
+			'ajax_url'        => admin_url( 'admin-ajax.php' ),
+			'placeholder_img' => get_template_directory_uri() . '/images/bsc__placeholder_product.jpg',
+			'nonce'           => wp_create_nonce( 'bsc_ajax_action' ),
+			'search_url'      => home_url( '/' ),
+		)
+	);
 
 	wp_enqueue_script(
-		'bsc-2-0-add-to-cart',
-		get_template_directory_uri() . '/js/cart.js',
-		array('jquery'),
+		'bsc-2-0-analytics',
+		get_template_directory_uri() . '/js/analytics.js',
+		array( 'jquery' ),
 		BSC_THEME_VERSION,
 		true
 	);
 
-	wp_localize_script('bsc-2-0-add-to-cart', 'bsc_ajax', [
-		'ajax_url'  => admin_url('admin-ajax.php'),
-		'theme_uri' => get_template_directory_uri(),
-		'nonce'     => wp_create_nonce('bsc_ajax_action'),
-	]);
+	wp_localize_script(
+		'bsc-2-0-analytics',
+		'bsc_analytics',
+		array(
+			'currency' => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'COP',
+		)
+	);
+
+	$needs_cart_script = is_front_page()
+		|| is_shop()
+		|| is_product()
+		|| is_product_category()
+		|| is_product_tag()
+		|| is_cart()
+		|| is_checkout()
+		|| is_post_type_archive( 'product' );
+
+	if ( $needs_cart_script ) {
+		wp_enqueue_script(
+			'bsc-2-0-add-to-cart',
+			get_template_directory_uri() . '/js/cart.js',
+			array( 'jquery' ),
+			BSC_THEME_VERSION,
+			true
+		);
+	}
 
 	// Slider mobile hint
 	wp_enqueue_script(
@@ -69,11 +109,11 @@ function bsc_2_0_scripts() {
 
 	// Scripts solo en home
 	if (is_front_page()) {
-		// Tabs â€” secciÃ³n favoritos por tipo de piel
+		// Tabs - seccion favoritos por tipo de piel
 		wp_enqueue_script(
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
-			array('jquery'),
+			array( 'jquery' ),
 			BSC_THEME_VERSION,
 			true
 		);
@@ -82,28 +122,28 @@ function bsc_2_0_scripts() {
 		wp_enqueue_script(
 			'bsc-2-0-newsletter',
 			get_template_directory_uri() . '/js/newsletter.js',
-			array('jquery'),
+			array( 'jquery' ),
 			BSC_THEME_VERSION,
 			true
 		);
 
-		// Swiper init â€” depends on swiper-js (loaded via script_init.php)
+		// Swiper init - depends on swiper-js (loaded via script_init.php)
 		wp_enqueue_script(
 			'bsc-2-0-swiper-init',
 			get_template_directory_uri() . '/js/swiper-init.js',
-			array('swiper-js'),
+			array( 'swiper-js' ),
 			BSC_THEME_VERSION,
 			true
 		);
 	}
 
-	// Filtros y category filter â€” solo en catÃ¡logo y pÃ¡ginas de categorÃ­a
+	// Filtros y category filter - solo en catalogo y paginas de categoria
 	if (is_shop() || is_product_category() || is_product_tag() || is_archive()) {
 		// AJAX product filters (sidebar)
 		wp_enqueue_script(
 			'bsc-2-0-products-filters',
 			get_template_directory_uri() . '/js/filters.js',
-			array('jquery', 'bsc-2-0-add-to-cart'),
+			array( 'jquery', 'bsc-2-0-add-to-cart' ),
 			BSC_THEME_VERSION,
 			true
 		);
@@ -118,34 +158,42 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Checkout â€” solo en la pÃ¡gina de checkout
+	// Checkout - solo en la pagina de checkout
 	if (is_checkout()) {
 		wp_enqueue_script(
 			'bsc-2-0-checkout',
 			get_template_directory_uri() . '/js/checkout.js',
-			array('jquery'),
+			array( 'jquery' ),
+			BSC_THEME_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'bsc-2-0-abandoned-cart',
+			get_template_directory_uri() . '/js/abandoned-cart.js',
+			array(),
 			BSC_THEME_VERSION,
 			true
 		);
 	}
 
-	// Contact form â€” solo en la landing de contacto
+	// Contact form - solo en la landing de contacto
 	if ( is_page_template( 'page-contact-us.php' ) ) {
 		wp_enqueue_script(
 			'bsc-2-0-contact',
 			get_template_directory_uri() . '/js/contact.js',
-			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			array( 'jquery', 'bsc-2-0-navigation' ),
 			BSC_THEME_VERSION,
 			true
 		);
 	}
 
-	// Bubble Creators form â€” solo en su landing
+	// Bubble Creators form - solo en su landing
 	if ( is_page_template( 'page-bubble-creators.php' ) ) {
 		wp_enqueue_script(
 			'bsc-2-0-creator-apply',
 			get_template_directory_uri() . '/js/creator-apply.js',
-			array( 'jquery', 'bsc-2-0-add-to-cart' ),
+			array( 'jquery', 'bsc-2-0-navigation' ),
 			BSC_THEME_VERSION,
 			true
 		);
@@ -181,12 +229,12 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	// Cupones â€” solo en carrito y checkout
+	// Cupones - solo en carrito y checkout
 	if (is_cart() || is_checkout()) {
 		wp_enqueue_script(
 			'bsc-2-0-coupons',
 			get_template_directory_uri() . '/js/coupons.js',
-			array('jquery'),
+			array( 'jquery' ),
 			BSC_THEME_VERSION,
 			true
 		);
@@ -212,9 +260,8 @@ function bsc_2_0_scripts() {
 		);
 	}
 
-	if (is_singular() && comments_open() && get_option('thread_comments')) {
-		wp_enqueue_script('comment-reply');
+	if (is_singular() && comments_open() && get_option( 'thread_comments' )) {
+		wp_enqueue_script( 'comment-reply' );
 	}
 }
-add_action('wp_enqueue_scripts', 'bsc_2_0_scripts');
-?>
+add_action( 'wp_enqueue_scripts', 'bsc_2_0_scripts' );

@@ -12,7 +12,7 @@ function bsc_enqueue_fontawesome() {
 	wp_enqueue_style(
 		'fontawesome',
 		get_template_directory_uri() . '/vendor/fontawesome/all.min.css',
-		[],
+		array(),
 		'6.5.0'
 	);
 }
@@ -29,13 +29,13 @@ function bsc_enqueue_swiper_assets() {
 	wp_enqueue_style(
 		'swiper-css',
 		get_template_directory_uri() . '/vendor/swiper/swiper-bundle.min.css',
-		[],
+		array(),
 		'11.0.0'
 	);
 	wp_enqueue_script(
 		'swiper-js',
 		get_template_directory_uri() . '/vendor/swiper/swiper-bundle.min.js',
-		[],
+		array(),
 		'11.0.0',
 		true
 	);

@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-copyrights',
 		'title'             => 'Derechos de Autor',
 		'subtitle'          => 'Uso del contenido, marcas e imagenes de Bubble Skin Care',
@@ -26,5 +26,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

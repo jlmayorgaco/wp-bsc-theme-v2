@@ -102,6 +102,25 @@ $checkout-valid-color: rgb(0, 255, 13);
   align-items: center;
 }
 
+#billing_country_locked .woocommerce-input-wrapper .select2-container .select2-selection--single {
+  height: var(--bsc-input-height);
+}
+
+.select2-selection--single:has(#select2-billing_country_locked-container){
+  padding-top: 10px;
+  padding-bottom: 10px;
+  height: calc(1*var(--bsc-input-height));
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  #select2-billing_country_locked-container{
+    height: auto;
+    line-height: 1em;
+  }
+}
+
 .select2-selection__rendered {
   padding: 0 var(--bsc-spacing-sm);
   line-height: 1.2;

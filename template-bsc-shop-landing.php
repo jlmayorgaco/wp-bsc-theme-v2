@@ -1,127 +1,112 @@
 <?php
 /**
- * Template Name: BSC Shop Landing (K-Beauty Paraíso)
- * Description: Landing hero + 6 main K-Beauty groups.
+ * Template Name: BSC Shop Landing (K-Beauty Paraiso)
+ * Description: Landing hero + main K-Beauty groups.
  */
 
-get_header(); ?>
+get_header();
+?>
 
 <div class="bsc bsc__shop">
-  <div class="bsc__container">
+	<div class="bsc__container">
 
-    <nav class="bsc__shop-nav">
-      <a class="active">K-Beauty</a>
-    </nav>
+	<nav class="bsc__shop-nav" aria-label="<?php esc_attr_e( 'Categoria actual', 'bsc-2-0' ); ?>">
+		<a class="active">K-Beauty</a>
+	</nav>
 
-    <!-- 🌈 Header block -->
-    <section class="bsc-hero">
-      <div class="bsc-hero__icon">
-        <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_rainbow.png"
-             alt="K-Beauty rainbow icon" loading="lazy">
-      </div>
-      <h2 class="bsc-hero__title">Paraíso de <strong>K-Beauty</strong></h2>
+	<section class="bsc-hero">
+		<div class="bsc-hero__icon">
+		<img src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_rainbow.png"
+			alt="" loading="lazy" aria-hidden="true">
+		</div>
+		<h1 class="bsc-hero__title">Paraiso de <strong>K-Beauty</strong></h1>
 
-      <p class="bsc-hero__quote">
-        “Hace más de 15 años probé mi primer producto coreano y desde entonces quedé completamente enamorada del K-Beauty.
-        Con los años seguí explorando este universo: probando nuevas fórmulas, aprendiendo de las tendencias y viajando a Corea
-        para conocer de cerca su increíble tecnología. Así nació BSC: escuchando a nuestra comunidad,
-        soñando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <strong>Bubbles es literalmente un paraíso K-Beauty:
-        aquí no solo encuentras marcas cuidadosamente seleccionadas con los más altos estándares coreanos,
-        también te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)</strong> ”
-      </p>
-      <p class="bsc-hero__author">
-        Male
-        <img 
-            src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/images/bsc_icon_white_heart.png" 
-            alt="Corazones BSC" 
-            width="50" 
-            decoding="async"
-        />
-      </p>
+		<p class="bsc-hero__quote">
+		&ldquo;Hace mas de 15 anos probe mi primer producto coreano y desde entonces quede completamente enamorada del K-Beauty.
+		Con los anos segui explorando este universo: probando nuevas formulas, aprendiendo de las tendencias y viajando a Corea
+		para conocer de cerca su increible tecnologia. Asi nacio BSC: escuchando a nuestra comunidad,
+		sonando con un espacio donde el K-Beauty se sintiera cercano, real y confiable. <strong>Bubbles es literalmente un paraiso K-Beauty:
+		aqui no solo encuentras marcas cuidadosamente seleccionadas con los mas altos estandares coreanos,
+		tambien te ayudamos a crear una rutina efectiva, personalizada y pensada para tu piel :)</strong>&rdquo;
+		</p>
+		<p class="bsc-hero__author">
+		Male
+		<img
+			src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/images/bsc_icon_white_heart.png"
+			alt=""
+			width="50"
+			decoding="async"
+			aria-hidden="true"
+		/>
+		</p>
 
-      <div class="bsc-hero__divider"></div>
-      <h3 class="bsc-hero__subtitle bsc__title">
-        <strong>Bienvenido</strong> al paraíso del K-Beauty <strong>Bubble lover</strong> !
-      </h3>
-    </section>
+		<div class="bsc-hero__divider"></div>
+		<h2 class="bsc-hero__subtitle bsc__title">
+		<strong>Bienvenido</strong> al paraiso del K-Beauty <strong>Bubble lover</strong>!
+		</h2>
+	</section>
 
-    <?php
-    // 🌸 Category showcase (6 blocks)
-    $groups = [
-        [
-            'slug'  => 'group-skin-care',
-            'title' => 'SKIN CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
-        ],
-        [
-            'slug'  => 'group-hair-care',
-            'title' => 'HAIR CARE',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
-        ],
-        [
-            'slug'  => 'group-make-up',
-            'title' => 'MAKE UP',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+	<?php
+	$groups = array(
+		array(
+			'slug'  => 'group-skin-care',
+			'title' => 'SKIN CARE',
+			'image' => 'images/shop/1PAG_INTERNAR_IMAGENES_WEB.jpg',
+			'text'  => 'Tu rutina <strong>coreana empieza aqui</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los dias.',
+		),
+		array(
+			'slug'  => 'group-hair-care',
+			'title' => 'HAIR CARE',
+			'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
+			'text'  => 'Cuidado capilar coreano para limpiar, hidratar y tratar tu pelo con rutinas faciles de seguir.',
+		),
+		array(
+			'slug'  => 'group-make-up',
+			'title' => 'MAKE UP',
+			'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
+			'text'  => 'Maquillaje coreano para un acabado fresco, luminoso y comodo durante todo el dia.',
+		),
+	);
+	?>
 
-        ]
-        /*,
-        [
-            'slug'  => 'dispositivos',
-            'title' => 'DISPOSITIVOS',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/4PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+	<section class="bsc-kb-grid">
+		<?php foreach ( $groups as $group ) : ?>
+			<?php
+			$base      = trailingslashit( home_url( '/product-category/' ) );
+			$term_link = $base . $group['slug'] . '/';
+			?>
+		<article class="bsc-kb-card">
+			<a href="<?php echo esc_url( $term_link ); ?>" class="bsc-kb-card__link">
+			<div class="bsc-kb-card__imgwrap">
+				<div class="bsc-kb-card__back">
+				<?php
+				bsc_responsive_theme_image(
+					$group['image'],
+					$group['title'],
+					array(
+						'loading' => 'lazy',
+					),
+					'(max-width: 768px) 100vw, 33vw'
+				);
+				?>
+				</div>
 
-        ],
-        [
-            'slug'  => 'inner-beauty',
-            'title' => 'INNER BEAUTY',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/5PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
+				<div class="bsc-kb-card__front">
+				<img class="bsc-kb-card__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/shop/hear_icon.png" alt="" width="25" aria-hidden="true">
+				<p class="bsc-kb-text">
+					<?php echo wp_kses( $group['text'], array( 'strong' => array() ) ); ?>
+				</p>
+				</div>
+			</div>
+			<div class="bsc-kb-card__label">
+				<?php echo esc_html( $group['title'] ); ?>
+			</div>
+			</a>
+		</article>
+		<?php endforeach; ?>
+	</section>
 
-        ],
-        [
-            'slug'  => 'spa-kbeauty',
-            'title' => 'SPA KBEAUTY',
-            'image' => esc_url( get_stylesheet_directory_uri() ) . '/images/shop/6PAG_INTERNAR_IMAGENES_WEB.jpg',
-            'text' => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y mas para una piel saludable todos los días !'
-
-        ],
-        */
-    ];
-    ?>
-
-    <section class="bsc-kb-grid">
-      <?php foreach ( $groups as $g ) :
-        $base = trailingslashit( home_url( '/product-category/' ) );
-        $term_link = $base .$g['slug'] . '/';
-      ?>
-        <article class="bsc-kb-card">
-          <a href="<?php echo esc_url( $term_link ); ?>" class="bsc-kb-card__link">
-            <div class="bsc-kb-card__imgwrap">
-        
-                <div class="bsc-kb-card__back">
-                    <img src="<?php echo esc_url( $g['image'] ); ?>" alt="<?php echo esc_attr( $g['title'] ); ?>" loading="lazy">
-                </div> 
-
-                <div class="bsc-kb-card__front">
-                    <img class="bsc-kb-card__icon" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/shop/hear_icon.png" alt="" width="25px">
-                    <p class="bsc-kb-text">
-                        <? echo $g['text']; ?>
-                    </p>
-                </div>
-            </div>
-            <div class="bsc-kb-card__label">
-              <?php echo esc_html( $g['title'] ); ?>
-            </div>
-          </a>
-        </article>
-      <?php endforeach; ?>
-    </section>
-
-  </div>
+	</div>
 </div>
 
 <?php get_footer(); ?>
