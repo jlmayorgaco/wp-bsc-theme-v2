@@ -32,7 +32,7 @@ function bsc_2_0_jetpack_setup() {
 	add_theme_support(
 		'jetpack-content-options',
 		array(
-			'post-details' => array(
+			'post-details'    => array(
 				'stylesheet' => 'bsc-2-0-style',
 				'date'       => '.posted-on',
 				'categories' => '.cat-links',

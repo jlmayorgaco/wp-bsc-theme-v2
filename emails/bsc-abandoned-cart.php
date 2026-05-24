@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/bsc-email-design-system.php';
 
 $customer_name    = sanitize_text_field( (string) ( $customer_name ?? 'Bubble Lover' ) );
-$items            = is_array( $items ?? null ) ? $items : [];
+$items            = is_array( $items ?? null ) ? $items : array();
 $recover_url      = (string) ( $recover_url ?? bsc_email_shop_url() );
 $shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
 $total_html       = sanitize_text_field( (string) ( $total_html ?? '' ) );
@@ -39,7 +39,10 @@ bsc_email_render_message(
 					<td align="center" style="padding:0 66px 20px;">
 						<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 							<?php foreach ( array_slice( $items, 0, 4 ) as $item ) : ?>
-								<?php if ( ! is_array( $item ) ) { continue; } ?>
+								<?php
+								if ( ! is_array( $item ) ) {
+									continue; }
+								?>
 								<tr>
 									<td width="72" style="padding:0 14px 12px 0;">
 										<?php if ( ! empty( $item['image_url'] ) ) : ?>
@@ -68,20 +71,20 @@ bsc_email_render_message(
 <?php endif; ?>
 <?php
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $recover_url,
 			'label'     => '¡ Recuperar mi carrito !',
 			'variant'   => 'pink',
 			'min_width' => 250,
-		],
-		[
+		),
+		array(
 			'url'       => $shop_url,
 			'label'     => '¡ Seguir mirando !',
 			'variant'   => 'dark',
 			'min_width' => 210,
-		],
-	],
+		),
+	),
 	4,
 	34
 );

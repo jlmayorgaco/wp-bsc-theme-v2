@@ -132,14 +132,7 @@ class BSC_Products_Card {
 			$label = html_entity_decode( '&#161;Lo quiero!', ENT_QUOTES, 'UTF-8' );
 		}
 
-		$product_id      = $this->id;
-		$analytics_attrs = sprintf(
-			' data-product_name="%s" data-product_price="%s" data-product_brand="%s"',
-			esc_attr( $this->title ),
-			esc_attr( wc_format_decimal( $this->raw_price, wc_get_price_decimals() ) ),
-			esc_attr( $this->brand )
-		);
-
+		$product_id = $this->id;
 		if ( $this->type === 'variable' ) {
 			echo '<a href="' . esc_url( $this->link ) . '" class="bsc__button bsc__button--product-card bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
 			echo '<span>Ver opciones</span>';
@@ -147,8 +140,9 @@ class BSC_Products_Card {
 			return;
 		}
 
-		$in_cart  = false;
-		$quantity = 0;
+		$formatted_price = wc_format_decimal( $this->raw_price, wc_get_price_decimals() );
+		$in_cart         = false;
+		$quantity        = 0;
 
 		foreach ( WC()->cart->get_cart() as $cart_item ) {
 			if ( (int) $cart_item['product_id'] === (int) $product_id ) {
@@ -165,7 +159,9 @@ class BSC_Products_Card {
                 data-quantity="1"
                 data-product_id="' . esc_attr( $product_id ) . '"
                 data-product_sku="' . esc_attr( $this->sku ) . '"
-                ' . $analytics_attrs . '
+                data-product_name="' . esc_attr( $this->title ) . '"
+                data-product_price="' . esc_attr( $formatted_price ) . '"
+                data-product_brand="' . esc_attr( $this->brand ) . '"
                 aria-label="' . esc_attr( $label ) . '"
             ><span>' . esc_html( $label ) . '</span></button>';
 
@@ -194,7 +190,9 @@ class BSC_Products_Card {
             data-quantity="1"
             data-product_id="' . esc_attr( $product_id ) . '"
             data-product_sku="' . esc_attr( $this->sku ) . '"
-            ' . $analytics_attrs . '
+            data-product_name="' . esc_attr( $this->title ) . '"
+            data-product_price="' . esc_attr( $formatted_price ) . '"
+            data-product_brand="' . esc_attr( $this->brand ) . '"
             aria-label="' . esc_attr( $label ) . '"
         ><span>' . esc_html( $label ) . '</span></button>';
 	}

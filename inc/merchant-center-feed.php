@@ -22,7 +22,7 @@ function bsc_merchant_center_xml( $value ): string {
 function bsc_merchant_center_price( WC_Product $product, ?float $override_price = null ): string {
 	$price = null === $override_price
 		? (float) wc_get_price_to_display( $product )
-		: (float) wc_get_price_to_display( $product, [ 'price' => $override_price ] );
+		: (float) wc_get_price_to_display( $product, array( 'price' => $override_price ) );
 
 	return number_format( max( 0, $price ), 2, '.', '' ) . ' ' . get_woocommerce_currency();
 }
@@ -40,8 +40,8 @@ function bsc_merchant_center_get_brand( WC_Product $product, ?WC_Product $parent
 }
 
 function bsc_merchant_center_get_identifier( WC_Product $product ): array {
-	$gtin_meta_keys = [ '_global_unique_id', '_gtin', '_wc_gpf_gtin', '_bsc_gtin', 'gtin' ];
-	$mpn_meta_keys  = [ '_mpn', '_wc_gpf_mpn', '_bsc_mpn', 'mpn' ];
+	$gtin_meta_keys = array( '_global_unique_id', '_gtin', '_wc_gpf_gtin', '_bsc_gtin', 'gtin' );
+	$mpn_meta_keys  = array( '_mpn', '_wc_gpf_mpn', '_bsc_mpn', 'mpn' );
 	$gtin           = '';
 	$mpn            = '';
 
@@ -63,10 +63,10 @@ function bsc_merchant_center_get_identifier( WC_Product $product ): array {
 		$mpn = (string) get_post_meta( $product->get_id(), $meta_key, true );
 	}
 
-	return [
+	return array(
 		'gtin' => preg_replace( '/[^0-9]/', '', $gtin ),
 		'mpn'  => sanitize_text_field( $mpn ),
-	];
+	);
 }
 
 function bsc_merchant_center_get_item_id( WC_Product $product ): string {
@@ -104,7 +104,7 @@ function bsc_merchant_center_get_title( WC_Product $product, ?WC_Product $parent
 }
 
 function bsc_merchant_center_get_image_urls( WC_Product $product, ?WC_Product $parent = null ): array {
-	$image_ids = [];
+	$image_ids = array();
 
 	if ( $product->get_image_id() ) {
 		$image_ids[] = (int) $product->get_image_id();
@@ -120,7 +120,7 @@ function bsc_merchant_center_get_image_urls( WC_Product $product, ?WC_Product $p
 		$image_ids = array_merge( $image_ids, array_map( 'absint', $product->get_gallery_image_ids() ) );
 	}
 
-	$urls = [];
+	$urls = array();
 	foreach ( array_slice( array_unique( array_filter( $image_ids ) ), 0, 10 ) as $image_id ) {
 		$url = wp_get_attachment_image_url( $image_id, 'full' );
 		if ( $url ) {
@@ -153,7 +153,7 @@ function bsc_merchant_center_get_product_type( WC_Product $product, ?WC_Product 
 		return '';
 	}
 
-	$names = [];
+	$names = array();
 	foreach ( $terms as $term ) {
 		if ( $term instanceof WP_Term && false === strpos( $term->slug, '-marca' ) ) {
 			$names[] = $term->name;
@@ -182,20 +182,24 @@ function bsc_merchant_center_product_is_feedable( WC_Product $product, ?WC_Produ
 }
 
 function bsc_merchant_center_write_tag( string $tag, $value ): void {
+	$tag   = preg_replace( '/[^a-z0-9:_-]/i', '', $tag );
 	$value = trim( (string) $value );
-	if ( '' === $value ) {
+	if ( '' === $tag || '' === $value ) {
 		return;
 	}
 
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Value is escaped for XML by bsc_merchant_center_xml(); tag name is allowlisted above.
 	echo "\t\t\t<" . $tag . '>' . bsc_merchant_center_xml( $value ) . '</' . $tag . ">\n";
 }
 
 function bsc_merchant_center_write_url_tag( string $tag, string $url ): void {
+	$tag = preg_replace( '/[^a-z0-9:_-]/i', '', $tag );
 	$url = esc_url_raw( $url );
-	if ( '' === $url ) {
+	if ( '' === $tag || '' === $url ) {
 		return;
 	}
 
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- URL is escaped for XML by bsc_merchant_center_xml(); tag name is allowlisted above.
 	echo "\t\t\t<" . $tag . '>' . bsc_merchant_center_xml( $url ) . '</' . $tag . ">\n";
 }
 
@@ -204,13 +208,13 @@ function bsc_merchant_center_write_item( WC_Product $product, ?WC_Product $paren
 		return false;
 	}
 
-	$images      = bsc_merchant_center_get_image_urls( $product, $parent );
-	$identifiers = bsc_merchant_center_get_identifier( $product );
-	$regular    = (float) $product->get_regular_price();
-	$sale       = (float) $product->get_sale_price();
-	$is_on_sale = $product->is_on_sale() && $regular > 0 && $sale > 0 && $sale < $regular;
-	$link       = $product->get_permalink();
-	$brand      = bsc_merchant_center_get_brand( $product, $parent );
+	$images       = bsc_merchant_center_get_image_urls( $product, $parent );
+	$identifiers  = bsc_merchant_center_get_identifier( $product );
+	$regular      = (float) $product->get_regular_price();
+	$sale         = (float) $product->get_sale_price();
+	$is_on_sale   = $product->is_on_sale() && $regular > 0 && $sale > 0 && $sale < $regular;
+	$link         = $product->get_permalink();
+	$brand        = bsc_merchant_center_get_brand( $product, $parent );
 	$product_type = bsc_merchant_center_get_product_type( $product, $parent );
 
 	echo "\t\t<item>\n";
@@ -280,21 +284,21 @@ function bsc_merchant_center_output_feed(): void {
 	bsc_merchant_center_write_url_tag( 'link', home_url( '/' ) );
 	bsc_merchant_center_write_tag( 'description', 'Catalogo de productos BSC para Google Merchant Center.' );
 
-	$page      = 1;
-	$per_page  = 100;
-	$has_more  = true;
+	$page     = 1;
+	$per_page = 100;
+	$has_more = true;
 
 	while ( $has_more ) {
 		$result = wc_get_products(
-			[
+			array(
 				'status'   => 'publish',
 				'limit'    => $per_page,
 				'paged'    => $page,
 				'paginate' => true,
-			]
+			)
 		);
 
-		$products = is_object( $result ) && isset( $result->products ) ? $result->products : [];
+		$products = is_object( $result ) && isset( $result->products ) ? $result->products : array();
 		$max_page = is_object( $result ) && isset( $result->max_num_pages ) ? (int) $result->max_num_pages : 1;
 
 		foreach ( $products as $product ) {
@@ -316,7 +320,7 @@ function bsc_merchant_center_output_feed(): void {
 		}
 
 		$has_more = $page < $max_page;
-		$page++;
+		++$page;
 	}
 
 	echo "\t</channel>\n";

@@ -1,33 +1,30 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
-class BSC_Theme_Importer_PPU_ProductManager
-{
-    public function clearImages($product)
-    {
-        $product->set_image_id('');
-        $product->set_gallery_image_ids([]);
-        $product->save();
-    }
+class BSC_Theme_Importer_PPU_ProductManager {
 
-    public function attachImages($product, $images)
-    {
-        if (empty($images)) {
-            return;
-        }
+	public function clearImages( $product ) {
+		$product->set_image_id( '' );
+		$product->set_gallery_image_ids( array() );
+		$product->save();
+	}
 
-        $featuredImage = $images[0];
-        $galleryImages = array_slice($images, 1);
+	public function attachImages( $product, $images ) {
+		if (empty( $images )) {
+			return;
+		}
 
-        $product->set_image_id($featuredImage);
-        $product->set_gallery_image_ids($galleryImages);
-        $product->save();
-    }
+		$featuredImage = $images[0];
+		$galleryImages = array_slice( $images, 1 );
 
-    public function getProductBySku($sku)
-    {
-        $productId = wc_get_product_id_by_sku($sku);
-        return $productId ? wc_get_product($productId) : null;
-    }
+		$product->set_image_id( $featuredImage );
+		$product->set_gallery_image_ids( $galleryImages );
+		$product->save();
+	}
+
+	public function getProductBySku( $sku ) {
+		$productId = wc_get_product_id_by_sku( $sku );
+		return $productId ? wc_get_product( $productId ) : null;
+	}
 }

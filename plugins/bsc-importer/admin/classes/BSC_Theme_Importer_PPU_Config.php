@@ -1,37 +1,31 @@
 <?php
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
-class BSC_Theme_Importer_PPU_Config
-{
-    public static function getUploadDirectory()
-    {
-        $uploadDir = wp_upload_dir();
-        return untrailingslashit($uploadDir['basedir']);
-    }
+class BSC_Theme_Importer_PPU_Config {
 
-    public static function getPhotoZipDirectory()
-    {
-        return self::getUploadDirectory() . '/product_photos_zips';
-    }
+	public static function getUploadDirectory() {
+		$uploadDir = wp_upload_dir();
+		return untrailingslashit( $uploadDir['basedir'] );
+	}
 
-    public static function getPhotoZipFilename()
-    {
-        return 'FOTOS_PAG_WEB_NOMENCLATURA.zip';
-    }
+	public static function getPhotoZipDirectory() {
+		return self::getUploadDirectory() . '/product_photos_zips';
+	}
 
-    public static function getExtractedFolderName()
-    {
-        return 'FOTOS_PAG_WEB_NOMENCLATURA';
-    }
+	public static function getPhotoZipFilename() {
+		return 'FOTOS_PAG_WEB_NOMENCLATURA.zip';
+	}
 
-    public static function getSupportedPrefixes()
-    {
-        return ['SK', 'HC', 'MK'];
-    }
+	public static function getExtractedFolderName() {
+		return 'FOTOS_PAG_WEB_NOMENCLATURA';
+	}
 
-    public static function getBatchSize()
-    {
-        return 500;
-    }
+	public static function getSupportedPrefixes() {
+		return array( 'SK', 'HC', 'MK' );
+	}
+
+	public static function getBatchSize() {
+		return 500;
+	}
 }

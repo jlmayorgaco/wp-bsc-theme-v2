@@ -26,9 +26,9 @@ $email_preheader  = (string) ( $email_preheader ?? $email_title );
 <title><?php echo esc_html( $email_title ); ?></title>
 <style type="text/css">
 @media only screen and (max-width: 680px) {
-  .bsc-email-shell { width: 100% !important; }
-  .bsc-email-mobile-pad { padding-left: 24px !important; padding-right: 24px !important; }
-  .bsc-email-fluid { width: 100% !important; max-width: 100% !important; }
+	.bsc-email-shell { width: 100% !important; }
+	.bsc-email-mobile-pad { padding-left: 24px !important; padding-right: 24px !important; }
+	.bsc-email-fluid { width: 100% !important; max-width: 100% !important; }
 }
 </style>
 </head>

@@ -8,12 +8,12 @@
 defined( 'ABSPATH' ) || exit;
 
 function bsc_abandoned_cart_defaults(): array {
-	return [
-		'enabled'       => 1,
-		'delay_hours'   => 4,
+	return array(
+		'enabled'        => 1,
+		'delay_hours'    => 4,
 		'retention_days' => 14,
-		'max_rows'      => 250,
-	];
+		'max_rows'       => 250,
+	);
 }
 
 function bsc_abandoned_cart_setting( string $key ) {
@@ -26,8 +26,8 @@ function bsc_abandoned_cart_is_enabled(): bool {
 }
 
 function bsc_abandoned_cart_get_rows(): array {
-	$rows = get_option( 'bsc_abandoned_carts', [] );
-	return is_array( $rows ) ? $rows : [];
+	$rows = get_option( 'bsc_abandoned_carts', array() );
+	return is_array( $rows ) ? $rows : array();
 }
 
 function bsc_abandoned_cart_save_rows( array $rows ): void {
@@ -37,10 +37,10 @@ function bsc_abandoned_cart_save_rows( array $rows ): void {
 
 function bsc_abandoned_cart_get_cart_items(): array {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-		return [];
+		return array();
 	}
 
-	$items = [];
+	$items = array();
 
 	foreach ( WC()->cart->get_cart() as $cart_item ) {
 		$product = $cart_item['data'] ?? null;
@@ -48,16 +48,16 @@ function bsc_abandoned_cart_get_cart_items(): array {
 			continue;
 		}
 
-		$items[] = [
+		$items[] = array(
 			'product_id'   => (int) ( $cart_item['product_id'] ?? $product->get_id() ),
 			'variation_id' => (int) ( $cart_item['variation_id'] ?? 0 ),
-			'variation'    => is_array( $cart_item['variation'] ?? null ) ? $cart_item['variation'] : [],
+			'variation'    => is_array( $cart_item['variation'] ?? null ) ? $cart_item['variation'] : array(),
 			'quantity'     => max( 1, (int) ( $cart_item['quantity'] ?? 1 ) ),
 			'name'         => wp_strip_all_tags( $product->get_name() ),
 			'url'          => get_permalink( $product->get_id() ),
 			'image_url'    => wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) ?: '',
 			'price_html'   => wp_strip_all_tags( $product->get_price_html() ),
-		];
+		);
 	}
 
 	return $items;
@@ -71,12 +71,12 @@ function bsc_abandoned_cart_capture(): void {
 	}
 
 	if ( ! bsc_abandoned_cart_is_enabled() || ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
-		wp_send_json_error( [ 'message' => 'Cart capture unavailable.' ], 400 );
+		wp_send_json_error( array( 'message' => 'Cart capture unavailable.' ), 400 );
 	}
 
 	$email = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
 	if ( ! is_email( $email ) ) {
-		wp_send_json_error( [ 'message' => 'Email required.' ], 400 );
+		wp_send_json_error( array( 'message' => 'Email required.' ), 400 );
 	}
 
 	$name  = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
@@ -84,7 +84,7 @@ function bsc_abandoned_cart_capture(): void {
 	$items = bsc_abandoned_cart_get_cart_items();
 
 	if ( empty( $items ) ) {
-		wp_send_json_error( [ 'message' => 'Empty cart.' ], 400 );
+		wp_send_json_error( array( 'message' => 'Empty cart.' ), 400 );
 	}
 
 	$cart_hash = md5( strtolower( $email ) . wp_json_encode( wp_list_pluck( $items, 'product_id' ) ) );
@@ -97,17 +97,17 @@ function bsc_abandoned_cart_capture(): void {
 			continue;
 		}
 
-		$row = array_merge(
+		$row   = array_merge(
 			$row,
-			[
-				'email'      => $email,
-				'name'       => $name,
-				'phone'      => $phone,
-				'items'      => $items,
-				'total_html' => wp_strip_all_tags( WC()->cart->get_total() ),
-				'updated_at' => $now,
+			array(
+				'email'        => $email,
+				'name'         => $name,
+				'phone'        => $phone,
+				'items'        => $items,
+				'total_html'   => wp_strip_all_tags( WC()->cart->get_total() ),
+				'updated_at'   => $now,
 				'converted_at' => '',
-			]
+			)
 		);
 		$found = true;
 		break;
@@ -115,7 +115,7 @@ function bsc_abandoned_cart_capture(): void {
 	unset( $row );
 
 	if ( ! $found ) {
-		$rows[] = [
+		$rows[] = array(
 			'cart_hash'    => $cart_hash,
 			'token'        => wp_generate_password( 32, false, false ),
 			'email'        => $email,
@@ -128,7 +128,7 @@ function bsc_abandoned_cart_capture(): void {
 			'reminded_at'  => '',
 			'recovered_at' => '',
 			'converted_at' => '',
-		];
+		);
 
 		if ( function_exists( 'bsc_metrics_record_counter' ) ) {
 			bsc_metrics_record_counter( 'abandoned_cart_capture' );
@@ -137,7 +137,7 @@ function bsc_abandoned_cart_capture(): void {
 
 	bsc_abandoned_cart_save_rows( bsc_abandoned_cart_prune_rows( $rows ) );
 
-	wp_send_json_success( [ 'captured' => true ] );
+	wp_send_json_success( array( 'captured' => true ) );
 }
 add_action( 'wp_ajax_bsc_capture_abandoned_cart', 'bsc_abandoned_cart_capture' );
 add_action( 'wp_ajax_nopriv_bsc_capture_abandoned_cart', 'bsc_abandoned_cart_capture' );
@@ -170,9 +170,9 @@ add_action( 'init', 'bsc_abandoned_cart_schedule' );
 
 function bsc_abandoned_cart_recover_url( array $row ): string {
 	return add_query_arg(
-		[
+		array(
 			'bsc_recover_cart' => (string) ( $row['token'] ?? '' ),
-		],
+		),
 		wc_get_checkout_url()
 	);
 }
@@ -206,13 +206,13 @@ function bsc_process_abandoned_carts(): int {
 			$email,
 			'Tu carrito BSC te esta esperando',
 			'bsc-abandoned-cart.php',
-			[
+			array(
 				'customer_name' => (string) ( $row['name'] ?? '' ),
-				'items'         => is_array( $row['items'] ?? null ) ? $row['items'] : [],
+				'items'         => is_array( $row['items'] ?? null ) ? $row['items'] : array(),
 				'total_html'    => (string) ( $row['total_html'] ?? '' ),
 				'recover_url'   => bsc_abandoned_cart_recover_url( $row ),
 				'shop_url'      => function_exists( 'bsc_get_email_shop_url' ) ? bsc_get_email_shop_url() : wc_get_page_permalink( 'shop' ),
-			]
+			)
 		);
 
 		if ( $sent ) {
@@ -220,7 +220,7 @@ function bsc_process_abandoned_carts(): int {
 			if ( function_exists( 'bsc_metrics_record_counter' ) ) {
 				bsc_metrics_record_counter( 'abandoned_cart_email' );
 			}
-			$sent_count++;
+			++$sent_count;
 		}
 	}
 	unset( $row );
@@ -233,19 +233,21 @@ function bsc_process_abandoned_carts(): int {
 add_action( 'bsc_process_abandoned_carts', 'bsc_process_abandoned_carts' );
 
 function bsc_abandoned_cart_restore_from_token(): void {
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Recovery token comes from the email link, not an admin form.
 	if ( empty( $_GET['bsc_recover_cart'] ) || ! function_exists( 'WC' ) || ! WC()->cart || ! function_exists( 'wc_get_checkout_url' ) ) {
 		return;
 	}
 
 	$token = sanitize_text_field( wp_unslash( $_GET['bsc_recover_cart'] ) );
-	$rows  = bsc_abandoned_cart_get_rows();
+	// phpcs:enable WordPress.Security.NonceVerification.Recommended
+	$rows = bsc_abandoned_cart_get_rows();
 
 	foreach ( $rows as &$row ) {
 		if ( ! is_array( $row ) || ! hash_equals( (string) ( $row['token'] ?? '' ), $token ) ) {
 			continue;
 		}
 
-		$items = is_array( $row['items'] ?? null ) ? $row['items'] : [];
+		$items = is_array( $row['items'] ?? null ) ? $row['items'] : array();
 		foreach ( $items as $item ) {
 			if ( ! is_array( $item ) ) {
 				continue;
@@ -254,7 +256,7 @@ function bsc_abandoned_cart_restore_from_token(): void {
 			$product_id   = absint( $item['product_id'] ?? 0 );
 			$variation_id = absint( $item['variation_id'] ?? 0 );
 			$quantity     = max( 1, absint( $item['quantity'] ?? 1 ) );
-			$variation    = is_array( $item['variation'] ?? null ) ? $item['variation'] : [];
+			$variation    = is_array( $item['variation'] ?? null ) ? $item['variation'] : array();
 			$product      = wc_get_product( $variation_id ?: $product_id );
 
 			if ( $product instanceof WC_Product && $product->is_purchasable() && $product->is_in_stock() ) {

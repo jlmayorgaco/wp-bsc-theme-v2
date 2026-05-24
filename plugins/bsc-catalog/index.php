@@ -1,5 +1,5 @@
 <?php
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/classes/class-bsc-catalog-filter-config.php';
 require_once __DIR__ . '/classes/class-bsc-catalog-request-context.php';

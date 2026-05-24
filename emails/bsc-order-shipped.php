@@ -39,14 +39,14 @@ if ( $order instanceof WC_Order ) {
 }
 
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => bsc_email_shop_url(),
 			'label'     => '¡ Ir a la tienda !',
 			'variant'   => 'dark',
 			'min_width' => 210,
-		],
-	],
+		),
+	),
 	0,
 	34
 );

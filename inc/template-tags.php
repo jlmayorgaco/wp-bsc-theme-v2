@@ -32,7 +32,6 @@ if ( ! function_exists( 'bsc_2_0_posted_on' ) ) :
 		);
 
 		echo '<span class="posted-on">' . $posted_on . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
 	}
 endif;
 
@@ -48,7 +47,6 @@ if ( ! function_exists( 'bsc_2_0_posted_by' ) ) :
 		);
 
 		echo '<span class="byline"> ' . $byline . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
 	}
 endif;
 

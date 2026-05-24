@@ -4,7 +4,7 @@
  */
 
 bsc_render_static_page_template(
-	[
+	array(
 		'page_class'        => 'page-privacy',
 		'title'             => 'Politicas de Privacidad',
 		'subtitle'          => 'Conoce como protegemos y tratamos tus datos',
@@ -31,5 +31,5 @@ bsc_render_static_page_template(
 			</div>
 			<?php
 		},
-	]
+	)
 );

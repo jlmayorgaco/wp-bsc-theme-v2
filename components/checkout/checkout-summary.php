@@ -61,16 +61,16 @@ class BSC_Checkout_Review_Summary {
 	protected function render_row( string $label, string $value, string $id, bool $highlight = false ): void {
 		$row_class = 'review-summary__row' . ( $highlight ? ' review-summary__row--total' : '' );
 
-		echo "<div class=\"$row_class\">";
-		echo "  <div class=\"review-summary__label\">$label</div>";
-		echo "  <div class=\"review-summary__value\" id=\"$id\">$value</div>";
+		echo '<div class="' . esc_attr( $row_class ) . '">';
+		echo '  <div class="review-summary__label">' . wp_kses_post( $label ) . '</div>';
+		echo '  <div class="review-summary__value" id="' . esc_attr( $id ) . '">' . wp_kses_post( $value ) . '</div>';
 		echo '</div>';
 	}
 
 	protected function render_free_shipping_progress(): void {
 		$progress = function_exists( 'bsc_get_free_shipping_progress_payload' )
 			? bsc_get_free_shipping_progress_payload()
-			: [];
+			: array();
 
 		if ( empty( $progress ) || (float) ( $progress['threshold'] ?? 0 ) <= 0 ) {
 			return;

@@ -38,14 +38,14 @@ bsc_email_render_message(
 <?php
 bsc_email_render_coupon( $coupon_code, '10% OFF en BSC', 'Válido por 1 semana | Usos restantes: 1', '#f4b5c7' );
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $shop_url,
 			'label'     => '¡ Redimir mi descuento !',
 			'variant'   => 'dark',
 			'min_width' => 260,
-		],
-	],
+		),
+	),
 	0,
 	28
 );

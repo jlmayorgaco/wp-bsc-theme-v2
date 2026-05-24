@@ -26,11 +26,11 @@ function bsc_seo_get_product_brand( WC_Product $product ): string {
 function bsc_seo_get_product_image_urls( WC_Product $product ): array {
 	$image_ids = array_filter(
 		array_merge(
-			[ (int) $product->get_image_id() ],
+			array( (int) $product->get_image_id() ),
 			array_map( 'absint', $product->get_gallery_image_ids() )
 		)
 	);
-	$urls = [];
+	$urls      = array();
 
 	foreach ( array_slice( $image_ids, 0, 6 ) as $image_id ) {
 		$url = wp_get_attachment_image_url( $image_id, 'full' );
@@ -56,7 +56,7 @@ function bsc_seo_get_availability_url( WC_Product $product ): string {
 
 function bsc_seo_get_product_schema( WC_Product $product ): array {
 	$description = wp_strip_all_tags( $product->get_short_description() ?: $product->get_description() );
-	$schema      = [
+	$schema      = array(
 		'@context'    => 'https://schema.org',
 		'@type'       => 'Product',
 		'@id'         => get_permalink( $product->get_id() ) . '#product',
@@ -65,11 +65,11 @@ function bsc_seo_get_product_schema( WC_Product $product ): array {
 		'url'         => get_permalink( $product->get_id() ),
 		'sku'         => $product->get_sku() ?: (string) $product->get_id(),
 		'image'       => bsc_seo_get_product_image_urls( $product ),
-		'brand'       => [
+		'brand'       => array(
 			'@type' => 'Brand',
 			'name'  => bsc_seo_get_product_brand( $product ),
-		],
-		'offers'      => [
+		),
+		'offers'      => array(
 			'@type'           => 'Offer',
 			'url'             => get_permalink( $product->get_id() ),
 			'priceCurrency'   => get_woocommerce_currency(),
@@ -77,34 +77,34 @@ function bsc_seo_get_product_schema( WC_Product $product ): array {
 			'availability'    => bsc_seo_get_availability_url( $product ),
 			'itemCondition'   => 'https://schema.org/NewCondition',
 			'priceValidUntil' => gmdate( 'Y-m-d', strtotime( '+1 year' ) ),
-			'seller'          => [
+			'seller'          => array(
 				'@type' => 'Organization',
 				'name'  => get_bloginfo( 'name' ),
-			],
-		],
-	];
+			),
+		),
+	);
 
 	$rating_count = (int) $product->get_rating_count();
 	if ( $rating_count > 0 ) {
-		$schema['aggregateRating'] = [
+		$schema['aggregateRating'] = array(
 			'@type'       => 'AggregateRating',
 			'ratingValue' => (string) $product->get_average_rating(),
 			'reviewCount' => $rating_count,
-		];
+		);
 	}
 
 	return $schema;
 }
 
 function bsc_seo_get_breadcrumb_schema(): array {
-	$items = [
-		[
+	$items = array(
+		array(
 			'@type'    => 'ListItem',
 			'position' => 1,
 			'name'     => 'Inicio',
 			'item'     => home_url( '/' ),
-		],
-	];
+		),
+	);
 
 	if ( function_exists( 'is_product' ) && is_product() ) {
 		$product_id = get_the_ID();
@@ -118,106 +118,106 @@ function bsc_seo_get_breadcrumb_schema(): array {
 				foreach ( $ancestors as $ancestor_id ) {
 					$ancestor = get_term( $ancestor_id, 'product_cat' );
 					if ( $ancestor instanceof WP_Term ) {
-						$items[] = [
+						$items[] = array(
 							'@type'    => 'ListItem',
 							'position' => $position++,
 							'name'     => $ancestor->name,
 							'item'     => get_term_link( $ancestor ),
-						];
+						);
 					}
 				}
 
-				$items[] = [
+				$items[] = array(
 					'@type'    => 'ListItem',
 					'position' => $position++,
 					'name'     => $term->name,
 					'item'     => get_term_link( $term ),
-				];
+				);
 			}
 		}
 
-		$items[] = [
+		$items[] = array(
 			'@type'    => 'ListItem',
 			'position' => $position ?? 2,
 			'name'     => get_the_title(),
 			'item'     => get_permalink( $product_id ),
-		];
+		);
 	}
 
-	return [
+	return array(
 		'@context'        => 'https://schema.org',
 		'@type'           => 'BreadcrumbList',
 		'itemListElement' => $items,
-	];
+	);
 }
 
 function bsc_seo_get_item_list_schema(): array {
 	if ( ! class_exists( 'WooCommerce' ) ) {
-		return [];
+		return array();
 	}
 
-	$product_ids = [];
+	$product_ids = array();
 
 	if ( is_product_category() ) {
 		$term = get_queried_object();
 		if ( $term instanceof WP_Term ) {
 			$product_ids = wc_get_products(
-				[
+				array(
 					'limit'    => 12,
 					'status'   => 'publish',
 					'return'   => 'ids',
-					'category' => [ $term->slug ],
-				]
+					'category' => array( $term->slug ),
+				)
 			);
 		}
 	} elseif ( is_shop() ) {
 		$product_ids = wc_get_products(
-			[
+			array(
 				'limit'  => 12,
 				'status' => 'publish',
 				'return' => 'ids',
-			]
+			)
 		);
 	} elseif ( is_search() ) {
 		$query = get_search_query( false );
 		if ( $query !== '' ) {
 			$product_ids = get_posts(
-				[
+				array(
 					'post_type'      => 'product',
 					'post_status'    => 'publish',
 					's'              => $query,
 					'fields'         => 'ids',
 					'posts_per_page' => 12,
 					'no_found_rows'  => true,
-				]
+				)
 			);
 		}
 	}
 
-	$item_list = [];
+	$item_list = array();
 	foreach ( array_values( array_unique( array_map( 'absint', $product_ids ) ) ) as $index => $product_id ) {
 		$product = wc_get_product( $product_id );
 		if ( ! $product instanceof WC_Product ) {
 			continue;
 		}
 
-		$item_list[] = [
+		$item_list[] = array(
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'url'      => get_permalink( $product_id ),
 			'name'     => wp_strip_all_tags( $product->get_name() ),
-		];
+		);
 	}
 
 	if ( empty( $item_list ) ) {
-		return [];
+		return array();
 	}
 
-	return [
+	return array(
 		'@context'        => 'https://schema.org',
 		'@type'           => 'ItemList',
 		'itemListElement' => $item_list,
-	];
+	);
 }
 
 function bsc_seo_print_json_ld( array $schema ): void {

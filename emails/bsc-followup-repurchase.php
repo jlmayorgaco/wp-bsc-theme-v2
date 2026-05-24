@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/bsc-email-design-system.php';
 
 $customer_name    = sanitize_text_field( (string) ( $customer_name ?? 'Bubble Lover' ) );
-$products         = is_array( $products ?? null ) ? $products : [];
+$products         = is_array( $products ?? null ) ? $products : array();
 $shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
 $email_title      = '¡ Tu rutina puede estar por acabarse!';
 $email_hero       = 'bsc-email-hero-smile-pink.png';
@@ -38,14 +38,14 @@ bsc_email_render_message(
 <?php
 bsc_email_render_product_grid( $products );
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $shop_url,
 			'label'     => '¡ Ver toda la tienda !',
 			'variant'   => 'dark',
 			'min_width' => 250,
-		],
-	],
+		),
+	),
 	4,
 	42
 );

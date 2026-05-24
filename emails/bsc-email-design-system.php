@@ -86,27 +86,27 @@ if ( ! function_exists( 'bsc_email_supported_html' ) ) {
 	function bsc_email_supported_html( string $html ): string {
 		return wp_kses(
 			$html,
-			[
-				'a'      => [
+			array(
+				'a'      => array(
 					'href'   => true,
 					'target' => true,
 					'style'  => true,
-				],
-				'br'     => [],
-				'strong' => [],
-				'em'     => [],
-				'span'   => [
+				),
+				'br'     => array(),
+				'strong' => array(),
+				'em'     => array(),
+				'span'   => array(
 					'style' => true,
-				],
-			]
+				),
+			)
 		);
 	}
 }
 
 if ( ! function_exists( 'bsc_email_render_button' ) ) {
 	function bsc_email_render_button( string $url, string $label, string $variant = 'dark', int $min_width = 0 ): void {
-		$background = 'pink' === $variant ? '#f4b5c7' : ( 'blue' === $variant ? '#cceff7' : '#303030' );
-		$color      = '#303030' === $background ? '#ffffff' : '#303030';
+		$background      = 'pink' === $variant ? '#f4b5c7' : ( 'blue' === $variant ? '#cceff7' : '#303030' );
+		$color           = '#303030' === $background ? '#ffffff' : '#303030';
 		$min_width_style = $min_width > 0 ? 'min-width:' . absint( $min_width ) . 'px;' : '';
 		?>
 		<a href="<?php echo esc_url( $url ); ?>"
@@ -150,7 +150,7 @@ if ( ! function_exists( 'bsc_email_render_message' ) ) {
 		<tr>
 			<td align="center" style="padding:<?php echo esc_attr( $padding_top ); ?>px 54px <?php echo esc_attr( $padding_bottom ); ?>px;">
 				<div style="color:#363636;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:400;letter-spacing:.8px;line-height:1.48;text-align:center;">
-					<?php echo bsc_email_supported_html( $message ); ?>
+					<?php echo wp_kses_post( bsc_email_supported_html( $message ) ); ?>
 				</div>
 			</td>
 		</tr>

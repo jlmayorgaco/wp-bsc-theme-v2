@@ -39,14 +39,14 @@ bsc_email_render_message(
 <?php
 bsc_email_render_coupon( $coupon_code, 'Envío gratis!', 'Válido por 1 mes | Usos restantes: 1', '#f4b5c7' );
 bsc_email_render_button_row(
-	[
-		[
+	array(
+		array(
 			'url'       => $shop_url,
 			'label'     => '¡ Redimir mi descuento !',
 			'variant'   => 'dark',
 			'min_width' => 260,
-		],
-	],
+		),
+	),
 	0,
 	30
 );

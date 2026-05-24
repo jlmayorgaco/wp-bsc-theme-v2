@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 function bsc_ga4_get_measurement_id(): string {
-	$from_constant = defined( 'BSC_GA4_MEASUREMENT_ID' ) ? (string) BSC_GA4_MEASUREMENT_ID : '';
+	$from_constant  = defined( 'BSC_GA4_MEASUREMENT_ID' ) ? (string) BSC_GA4_MEASUREMENT_ID : '';
 	$measurement_id = $from_constant !== ''
 		? $from_constant
 		: (string) get_option( 'bsc_ga4_measurement_id', '' );
@@ -18,7 +18,7 @@ function bsc_ga4_get_measurement_id(): string {
 
 function bsc_ga4_get_product_item( WC_Product $product, int $quantity = 1, int $index = 0 ): array {
 	$terms      = get_the_terms( $product->get_id(), 'product_cat' );
-	$categories = [];
+	$categories = array();
 	$brand      = '';
 
 	if ( $terms && ! is_wp_error( $terms ) ) {
@@ -35,20 +35,20 @@ function bsc_ga4_get_product_item( WC_Product $product, int $quantity = 1, int $
 		}
 	}
 
-	$item = [
+	$item = array(
 		'item_id'   => $product->get_sku() ?: (string) $product->get_id(),
 		'item_name' => wp_strip_all_tags( $product->get_name() ),
 		'price'     => (float) wc_get_price_to_display( $product ),
 		'quantity'  => max( 1, $quantity ),
 		'index'     => max( 0, $index ),
-	];
+	);
 
 	if ( $brand !== '' ) {
 		$item['item_brand'] = $brand;
 	}
 
 	foreach ( $categories as $category_index => $category_name ) {
-		$key = 0 === $category_index ? 'item_category' : 'item_category' . ( $category_index + 1 );
+		$key          = 0 === $category_index ? 'item_category' : 'item_category' . ( $category_index + 1 );
 		$item[ $key ] = $category_name;
 	}
 
@@ -57,10 +57,10 @@ function bsc_ga4_get_product_item( WC_Product $product, int $quantity = 1, int $
 
 function bsc_ga4_get_cart_items(): array {
 	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
-		return [];
+		return array();
 	}
 
-	$items = [];
+	$items = array();
 	$index = 0;
 
 	foreach ( WC()->cart->get_cart() as $cart_item ) {
@@ -82,7 +82,7 @@ function bsc_ga4_get_cart_value(): float {
 }
 
 function bsc_ga4_get_order_payload( WC_Order $order ): array {
-	$items = [];
+	$items = array();
 	$index = 0;
 
 	foreach ( $order->get_items() as $item ) {
@@ -92,7 +92,7 @@ function bsc_ga4_get_order_payload( WC_Order $order ): array {
 		}
 	}
 
-	return [
+	return array(
 		'transaction_id' => (string) $order->get_order_number(),
 		'value'          => (float) $order->get_total(),
 		'tax'            => (float) $order->get_total_tax(),
@@ -100,7 +100,7 @@ function bsc_ga4_get_order_payload( WC_Order $order ): array {
 		'currency'       => $order->get_currency(),
 		'coupon'         => implode( ',', $order->get_coupon_codes() ),
 		'items'          => $items,
-	];
+	);
 }
 
 function bsc_ga4_print_bootstrap(): void {
@@ -124,10 +124,10 @@ function bsc_ga4_print_bootstrap(): void {
 add_action( 'wp_head', 'bsc_ga4_print_bootstrap', 5 );
 
 function bsc_ga4_event_script( string $event_name, array $params, string $dedupe_key = '' ): string {
-	$payload = [
+	$payload = array(
 		'event'     => $event_name,
 		'ecommerce' => $params,
-	];
+	);
 
 	$encoded_payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_key     = wp_json_encode( $dedupe_key );
@@ -141,38 +141,38 @@ function bsc_ga4_output_page_events(): void {
 	}
 
 	$event_name = '';
-	$params     = [];
+	$params     = array();
 	$dedupe_key = '';
 
 	if ( is_product() ) {
 		$product = wc_get_product( get_the_ID() );
 		if ( $product instanceof WC_Product ) {
 			$event_name = 'view_item';
-			$params     = [
+			$params     = array(
 				'currency' => get_woocommerce_currency(),
 				'value'    => (float) wc_get_price_to_display( $product ),
-				'items'    => [ bsc_ga4_get_product_item( $product ) ],
-			];
+				'items'    => array( bsc_ga4_get_product_item( $product ) ),
+			);
 		}
 	} elseif ( is_cart() ) {
 		$items = bsc_ga4_get_cart_items();
 		if ( ! empty( $items ) ) {
 			$event_name = 'view_cart';
-			$params     = [
+			$params     = array(
 				'currency' => get_woocommerce_currency(),
 				'value'    => bsc_ga4_get_cart_value(),
 				'items'    => $items,
-			];
+			);
 		}
 	} elseif ( is_checkout() && ! is_wc_endpoint_url( 'order-received' ) ) {
 		$items = bsc_ga4_get_cart_items();
 		if ( ! empty( $items ) ) {
 			$event_name = 'begin_checkout';
-			$params     = [
+			$params     = array(
 				'currency' => get_woocommerce_currency(),
 				'value'    => bsc_ga4_get_cart_value(),
 				'items'    => $items,
-			];
+			);
 			$dedupe_key = 'bsc_ga4_begin_checkout_' . md5( wp_json_encode( $items ) );
 		}
 	} elseif ( is_wc_endpoint_url( 'order-received' ) ) {
@@ -184,45 +184,45 @@ function bsc_ga4_output_page_events(): void {
 			$dedupe_key = 'bsc_ga4_purchase_' . $order->get_id();
 		}
 	} elseif ( is_shop() || is_product_category() || is_search() ) {
-		$product_ids = [];
+		$product_ids = array();
 
 		if ( is_product_category() ) {
 			$term = get_queried_object();
 			if ( $term instanceof WP_Term ) {
 				$product_ids = wc_get_products(
-					[
+					array(
 						'limit'    => 12,
 						'status'   => 'publish',
 						'return'   => 'ids',
-						'category' => [ $term->slug ],
-					]
+						'category' => array( $term->slug ),
+					)
 				);
 			}
 		} elseif ( is_shop() ) {
 			$product_ids = wc_get_products(
-				[
+				array(
 					'limit'  => 12,
 					'status' => 'publish',
 					'return' => 'ids',
-				]
+				)
 			);
 		} else {
 			$query = get_search_query( false );
 			if ( '' !== $query ) {
 				$product_ids = get_posts(
-					[
+					array(
 						'post_type'      => 'product',
 						'post_status'    => 'publish',
 						's'              => $query,
 						'fields'         => 'ids',
 						'posts_per_page' => 12,
 						'no_found_rows'  => true,
-					]
+					)
 				);
 			}
 		}
 
-		$items = [];
+		$items = array();
 		foreach ( array_values( array_unique( array_map( 'absint', $product_ids ) ) ) as $index => $product_id ) {
 			$product = wc_get_product( $product_id );
 			if ( $product instanceof WC_Product ) {
@@ -232,12 +232,12 @@ function bsc_ga4_output_page_events(): void {
 
 		if ( ! empty( $items ) ) {
 			$event_name = 'view_item_list';
-			$params     = [
-				'currency'      => get_woocommerce_currency(),
-				'item_list_id'  => is_search() ? 'search_results' : 'catalog',
+			$params     = array(
+				'currency'       => get_woocommerce_currency(),
+				'item_list_id'   => is_search() ? 'search_results' : 'catalog',
 				'item_list_name' => is_search() ? 'Search results' : 'Catalog',
-				'items'         => $items,
-			];
+				'items'          => $items,
+			);
 		}
 	}
 
@@ -245,11 +245,11 @@ function bsc_ga4_output_page_events(): void {
 		return;
 	}
 
-	echo '<script>' . bsc_ga4_event_script( $event_name, $params, $dedupe_key ) . '</script>' . "\n";
+	wp_print_inline_script_tag( bsc_ga4_event_script( $event_name, $params, $dedupe_key ) );
 }
 add_action( 'wp_footer', 'bsc_ga4_output_page_events', 25 );
 
-function bsc_ga4_localize_cart_data( array $data = [] ): array {
+function bsc_ga4_localize_cart_data( array $data = array() ): array {
 	$data['currency'] = get_woocommerce_currency();
 	return $data;
 }
