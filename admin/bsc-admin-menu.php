@@ -774,6 +774,11 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_low_stock_threshold', max( 0, intval( wp_unslash( $_POST['bsc_low_stock_threshold'] ?? 3 ) ) ) );
 		$ga4_measurement_id = strtoupper( sanitize_text_field( wp_unslash( $_POST['bsc_ga4_measurement_id'] ?? '' ) ) );
 		update_option( 'bsc_ga4_measurement_id', preg_match( '/^G-[A-Z0-9]+$/', $ga4_measurement_id ) ? $ga4_measurement_id : '' );
+		update_option( 'bsc_seo_default_title', sanitize_text_field( wp_unslash( $_POST['bsc_seo_default_title'] ?? '' ) ) );
+		update_option( 'bsc_seo_default_description', sanitize_textarea_field( wp_unslash( $_POST['bsc_seo_default_description'] ?? '' ) ) );
+		update_option( 'bsc_seo_organization_name', sanitize_text_field( wp_unslash( $_POST['bsc_seo_organization_name'] ?? get_bloginfo( 'name' ) ) ) );
+		update_option( 'bsc_seo_instagram_url', esc_url_raw( wp_unslash( $_POST['bsc_seo_instagram_url'] ?? '' ) ) );
+		update_option( 'bsc_seo_tiktok_url', esc_url_raw( wp_unslash( $_POST['bsc_seo_tiktok_url'] ?? '' ) ) );
 		update_option( 'bsc_merchant_feed_enabled', isset( $_POST['bsc_merchant_feed_enabled'] ) ? 1 : 0 );
 		update_option( 'bsc_merchant_feed_default_brand', sanitize_text_field( wp_unslash( $_POST['bsc_merchant_feed_default_brand'] ?? get_bloginfo( 'name' ) ) ) );
 		update_option( 'bsc_metrics_retention_days', max( 30, min( 365, intval( wp_unslash( $_POST['bsc_metrics_retention_days'] ?? 120 ) ) ) ) );
@@ -881,6 +886,47 @@ function bsc_render_settings_page(): void {
 				</tr>
 
 				<tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Conversion y analitica</h2></th></tr>
+				<tr>
+					<th><label for="bsc_seo_default_title">SEO title fallback</label></th>
+					<td>
+						<input type="text" id="bsc_seo_default_title" name="bsc_seo_default_title"
+							value="<?php echo esc_attr( get_option( 'bsc_seo_default_title', get_bloginfo( 'name' ) ) ); ?>"
+							class="regular-text">
+						<p class="description">Titulo usado en home/Open Graph cuando una pagina no tiene SEO propio.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_seo_default_description">SEO description fallback</label></th>
+					<td>
+						<textarea id="bsc_seo_default_description" name="bsc_seo_default_description" class="large-text" rows="3"><?php echo esc_textarea( get_option( 'bsc_seo_default_description', get_bloginfo( 'description' ) ) ); ?></textarea>
+						<p class="description">Descripcion base para home, redes y paginas sin meta description especifica.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_seo_organization_name">Organizacion schema</label></th>
+					<td>
+						<input type="text" id="bsc_seo_organization_name" name="bsc_seo_organization_name"
+							value="<?php echo esc_attr( get_option( 'bsc_seo_organization_name', get_bloginfo( 'name' ) ) ); ?>"
+							class="regular-text">
+						<p class="description">Nombre usado en Organization JSON-LD.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_seo_instagram_url">Instagram URL</label></th>
+					<td>
+						<input type="url" id="bsc_seo_instagram_url" name="bsc_seo_instagram_url"
+							value="<?php echo esc_attr( get_option( 'bsc_seo_instagram_url', '' ) ); ?>"
+							class="regular-text">
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_seo_tiktok_url">TikTok URL</label></th>
+					<td>
+						<input type="url" id="bsc_seo_tiktok_url" name="bsc_seo_tiktok_url"
+							value="<?php echo esc_attr( get_option( 'bsc_seo_tiktok_url', '' ) ); ?>"
+							class="regular-text">
+					</td>
+				</tr>
 				<tr>
 					<th><label for="bsc_ga4_measurement_id">GA4 Measurement ID</label></th>
 					<td>

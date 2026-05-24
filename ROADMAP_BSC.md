@@ -170,6 +170,7 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - Se corrigio el fallback de sliders de home para que pestanas como `piel_seca` no queden vacias si no hay productos configurados/categorizados.
 - Se actualizo la compatibilidad de `myaccount/form-edit-account.php` y `myaccount/view-order.php` contra WooCommerce actual, preservando hooks sin duplicar la tabla default de order details.
 - Se agrego el importador BSC embebido en el theme para reemplazar la URL legacy `admin.php?page=bsc-plugin` sin depender del plugin anterior.
+- SEO tecnico ampliado: meta title/description/canonical/OG/Twitter centralizados, reglas noindex para cuenta/carrito/checkout/busqueda/filtros, campos SEO en productos/paginas/categorias, copy inferior y FAQs de categorias, Organization/WebSite/SearchAction/FAQ schema, robots.txt/sitemap hardening y feed Merchant Center leyendo GTIN/MPN/meta SEO.
 - Pendiente fuera de este gate: Lighthouse/WebPageTest contra storefront productivo real, CDN/cache/object cache, limpieza WPCS completa y migrar metricas/carritos de options a tablas si el trafico crece.
 
 Scope ya cerrado en MVP2:
@@ -2987,7 +2988,7 @@ Medio. Debe revisarse consentimiento/legal antes de produccion final y confirmar
 
 Prioridad: MVP2
 Area: SEO, adquisicion, catalogo
-Estado: Cerrado en MVP2, 2026-05-23
+Estado: Cerrado ampliado en MVP2, 2026-05-24
 
 Objetivo:
 Exponer datos estructurados y feed XML para que productos tengan mejor superficie en Google/Search/Merchant.
@@ -3004,9 +3005,16 @@ Acceptance:
 - Cerrado: Open Graph basico usa titulo, descripcion e imagen coherente.
 - Cerrado: Feed Merchant Center sale en `?feed=bsc-google-merchant` y filtra productos no aptos.
 - Cerrado: Admin permite activar/desactivar feed y configurar marca fallback.
+- Cerrado: Meta title, meta description, canonical, Open Graph y Twitter Cards salen desde `inc/seo/meta.php`.
+- Cerrado: Reglas noindex para carrito, checkout, cuenta, busqueda, previews, 404 y filtros/query params de catalogo.
+- Cerrado: Campos SEO editables en productos, paginas/posts y categorias `product_cat`.
+- Cerrado: Categorias pueden tener copy SEO inferior y FAQs visibles; FAQs tambien generan schema `FAQPage`.
+- Cerrado: Home expone `Organization` y `WebSite` con `SearchAction`.
+- Cerrado: `robots.txt` agrega disallows para rutas privadas/filtros y referencia `/wp-sitemap.xml`; sitemap excluye paginas Woo privadas.
+- Cerrado: Merchant feed y Product schema leen GTIN/MPN desde metadatos BSC cuando existan.
 
 Riesgo:
-Medio-bajo. En produccion hay que validar el feed en Merchant Center y completar GTIN/MPN cuando existan.
+Medio-bajo. En produccion hay que validar el feed en Merchant Center, completar GTIN/MPN cuando existan, revisar Rich Results y medir indexacion/canonicals en Search Console.
 
 ## BSC-RM-065 - Conversion en catalogo, carrito y checkout
 

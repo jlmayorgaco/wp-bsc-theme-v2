@@ -943,24 +943,6 @@ parameters:
 			path: inc/seo/structured-data.php
 
 		-
-			message: '#^Function is_product not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: inc/seo/structured-data.php
-
-		-
-			message: '#^Function is_product_category not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: inc/seo/structured-data.php
-
-		-
-			message: '#^Function is_shop not found\.$#'
-			identifier: function.notFound
-			count: 2
-			path: inc/seo/structured-data.php
-
-		-
 			message: '#^Function wc_format_decimal not found\.$#'
 			identifier: function.notFound
 			count: 1

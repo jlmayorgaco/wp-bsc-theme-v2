@@ -10391,6 +10391,48 @@ textarea:focus-visible {
   color: var(--color--muted, #888888);
 }
 
+.bsc__category-seo-content {
+  width: min(920px, 100%);
+  margin: 3rem auto 0;
+  color: var(--color--text, #333333);
+}
+
+.bsc__category-seo-copy {
+  font-size: 0.98rem;
+  line-height: 1.75;
+}
+
+.bsc__category-seo-copy p {
+  margin: 0 0 1rem;
+}
+
+.bsc__category-seo-faq {
+  margin-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.bsc__title--seo-faq {
+  margin: 1.5rem 0 1rem;
+  font-size: 1.2rem;
+  text-align: left;
+}
+
+.bsc__category-seo-faq-item {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.9rem 0;
+}
+
+.bsc__category-seo-faq-item summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.bsc__category-seo-faq-item p {
+  margin: 0.75rem 0 0;
+  color: var(--color--muted, #888888);
+  line-height: 1.65;
+}
+
 [hidden].bsc__subsubcategory-modal {
   display: none !important;
 }

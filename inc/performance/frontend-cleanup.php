@@ -39,7 +39,6 @@ add_action(
 	'wp_head',
 	function () {
 		echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
-		echo '<meta name="robots" content="max-image-preview:large">' . "\n";
 	},
 	1
 );
