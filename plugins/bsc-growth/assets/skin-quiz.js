@@ -1,14 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('.bsc-skin-quiz');
+  const layout = document.querySelector('.bsc-skin-quiz__layout');
   const forms = Array.from(document.querySelectorAll('[data-bsc-skin-quiz-form]'));
   const results = document.querySelector('[data-bsc-skin-quiz-bundles]');
   const modeTabs = Array.from(document.querySelectorAll('[data-bsc-quiz-mode-tab]'));
   const compare = document.querySelector('[data-bsc-ai-compare]');
+  const diagnosis = document.querySelector('[data-bsc-ai-diagnosis]');
+  const diagnosisSkinType = document.querySelector('[data-bsc-ai-skin-type]');
+  const diagnosisNeeds = document.querySelector('[data-bsc-ai-needs]');
+  const diagnosisConfidence = document.querySelector('[data-bsc-ai-confidence]');
   const beforeImage = document.querySelector('[data-bsc-before-image]');
   const afterImage = document.querySelector('[data-bsc-after-image]');
   const afterWrap = document.querySelector('[data-bsc-after-wrap]');
   const compareRange = document.querySelector('[data-bsc-compare-range]');
   const aiNotes = document.querySelector('[data-bsc-ai-notes]');
   const previewPromises = new WeakMap();
+  let updateCompare = () => {};
 
   if (!forms.length || !results) {
     return;
@@ -33,7 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = form.querySelector('[data-bsc-skin-photo]');
     if (fileInput) {
       fileInput.addEventListener('change', () => {
-        previewPromises.set(fileInput, previewBeforeImage(fileInput.files && fileInput.files[0]));
+        const file = fileInput.files && fileInput.files[0];
+        updateUploadLabel(form, file);
+        previewPromises.set(fileInput, previewBeforeImage(file));
       });
     }
   });
@@ -77,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (compareRange && afterWrap) {
-    const updateCompare = () => {
+    updateCompare = () => {
       if (compare) {
         compare.style.setProperty('--bsc-compare-split', `${compareRange.value}%`);
       }
@@ -104,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function runRecommendation(form) {
     const mode = form.dataset.quizMode || 'normal';
-    const statusText = mode === 'ai' ? 'Analizando foto...' : 'Buscando rutina...';
+    const statusText = mode === 'ai' ? 'Analizando foto con Gemini...' : 'Buscando rutina...';
     setStatus(form, statusText);
 
     const payload = new FormData(form);
@@ -146,6 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setMode(mode) {
+    if (root) {
+      root.classList.toggle('is-ai-mode', mode === 'ai');
+    }
+
+    if (layout) {
+      layout.classList.toggle('is-ai-mode', mode === 'ai');
+    }
+
     forms.forEach((form) => {
       const isActive = form.dataset.quizMode === mode;
       form.classList.toggle('is-hidden', !isActive);
@@ -160,10 +177,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (compare) {
       compare.classList.toggle('is-visible', mode === 'ai');
     }
+
+    if (diagnosis) {
+      diagnosis.classList.toggle('is-visible', mode === 'ai');
+    }
+
+    window.requestAnimationFrame(updateCompare);
   }
 
   function renderBundles(bundles) {
     results.innerHTML = '';
+    results.classList.toggle('has-ai-recommendation', currentMode() === 'ai');
 
     if (!bundles.length) {
       const empty = document.createElement('p');
@@ -242,6 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return article;
   }
 
+  function currentMode() {
+    const activeForm = forms.find((form) => !form.classList.contains('is-hidden'));
+    return activeForm ? activeForm.dataset.quizMode || 'normal' : 'normal';
+  }
+
   function createSteps(steps) {
     const list = document.createElement('ol');
     list.className = 'bsc-skin-quiz__steps';
@@ -294,7 +323,8 @@ document.addEventListener('DOMContentLoaded', () => {
         afterImage.classList.add('is-fallback');
         compare.classList.remove('is-empty');
         compare.classList.add('is-visible');
-        setAiNotes('');
+        resetDiagnosis('Foto lista para Gemini. Completa las respuestas y analiza la rutina.');
+        window.requestAnimationFrame(updateCompare);
         resolve(src);
       });
       reader.addEventListener('error', () => {
@@ -302,6 +332,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       reader.readAsDataURL(file);
     });
+  }
+
+  function updateUploadLabel(form, file) {
+    const label = form.querySelector('[data-bsc-upload-file]');
+
+    if (!label) {
+      return;
+    }
+
+    label.textContent = file ? file.name : 'JPG, PNG o WebP hasta 4MB';
   }
 
   async function ensureAiPreview(form) {
@@ -326,25 +366,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ai && ai.after_image_data_uri && afterImage) {
       afterImage.src = ai.after_image_data_uri;
       afterImage.classList.remove('is-fallback');
+      afterImage.addEventListener('load', updateCompare, { once: true });
     } else if (afterImage) {
       afterImage.classList.add('is-fallback');
     }
 
-    const notes = [];
-    if (ai && ai.skin_profile && ai.skin_profile.skin_type) {
-      notes.push(`Perfil: ${ai.skin_profile.skin_type}`);
-    }
-    if (ai && Array.isArray(ai.skin_profile && ai.skin_profile.needs) && ai.skin_profile.needs.length) {
-      notes.push(`Necesidades: ${ai.skin_profile.needs.join(', ')}`);
-    }
-    if (ai && ai.after_description) {
-      notes.push(ai.after_description);
-    }
-    if (ai && Array.isArray(ai.notes) && ai.notes.length) {
-      notes.push(ai.notes.join(' '));
-    }
-
-    setAiNotes(notes.join(' - '));
+    renderDiagnosis(ai);
+    window.requestAnimationFrame(updateCompare);
   }
 
   function setStatus(form, message, isError = false) {
@@ -367,6 +395,92 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aiNotes) {
       aiNotes.textContent = message;
     }
+  }
+
+  function resetDiagnosis(message = '') {
+    if (diagnosis) {
+      diagnosis.classList.add('is-empty');
+    }
+
+    if (diagnosisSkinType) {
+      diagnosisSkinType.textContent = 'Pendiente de analisis';
+    }
+
+    if (diagnosisConfidence) {
+      diagnosisConfidence.textContent = '';
+      diagnosisConfidence.style.width = '';
+    }
+
+    if (diagnosisNeeds) {
+      diagnosisNeeds.innerHTML = '';
+    }
+
+    setAiNotes(message || 'La lectura cosmetica aparecera aqui despues de analizar la foto.');
+  }
+
+  function renderDiagnosis(ai) {
+    if (!diagnosis) {
+      return;
+    }
+
+    const profile = ai && ai.skin_profile ? ai.skin_profile : {};
+    const needs = Array.isArray(profile.needs) ? profile.needs : [];
+    const confidence = Number(profile.confidence || 0);
+    const readableSkinType = profile.skin_type ? labelFor(profile.skin_type) : 'Rutina sugerida';
+    const notes = [];
+
+    diagnosis.classList.remove('is-empty');
+
+    if (diagnosisSkinType) {
+      diagnosisSkinType.textContent = readableSkinType;
+    }
+
+    if (diagnosisConfidence) {
+      const percent = Math.max(0, Math.min(100, Math.round(confidence * 100)));
+      diagnosisConfidence.textContent = percent > 0 ? `${percent}% confianza` : '';
+      diagnosisConfidence.style.width = percent > 0 ? `${percent}%` : '';
+    }
+
+    if (diagnosisNeeds) {
+      diagnosisNeeds.innerHTML = '';
+      needs.forEach((need) => {
+        const item = document.createElement('li');
+        item.textContent = labelFor(need);
+        diagnosisNeeds.appendChild(item);
+      });
+    }
+
+    if (ai && ai.after_description) {
+      notes.push(ai.after_description);
+    }
+
+    if (ai && Array.isArray(ai.notes) && ai.notes.length) {
+      notes.push(ai.notes.join(' '));
+    }
+
+    if (!notes.length && needs.length) {
+      notes.push('Gemini cruzo la foto, tus respuestas y el catalogo BSC para armar esta rutina.');
+    }
+
+    setAiNotes(notes.join(' '));
+  }
+
+  function labelFor(value) {
+    const labels = {
+      acne: 'Brotes',
+      barrera: 'Barrera',
+      glow: 'Glow',
+      grasa: 'Grasa',
+      hidratacion: 'Hidratacion',
+      manchas: 'Manchas',
+      mixta: 'Mixta',
+      normal: 'Normal',
+      'protector-solar': 'Protector solar',
+      seca: 'Seca',
+      sensible: 'Sensible'
+    };
+
+    return labels[value] || String(value || '').replace(/-/g, ' ');
   }
 
   function updateCartCounters(count) {
