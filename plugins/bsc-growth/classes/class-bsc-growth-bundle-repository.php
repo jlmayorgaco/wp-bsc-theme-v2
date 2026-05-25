@@ -122,8 +122,73 @@ class BSC_Growth_Bundle_Repository {
 			'discount_label' => $bundle['discount_label'],
 			'url'            => $bundle['url'],
 			'product_count'  => count( $bundle['product_ids'] ),
+			'product_ids'    => array_values( array_map( 'absint', $bundle['product_ids'] ) ),
 			'products'       => $this->get_bundle_cards( $bundle ),
 		);
+	}
+
+	public function format_dynamic_bundle_for_response( array $bundle ): array {
+		$product_ids = array_values( array_map( 'absint', (array) ( $bundle['product_ids'] ?? array() ) ) );
+		$products    = array();
+
+		foreach ( $product_ids as $product_id ) {
+			$product = wc_get_product( $product_id );
+
+			if ( $product && 'publish' === $product->get_status() ) {
+				$products[] = $this->product_to_card( $product );
+			}
+		}
+
+		return array(
+			'id'             => (string) ( $bundle['id'] ?? 'dynamic-routine' ),
+			'title'          => (string) ( $bundle['title'] ?? 'Rutina recomendada' ),
+			'summary'        => (string) ( $bundle['summary'] ?? '' ),
+			'badge'          => (string) ( $bundle['badge'] ?? 'Recomendacion' ),
+			'discount_label' => (string) ( $bundle['discount_label'] ?? 'Carrito listo' ),
+			'url'            => home_url( '/skin-quiz/' ),
+			'product_count'  => count( $product_ids ),
+			'product_ids'    => $product_ids,
+			'products'       => $products,
+			'steps'          => array_values( (array) ( $bundle['steps'] ?? array() ) ),
+		);
+	}
+
+	public function get_catalog_context( int $limit = 80 ): array {
+		$products = BSC_Growth_Plugin::products(
+			array(
+				'limit'        => $limit,
+				'status'       => 'publish',
+				'stock_status' => 'instock',
+				'orderby'      => 'popularity',
+				'return'       => 'objects',
+			)
+		);
+		$catalog = array();
+
+		foreach ( $products as $product ) {
+			if ( ! $product instanceof WC_Product || ! $product->is_purchasable() ) {
+				continue;
+			}
+
+			$product_id = $product->get_id();
+			$terms      = get_the_terms( $product_id, 'product_cat' );
+			$categories = array();
+
+			if ( $terms && ! is_wp_error( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$categories[] = $term->name;
+				}
+			}
+
+			$catalog[] = array(
+				'id'         => $product_id,
+				'name'       => wp_strip_all_tags( $product->get_name() ),
+				'price'      => wp_strip_all_tags( $product->get_price_html() ),
+				'categories' => array_slice( $categories, 0, 8 ),
+			);
+		}
+
+		return $catalog;
 	}
 
 	public function get_need_catalog(): array {

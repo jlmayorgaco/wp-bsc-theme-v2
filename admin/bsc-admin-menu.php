@@ -785,6 +785,16 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_metrics_retention_days', max( 30, min( 365, intval( wp_unslash( $_POST['bsc_metrics_retention_days'] ?? 120 ) ) ) ) );
 		update_option( 'bsc_abandoned_cart_enabled', isset( $_POST['bsc_abandoned_cart_enabled'] ) ? 1 : 0 );
 		update_option( 'bsc_abandoned_cart_delay_hours', max( 1, intval( wp_unslash( $_POST['bsc_abandoned_cart_delay_hours'] ?? 4 ) ) ) );
+		$gemini_api_key = isset( $_POST['bsc_gemini_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['bsc_gemini_api_key'] ) ) : '';
+		if ( '' !== $gemini_api_key ) {
+			update_option( 'bsc_gemini_api_key', $gemini_api_key, false );
+		}
+		if ( isset( $_POST['bsc_gemini_api_key_clear'] ) ) {
+			delete_option( 'bsc_gemini_api_key' );
+		}
+		update_option( 'bsc_gemini_skin_model', sanitize_text_field( wp_unslash( $_POST['bsc_gemini_skin_model'] ?? 'gemini-3.5-flash' ) ), false );
+		update_option( 'bsc_gemini_image_model', sanitize_text_field( wp_unslash( $_POST['bsc_gemini_image_model'] ?? 'gemini-2.5-flash-image' ) ), false );
+		update_option( 'bsc_gemini_generate_after_image', isset( $_POST['bsc_gemini_generate_after_image'] ) ? 1 : 0, false );
 
 		echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
 	}
@@ -987,6 +997,49 @@ function bsc_render_settings_page(): void {
 								class="small-text">
 							horas despues de la ultima actividad
 						</p>
+					</td>
+				</tr>
+
+				<tr>
+					<th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">AI Skin Quiz</h2></th>
+				</tr>
+				<tr>
+					<th><label for="bsc_gemini_api_key">Gemini API key</label></th>
+					<td>
+						<input type="password" id="bsc_gemini_api_key" name="bsc_gemini_api_key" value="" class="regular-text" autocomplete="new-password" placeholder="<?php echo get_option( 'bsc_gemini_api_key', '' ) ? esc_attr( 'Configurada' ) : esc_attr( 'Sin configurar' ); ?>">
+						<p class="description">Tambien se puede definir con la constante <code>BSC_GEMINI_API_KEY</code> o la variable de entorno <code>GEMINI_API_KEY</code>.</p>
+						<?php if ( get_option( 'bsc_gemini_api_key', '' ) ) : ?>
+							<label>
+								<input type="checkbox" name="bsc_gemini_api_key_clear" value="1">
+								Borrar API key guardada en WordPress.
+							</label>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_gemini_skin_model">Modelo analisis piel</label></th>
+					<td>
+						<input type="text" id="bsc_gemini_skin_model" name="bsc_gemini_skin_model"
+							value="<?php echo esc_attr( get_option( 'bsc_gemini_skin_model', 'gemini-3.5-flash' ) ); ?>"
+							class="regular-text">
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_gemini_image_model">Modelo imagen after</label></th>
+					<td>
+						<input type="text" id="bsc_gemini_image_model" name="bsc_gemini_image_model"
+							value="<?php echo esc_attr( get_option( 'bsc_gemini_image_model', 'gemini-2.5-flash-image' ) ); ?>"
+							class="regular-text">
+						<p class="description">Gemini procesa imagen como input base64 y puede devolver una simulacion before/after.</p>
+					</td>
+				</tr>
+				<tr>
+					<th>After visual</th>
+					<td>
+						<label>
+							<input type="checkbox" name="bsc_gemini_generate_after_image" value="1" <?php checked( (int) get_option( 'bsc_gemini_generate_after_image', 1 ), 1 ); ?>>
+							Generar simulacion visual AI para el slider.
+						</label>
 					</td>
 				</tr>
 
