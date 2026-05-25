@@ -51,8 +51,7 @@ class BSC_Growth_Skin_Quiz {
 			return $preempt;
 		}
 
-		$query->is_404  = false;
-		$query->is_page = true;
+		self::prepare_virtual_query( $query );
 		status_header( 200 );
 
 		return true;
@@ -97,8 +96,7 @@ class BSC_Growth_Skin_Quiz {
 
 		global $wp_query;
 		if ( $wp_query instanceof WP_Query ) {
-			$wp_query->is_404  = false;
-			$wp_query->is_page = true;
+			self::prepare_virtual_query( $wp_query );
 		}
 
 		$repository = new BSC_Growth_Bundle_Repository();
@@ -146,6 +144,15 @@ class BSC_Growth_Skin_Quiz {
 		<?php
 		get_footer();
 		exit;
+	}
+
+	private static function prepare_virtual_query( WP_Query $query ): void {
+		$query->is_404        = false;
+		$query->is_page       = false;
+		$query->is_single     = false;
+		$query->is_singular   = false;
+		$query->queried_object = null;
+		$query->queried_object_id = 0;
 	}
 
 	public static function ajax_recommend(): void {
