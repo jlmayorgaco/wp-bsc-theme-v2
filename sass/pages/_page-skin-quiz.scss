@@ -1,0 +1,223 @@
+@use "../tokens/public" as bsc;
+
+.page-skin-quiz {
+  background: bsc.$surface;
+  color: bsc.$text;
+}
+
+.bsc-skin-quiz {
+  font-family: bsc.$font-main;
+  letter-spacing: 0;
+}
+
+.bsc-skin-quiz__container {
+  width: min(100% - 40px, bsc.$container-wide);
+  margin: 0 auto;
+}
+
+.bsc-skin-quiz__hero {
+  padding: 70px 0 28px;
+  text-align: center;
+}
+
+.bsc-skin-quiz__eyebrow {
+  margin: 0 0 bsc.$space-xs;
+  color: bsc.$text-muted;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.bsc-skin-quiz__title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bsc-skin-quiz__intro {
+  max-width: 620px;
+  margin: bsc.$space-md auto 0;
+  color: bsc.$text-soft;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.bsc-skin-quiz__content {
+  padding: bsc.$space-xl 0 96px;
+}
+
+.bsc-skin-quiz__layout {
+  display: grid;
+  align-items: start;
+  gap: bsc.$space-xl;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+}
+
+.bsc-skin-quiz__form,
+.bsc-skin-quiz__results,
+.bsc-skin-quiz__bundle {
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-lg;
+  background: bsc.$surface;
+}
+
+.bsc-skin-quiz__form,
+.bsc-skin-quiz__results {
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.bsc-skin-quiz__fieldset {
+  display: grid;
+  gap: bsc.$space-sm;
+  margin: 0 0 bsc.$space-lg;
+  padding: 0;
+  border: 0;
+}
+
+.bsc-skin-quiz__fieldset legend,
+.bsc-skin-quiz__field span,
+.bsc-skin-quiz__results h2 {
+  margin: 0 0 bsc.$space-sm;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.bsc-skin-quiz__choice {
+  @include bsc.inline-stack(bsc.$space-sm, center, flex-start, nowrap);
+
+  min-height: 44px;
+  padding: bsc.$space-xs bsc.$space-sm;
+  border: 1px dashed bsc.$border-soft;
+  border-radius: bsc.$radius-md;
+  cursor: pointer;
+}
+
+.bsc-skin-quiz__choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: bsc.$brand;
+}
+
+.bsc-skin-quiz__row {
+  display: grid;
+  gap: bsc.$space-md;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bsc-skin-quiz__field {
+  display: grid;
+  gap: bsc.$space-xs;
+}
+
+.bsc-skin-quiz__field select {
+  @include bsc.field-control($border-style: dashed, $border-color: bsc.$border);
+}
+
+.bsc-skin-quiz__submit {
+  width: 100%;
+  margin-top: bsc.$space-lg;
+}
+
+.bsc-skin-quiz__status {
+  min-height: 22px;
+  margin: bsc.$space-sm 0 0;
+  color: bsc.$text-soft;
+  font-size: 0.9rem;
+}
+
+.bsc-skin-quiz__bundle-list {
+  display: grid;
+  gap: bsc.$space-md;
+}
+
+.bsc-skin-quiz__bundle {
+  overflow: hidden;
+}
+
+.bsc-skin-quiz__bundle-header {
+  padding: bsc.$space-md;
+}
+
+.bsc-skin-quiz__badge {
+  display: inline-flex;
+  margin-bottom: bsc.$space-sm;
+  padding: 4px 9px;
+  border-radius: bsc.$radius-pill;
+  background: bsc.$brand-yellow;
+  color: bsc.$text;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.bsc-skin-quiz__bundle h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.bsc-skin-quiz__bundle p {
+  margin: bsc.$space-xs 0 0;
+  color: bsc.$text-soft;
+  line-height: 1.45;
+}
+
+.bsc-skin-quiz__products {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: bsc.$border-muted;
+}
+
+.bsc-skin-quiz__products li {
+  background: bsc.$surface;
+}
+
+.bsc-skin-quiz__products a {
+  @include bsc.link-reset(bsc.$text, 700);
+
+  display: grid;
+  gap: bsc.$space-xs;
+  height: 100%;
+  padding: bsc.$space-sm;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.bsc-skin-quiz__products img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.bsc-skin-quiz__bundle-actions {
+  @include bsc.inline-stack(bsc.$space-sm, center, space-between);
+
+  padding: bsc.$space-md;
+  border-top: 1px solid bsc.$border-muted;
+}
+
+.bsc-skin-quiz__bundle-actions span {
+  color: bsc.$text-muted;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.bsc-skin-quiz__bundle-button {
+  min-width: 160px;
+}
+
+@include bsc.media-max("tablet") {
+  .bsc-skin-quiz__layout,
+  .bsc-skin-quiz__row {
+    grid-template-columns: 1fr;
+  }
+
+  .bsc-skin-quiz__products {
+    grid-template-columns: 1fr;
+  }
+}

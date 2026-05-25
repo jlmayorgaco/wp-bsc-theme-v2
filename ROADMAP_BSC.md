@@ -173,6 +173,20 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - SEO tecnico ampliado: meta title/description/canonical/OG/Twitter centralizados, reglas noindex para cuenta/carrito/checkout/busqueda/filtros, campos SEO en productos/paginas/categorias, copy inferior y FAQs de categorias, Organization/WebSite/SearchAction/FAQ schema, robots.txt/sitemap hardening y feed Merchant Center leyendo GTIN/MPN/meta SEO.
 - Pendiente fuera de este gate: Lighthouse/WebPageTest contra storefront productivo real, CDN/cache/object cache, limpieza WPCS completa y migrar metricas/carritos de options a tablas si el trafico crece.
 
+Gate growth MVP documentado el 2026-05-25:
+
+- `npm run lint`: verde; incluye encoding, URLs locales, inline styles no-email, JS, SCSS, Stylelint, CSS build sync y PHP syntax.
+- `phpstan analyse --configuration=phpstan.neon --memory-limit=1536M`: verde usando el runtime PHP local.
+- WPCS subset de riesgo seguridad/DB (`ValidatedSanitizedInput`, `NonceVerification`, `EscapeOutput`, `DirectDatabaseQuery`, `PreparedSQL`): verde en 249 archivos.
+- Playwright local `http://bsc.local/skin-quiz/`: status 200, formulario visible, 3 rutinas renderizadas, AJAX de recomendacion devuelve `Rutina lista.` sin errores de consola propios.
+- Playwright local de busqueda: `bsc_search_products` para `manchas` devuelve 8 productos y 4 sugerencias enriquecidas, incluyendo necesidad, rutinas/categorias/marcas cuando aplican.
+- Se agrego modulo interno `plugins/bsc-growth` con clases OOP para bundles/rutinas, Skin Quiz, CRM, conversion, search enrichment y recompra en cuenta.
+- Se agrego CPT `bsc_routine_bundle` administrable desde BSC para rutinas/carritos prearmados con productos por IDs, necesidades, tipo de piel, etiqueta y texto de beneficio.
+- Se agrego ruta discreta `/skin-quiz/` enlazada desde footer bajo Programas, con Sass basado en tokens/mixins y JS progresivo para recomendar/agregar rutinas.
+- Se agregaron paginas admin BSC `Clientes CRM` y `Conversion` para ver perfil de cliente, pedidos, puntos, carritos abandonados, notas internas, recompra y embudo producto -> carrito -> checkout -> compra.
+- Se conecto la busqueda existente con sugerencias de necesidades, rutinas, categorias y marcas, preservando cache/transients y registro de busquedas sin resultados.
+- Se agrego bloque de recompra en cuenta usando compras previas y `_bsc_repurchase_days`, sin duplicar el motor de emails de follow-up existente.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -191,6 +205,7 @@ Scope ya cerrado en MVP2:
 - Performance/quality hardening del 2026-05-24: imagenes visibles con AVIF/WebP responsive, Composer/WPCS/PHPStan configurados con metadata real BSC, baseline PHPStan inicial, artifacts ZIP de release eliminados/excluidos, Woo overrides estrictos actualizados y suite visual/smoke revalidada.
 - Mantenimiento pre-GO del 2026-05-25: se mantiene storefront anonimo en mantenimiento mientras se termina QA; codigo reforzado con headers de seguridad, bloqueo REST users publico, author archives anonimos redirigidos, fallback de imagen social SEO, limpieza de Woo Blocks en paginas no checkout/cart, bundle sin artefactos internos y webhook de deploy que limpia archivos publicos internos y reescribe `robots.txt`.
 - Importador BSC embebido: la ruta admin legacy `admin.php?page=bsc-plugin` queda servida por el theme bundle y cubierta por smoke desktop.
+- Growth MVP del 2026-05-25: rutinas/bundles internos, Skin Quiz discreto, CRM cliente, dashboard de conversion, busqueda enriquecida y recompra en cuenta quedaron implementados en `plugins/bsc-growth` con Sass/token pipeline y gates verdes.
 
 Notas residuales:
 

@@ -1,3 +1,5 @@
+@use "../../tokens/public" as bsc;
+
 $menu-title-font: 'Helvetica', sans-serif;
 
 .search-result-item {
@@ -26,6 +28,12 @@ $menu-title-font: 'Helvetica', sans-serif;
   font-weight: 700;
   letter-spacing: 0;
   border-top: 1px solid #e7e7e7;
+}
+
+.search-result-item--suggestion {
+  min-height: 44px;
+  border-left: 3px solid bsc.$brand;
+  background: bsc.$surface-soft;
 }
 
 .search-result-image {
