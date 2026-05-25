@@ -130,7 +130,6 @@ class BSC_Growth_Skin_Quiz {
 					</div>
 
 					<aside class="bsc-skin-quiz__results" data-bsc-skin-quiz-results>
-						<h2>Rutinas recomendadas</h2>
 						<?php self::render_ai_visual(); ?>
 						<div class="bsc-skin-quiz__bundle-list" data-bsc-skin-quiz-bundles>
 							<?php foreach ( $bundles as $bundle ) : ?>
