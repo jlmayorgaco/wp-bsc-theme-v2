@@ -3186,6 +3186,8 @@ Acceptance:
 - Validacion local `http://bsc.local/wp-json/wp/v2/users`: anonimo responde 404, conserva `X-Robots-Tag: noindex`, aplica headers base y no expone `X-Powered-By`.
 - Validacion local `http://bsc.local/cart/`: robots queda `max-image-preview:large, noindex, nofollow` sin conflicto `follow`.
 - Validacion local `http://bsc.local/`: home emite `og:image` y `twitter:image` con fallback si no hay imagen configurada.
+- Lighthouse produccion anonima 2026-05-25 mide mantenimiento, no storefront: mobile performance 100, accessibility 97, best practices 96, SEO 92; desktop performance 100, accessibility 97, best practices 100, SEO 92; peso 27 KiB, 7 requests. SEO 92 se debe a falta de meta description en mantenimiento y queda corregido en `woocommerce/coming-soon.php`.
+- Lighthouse produccion autenticada 2026-05-25 mide home real con admin bar/no-cache, no cache anonima final: mobile performance 86, accessibility 89, best practices 96, SEO 100; desktop performance 93, accessibility 93, best practices 96, SEO 100; peso aproximado 2.4 MiB, 137 requests. Pendiente tras abrir tienda: medir anonimo real con cache/CDN.
 - Pendiente post-deploy: validar en produccion headers reales, REST users 403/404, robots raiz, ausencia de artefactos publicos y Lighthouse/WebPageTest cuando se levante mantenimiento.
 
 ---
