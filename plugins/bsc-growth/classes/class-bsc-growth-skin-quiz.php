@@ -119,11 +119,11 @@ class BSC_Growth_Skin_Quiz {
 				<div class="bsc-skin-quiz__container">
 					<div class="bsc-skin-quiz__mode-tabs" role="tablist" aria-label="Versiones del Skin Quiz">
 						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'normal' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="normal" role="tab" aria-selected="<?php echo 'normal' === $mode ? 'true' : 'false'; ?>">Skin Quiz 1</button>
-						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'ai' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="ai" role="tab" aria-selected="<?php echo 'ai' === $mode ? 'true' : 'false'; ?>">Skin Quiz 2 AI</button>
+						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'ai' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="ai" role="tab" aria-selected="<?php echo 'ai' === $mode ? 'true' : 'false'; ?>">Skincare AI</button>
 					</div>
 				</div>
 
-				<div class="bsc-skin-quiz__container bsc-skin-quiz__layout">
+				<div class="bsc-skin-quiz__container bsc-skin-quiz__layout <?php echo 'ai' === $mode ? 'is-ai-mode' : ''; ?>">
 					<div class="bsc-skin-quiz__forms">
 						<?php self::render_normal_form( 'normal' !== $mode ); ?>
 						<?php self::render_ai_form( 'ai' !== $mode ); ?>
@@ -237,8 +237,12 @@ class BSC_Growth_Skin_Quiz {
 			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
 
 			<label class="bsc-skin-quiz__upload">
-				<span>Foto del rostro</span>
+				<span class="bsc-skin-quiz__upload-label">Foto del rostro</span>
 				<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+				<span class="bsc-skin-quiz__upload-control">
+					<strong>Seleccionar foto</strong>
+					<em data-bsc-upload-file>JPG, PNG o WebP hasta 4MB</em>
+				</span>
 			</label>
 
 			<fieldset class="bsc-skin-quiz__fieldset">
@@ -295,18 +299,34 @@ class BSC_Growth_Skin_Quiz {
 
 	private static function render_ai_visual(): void {
 		?>
-		<div class="bsc-skin-quiz__compare is-empty" data-bsc-ai-compare>
-			<div class="bsc-skin-quiz__compare-frame">
-				<img class="bsc-skin-quiz__compare-image" data-bsc-before-image alt="Foto original">
-				<div class="bsc-skin-quiz__compare-after" data-bsc-after-wrap>
-					<img class="bsc-skin-quiz__compare-image bsc-skin-quiz__compare-image--after" data-bsc-after-image alt="Simulacion AI">
+		<div class="bsc-skin-quiz__ai-visual" data-bsc-ai-visual>
+			<div class="bsc-skin-quiz__compare is-empty" data-bsc-ai-compare>
+				<div class="bsc-skin-quiz__compare-frame">
+					<div class="bsc-skin-quiz__compare-placeholder" data-bsc-compare-placeholder>
+						<span>Skincare AI</span>
+						<strong>Sube tu foto y genera el antes / despues</strong>
+					</div>
+					<img class="bsc-skin-quiz__compare-image" data-bsc-before-image alt="Foto original">
+					<div class="bsc-skin-quiz__compare-after" data-bsc-after-wrap>
+						<img class="bsc-skin-quiz__compare-image bsc-skin-quiz__compare-image--after" data-bsc-after-image alt="Simulacion AI">
+					</div>
+					<div class="bsc-skin-quiz__compare-handle" aria-hidden="true"></div>
+					<input type="range" min="0" max="100" value="50" class="bsc-skin-quiz__compare-range" data-bsc-compare-range aria-label="Comparar antes y despues">
+					<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--before">Antes</span>
+					<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--after">Despues AI</span>
 				</div>
-				<div class="bsc-skin-quiz__compare-handle" aria-hidden="true"></div>
-				<input type="range" min="0" max="100" value="50" class="bsc-skin-quiz__compare-range" data-bsc-compare-range aria-label="Comparar antes y despues">
-				<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--before">Antes</span>
-				<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--after">Despues</span>
 			</div>
-			<p class="bsc-skin-quiz__ai-notes" data-bsc-ai-notes></p>
+			<div class="bsc-skin-quiz__diagnosis is-empty" data-bsc-ai-diagnosis aria-live="polite">
+				<div class="bsc-skin-quiz__diagnosis-header">
+					<span>Diagnostico Gemini</span>
+					<strong data-bsc-ai-skin-type>Pendiente de analisis</strong>
+				</div>
+				<div class="bsc-skin-quiz__diagnosis-meter">
+					<span data-bsc-ai-confidence></span>
+				</div>
+				<ul class="bsc-skin-quiz__diagnosis-needs" data-bsc-ai-needs></ul>
+				<p class="bsc-skin-quiz__ai-notes" data-bsc-ai-notes>La lectura cosmetica aparecera aqui despues de analizar la foto.</p>
+			</div>
 		</div>
 		<?php
 	}
