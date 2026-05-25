@@ -13542,13 +13542,21 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
+.bsc-skin-quiz__compare-after.is-fallback::after {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 48% 34%, rgba(255, 255, 255, 0.2), transparent 24%), linear-gradient(120deg, rgba(255, 245, 248, 0.3), rgba(247, 192, 205, 0.18));
+  content: "";
+  pointer-events: none;
+}
+
 .bsc-skin-quiz__compare-image--after {
   width: 100%;
   max-width: none;
 }
 
 .bsc-skin-quiz__compare-image--after.is-fallback {
-  filter: saturate(1.08) contrast(1.03) brightness(1.04);
+  filter: saturate(0.92) contrast(0.9) brightness(1.08) blur(0.35px);
 }
 
 .bsc-skin-quiz__compare-handle {

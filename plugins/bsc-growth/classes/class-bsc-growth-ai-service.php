@@ -25,7 +25,7 @@ class BSC_Growth_AI_Service {
 			$after = $this->generate_after_image( $image, $analysis );
 		} catch ( Throwable $exception ) {
 			$after = array();
-			$analysis['visible_notes'][] = 'Simulacion visual AI no disponible en este momento.';
+			$analysis['visible_notes'][] = 'Vista after preliminar activa mientras Gemini imagen tiene cuota disponible.';
 		}
 
 		return $this->build_ai_response( $answers, $analysis, $after, $repository );
