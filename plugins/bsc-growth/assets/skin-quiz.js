@@ -321,6 +321,9 @@ document.addEventListener('DOMContentLoaded', () => {
         beforeImage.src = src;
         afterImage.src = src;
         afterImage.classList.add('is-fallback');
+        if (afterWrap) {
+          afterWrap.classList.add('is-fallback');
+        }
         compare.classList.remove('is-empty');
         compare.classList.add('is-visible');
         resetDiagnosis('Foto lista para Gemini. Completa las respuestas y analiza la rutina.');
@@ -366,9 +369,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ai && ai.after_image_data_uri && afterImage) {
       afterImage.src = ai.after_image_data_uri;
       afterImage.classList.remove('is-fallback');
+      if (afterWrap) {
+        afterWrap.classList.remove('is-fallback');
+      }
       afterImage.addEventListener('load', updateCompare, { once: true });
     } else if (afterImage) {
       afterImage.classList.add('is-fallback');
+      if (afterWrap) {
+        afterWrap.classList.add('is-fallback');
+      }
     }
 
     renderDiagnosis(ai);
