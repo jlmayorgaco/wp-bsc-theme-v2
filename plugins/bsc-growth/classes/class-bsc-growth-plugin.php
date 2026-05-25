@@ -61,6 +61,12 @@ class BSC_Growth_Plugin {
 		return is_array( $orders ) ? $orders : array();
 	}
 
+	public static function products( array $args ): array {
+		$products = is_callable( 'wc_get_products' ) ? call_user_func( 'wc_get_products', $args ) : array();
+
+		return is_array( $products ) ? $products : array();
+	}
+
 	public static function order_statuses(): array {
 		$statuses = is_callable( 'wc_get_order_statuses' ) ? call_user_func( 'wc_get_order_statuses' ) : array();
 

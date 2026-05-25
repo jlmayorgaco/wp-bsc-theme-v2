@@ -1,9 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.querySelector('[data-bsc-skin-quiz-form]');
+  const forms = Array.from(document.querySelectorAll('[data-bsc-skin-quiz-form]'));
   const results = document.querySelector('[data-bsc-skin-quiz-bundles]');
-  const status = document.querySelector('[data-bsc-skin-quiz-status]');
+  const modeTabs = Array.from(document.querySelectorAll('[data-bsc-quiz-mode-tab]'));
+  const compare = document.querySelector('[data-bsc-ai-compare]');
+  const beforeImage = document.querySelector('[data-bsc-before-image]');
+  const afterImage = document.querySelector('[data-bsc-after-image]');
+  const afterWrap = document.querySelector('[data-bsc-after-wrap]');
+  const compareRange = document.querySelector('[data-bsc-compare-range]');
+  const aiNotes = document.querySelector('[data-bsc-ai-notes]');
+  const previewPromises = new WeakMap();
 
-  if (!form || !results) {
+  if (!forms.length || !results) {
     return;
   }
 
@@ -11,82 +18,148 @@ document.addEventListener('DOMContentLoaded', () => {
   const ajaxUrl = config.ajaxUrl || '/wp-admin/admin-ajax.php';
   const nonce = config.nonce || '';
 
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    setStatus('Buscando rutina...');
+  modeTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      setMode(tab.getAttribute('data-bsc-quiz-mode-tab') || 'normal');
+    });
+  });
 
-    const payload = new FormData(form);
-    payload.set('action', 'bsc_skin_quiz_recommend');
-    payload.set('nonce', nonce);
+  forms.forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runRecommendation(form);
+    });
 
-    if (config.initialRoutine) {
-      payload.set('routine', config.initialRoutine);
-    }
-
-    try {
-      const response = await fetch(ajaxUrl, {
-        method: 'POST',
-        body: payload
+    const fileInput = form.querySelector('[data-bsc-skin-photo]');
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        previewPromises.set(fileInput, previewBeforeImage(fileInput.files && fileInput.files[0]));
       });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.data && data.data.message ? data.data.message : 'No fue posible recomendar una rutina.');
-      }
-
-      renderBundles(data.data.bundles || []);
-      setStatus('Rutina lista.');
-    } catch (error) {
-      setStatus(error.message || 'No fue posible recomendar una rutina.', true);
     }
   });
 
   results.addEventListener('click', async (event) => {
-    const button = event.target.closest('[data-bsc-add-bundle]');
+    const productButton = event.target.closest('[data-bsc-add-products]');
+    const bundleButton = event.target.closest('[data-bsc-add-bundle]');
+    const button = productButton || bundleButton;
 
     if (!button) {
-      return;
-    }
-
-    const bundleId = button.getAttribute('data-bsc-add-bundle');
-
-    if (!bundleId) {
       return;
     }
 
     button.disabled = true;
     const previousText = button.textContent;
     button.textContent = 'Agregando...';
-    setStatus('');
+    setActiveStatus('');
 
     const payload = new FormData();
-    payload.set('action', 'bsc_growth_add_bundle_to_cart');
     payload.set('nonce', nonce);
-    payload.set('bundle_id', bundleId);
+
+    if (productButton) {
+      payload.set('action', 'bsc_growth_add_products_to_cart');
+      payload.set('product_ids', productButton.getAttribute('data-bsc-add-products') || '');
+    } else {
+      payload.set('action', 'bsc_growth_add_bundle_to_cart');
+      payload.set('bundle_id', bundleButton.getAttribute('data-bsc-add-bundle') || '');
+    }
 
     try {
-      const response = await fetch(ajaxUrl, {
-        method: 'POST',
-        body: payload
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.data && data.data.message ? data.data.message : 'No fue posible agregar la rutina.');
-      }
+      const data = await postForm(payload);
 
       button.textContent = 'Agregada';
-      setStatus('Rutina agregada al carrito.');
-      updateCartCounters(data.data.cart_count);
+      setActiveStatus('Rutina agregada al carrito.');
+      updateCartCounters(data.cart_count);
     } catch (error) {
       button.disabled = false;
       button.textContent = previousText;
-      setStatus(error.message || 'No fue posible agregar la rutina.', true);
+      setActiveStatus(error.message || 'No fue posible agregar la rutina.', true);
     }
   });
 
-  if (config.initialRoutine) {
-    form.requestSubmit();
+  if (compareRange && afterWrap) {
+    const updateCompare = () => {
+      if (compare) {
+        compare.style.setProperty('--bsc-compare-split', `${compareRange.value}%`);
+      }
+      afterWrap.style.setProperty('--bsc-compare-split', `${compareRange.value}%`);
+      const frame = compare && compare.querySelector('.bsc-skin-quiz__compare-frame');
+      if (frame && afterImage) {
+        afterImage.style.width = `${frame.getBoundingClientRect().width}px`;
+      }
+    };
+    compareRange.addEventListener('input', updateCompare);
+    window.addEventListener('resize', updateCompare);
+    updateCompare();
+  }
+
+  const initialMode = config.initialMode === 'ai' ? 'ai' : 'normal';
+  setMode(initialMode);
+
+  if (config.initialRoutine && initialMode === 'normal') {
+    const normalForm = forms.find((form) => form.dataset.quizMode === 'normal');
+    if (normalForm) {
+      normalForm.requestSubmit();
+    }
+  }
+
+  async function runRecommendation(form) {
+    const mode = form.dataset.quizMode || 'normal';
+    const statusText = mode === 'ai' ? 'Analizando foto...' : 'Buscando rutina...';
+    setStatus(form, statusText);
+
+    const payload = new FormData(form);
+    payload.set('action', mode === 'ai' ? 'bsc_skin_quiz_ai_recommend' : 'bsc_skin_quiz_recommend');
+    payload.set('nonce', nonce);
+
+    if (mode === 'ai') {
+      await ensureAiPreview(form);
+    }
+
+    if (config.initialRoutine && mode === 'normal') {
+      payload.set('routine', config.initialRoutine);
+    }
+
+    try {
+      const data = await postForm(payload);
+
+      renderBundles(data.bundles || []);
+      renderAiVisual(data.ai || null, mode);
+      const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. AI pendiente.' : 'Rutina AI lista.';
+      setStatus(form, mode === 'ai' ? fallbackLabel : 'Rutina lista.');
+    } catch (error) {
+      setStatus(form, error.message || 'No fue posible recomendar una rutina.', true);
+    }
+  }
+
+  async function postForm(payload) {
+    const response = await fetch(ajaxUrl, {
+      method: 'POST',
+      body: payload
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.data && data.data.message ? data.data.message : 'No fue posible completar la accion.');
+    }
+
+    return data.data || {};
+  }
+
+  function setMode(mode) {
+    forms.forEach((form) => {
+      const isActive = form.dataset.quizMode === mode;
+      form.classList.toggle('is-hidden', !isActive);
+    });
+
+    modeTabs.forEach((tab) => {
+      const isActive = tab.getAttribute('data-bsc-quiz-mode-tab') === mode;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (compare) {
+      compare.classList.toggle('is-visible', mode === 'ai');
+    }
   }
 
   function renderBundles(bundles) {
@@ -129,6 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
     header.appendChild(summary);
     article.appendChild(header);
 
+    if (Array.isArray(bundle.steps) && bundle.steps.length) {
+      article.appendChild(createSteps(bundle.steps));
+    }
+
     if (Array.isArray(bundle.products) && bundle.products.length) {
       const list = document.createElement('ul');
       list.className = 'bsc-skin-quiz__products';
@@ -150,14 +227,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'bsc__button bsc-skin-quiz__bundle-button';
-    button.setAttribute('data-bsc-add-bundle', bundle.id || '');
     button.disabled = !bundle.product_count;
     button.textContent = 'Agregar rutina';
-    actions.appendChild(button);
 
+    if (Array.isArray(bundle.product_ids) && bundle.product_ids.length) {
+      button.setAttribute('data-bsc-add-products', bundle.product_ids.join(','));
+    } else {
+      button.setAttribute('data-bsc-add-bundle', bundle.id || '');
+    }
+
+    actions.appendChild(button);
     article.appendChild(actions);
 
     return article;
+  }
+
+  function createSteps(steps) {
+    const list = document.createElement('ol');
+    list.className = 'bsc-skin-quiz__steps';
+
+    steps.forEach((step) => {
+      const item = document.createElement('li');
+      const label = document.createElement('strong');
+      const why = document.createElement('span');
+
+      label.textContent = step.label || '';
+      why.textContent = step.why || '';
+      item.appendChild(label);
+      item.appendChild(why);
+      list.appendChild(item);
+    });
+
+    return list;
   }
 
   function createProductItem(product) {
@@ -178,13 +279,94 @@ document.addEventListener('DOMContentLoaded', () => {
     return item;
   }
 
-  function setStatus(message, isError = false) {
+  function previewBeforeImage(file) {
+    return new Promise((resolve) => {
+      if (!file || !beforeImage || !afterImage || !compare) {
+        resolve('');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        const src = String(reader.result || '');
+        beforeImage.src = src;
+        afterImage.src = src;
+        afterImage.classList.add('is-fallback');
+        compare.classList.remove('is-empty');
+        compare.classList.add('is-visible');
+        setAiNotes('');
+        resolve(src);
+      });
+      reader.addEventListener('error', () => {
+        resolve('');
+      });
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function ensureAiPreview(form) {
+    const fileInput = form.querySelector('[data-bsc-skin-photo]');
+
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      return;
+    }
+
+    const pendingPreview = previewPromises.get(fileInput) || previewBeforeImage(fileInput.files[0]);
+    previewPromises.set(fileInput, pendingPreview);
+    await pendingPreview;
+  }
+
+  function renderAiVisual(ai, mode) {
+    if (mode !== 'ai' || !compare) {
+      return;
+    }
+
+    compare.classList.add('is-visible');
+
+    if (ai && ai.after_image_data_uri && afterImage) {
+      afterImage.src = ai.after_image_data_uri;
+      afterImage.classList.remove('is-fallback');
+    } else if (afterImage) {
+      afterImage.classList.add('is-fallback');
+    }
+
+    const notes = [];
+    if (ai && ai.skin_profile && ai.skin_profile.skin_type) {
+      notes.push(`Perfil: ${ai.skin_profile.skin_type}`);
+    }
+    if (ai && Array.isArray(ai.skin_profile && ai.skin_profile.needs) && ai.skin_profile.needs.length) {
+      notes.push(`Necesidades: ${ai.skin_profile.needs.join(', ')}`);
+    }
+    if (ai && ai.after_description) {
+      notes.push(ai.after_description);
+    }
+    if (ai && Array.isArray(ai.notes) && ai.notes.length) {
+      notes.push(ai.notes.join(' '));
+    }
+
+    setAiNotes(notes.join(' - '));
+  }
+
+  function setStatus(form, message, isError = false) {
+    const status = form.querySelector('[data-bsc-skin-quiz-status]');
+
     if (!status) {
       return;
     }
 
     status.textContent = message;
     status.classList.toggle('is-error', isError);
+  }
+
+  function setActiveStatus(message, isError = false) {
+    const activeForm = forms.find((form) => !form.classList.contains('is-hidden')) || forms[0];
+    setStatus(activeForm, message, isError);
+  }
+
+  function setAiNotes(message) {
+    if (aiNotes) {
+      aiNotes.textContent = message;
+    }
   }
 
   function updateCartCounters(count) {

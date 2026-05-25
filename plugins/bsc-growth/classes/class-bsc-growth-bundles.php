@@ -12,6 +12,8 @@ class BSC_Growth_Bundles {
 		add_action( 'save_post_' . BSC_Growth_Bundle_Repository::POST_TYPE, array( __CLASS__, 'save_bundle_meta' ), 10, 2 );
 		add_action( 'wp_ajax_bsc_growth_add_bundle_to_cart', array( __CLASS__, 'ajax_add_bundle_to_cart' ) );
 		add_action( 'wp_ajax_nopriv_bsc_growth_add_bundle_to_cart', array( __CLASS__, 'ajax_add_bundle_to_cart' ) );
+		add_action( 'wp_ajax_bsc_growth_add_products_to_cart', array( __CLASS__, 'ajax_add_products_to_cart' ) );
+		add_action( 'wp_ajax_nopriv_bsc_growth_add_products_to_cart', array( __CLASS__, 'ajax_add_products_to_cart' ) );
 	}
 
 	public static function register_post_type(): void {
@@ -147,8 +149,60 @@ class BSC_Growth_Bundles {
 	public static function ajax_add_bundle_to_cart(): void {
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 
+		$bundle_id  = isset( $_POST['bundle_id'] ) ? sanitize_text_field( wp_unslash( $_POST['bundle_id'] ) ) : '';
+		$repository = new BSC_Growth_Bundle_Repository();
+		$bundle     = $repository->find_bundle( $bundle_id );
+
+		if ( ! $bundle || empty( $bundle['product_ids'] ) ) {
+			wp_send_json_error( array( 'message' => 'No encontramos productos disponibles para esta rutina.' ), 404 );
+		}
+
+		$added = self::add_products_to_cart( $bundle['product_ids'], $bundle['id'], $bundle['title'] );
+
+		if ( $added <= 0 ) {
+			wp_send_json_error( array( 'message' => 'Los productos de esta rutina no estan disponibles.' ), 409 );
+		}
+
+		$cart = BSC_Growth_Plugin::cart();
+
+		wp_send_json_success(
+			array(
+				'message'    => 'Rutina agregada al carrito.',
+				'cart_url'   => BSC_Growth_Plugin::cart_url(),
+				'cart_count' => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
+			)
+		);
+	}
+
+	public static function ajax_add_products_to_cart(): void {
+		check_ajax_referer( 'bsc_growth_action', 'nonce' );
+
+		$product_ids = isset( $_POST['product_ids'] ) ? wp_parse_id_list( wp_unslash( $_POST['product_ids'] ) ) : array();
+
+		if ( empty( $product_ids ) ) {
+			wp_send_json_error( array( 'message' => 'No encontramos productos para agregar.' ), 400 );
+		}
+
+		$added = self::add_products_to_cart( $product_ids, 'dynamic-routine', 'Rutina recomendada' );
+
+		if ( $added <= 0 ) {
+			wp_send_json_error( array( 'message' => 'Los productos recomendados no estan disponibles.' ), 409 );
+		}
+
+		$cart = BSC_Growth_Plugin::cart();
+
+		wp_send_json_success(
+			array(
+				'message'    => 'Rutina agregada al carrito.',
+				'cart_url'   => BSC_Growth_Plugin::cart_url(),
+				'cart_count' => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
+			)
+		);
+	}
+
+	private static function add_products_to_cart( array $product_ids, string $bundle_id, string $bundle_title ): int {
 		if ( ! class_exists( 'WooCommerce' ) ) {
-			wp_send_json_error( array( 'message' => 'WooCommerce no esta disponible.' ), 400 );
+			return 0;
 		}
 
 		$cart = BSC_Growth_Plugin::cart();
@@ -159,20 +213,12 @@ class BSC_Growth_Bundles {
 		}
 
 		if ( ! is_object( $cart ) || ! is_callable( array( $cart, 'add_to_cart' ) ) ) {
-			wp_send_json_error( array( 'message' => 'El carrito no esta disponible.' ), 400 );
-		}
-
-		$bundle_id  = isset( $_POST['bundle_id'] ) ? sanitize_text_field( wp_unslash( $_POST['bundle_id'] ) ) : '';
-		$repository = new BSC_Growth_Bundle_Repository();
-		$bundle     = $repository->find_bundle( $bundle_id );
-
-		if ( ! $bundle || empty( $bundle['product_ids'] ) ) {
-			wp_send_json_error( array( 'message' => 'No encontramos productos disponibles para esta rutina.' ), 404 );
+			return 0;
 		}
 
 		$added = 0;
 
-		foreach ( $bundle['product_ids'] as $product_id ) {
+		foreach ( $product_ids as $product_id ) {
 			$product = wc_get_product( (int) $product_id );
 
 			if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
@@ -186,8 +232,8 @@ class BSC_Growth_Bundles {
 				0,
 				array(),
 				array(
-					'bsc_bundle_id'    => $bundle['id'],
-					'bsc_bundle_title' => $bundle['title'],
+					'bsc_bundle_id'    => $bundle_id,
+					'bsc_bundle_title' => $bundle_title,
 				)
 			);
 
@@ -196,16 +242,6 @@ class BSC_Growth_Bundles {
 			}
 		}
 
-		if ( $added <= 0 ) {
-			wp_send_json_error( array( 'message' => 'Los productos de esta rutina no estan disponibles.' ), 409 );
-		}
-
-		wp_send_json_success(
-			array(
-				'message'    => 'Rutina agregada al carrito.',
-				'cart_url'   => BSC_Growth_Plugin::cart_url(),
-				'cart_count' => is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
-			)
-		);
+		return $added;
 	}
 }

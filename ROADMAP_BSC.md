@@ -187,6 +187,22 @@ Gate growth MVP documentado el 2026-05-25:
 - Se conecto la busqueda existente con sugerencias de necesidades, rutinas, categorias y marcas, preservando cache/transients y registro de busquedas sin resultados.
 - Se agrego bloque de recompra en cuenta usando compras previas y `_bsc_repurchase_days`, sin duplicar el motor de emails de follow-up existente.
 
+Gate Skin Quiz AI documentado el 2026-05-25:
+
+- `npm run compile:css`: verde.
+- `npm run lint`: verde.
+- `phpstan analyse --configuration=phpstan.neon --memory-limit=1536M`: verde.
+- WPCS subset de riesgo seguridad/DB (`ValidatedSanitizedInput`, `NonceVerification`, `EscapeOutput`, `DirectDatabaseQuery`, `PreparedSQL`): verde en 250 archivos.
+- Playwright local `https://bsc.local/skin-quiz/`: Skin Quiz 1 devuelve `Rutina lista.`, renderiza 3 rutinas y conserva tabs `Skin Quiz 1` / `Skin Quiz 2 AI` sin errores de consola propios.
+- Playwright local `https://bsc.local/skin-quiz/?mode=ai`: Skin Quiz 2 AI acepta foto, consentimiento, 3 preguntas, fallback sin API key, slider antes/despues con preview local, 3 rutinas y 3 botones de agregar productos.
+- Se separo `/skin-quiz/` en dos modos: quiz normal guiado y quiz AI Enhanced.
+- El modo AI valida JPG/PNG/WebP hasta 4MB, requiere consentimiento explicito y no guarda la imagen en DB, options ni submissions; solo lee el archivo temporal para enviar a Gemini cuando hay API key.
+- Se agrego servicio OOP `BSC_Growth_AI_Service` con prompts acotados a skincare cosmetico, sin diagnostico medico, sin identidad facial, sin promesas de cura y con fallback seguro al motor normal.
+- Se agrego configuracion en BSC Config para `BSC_GEMINI_API_KEY`/`GEMINI_API_KEY`/option admin, modelo de analisis, modelo de imagen y toggle de simulacion visual.
+- El catalogo enviado a AI queda limitado a productos reales publicados, con IDs, nombre, precio, categorias y tags; la respuesta se normaliza para crear rutinas dinamicas con `product_ids` reales.
+- Se agrego endpoint para agregar listas dinamicas de productos al carrito en un click, reutilizando el flujo de carrito de bundles.
+- La UI del slider antes/despues vive en Sass bajo `sass/pages/_page-skin-quiz.scss`, usando tokens/mixins y salida compilada en `style.css`.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -206,6 +222,7 @@ Scope ya cerrado en MVP2:
 - Mantenimiento pre-GO del 2026-05-25: se mantiene storefront anonimo en mantenimiento mientras se termina QA; codigo reforzado con headers de seguridad, bloqueo REST users publico, author archives anonimos redirigidos, fallback de imagen social SEO, limpieza de Woo Blocks en paginas no checkout/cart, bundle sin artefactos internos y webhook de deploy que limpia archivos publicos internos y reescribe `robots.txt`.
 - Importador BSC embebido: la ruta admin legacy `admin.php?page=bsc-plugin` queda servida por el theme bundle y cubierta por smoke desktop.
 - Growth MVP del 2026-05-25: rutinas/bundles internos, Skin Quiz discreto, CRM cliente, dashboard de conversion, busqueda enriquecida y recompra en cuenta quedaron implementados en `plugins/bsc-growth` con Sass/token pipeline y gates verdes.
+- Skin Quiz AI del 2026-05-25: dos versiones de quiz, Gemini configurable, carga privada de foto sin persistencia, slider antes/despues, rutina dinamica y carrito de productos en un click quedaron implementados con fallback sin API key.
 
 Notas residuales:
 

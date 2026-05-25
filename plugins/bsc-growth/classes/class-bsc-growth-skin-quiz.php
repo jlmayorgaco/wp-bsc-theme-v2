@@ -13,6 +13,8 @@ class BSC_Growth_Skin_Quiz {
 		add_action( 'template_redirect', array( __CLASS__, 'render_page' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_recommend', array( __CLASS__, 'ajax_recommend' ) );
 		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_recommend', array( __CLASS__, 'ajax_recommend' ) );
+		add_action( 'wp_ajax_bsc_skin_quiz_ai_recommend', array( __CLASS__, 'ajax_ai_recommend' ) );
+		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_ai_recommend', array( __CLASS__, 'ajax_ai_recommend' ) );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
 		add_filter( 'pre_handle_404', array( __CLASS__, 'prevent_404' ), 10, 2 );
 	}
@@ -76,8 +78,11 @@ class BSC_Growth_Skin_Quiz {
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'bsc_growth_action' ),
 				'cartUrl'        => BSC_Growth_Plugin::cart_url(),
+				'aiAvailable'    => ( new BSC_Growth_AI_Service() )->has_api_key(),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Optional read-only routine preselection.
 				'initialRoutine' => isset( $_GET['routine'] ) ? sanitize_text_field( wp_unslash( $_GET['routine'] ) ) : '',
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Optional read-only mode preselection.
+				'initialMode'    => isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : 'normal',
 			)
 		);
 	}
@@ -98,6 +103,8 @@ class BSC_Growth_Skin_Quiz {
 
 		$repository = new BSC_Growth_Bundle_Repository();
 		$bundles    = $repository->get_bundles( 3 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only mode preselection.
+		$mode       = isset( $_GET['mode'] ) && 'ai' === sanitize_key( wp_unslash( $_GET['mode'] ) ) ? 'ai' : 'normal';
 
 		get_header();
 		?>
@@ -106,49 +113,27 @@ class BSC_Growth_Skin_Quiz {
 				<div class="bsc-skin-quiz__container">
 					<p class="bsc-skin-quiz__eyebrow">Skin Quiz</p>
 					<h1 class="bsc-skin-quiz__title">Arma tu rutina BSC</h1>
-					<p class="bsc-skin-quiz__intro">Una seleccion corta para recomendar rutinas segun tipo de piel, necesidad principal y nivel de rutina.</p>
+					<p class="bsc-skin-quiz__intro">Elige el quiz rapido o la version AI Enhanced con foto para generar rutina y carrito listo.</p>
 				</div>
 			</section>
 
 			<section class="bsc-skin-quiz__content" aria-label="Skin Quiz">
+				<div class="bsc-skin-quiz__container">
+					<div class="bsc-skin-quiz__mode-tabs" role="tablist" aria-label="Versiones del Skin Quiz">
+						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'normal' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="normal" role="tab" aria-selected="<?php echo 'normal' === $mode ? 'true' : 'false'; ?>">Skin Quiz 1</button>
+						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'ai' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="ai" role="tab" aria-selected="<?php echo 'ai' === $mode ? 'true' : 'false'; ?>">Skin Quiz 2 AI</button>
+					</div>
+				</div>
+
 				<div class="bsc-skin-quiz__container bsc-skin-quiz__layout">
-					<form class="bsc-skin-quiz__form" data-bsc-skin-quiz-form>
-						<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
-
-						<fieldset class="bsc-skin-quiz__fieldset">
-							<legend>Tipo de piel</legend>
-							<?php self::render_radio_group( 'skin_type', self::skin_type_options(), 'mixta' ); ?>
-						</fieldset>
-
-						<fieldset class="bsc-skin-quiz__fieldset">
-							<legend>Necesidades</legend>
-							<?php self::render_checkbox_group( 'needs', self::need_options() ); ?>
-						</fieldset>
-
-						<div class="bsc-skin-quiz__row">
-							<label class="bsc-skin-quiz__field">
-								<span>Sensibilidad</span>
-								<select name="sensitivity">
-									<option value="normal">Normal</option>
-									<option value="sensible">Sensible</option>
-									<option value="muy-sensible">Muy sensible</option>
-								</select>
-							</label>
-							<label class="bsc-skin-quiz__field">
-								<span>Nivel de rutina</span>
-								<select name="routine_level">
-									<option value="basica">Basica</option>
-									<option value="completa">Completa</option>
-								</select>
-							</label>
-						</div>
-
-						<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Ver rutina</button>
-						<p class="bsc-skin-quiz__status" data-bsc-skin-quiz-status aria-live="polite"></p>
-					</form>
+					<div class="bsc-skin-quiz__forms">
+						<?php self::render_normal_form( 'normal' !== $mode ); ?>
+						<?php self::render_ai_form( 'ai' !== $mode ); ?>
+					</div>
 
 					<aside class="bsc-skin-quiz__results" data-bsc-skin-quiz-results>
 						<h2>Rutinas recomendadas</h2>
+						<?php self::render_ai_visual(); ?>
 						<div class="bsc-skin-quiz__bundle-list" data-bsc-skin-quiz-bundles>
 							<?php foreach ( $bundles as $bundle ) : ?>
 								<?php self::render_bundle_card( $repository->format_bundle_for_response( $bundle ) ); ?>
@@ -193,6 +178,131 @@ class BSC_Growth_Skin_Quiz {
 				'bundles' => $payload,
 			)
 		);
+	}
+
+	public static function ajax_ai_recommend(): void {
+		check_ajax_referer( 'bsc_growth_action', 'nonce' );
+
+		$answers = self::sanitize_answers( $_POST );
+
+		if ( empty( $_POST['ai_consent'] ) ) {
+			wp_send_json_error( array( 'message' => 'Confirma el consentimiento para analizar la foto.' ), 400 );
+		}
+
+		try {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File upload is validated by BSC_Growth_AI_Service::validate_image().
+			$response = ( new BSC_Growth_AI_Service() )->recommend_with_image( $answers, $_FILES['skin_photo'] ?? array() );
+		} catch ( Throwable $exception ) {
+			wp_send_json_error( array( 'message' => $exception->getMessage() ), 400 );
+		}
+
+		self::persist_submission( array_merge( $answers, array( 'mode' => 'ai' ) ), $response['bundles'] );
+		self::update_customer_profile( $answers );
+
+		wp_send_json_success( $response );
+	}
+
+	private static function render_normal_form( bool $hidden ): void {
+		?>
+		<form class="bsc-skin-quiz__form <?php echo $hidden ? 'is-hidden' : ''; ?>" data-bsc-skin-quiz-form data-quiz-mode="normal">
+			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
+
+			<fieldset class="bsc-skin-quiz__fieldset">
+				<legend>Tipo de piel</legend>
+				<?php self::render_radio_group( 'skin_type', self::skin_type_options(), 'mixta' ); ?>
+			</fieldset>
+
+			<fieldset class="bsc-skin-quiz__fieldset">
+				<legend>Necesidades</legend>
+				<?php self::render_checkbox_group( 'needs', self::need_options() ); ?>
+			</fieldset>
+
+			<?php self::render_common_fields(); ?>
+
+			<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Ver rutina</button>
+			<p class="bsc-skin-quiz__status" data-bsc-skin-quiz-status aria-live="polite"></p>
+		</form>
+		<?php
+	}
+
+	private static function render_ai_form( bool $hidden ): void {
+		?>
+		<form class="bsc-skin-quiz__form bsc-skin-quiz__form--ai <?php echo $hidden ? 'is-hidden' : ''; ?>" data-bsc-skin-quiz-form data-quiz-mode="ai" enctype="multipart/form-data">
+			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
+
+			<label class="bsc-skin-quiz__upload">
+				<span>Foto del rostro</span>
+				<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+			</label>
+
+			<fieldset class="bsc-skin-quiz__fieldset">
+				<legend>Como se siente tu piel</legend>
+				<?php self::render_radio_group( 'skin_type', self::skin_type_options(), 'mixta' ); ?>
+			</fieldset>
+
+			<label class="bsc-skin-quiz__field">
+				<span>Necesidad principal</span>
+				<select name="needs[]">
+					<option value="manchas">Manchas</option>
+					<option value="acne">Brotes</option>
+					<option value="hidratacion">Hidratacion</option>
+					<option value="barrera">Barrera</option>
+					<option value="glow">Glow</option>
+					<option value="protector-solar">Protector solar</option>
+				</select>
+			</label>
+
+			<?php self::render_common_fields(); ?>
+
+			<label class="bsc-skin-quiz__consent">
+				<input type="checkbox" name="ai_consent" value="1" required>
+				<span>Acepto analizar esta foto solo para recomendar skincare. La imagen no se guarda.</span>
+			</label>
+
+			<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Analizar con AI</button>
+			<p class="bsc-skin-quiz__status" data-bsc-skin-quiz-status aria-live="polite"></p>
+		</form>
+		<?php
+	}
+
+	private static function render_common_fields(): void {
+		?>
+		<div class="bsc-skin-quiz__row">
+			<label class="bsc-skin-quiz__field">
+				<span>Sensibilidad</span>
+				<select name="sensitivity">
+					<option value="normal">Normal</option>
+					<option value="sensible">Sensible</option>
+					<option value="muy-sensible">Muy sensible</option>
+				</select>
+			</label>
+			<label class="bsc-skin-quiz__field">
+				<span>Nivel de rutina</span>
+				<select name="routine_level">
+					<option value="basica">Basica</option>
+					<option value="completa">Completa</option>
+				</select>
+			</label>
+		</div>
+		<?php
+	}
+
+	private static function render_ai_visual(): void {
+		?>
+		<div class="bsc-skin-quiz__compare is-empty" data-bsc-ai-compare>
+			<div class="bsc-skin-quiz__compare-frame">
+				<img class="bsc-skin-quiz__compare-image" data-bsc-before-image alt="Foto original">
+				<div class="bsc-skin-quiz__compare-after" data-bsc-after-wrap>
+					<img class="bsc-skin-quiz__compare-image bsc-skin-quiz__compare-image--after" data-bsc-after-image alt="Simulacion AI">
+				</div>
+				<div class="bsc-skin-quiz__compare-handle" aria-hidden="true"></div>
+				<input type="range" min="0" max="100" value="50" class="bsc-skin-quiz__compare-range" data-bsc-compare-range aria-label="Comparar antes y despues">
+				<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--before">Antes</span>
+				<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--after">Despues</span>
+			</div>
+			<p class="bsc-skin-quiz__ai-notes" data-bsc-ai-notes></p>
+		</div>
+		<?php
 	}
 
 	private static function render_radio_group( string $name, array $options, string $default ): void {
