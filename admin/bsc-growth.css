@@ -1,0 +1,132 @@
+.bsc-growth-admin__intro {
+  max-width: 780px;
+  color: #50575e;
+}
+
+.bsc-growth-admin__toolbar {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+  margin: 16px 0 22px;
+}
+
+.bsc-growth-admin__toolbar label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.bsc-growth-admin__layout {
+  display: grid;
+  align-items: start;
+  gap: 18px;
+  grid-template-columns: minmax(520px, 1.4fr) minmax(320px, 0.8fr);
+}
+
+.bsc-growth-admin__card,
+.bsc-growth-admin__metric {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.bsc-growth-admin__card h2,
+.bsc-growth-admin__card h3 {
+  margin-top: 0;
+}
+
+.bsc-growth-admin__card--muted {
+  background: #f6f7f7;
+}
+
+.bsc-growth-admin__table th,
+.bsc-growth-admin__table td {
+  vertical-align: middle;
+}
+
+.bsc-growth-admin__muted {
+  color: #646970;
+}
+
+.bsc-growth-admin__summary-grid,
+.bsc-growth-admin__metrics-grid,
+.bsc-growth-admin__funnel {
+  display: grid;
+  gap: 12px;
+}
+
+.bsc-growth-admin__summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 16px 0 22px;
+}
+
+.bsc-growth-admin__summary-grid div,
+.bsc-growth-admin__funnel-step {
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #f9f9f9;
+  padding: 12px;
+}
+
+.bsc-growth-admin__summary-grid strong,
+.bsc-growth-admin__summary-grid span,
+.bsc-growth-admin__funnel-step span,
+.bsc-growth-admin__funnel-step strong,
+.bsc-growth-admin__funnel-step small {
+  display: block;
+}
+
+.bsc-growth-admin__summary-grid strong,
+.bsc-growth-admin__funnel-step strong,
+.bsc-growth-admin__metric strong {
+  color: #1d2327;
+  font-size: 20px;
+}
+
+.bsc-growth-admin__summary-grid span,
+.bsc-growth-admin__funnel-step span,
+.bsc-growth-admin__funnel-step small,
+.bsc-growth-admin__metric span {
+  color: #646970;
+}
+
+.bsc-growth-admin__metrics-grid {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  margin: 18px 0;
+}
+
+.bsc-growth-admin__funnel {
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+}
+
+.bsc-growth-admin__plain-list {
+  margin-left: 0;
+  list-style: none;
+}
+
+.bsc-growth-admin__plain-list li {
+  margin-bottom: 8px;
+}
+
+.bsc-growth-admin__notes-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.bsc-growth-admin__notes-form textarea {
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .bsc-growth-admin__layout,
+  .bsc-growth-admin__metrics-grid,
+  .bsc-growth-admin__funnel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*# sourceMappingURL=bsc-growth.css.map */

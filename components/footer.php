@@ -4,6 +4,7 @@ $shop_url             = esc_url( wc_get_page_permalink( 'shop' ) );
 $orders_url           = esc_url( wc_get_account_endpoint_url( 'orders' ) );
 $bubble_points_url    = esc_url( home_url( '/mi-cuenta/bubble-points/' ) );
 $bubble_creators_url  = esc_url( home_url( '/bubble-creators/' ) );
+$skin_quiz_url        = esc_url( home_url( '/skin-quiz/' ) );
 $shipping_returns_url = esc_url( home_url( '/shipping-returns/' ) );
 $faq_url              = esc_url( home_url( '/faq/' ) );
 $contact_url          = esc_url( home_url( '/contact-us/' ) );
@@ -72,6 +73,9 @@ $checkout_aria_label  = sprintf(
 		<ul class="footer__list">
 			<li class="footer__list-item">
 			<a href="<?php echo esc_url( $bubble_creators_url ); ?>" class="footer__link">Bubble Creators</a>
+			</li>
+			<li class="footer__list-item">
+			<a href="<?php echo esc_url( $skin_quiz_url ); ?>" class="footer__link">Skin Quiz</a>
 			</li>
 		</ul>
 		</div>

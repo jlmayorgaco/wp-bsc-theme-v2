@@ -31,10 +31,21 @@ function bsc_search_products() {
 	$cache_key = 'bsc_search_v' . bsc_get_search_cache_version() . '_' . md5( $query );
 	$cached    = get_transient( $cache_key );
 	if ( $cached !== false ) {
+		$cached_products    = isset( $cached['products'] ) && is_array( $cached['products'] ) ? $cached['products'] : (array) $cached;
+		$cached_product_ids = wp_list_pluck( $cached_products, 'id' );
+		$cached_suggestions = isset( $cached['suggestions'] ) && is_array( $cached['suggestions'] )
+			? $cached['suggestions']
+			: ( function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, $cached_product_ids ) : array() );
+
 		if ( function_exists( 'bsc_metrics_record_search' ) ) {
-			bsc_metrics_record_search( $query, count( $cached ) );
+			bsc_metrics_record_search( $query, count( $cached_products ) );
 		}
-		wp_send_json_success( array( 'products' => $cached ) );
+		wp_send_json_success(
+			array(
+				'products'    => $cached_products,
+				'suggestions' => $cached_suggestions,
+			)
+		);
 	}
 
 	$collected_ids = array();
@@ -121,11 +132,24 @@ function bsc_search_products() {
 	$product_ids = array_slice( array_unique( $collected_ids ), 0, 8 );
 
 	if ( empty( $product_ids ) ) {
-		set_transient( $cache_key, array(), 15 * MINUTE_IN_SECONDS );
+		$suggestions = function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, array() ) : array();
+		set_transient(
+			$cache_key,
+			array(
+				'products'    => array(),
+				'suggestions' => $suggestions,
+			),
+			15 * MINUTE_IN_SECONDS
+		);
 		if ( function_exists( 'bsc_metrics_record_search' ) ) {
 			bsc_metrics_record_search( $query, 0 );
 		}
-		wp_send_json_success( array( 'products' => array() ) );
+		wp_send_json_success(
+			array(
+				'products'    => array(),
+				'suggestions' => $suggestions,
+			)
+		);
 	}
 
 	// ── Build response ─────────────────────────────────────────────────────
@@ -173,11 +197,24 @@ function bsc_search_products() {
 	}
 
 	// ── Cache and return ───────────────────────────────────────────────────
-	set_transient( $cache_key, $results, 15 * MINUTE_IN_SECONDS );
+	$suggestions = function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, $product_ids ) : array();
+	set_transient(
+		$cache_key,
+		array(
+			'products'    => $results,
+			'suggestions' => $suggestions,
+		),
+		15 * MINUTE_IN_SECONDS
+	);
 	if ( function_exists( 'bsc_metrics_record_search' ) ) {
 		bsc_metrics_record_search( $query, count( $results ) );
 	}
-	wp_send_json_success( array( 'products' => $results ) );
+	wp_send_json_success(
+		array(
+			'products'    => $results,
+			'suggestions' => $suggestions,
+		)
+	);
 }
 
 function bsc_search_rate_limit_passed(): bool {
