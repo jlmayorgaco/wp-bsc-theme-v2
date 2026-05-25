@@ -44,7 +44,9 @@ function bsc_send_security_headers(): void {
 	header( 'X-Frame-Options: SAMEORIGIN' );
 
 	if ( ! is_admin() ) {
-		header( "Content-Security-Policy: default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https:; upgrade-insecure-requests" );
+		$upgrade_insecure_requests = ( 'local' === wp_get_environment_type() && ! is_ssl() ) ? '' : '; upgrade-insecure-requests';
+
+		header( "Content-Security-Policy: default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https:" . $upgrade_insecure_requests );
 	}
 }
 
