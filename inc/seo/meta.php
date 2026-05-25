@@ -278,7 +278,9 @@ function bsc_seo_get_primary_image_url(): string {
 	$product = bsc_seo_get_current_product();
 	if ( $product instanceof WC_Product ) {
 		$urls = bsc_seo_get_product_image_urls( $product );
-		return $urls[0] ?? '';
+		if ( ! empty( $urls[0] ) ) {
+			return $urls[0];
+		}
 	}
 
 	if ( function_exists( 'is_product_category' ) && is_product_category() ) {
@@ -286,14 +288,30 @@ function bsc_seo_get_primary_image_url(): string {
 		if ( $term instanceof WP_Term ) {
 			$thumbnail_id = (int) get_term_meta( $term->term_id, 'thumbnail_id', true );
 			$url          = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'full' ) : '';
-			return $url ? esc_url_raw( $url ) : '';
+			if ( $url ) {
+				return esc_url_raw( $url );
+			}
 		}
+	}
+
+	$default_image_url = esc_url_raw( (string) get_option( 'bsc_seo_default_image_url', '' ) );
+	if ( '' !== $default_image_url ) {
+		return $default_image_url;
+	}
+
+	$site_icon_url = get_site_icon_url( 512 );
+	if ( $site_icon_url ) {
+		return esc_url_raw( $site_icon_url );
 	}
 
 	$custom_logo_id = (int) get_theme_mod( 'custom_logo' );
 	$url            = $custom_logo_id ? wp_get_attachment_image_url( $custom_logo_id, 'full' ) : '';
 
-	return $url ? esc_url_raw( $url ) : '';
+	if ( $url ) {
+		return esc_url_raw( $url );
+	}
+
+	return esc_url_raw( get_template_directory_uri() . '/images/bsc__placeholder_product.jpg' );
 }
 
 /**
@@ -359,7 +377,7 @@ function bsc_seo_filter_robots( array $robots ): array {
 
 	return $robots;
 }
-add_filter( 'wp_robots', 'bsc_seo_filter_robots' );
+add_filter( 'wp_robots', 'bsc_seo_filter_robots', 999 );
 
 /**
  * Output central SEO meta tags.

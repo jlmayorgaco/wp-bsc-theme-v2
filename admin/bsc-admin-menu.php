@@ -776,6 +776,7 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_ga4_measurement_id', preg_match( '/^G-[A-Z0-9]+$/', $ga4_measurement_id ) ? $ga4_measurement_id : '' );
 		update_option( 'bsc_seo_default_title', sanitize_text_field( wp_unslash( $_POST['bsc_seo_default_title'] ?? '' ) ) );
 		update_option( 'bsc_seo_default_description', sanitize_textarea_field( wp_unslash( $_POST['bsc_seo_default_description'] ?? '' ) ) );
+		update_option( 'bsc_seo_default_image_url', esc_url_raw( wp_unslash( $_POST['bsc_seo_default_image_url'] ?? '' ) ) );
 		update_option( 'bsc_seo_organization_name', sanitize_text_field( wp_unslash( $_POST['bsc_seo_organization_name'] ?? get_bloginfo( 'name' ) ) ) );
 		update_option( 'bsc_seo_instagram_url', esc_url_raw( wp_unslash( $_POST['bsc_seo_instagram_url'] ?? '' ) ) );
 		update_option( 'bsc_seo_tiktok_url', esc_url_raw( wp_unslash( $_POST['bsc_seo_tiktok_url'] ?? '' ) ) );
@@ -900,6 +901,15 @@ function bsc_render_settings_page(): void {
 					<td>
 						<textarea id="bsc_seo_default_description" name="bsc_seo_default_description" class="large-text" rows="3"><?php echo esc_textarea( get_option( 'bsc_seo_default_description', get_bloginfo( 'description' ) ) ); ?></textarea>
 						<p class="description">Descripcion base para home, redes y paginas sin meta description especifica.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_seo_default_image_url">SEO imagen social fallback</label></th>
+					<td>
+						<input type="url" id="bsc_seo_default_image_url" name="bsc_seo_default_image_url"
+							value="<?php echo esc_attr( get_option( 'bsc_seo_default_image_url', '' ) ); ?>"
+							class="regular-text">
+						<p class="description">Imagen absoluta para Open Graph/Twitter cuando la pagina o categoria no tenga imagen propia.</p>
 					</td>
 				</tr>
 				<tr>
