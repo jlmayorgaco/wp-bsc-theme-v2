@@ -265,6 +265,11 @@ class BSC_Growth_AI_Service {
 
 	/**
 	 * Build the AI instruction used to turn a selfie into cosmetic guidance.
+	 *
+	 * @param array $answers Client answers.
+	 * @param array $catalog Product catalog context.
+	 * @param array $vision_signals Browser-side image signals.
+	 * @return string
 	 */
 	private function analysis_prompt( array $answers, array $catalog, array $vision_signals ): string {
 		$context = array(
@@ -280,7 +285,8 @@ class BSC_Growth_AI_Service {
 				'Objetivo: entregar una asesoria cosmetica util, personalizada y comprable, no un diagnostico medico.',
 				'Reglas de seguridad: no diagnostiques enfermedades, no identifiques a la persona, no menciones edad/raza/genero, no prometas curas, no uses lenguaje clinico fuerte como inflamacion, lesion, rosacea, melasma o dermatitis. Usa "aparente", "visible", "tendencia" o "se percibe" cuando hables de la foto.',
 				'Fuentes que debes cruzar: 1) selfie, 2) respuestas de la cliente, 3) senales computacionales no diagnosticas, 4) catalogo real disponible.',
-				'Interpreta computer_vision_signals como pistas aproximadas de la zona tipo piel, no como verdad absoluta: brightness/contrast/saturation/sharpness van de 0 a 1; skin_pixel_ratio bajo sugiere que la foto no deja leer bien la piel; shine_signal sugiere brillo visible; redness_signal sugiere rojeces o brotes aparentes; dark_spot_signal sugiere manchas o sombras visibles; texture_signal sugiere textura/variacion; quality_flags puede indicar baja luz, sobreexposicion, bajo contraste, blur o zona de piel poco clara.',
+				'Interpreta computer_vision_signals como pistas aproximadas de la zona tipo piel, no como verdad absoluta: brightness/contrast/saturation/sharpness van de 0 a 1; skin_pixel_ratio bajo sugiere que la foto no deja leer bien la piel; face_detection, face_count, face_area_ratio y face_center_score solo indican si el encuadre parece util; shine_signal sugiere brillo visible; redness_signal sugiere rojeces o brotes aparentes; dark_spot_signal sugiere manchas o sombras visibles; texture_signal sugiere textura/variacion; quality_flags puede indicar baja luz, sobreexposicion, bajo contraste, blur o zona de piel poco clara.',
+				'Usa las respuestas nuevas para dar asesoria real: skin_goal define la prioridad comercial y cosmetica; sunscreen_habit define si debes reforzar SPF; post_cleanse_feel ayuda a inferir barrera/resequedad/brillo; breakout_frequency ajusta intensidad y evita recomendar rutinas agresivas.',
 				'Prioriza una rutina facial equilibrada y simple: limpieza solo si hay producto facial claro, tonico/esencia, serum/tratamiento, crema/hidratante y SPF si corresponde. Divide mentalmente la recomendacion en manana y noche, y especifica frecuencia si un paso no debe usarse diario. No recomiendes hair care, lash, lip, makeup, body o productos no faciales aunque aparezcan en el catalogo.',
 				'Selecciona 3 a 5 product_ids reales del catalogo, en orden de uso. Evita duplicados funcionales salvo que la rutina lo justifique. Si no hay SPF facial disponible, no inventes producto.',
 				'La rutina debe explicar por que cada paso existe, que prioridad cosmetica cubre, como se integra con la piel percibida y que resultado realista puede esperar la cliente. Se concreta y evita claims exagerados.',

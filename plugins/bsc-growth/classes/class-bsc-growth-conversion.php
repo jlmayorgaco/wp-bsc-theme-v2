@@ -57,6 +57,7 @@ class BSC_Growth_Conversion {
 
 		$counters = $summary['counters'];
 		$funnel   = self::build_funnel( $counters );
+		$skin_quiz = BSC_Growth_Skin_Quiz::get_tracking_summary( $range['start_date'], $range['end_date'] );
 		?>
 		<div class="wrap bsc-growth-admin">
 			<h1>Conversion BSC</h1>
@@ -94,6 +95,19 @@ class BSC_Growth_Conversion {
 				<?php self::render_metric_card( 'Compra / checkout', self::format_rate( $counters['purchase'], $counters['begin_checkout'] ) ); ?>
 				<?php self::render_metric_card( 'Ingresos medidos', wp_strip_all_tags( BSC_Growth_Plugin::price_html( (float) $counters['purchase_revenue'] ) ) ); ?>
 			</div>
+
+			<section class="bsc-growth-admin__card">
+				<h2>Skin Quiz</h2>
+				<div class="bsc-growth-admin__funnel">
+					<?php foreach ( self::build_skin_quiz_funnel( $skin_quiz ) as $step ) : ?>
+						<div class="bsc-growth-admin__funnel-step">
+							<span><?php echo esc_html( $step['label'] ); ?></span>
+							<strong><?php echo esc_html( number_format_i18n( $step['value'] ) ); ?></strong>
+							<small><?php echo esc_html( $step['rate'] ); ?></small>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</section>
 
 			<div class="bsc-growth-admin__layout">
 				<section class="bsc-growth-admin__card">
@@ -189,6 +203,36 @@ class BSC_Growth_Conversion {
 				'label' => 'Compra',
 				'value' => (int) $counters['purchase'],
 				'rate'  => self::format_rate( $counters['purchase'], $counters['begin_checkout'] ),
+			),
+		);
+	}
+
+	private static function build_skin_quiz_funnel( array $skin_quiz ): array {
+		return array(
+			array(
+				'label' => 'Visitas quiz',
+				'value' => (int) $skin_quiz['quiz_view'],
+				'rate'  => 'Base',
+			),
+			array(
+				'label' => 'Fotos subidas',
+				'value' => (int) $skin_quiz['photo_selected'] + (int) $skin_quiz['camera_captured'],
+				'rate'  => self::format_rate( (int) $skin_quiz['photo_selected'] + (int) $skin_quiz['camera_captured'], $skin_quiz['quiz_view'] ),
+			),
+			array(
+				'label' => 'Fotos rechazadas',
+				'value' => (int) $skin_quiz['photo_quality_blocked'],
+				'rate'  => self::format_rate( $skin_quiz['photo_quality_blocked'], max( 1, (int) $skin_quiz['photo_selected'] + (int) $skin_quiz['camera_captured'] ) ),
+			),
+			array(
+				'label' => 'Resultados',
+				'value' => (int) $skin_quiz['quiz_result'],
+				'rate'  => self::format_rate( $skin_quiz['quiz_result'], $skin_quiz['quiz_submit'] ),
+			),
+			array(
+				'label' => 'Rutinas al carrito',
+				'value' => (int) $skin_quiz['routine_add_to_cart'],
+				'rate'  => self::format_rate( $skin_quiz['routine_add_to_cart'], $skin_quiz['quiz_result'] ),
 			),
 		);
 	}

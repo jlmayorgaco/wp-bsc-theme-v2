@@ -14,8 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const afterWrap = document.querySelector('[data-bsc-after-wrap]');
   const compareRange = document.querySelector('[data-bsc-compare-range]');
   const aiNotes = document.querySelector('[data-bsc-ai-notes]');
+  const savedRoutine = document.querySelector('[data-bsc-saved-routine]');
+  const savedRoutineTitle = document.querySelector('[data-bsc-saved-routine-title]');
+  const restoreRoutineButton = document.querySelector('[data-bsc-restore-routine]');
   const previewPromises = new WeakMap();
   const visionPromises = new WeakMap();
+  const cameraStates = new WeakMap();
+  const lastRoutineKey = 'bscSkinQuizLastRoutine';
   let updateCompare = () => {};
 
   if (!forms.length || !results) {
@@ -28,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   modeTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
-      setMode(tab.getAttribute('data-bsc-quiz-mode-tab') || 'normal');
+      const mode = tab.getAttribute('data-bsc-quiz-mode-tab') || 'normal';
+      setMode(mode);
+      trackQuizEvent('mode_change', { mode });
     });
   });
 
@@ -42,14 +49,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fileInput) {
       fileInput.addEventListener('change', () => {
         const file = fileInput.files && fileInput.files[0];
+        const state = cameraStates.get(form);
+        if (state) {
+          state.capturedFile = null;
+        }
+        resetCameraMirror(form);
+        clearPhotoQuality(form);
         updateUploadLabel(form, file);
         previewPromises.set(fileInput, previewBeforeImage(file));
         visionPromises.set(fileInput, analyzeLocalPhoto(file).then((signals) => {
           setVisionSignals(form, signals);
           return signals;
         }));
+        if (file) {
+          trackQuizEvent('photo_selected', { source: 'upload' });
+        }
       });
     }
+
+    initCameraControls(form);
   });
 
   results.addEventListener('click', async (event) => {
@@ -83,12 +101,31 @@ document.addEventListener('DOMContentLoaded', () => {
       button.textContent = 'Agregada';
       setActiveStatus('Rutina agregada al carrito.');
       updateCartCounters(data.cart_count);
+      trackQuizEvent('routine_add_to_cart', {
+        mode: currentMode(),
+        source: productButton ? 'dynamic_products' : 'bundle'
+      });
     } catch (error) {
       button.disabled = false;
       button.textContent = previousText;
       setActiveStatus(error.message || 'No fue posible agregar la rutina.', true);
     }
   });
+
+  if (restoreRoutineButton) {
+    restoreRoutineButton.addEventListener('click', () => {
+      const routine = getSavedRoutine();
+      if (!routine || !Array.isArray(routine.bundles)) {
+        return;
+      }
+
+      setMode(routine.mode === 'ai' ? 'ai' : 'normal');
+      renderBundles(routine.bundles);
+      renderAiVisual(routine.ai || null, routine.mode === 'ai' ? 'ai' : 'normal');
+      setActiveStatus('Rutina guardada cargada.');
+      trackQuizEvent('routine_restore', { mode: routine.mode || 'normal' });
+    });
+  }
 
   if (compareRange && afterWrap) {
     updateCompare = () => {
@@ -108,6 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const initialMode = config.initialMode === 'ai' ? 'ai' : 'normal';
   setMode(initialMode);
+  initSavedRoutine();
+  trackQuizEvent('quiz_view', { mode: initialMode });
 
   if (config.initialRoutine && initialMode === 'normal') {
     const normalForm = forms.find((form) => form.dataset.quizMode === 'normal');
@@ -120,13 +159,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const mode = form.dataset.quizMode || 'normal';
     const statusText = mode === 'ai' ? 'Analizando foto con Gemini...' : 'Buscando rutina...';
     setStatus(form, statusText);
+    trackQuizEvent('quiz_submit', { mode });
+
+    if (mode === 'ai') {
+      await ensureAiPreview(form);
+      const quality = getPhotoQuality(form);
+      if (quality && !quality.ok) {
+        setStatus(form, quality.message, true);
+        trackQuizEvent('photo_quality_blocked', { reason: quality.reason || 'quality' });
+        return;
+      }
+    }
 
     const payload = new FormData(form);
     payload.set('action', mode === 'ai' ? 'bsc_skin_quiz_ai_recommend' : 'bsc_skin_quiz_recommend');
     payload.set('nonce', nonce);
 
     if (mode === 'ai') {
-      await ensureAiPreview(form);
+      const capturedFile = getCapturedFile(form);
+      if (capturedFile) {
+        payload.set('skin_photo', capturedFile, capturedFile.name || 'bsc-skin-quiz-selfie.jpg');
+      }
     }
 
     if (config.initialRoutine && mode === 'normal') {
@@ -138,6 +191,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderBundles(data.bundles || []);
       renderAiVisual(data.ai || null, mode);
+      saveRoutine({
+        mode,
+        bundles: data.bundles || [],
+        ai: data.ai || null,
+        createdAt: new Date().toISOString()
+      });
+      trackQuizEvent('quiz_result', {
+        mode,
+        fallback: data.ai && data.ai.fallback ? '1' : '0'
+      });
       const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. AI pendiente.' : 'Rutina AI lista.';
       setStatus(form, mode === 'ai' ? fallbackLabel : 'Rutina lista.');
     } catch (error) {
@@ -352,8 +415,178 @@ document.addEventListener('DOMContentLoaded', () => {
     label.textContent = file ? file.name : 'JPG, PNG o WebP hasta 4MB';
   }
 
+  function initCameraControls(form) {
+    const startButton = form.querySelector('[data-bsc-camera-start]');
+    const shotButton = form.querySelector('[data-bsc-camera-shot]');
+    const stopButton = form.querySelector('[data-bsc-camera-stop]');
+    const video = form.querySelector('[data-bsc-camera-video]');
+    const canvas = form.querySelector('[data-bsc-camera-canvas]');
+    const empty = form.querySelector('[data-bsc-camera-empty]');
+
+    if (!startButton || !shotButton || !stopButton || !video || !canvas) {
+      return;
+    }
+
+    const state = {
+      stream: null,
+      capturedFile: null
+    };
+    cameraStates.set(form, state);
+
+    startButton.addEventListener('click', async () => {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Tu navegador no permite abrir la camara desde aqui.');
+        }
+
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 960 }
+          },
+          audio: false
+        });
+        video.srcObject = state.stream;
+        await video.play();
+        const fileInput = form.querySelector('[data-bsc-skin-photo]');
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        state.capturedFile = null;
+        video.classList.remove('is-hidden');
+        canvas.classList.add('is-hidden');
+        if (empty) {
+          empty.classList.add('is-hidden');
+        }
+        startButton.classList.add('is-hidden');
+        shotButton.classList.remove('is-hidden');
+        stopButton.classList.remove('is-hidden');
+        clearPhotoQuality(form);
+        trackQuizEvent('camera_started', { mode: 'ai' });
+      } catch (error) {
+        setStatus(form, error.message || 'No fue posible abrir la camara.', true);
+      }
+    });
+
+    shotButton.addEventListener('click', async () => {
+      if (!state.stream || !video.videoWidth || !video.videoHeight) {
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        return;
+      }
+
+      context.translate(canvas.width, 0);
+      context.scale(-1, 1);
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      context.setTransform(1, 0, 0, 1, 0, 0);
+
+      const file = await canvasToFile(canvas, 'bsc-skin-quiz-selfie.jpg');
+      if (!file) {
+        setStatus(form, 'No fue posible guardar la foto de la camara.', true);
+        return;
+      }
+      state.capturedFile = file;
+      canvas.classList.remove('is-hidden');
+      video.classList.add('is-hidden');
+      stopCamera(form);
+      updateUploadLabel(form, file);
+      previewPromises.set(form, previewBeforeImage(file));
+      visionPromises.set(form, analyzeLocalPhoto(file).then((signals) => {
+        setVisionSignals(form, signals);
+        return signals;
+      }));
+      trackQuizEvent('camera_captured', { mode: 'ai' });
+    });
+
+    stopButton.addEventListener('click', () => {
+      stopCamera(form);
+      if (!state.capturedFile && empty) {
+        empty.classList.remove('is-hidden');
+      }
+    });
+  }
+
+  function stopCamera(form) {
+    const state = cameraStates.get(form);
+    const startButton = form.querySelector('[data-bsc-camera-start]');
+    const shotButton = form.querySelector('[data-bsc-camera-shot]');
+    const stopButton = form.querySelector('[data-bsc-camera-stop]');
+    const video = form.querySelector('[data-bsc-camera-video]');
+
+    if (state && state.stream) {
+      state.stream.getTracks().forEach((track) => track.stop());
+      state.stream = null;
+    }
+
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+      video.classList.add('is-hidden');
+    }
+
+    if (startButton) {
+      startButton.classList.remove('is-hidden');
+    }
+    if (shotButton) {
+      shotButton.classList.add('is-hidden');
+    }
+    if (stopButton) {
+      stopButton.classList.add('is-hidden');
+    }
+  }
+
+  function resetCameraMirror(form) {
+    const canvas = form.querySelector('[data-bsc-camera-canvas]');
+    const empty = form.querySelector('[data-bsc-camera-empty]');
+
+    stopCamera(form);
+
+    if (canvas) {
+      canvas.classList.add('is-hidden');
+    }
+    if (empty) {
+      empty.classList.remove('is-hidden');
+    }
+  }
+
+  function canvasToFile(canvas, name) {
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          resolve(null);
+          return;
+        }
+        resolve(new File([blob], name, { type: 'image/jpeg' }));
+      }, 'image/jpeg', 0.9);
+    });
+  }
+
+  function getCapturedFile(form) {
+    const state = cameraStates.get(form);
+    return state && state.capturedFile ? state.capturedFile : null;
+  }
+
   async function ensureAiPreview(form) {
     const fileInput = form.querySelector('[data-bsc-skin-photo]');
+    const capturedFile = getCapturedFile(form);
+
+    if (capturedFile) {
+      const pendingPreview = previewPromises.get(form) || previewBeforeImage(capturedFile);
+      const pendingVision = visionPromises.get(form) || analyzeLocalPhoto(capturedFile).then((signals) => {
+        setVisionSignals(form, signals);
+        return signals;
+      });
+      previewPromises.set(form, pendingPreview);
+      visionPromises.set(form, pendingVision);
+      await Promise.all([pendingPreview, pendingVision]);
+      return;
+    }
 
     if (!fileInput || !fileInput.files || !fileInput.files[0]) {
       return;
@@ -377,6 +610,131 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     input.value = JSON.stringify(signals || {});
+    updatePhotoQuality(form, signals || {});
+  }
+
+  function updatePhotoQuality(form, signals) {
+    const quality = assessPhotoQuality(signals);
+    form.dataset.bscPhotoQualityOk = quality.ok ? '1' : '0';
+    form.dataset.bscPhotoQualityMessage = quality.message || '';
+    form.dataset.bscPhotoQualityReason = quality.reason || '';
+
+    const warning = form.querySelector('[data-bsc-photo-quality]');
+    if (!warning) {
+      return;
+    }
+
+    warning.textContent = quality.ok ? '' : quality.message;
+    warning.classList.toggle('is-visible', !quality.ok);
+  }
+
+  function clearPhotoQuality(form) {
+    form.dataset.bscPhotoQualityOk = '';
+    form.dataset.bscPhotoQualityMessage = '';
+    form.dataset.bscPhotoQualityReason = '';
+
+    const warning = form.querySelector('[data-bsc-photo-quality]');
+    if (warning) {
+      warning.textContent = '';
+      warning.classList.remove('is-visible');
+    }
+  }
+
+  function getPhotoQuality(form) {
+    if (!form.dataset.bscPhotoQualityOk) {
+      return null;
+    }
+
+    return {
+      ok: form.dataset.bscPhotoQualityOk === '1',
+      message: form.dataset.bscPhotoQualityMessage || 'La foto no permite leer bien la piel. Toma otra con mas luz, de frente y sin sombras fuertes.',
+      reason: form.dataset.bscPhotoQualityReason || 'quality'
+    };
+  }
+
+  function assessPhotoQuality(signals) {
+    const flags = Array.isArray(signals.quality_flags) ? signals.quality_flags : [];
+    const faceDetection = signals.face_detection || 'unsupported';
+    const faceCount = Number(signals.face_count || 0);
+    const skinRatio = Number(signals.skin_pixel_ratio || 0);
+
+    if (Number(signals.width || 0) < 240 || Number(signals.height || 0) < 240) {
+      return {
+        ok: false,
+        reason: 'small_image',
+        message: 'La foto esta muy pequena para una asesoria clara. Usa una imagen mas grande o toma otra foto.'
+      };
+    }
+
+    if (faceDetection === 'supported' && faceCount < 1) {
+      return {
+        ok: false,
+        reason: 'no_face',
+        message: 'No logro ubicar el rostro. Toma la foto de frente, con buena luz y sin cubrir la cara.'
+      };
+    }
+
+    if (faceDetection === 'supported' && faceCount > 1) {
+      return {
+        ok: false,
+        reason: 'multiple_faces',
+        message: 'La foto debe tener solo un rostro para que la recomendacion sea personal.'
+      };
+    }
+
+    if (faceDetection === 'supported' && Number(signals.face_area_ratio || 0) < 0.08) {
+      return {
+        ok: false,
+        reason: 'face_too_small',
+        message: 'El rostro queda muy lejos. Acercate un poco y vuelve a tomar la foto.'
+      };
+    }
+
+    if (faceDetection === 'supported' && Number(signals.face_center_score || 1) < 0.45) {
+      return {
+        ok: false,
+        reason: 'off_center',
+        message: 'Centra mejor el rostro para poder leer mejillas, frente y zona T.'
+      };
+    }
+
+    if (flags.includes('low_light')) {
+      return {
+        ok: false,
+        reason: 'low_light',
+        message: 'La foto esta muy oscura. Busca luz natural de frente y vuelve a tomarla.'
+      };
+    }
+
+    if (flags.includes('overexposed')) {
+      return {
+        ok: false,
+        reason: 'overexposed',
+        message: 'La foto esta muy iluminada y quema detalles de la piel. Baja la luz directa e intenta de nuevo.'
+      };
+    }
+
+    if (flags.includes('soft_or_blurry')) {
+      return {
+        ok: false,
+        reason: 'blur',
+        message: 'La foto se ve borrosa. Limpia la camara, mantente quieta y vuelve a tomarla.'
+      };
+    }
+
+    if (flags.includes('skin_area_unclear') || skinRatio < 0.06) {
+      return {
+        ok: false,
+        reason: 'skin_area_unclear',
+        message: 'No se ve suficiente piel del rostro. Toma una foto frontal, sin filtros ni sombras fuertes.'
+      };
+    }
+
+    return {
+      ok: true,
+      reason: '',
+      message: ''
+    };
   }
 
   function analyzeLocalPhoto(file) {
@@ -389,8 +747,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const reader = new FileReader();
       reader.addEventListener('load', () => {
         const image = new Image();
-        image.addEventListener('load', () => {
-          resolve(readImageSignals(image));
+        image.addEventListener('load', async () => {
+          try {
+            resolve(await readImageSignals(image));
+          } catch (error) {
+            resolve({});
+          }
         });
         image.addEventListener('error', () => resolve({}));
         image.src = String(reader.result || '');
@@ -400,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function readImageSignals(image) {
+  async function readImageSignals(image) {
     const size = 96;
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -517,6 +879,8 @@ document.addEventListener('DOMContentLoaded', () => {
       qualityFlags.push('skin_area_unclear');
     }
 
+    const faceSignals = await detectFaceSignals(canvas, size);
+
     return {
       width: image.naturalWidth,
       height: image.naturalHeight,
@@ -529,8 +893,57 @@ document.addEventListener('DOMContentLoaded', () => {
       dark_spot_signal: roundSignal(darkSpots / analysisCount),
       texture_signal: roundSignal(Math.min(1, textureSignal)),
       sharpness: roundSignal(Math.min(1, textureSignal / 1.2)),
-      quality_flags: qualityFlags
+      quality_flags: qualityFlags,
+      ...faceSignals
     };
+  }
+
+  async function detectFaceSignals(canvas, size) {
+    if (!('FaceDetector' in window)) {
+      return {
+        face_detection: 'unsupported',
+        face_count: 0,
+        face_area_ratio: 0,
+        face_center_score: 0
+      };
+    }
+
+    try {
+      const detector = new window.FaceDetector({
+        fastMode: true,
+        maxDetectedFaces: 2
+      });
+      const faces = await detector.detect(canvas);
+      const firstFace = faces && faces[0] ? faces[0].boundingBox : null;
+
+      if (!firstFace) {
+        return {
+          face_detection: 'supported',
+          face_count: 0,
+          face_area_ratio: 0,
+          face_center_score: 0
+        };
+      }
+
+      const faceCenterX = firstFace.x + (firstFace.width / 2);
+      const faceCenterY = firstFace.y + (firstFace.height / 2);
+      const centerDistance = Math.hypot((faceCenterX / size) - 0.5, (faceCenterY / size) - 0.5);
+      const centerScore = Math.max(0, 1 - (centerDistance * 2));
+
+      return {
+        face_detection: 'supported',
+        face_count: faces.length,
+        face_area_ratio: roundSignal((firstFace.width * firstFace.height) / (size * size)),
+        face_center_score: roundSignal(centerScore)
+      };
+    } catch (error) {
+      return {
+        face_detection: 'failed',
+        face_count: 0,
+        face_area_ratio: 0,
+        face_center_score: 0
+      };
+    }
   }
 
   function isLikelySkinPixel(r, g, b, luma, saturation) {
@@ -680,6 +1093,76 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     return labels[value] || String(value || '').replace(/-/g, ' ');
+  }
+
+  function initSavedRoutine() {
+    const routine = getSavedRoutine();
+
+    if (!routine || !Array.isArray(routine.bundles) || !routine.bundles.length || !savedRoutine) {
+      return;
+    }
+
+    const firstBundle = routine.bundles[0] || {};
+    if (savedRoutineTitle) {
+      savedRoutineTitle.textContent = firstBundle.title || 'Tu ultima recomendacion BSC';
+    }
+
+    savedRoutine.classList.remove('is-hidden');
+  }
+
+  function getSavedRoutine() {
+    if (config.savedRoutine && Array.isArray(config.savedRoutine.bundles)) {
+      return config.savedRoutine;
+    }
+
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(lastRoutineKey) : '';
+      const routine = raw ? JSON.parse(raw) : null;
+      return routine && Array.isArray(routine.bundles) ? routine : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function saveRoutine(routine) {
+    if (!routine || !Array.isArray(routine.bundles) || !routine.bundles.length || !window.localStorage) {
+      return;
+    }
+
+    const stored = {
+      mode: routine.mode || 'normal',
+      bundles: routine.bundles,
+      ai: routine.ai || null,
+      createdAt: routine.createdAt || new Date().toISOString()
+    };
+
+    try {
+      window.localStorage.setItem(lastRoutineKey, JSON.stringify(stored));
+      if (savedRoutine && savedRoutineTitle) {
+        savedRoutineTitle.textContent = stored.bundles[0] && stored.bundles[0].title ? stored.bundles[0].title : 'Tu ultima recomendacion BSC';
+        savedRoutine.classList.remove('is-hidden');
+      }
+    } catch (error) {
+      // Storage can fail in private browsing; the server still saves for logged-in users.
+    }
+  }
+
+  function trackQuizEvent(eventName, meta = {}) {
+    if (!nonce) {
+      return;
+    }
+
+    const payload = new FormData();
+    payload.set('action', 'bsc_skin_quiz_track');
+    payload.set('nonce', nonce);
+    payload.set('event', eventName);
+    payload.set('mode', meta.mode || currentMode());
+    payload.set('meta', JSON.stringify(meta));
+
+    fetch(ajaxUrl, {
+      method: 'POST',
+      body: payload
+    }).catch(() => {});
   }
 
   function updateCartCounters(count) {

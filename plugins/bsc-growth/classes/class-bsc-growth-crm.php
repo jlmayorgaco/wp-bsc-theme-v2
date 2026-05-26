@@ -143,9 +143,19 @@ class BSC_Growth_CRM {
 								<tr><td colspan="6">No hay clientes para este filtro.</td></tr>
 							<?php endif; ?>
 							<?php foreach ( $customers as $customer ) : ?>
+								<?php
+								$customer_url = add_query_arg(
+									array(
+										'page'     => 'bsc-crm',
+										'customer' => $customer['key'],
+										's'        => $search,
+									),
+									admin_url( 'admin.php' )
+								);
+								?>
 								<tr>
 									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'bsc-crm', 'customer' => $customer['key'], 's' => $search ), admin_url( 'admin.php' ) ) ); ?>">
+										<a href="<?php echo esc_url( $customer_url ); ?>">
 											<strong><?php echo esc_html( $customer['name'] ); ?></strong>
 										</a>
 										<br>
@@ -199,6 +209,10 @@ class BSC_Growth_CRM {
 				<li><strong>Tipo:</strong> <?php echo esc_html( $customer['skin_type'] ? $customer['skin_type'] : 'Sin dato' ); ?></li>
 				<li><strong>Sensibilidad:</strong> <?php echo esc_html( $customer['sensitivity'] ? $customer['sensitivity'] : 'Sin dato' ); ?></li>
 				<li><strong>Necesidades:</strong> <?php echo esc_html( $customer['needs_label'] ? $customer['needs_label'] : 'Sin dato' ); ?></li>
+				<li><strong>Objetivo:</strong> <?php echo esc_html( $customer['skin_goal'] ? $customer['skin_goal'] : 'Sin dato' ); ?></li>
+				<li><strong>SPF:</strong> <?php echo esc_html( $customer['sunscreen_habit'] ? $customer['sunscreen_habit'] : 'Sin dato' ); ?></li>
+				<li><strong>Despues de lavar:</strong> <?php echo esc_html( $customer['post_cleanse_feel'] ? $customer['post_cleanse_feel'] : 'Sin dato' ); ?></li>
+				<li><strong>Brotes:</strong> <?php echo esc_html( $customer['breakout_frequency'] ? $customer['breakout_frequency'] : 'Sin dato' ); ?></li>
 			</ul>
 
 			<h3>Recompra</h3>
@@ -283,7 +297,11 @@ class BSC_Growth_CRM {
 
 		usort(
 			$rows,
-			static fn( array $a, array $b ): int => ( $b['last_order_ts'] <=> $a['last_order_ts'] ) ?: strnatcasecmp( $a['name'], $b['name'] )
+			static function ( array $a, array $b ): int {
+				$date_sort = $b['last_order_ts'] <=> $a['last_order_ts'];
+
+				return 0 !== $date_sort ? $date_sort : strnatcasecmp( $a['name'], $b['name'] );
+			}
 		);
 
 		return array_slice( $rows, 0, 25 );
@@ -353,9 +371,13 @@ class BSC_Growth_CRM {
 	private static function customer_profile( int $user_id ): array {
 		if ( $user_id <= 0 ) {
 			return array(
-				'skin_type'   => '',
-				'sensitivity' => '',
-				'needs_label' => '',
+				'skin_type'          => '',
+				'sensitivity'        => '',
+				'needs_label'        => '',
+				'skin_goal'          => '',
+				'sunscreen_habit'    => '',
+				'post_cleanse_feel'  => '',
+				'breakout_frequency' => '',
 			);
 		}
 
@@ -369,9 +391,13 @@ class BSC_Growth_CRM {
 		}
 
 		return array(
-			'skin_type'   => (string) get_user_meta( $user_id, 'bsc_skin_type', true ),
-			'sensitivity' => (string) get_user_meta( $user_id, 'bsc_sensitivity', true ),
-			'needs_label' => implode( ', ', array_unique( $needs ) ),
+			'skin_type'          => (string) get_user_meta( $user_id, 'bsc_skin_type', true ),
+			'sensitivity'        => (string) get_user_meta( $user_id, 'bsc_sensitivity', true ),
+			'needs_label'        => implode( ', ', array_unique( $needs ) ),
+			'skin_goal'          => (string) get_user_meta( $user_id, 'bsc_skin_goal', true ),
+			'sunscreen_habit'    => (string) get_user_meta( $user_id, 'bsc_sunscreen_habit', true ),
+			'post_cleanse_feel'  => (string) get_user_meta( $user_id, 'bsc_post_cleanse_feel', true ),
+			'breakout_frequency' => (string) get_user_meta( $user_id, 'bsc_breakout_frequency', true ),
 		);
 	}
 
