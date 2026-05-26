@@ -239,6 +239,7 @@ class BSC_Growth_Skin_Quiz {
 			<label class="bsc-skin-quiz__upload">
 				<span class="bsc-skin-quiz__upload-label">Foto del rostro</span>
 				<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+				<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
 				<span class="bsc-skin-quiz__upload-control">
 					<strong>Seleccionar foto</strong>
 					<em data-bsc-upload-file>JPG, PNG o WebP hasta 4MB</em>
@@ -398,11 +399,73 @@ class BSC_Growth_Skin_Quiz {
 			: array();
 
 		return array(
-			'skin_type'     => $skin_type,
-			'sensitivity'   => $sensitivity,
-			'routine_level' => $routine_level,
-			'needs'         => array_slice( $needs, 0, 4 ),
+			'skin_type'      => $skin_type,
+			'sensitivity'    => $sensitivity,
+			'routine_level'  => $routine_level,
+			'needs'          => array_slice( $needs, 0, 4 ),
+			'vision_signals' => self::sanitize_vision_signals( $request ),
 		);
+	}
+
+	/**
+	 * Sanitize approximate browser-side image signals before sending them to AI.
+	 */
+	private static function sanitize_vision_signals( array $request ): array {
+		$raw = isset( $request['vision_signals'] ) ? sanitize_textarea_field( wp_unslash( $request['vision_signals'] ) ) : '';
+
+		if ( '' === $raw ) {
+			return array();
+		}
+
+		$data = json_decode( $raw, true );
+
+		if ( ! is_array( $data ) ) {
+			return array();
+		}
+
+		$signals = array();
+		$numeric = array(
+			'width',
+			'height',
+			'brightness',
+			'contrast',
+			'saturation',
+			'skin_pixel_ratio',
+			'shine_signal',
+			'redness_signal',
+			'dark_spot_signal',
+			'texture_signal',
+			'sharpness',
+		);
+
+		foreach ( $numeric as $key ) {
+			if ( ! isset( $data[ $key ] ) || ! is_numeric( $data[ $key ] ) ) {
+				continue;
+			}
+
+			$value = (float) $data[ $key ];
+
+			if ( in_array( $key, array( 'width', 'height' ), true ) ) {
+				$signals[ $key ] = max( 0, min( 8000, (int) round( $value ) ) );
+			} else {
+				$signals[ $key ] = max( 0, min( 1, round( $value, 4 ) ) );
+			}
+		}
+
+		if ( isset( $data['quality_flags'] ) && is_array( $data['quality_flags'] ) ) {
+			$signals['quality_flags'] = array_slice(
+				array_values(
+					array_filter(
+						array_map( 'sanitize_key', $data['quality_flags'] ),
+						static fn( string $flag ): bool => '' !== $flag
+					)
+				),
+				0,
+				6
+			);
+		}
+
+		return $signals;
 	}
 
 	private static function persist_submission( array $answers, array $bundles ): void {

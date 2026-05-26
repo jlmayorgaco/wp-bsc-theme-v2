@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const compareRange = document.querySelector('[data-bsc-compare-range]');
   const aiNotes = document.querySelector('[data-bsc-ai-notes]');
   const previewPromises = new WeakMap();
+  const visionPromises = new WeakMap();
   let updateCompare = () => {};
 
   if (!forms.length || !results) {
@@ -43,6 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = fileInput.files && fileInput.files[0];
         updateUploadLabel(form, file);
         previewPromises.set(fileInput, previewBeforeImage(file));
+        visionPromises.set(fileInput, analyzeLocalPhoto(file).then((signals) => {
+          setVisionSignals(form, signals);
+          return signals;
+        }));
       });
     }
   });
@@ -355,8 +360,193 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const pendingPreview = previewPromises.get(fileInput) || previewBeforeImage(fileInput.files[0]);
+    const pendingVision = visionPromises.get(fileInput) || analyzeLocalPhoto(fileInput.files[0]).then((signals) => {
+      setVisionSignals(form, signals);
+      return signals;
+    });
     previewPromises.set(fileInput, pendingPreview);
-    await pendingPreview;
+    visionPromises.set(fileInput, pendingVision);
+    await Promise.all([pendingPreview, pendingVision]);
+  }
+
+  function setVisionSignals(form, signals) {
+    const input = form.querySelector('[data-bsc-vision-signals]');
+
+    if (!input) {
+      return;
+    }
+
+    input.value = JSON.stringify(signals || {});
+  }
+
+  function analyzeLocalPhoto(file) {
+    return new Promise((resolve) => {
+      if (!file || !window.FileReader || !window.Image || !document.createElement('canvas').getContext) {
+        resolve({});
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        const image = new Image();
+        image.addEventListener('load', () => {
+          resolve(readImageSignals(image));
+        });
+        image.addEventListener('error', () => resolve({}));
+        image.src = String(reader.result || '');
+      });
+      reader.addEventListener('error', () => resolve({}));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function readImageSignals(image) {
+    const size = 96;
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!context) {
+      return {};
+    }
+
+    canvas.width = size;
+    canvas.height = size;
+
+    const scale = Math.max(size / image.naturalWidth, size / image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    const x = (size - width) / 2;
+    const y = (size - height) / 2;
+    context.drawImage(image, x, y, width, height);
+
+    const pixels = context.getImageData(0, 0, size, size).data;
+    const samples = [];
+    const lumas = [];
+    let skinCount = 0;
+    let brightness = 0;
+    let saturation = 0;
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index] / 255;
+      const g = pixels[index + 1] / 255;
+      const b = pixels[index + 2] / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const sat = max === 0 ? 0 : (max - min) / max;
+      const luma = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+      const skin = isLikelySkinPixel(r, g, b, luma, sat);
+
+      samples.push({ r, g, b, luma, sat, skin });
+      lumas.push(luma);
+      if (skin) {
+        skinCount += 1;
+        brightness += luma;
+        saturation += sat;
+      }
+    }
+
+    const count = lumas.length || 1;
+    const skinRatio = skinCount / count;
+    const useSkinSample = skinRatio >= 0.08;
+    const analysisSamples = useSkinSample ? samples.filter((sample) => sample.skin) : samples;
+    const analysisCount = analysisSamples.length || 1;
+
+    if (!useSkinSample) {
+      brightness = samples.reduce((sum, sample) => sum + sample.luma, 0);
+      saturation = samples.reduce((sum, sample) => sum + sample.sat, 0);
+    }
+
+    const mean = brightness / analysisCount;
+    const variance = analysisSamples.reduce((sum, sample) => sum + ((sample.luma - mean) ** 2), 0) / analysisCount;
+    let shine = 0;
+    let redness = 0;
+    let darkSpots = 0;
+    let texture = 0;
+    let texturePairs = 0;
+
+    analysisSamples.forEach((sample) => {
+      if (sample.luma > Math.min(0.9, mean + 0.22) && sample.sat < 0.34) {
+        shine += 1;
+      }
+
+      if (sample.r > sample.g * 1.12 && sample.r > sample.b * 1.18 && sample.sat > 0.2) {
+        redness += 1;
+      }
+
+      if (sample.luma < mean - 0.16 && sample.sat > 0.14) {
+        darkSpots += 1;
+      }
+    });
+
+    for (let row = 1; row < size; row += 1) {
+      for (let col = 1; col < size; col += 1) {
+        const currentIndex = (row * size) + col;
+        const leftIndex = currentIndex - 1;
+        const topIndex = ((row - 1) * size) + col;
+        const current = samples[currentIndex];
+        const left = samples[leftIndex];
+        const top = samples[topIndex];
+
+        if (!useSkinSample || (current.skin && left.skin)) {
+          texture += Math.abs(current.luma - left.luma);
+          texturePairs += 1;
+        }
+
+        if (!useSkinSample || (current.skin && top.skin)) {
+          texture += Math.abs(current.luma - top.luma);
+          texturePairs += 1;
+        }
+      }
+    }
+
+    const textureSignal = texturePairs ? texture / texturePairs : 0;
+    const qualityFlags = [];
+    if (mean < 0.28) {
+      qualityFlags.push('low_light');
+    }
+    if (mean > 0.82) {
+      qualityFlags.push('overexposed');
+    }
+    if (Math.sqrt(variance) < 0.11) {
+      qualityFlags.push('low_contrast');
+    }
+    if (textureSignal < 0.045) {
+      qualityFlags.push('soft_or_blurry');
+    }
+    if (!useSkinSample) {
+      qualityFlags.push('skin_area_unclear');
+    }
+
+    return {
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      brightness: roundSignal(mean),
+      contrast: roundSignal(Math.min(1, Math.sqrt(variance) * 2.5)),
+      saturation: roundSignal(saturation / analysisCount),
+      skin_pixel_ratio: roundSignal(skinRatio),
+      shine_signal: roundSignal(shine / analysisCount),
+      redness_signal: roundSignal(redness / analysisCount),
+      dark_spot_signal: roundSignal(darkSpots / analysisCount),
+      texture_signal: roundSignal(Math.min(1, textureSignal)),
+      sharpness: roundSignal(Math.min(1, textureSignal / 1.2)),
+      quality_flags: qualityFlags
+    };
+  }
+
+  function isLikelySkinPixel(r, g, b, luma, saturation) {
+    const red = r * 255;
+    const green = g * 255;
+    const blue = b * 255;
+    const cb = 128 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
+    const cr = 128 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
+    const ycbcrSkin = cb >= 70 && cb <= 150 && cr >= 125 && cr <= 190;
+    const rgbSkin = r > b * 0.75 && g > b * 0.45 && saturation > 0.05 && saturation < 0.72;
+
+    return luma > 0.12 && luma < 0.95 && (ycbcrSkin || rgbSkin);
+  }
+
+  function roundSignal(value) {
+    return Math.round(Math.max(0, Math.min(1, Number(value) || 0)) * 10000) / 10000;
   }
 
   function renderAiVisual(ai, mode) {
