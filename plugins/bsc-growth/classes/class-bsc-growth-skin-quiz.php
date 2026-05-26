@@ -294,49 +294,51 @@ class BSC_Growth_Skin_Quiz {
 					<button type="button" class="bsc-skin-quiz__ghost-button is-hidden" data-bsc-camera-stop>Cerrar cámara</button>
 				</div>
 				<p class="bsc-skin-quiz__photo-warning" data-bsc-photo-quality aria-live="polite"></p>
+
+				<label class="bsc-skin-quiz__upload">
+					<span class="bsc-skin-quiz__upload-label">O sube una foto</span>
+					<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+					<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
+					<span class="bsc-skin-quiz__upload-control">
+						<strong>Subir foto</strong>
+						<em data-bsc-upload-file>JPG, PNG o WebP, máximo 4 MB</em>
+					</span>
+				</label>
 			</div>
 
-			<label class="bsc-skin-quiz__upload">
-				<span class="bsc-skin-quiz__upload-label">O sube una foto</span>
-				<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
-				<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
-				<span class="bsc-skin-quiz__upload-control">
-					<strong>Subir foto</strong>
-					<em data-bsc-upload-file>JPG, PNG o WebP, máximo 4 MB</em>
-				</span>
-			</label>
+			<div class="bsc-skin-quiz__questions">
+				<fieldset class="bsc-skin-quiz__fieldset">
+					<legend>¿Cómo se siente tu piel?</legend>
+					<?php self::render_radio_group( 'skin_type', self::skin_type_options(), 'mixta' ); ?>
+				</fieldset>
 
-			<fieldset class="bsc-skin-quiz__fieldset">
-				<legend>¿Cómo se siente tu piel?</legend>
-				<?php self::render_radio_group( 'skin_type', self::skin_type_options(), 'mixta' ); ?>
-			</fieldset>
+				<label class="bsc-skin-quiz__field">
+					<span>Necesidad que más quieres mejorar</span>
+					<select name="needs[]">
+						<option value="manchas">Manchas</option>
+						<option value="acne">Brotes</option>
+						<option value="hidratacion">Hidratación</option>
+						<option value="barrera">Barrera</option>
+						<option value="glow">Glow</option>
+						<option value="protector-solar">Protector solar</option>
+					</select>
+				</label>
 
-			<label class="bsc-skin-quiz__field">
-				<span>Necesidad que más quieres mejorar</span>
-				<select name="needs[]">
-					<option value="manchas">Manchas</option>
-					<option value="acne">Brotes</option>
-					<option value="hidratacion">Hidratación</option>
-					<option value="barrera">Barrera</option>
-					<option value="glow">Glow</option>
-					<option value="protector-solar">Protector solar</option>
-				</select>
-			</label>
+				<fieldset class="bsc-skin-quiz__fieldset">
+					<legend>Meta principal</legend>
+					<?php self::render_radio_group( 'skin_goal', self::skin_goal_options(), 'tono-uniforme' ); ?>
+				</fieldset>
 
-			<fieldset class="bsc-skin-quiz__fieldset">
-				<legend>Meta principal</legend>
-				<?php self::render_radio_group( 'skin_goal', self::skin_goal_options(), 'tono-uniforme' ); ?>
-			</fieldset>
+				<?php self::render_common_fields(); ?>
 
-			<?php self::render_common_fields(); ?>
+				<label class="bsc-skin-quiz__consent">
+					<input type="checkbox" name="ai_consent" value="1" required>
+					<span>Acepto usar esta foto solo para crear mi recomendación de skincare. La imagen no se guarda.</span>
+				</label>
 
-			<label class="bsc-skin-quiz__consent">
-				<input type="checkbox" name="ai_consent" value="1" required>
-				<span>Acepto usar esta foto solo para crear mi recomendación de skincare. La imagen no se guarda.</span>
-			</label>
-
-			<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Crear mi rutina</button>
-			<p class="bsc-skin-quiz__status" data-bsc-skin-quiz-status aria-live="polite"></p>
+				<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Crear mi rutina</button>
+				<p class="bsc-skin-quiz__status" data-bsc-skin-quiz-status aria-live="polite"></p>
+			</div>
 		</form>
 		<?php
 	}
