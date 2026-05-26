@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const faceCount = Number(signals.face_count || 0);
     const skinRatio = Number(signals.skin_pixel_ratio || 0);
 
-    if (Number(signals.width || 0) < 240 || Number(signals.height || 0) < 240) {
+    if (Number(signals.width || 0) < 180 || Number(signals.height || 0) < 180) {
       return {
         ok: false,
         reason: 'small_image',
@@ -711,14 +711,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ok: false,
         reason: 'overexposed',
         message: 'La foto está muy iluminada y quema detalles de la piel. Baja la luz directa e intenta de nuevo.'
-      };
-    }
-
-    if (flags.includes('soft_or_blurry')) {
-      return {
-        ok: false,
-        reason: 'blur',
-        message: 'La foto se ve borrosa. Limpia la cámara, mantente quieta y vuelve a tomarla.'
       };
     }
 
@@ -872,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Math.sqrt(variance) < 0.11) {
       qualityFlags.push('low_contrast');
     }
-    if (textureSignal < 0.045) {
+    if (textureSignal < 0.018 && Math.sqrt(variance) < 0.08) {
       qualityFlags.push('soft_or_blurry');
     }
     if (!useSkinSample) {
