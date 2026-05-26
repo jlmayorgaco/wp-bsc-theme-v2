@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setMode(routine.mode === 'ai' ? 'ai' : 'normal');
       renderBundles(routine.bundles);
       renderAiVisual(routine.ai || null, routine.mode === 'ai' ? 'ai' : 'normal');
-      setActiveStatus('Rutina guardada cargada.');
+      setActiveStatus('Recomendación guardada cargada.');
       trackQuizEvent('routine_restore', { mode: routine.mode || 'normal' });
     });
   }
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function runRecommendation(form) {
     const mode = form.dataset.quizMode || 'normal';
-    const statusText = mode === 'ai' ? 'Analizando foto con Gemini...' : 'Buscando rutina...';
+    const statusText = mode === 'ai' ? 'Analizando tu foto...' : 'Preparando tu rutina...';
     setStatus(form, statusText);
     trackQuizEvent('quiz_submit', { mode });
 
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mode,
         fallback: data.ai && data.ai.fallback ? '1' : '0'
       });
-      const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. AI pendiente.' : 'Rutina AI lista.';
+      const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. Lectura AI pendiente.' : 'Rutina personalizada lista.';
       setStatus(form, mode === 'ai' ? fallbackLabel : 'Rutina lista.');
     } catch (error) {
       setStatus(form, error.message || 'No fue posible recomendar una rutina.', true);
@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      throw new Error(data.data && data.data.message ? data.data.message : 'No fue posible completar la accion.');
+      throw new Error(data.data && data.data.message ? data.data.message : 'No fue posible completar la acción.');
     }
 
     return data.data || {};
@@ -394,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         compare.classList.remove('is-empty');
         compare.classList.add('is-visible');
-        resetDiagnosis('Foto lista para Gemini. Completa las respuestas y analiza la rutina.');
+        resetDiagnosis('Foto lista. Completa las respuestas y crea tu rutina.');
         window.requestAnimationFrame(updateCompare);
         resolve(src);
       });
@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    label.textContent = file ? file.name : 'JPG, PNG o WebP hasta 4MB';
+    label.textContent = file ? file.name : 'JPG, PNG o WebP, máximo 4 MB';
   }
 
   function initCameraControls(form) {
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startButton.addEventListener('click', async () => {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error('Tu navegador no permite abrir la camara desde aqui.');
+          throw new Error('Tu navegador no permite abrir la cámara desde aquí.');
         }
 
         state.stream = await navigator.mediaDevices.getUserMedia({
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearPhotoQuality(form);
         trackQuizEvent('camera_started', { mode: 'ai' });
       } catch (error) {
-        setStatus(form, error.message || 'No fue posible abrir la camara.', true);
+        setStatus(form, error.message || 'No fue posible abrir la cámara.', true);
       }
     });
 
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const file = await canvasToFile(canvas, 'bsc-skin-quiz-selfie.jpg');
       if (!file) {
-        setStatus(form, 'No fue posible guardar la foto de la camara.', true);
+        setStatus(form, 'No fue posible guardar la foto de la cámara.', true);
         return;
       }
       state.capturedFile = file;
@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return {
       ok: form.dataset.bscPhotoQualityOk === '1',
-      message: form.dataset.bscPhotoQualityMessage || 'La foto no permite leer bien la piel. Toma otra con mas luz, de frente y sin sombras fuertes.',
+      message: form.dataset.bscPhotoQualityMessage || 'La foto no permite leer bien la piel. Toma otra con más luz, de frente y sin sombras fuertes.',
       reason: form.dataset.bscPhotoQualityReason || 'quality'
     };
   }
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'small_image',
-        message: 'La foto esta muy pequena para una asesoria clara. Usa una imagen mas grande o toma otra foto.'
+        message: 'La foto está muy pequeña para una asesoría clara. Usa una imagen más grande o toma otra foto.'
       };
     }
 
@@ -678,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'multiple_faces',
-        message: 'La foto debe tener solo un rostro para que la recomendacion sea personal.'
+        message: 'La foto debe tener solo un rostro para que la recomendación sea personal.'
       };
     }
 
@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'face_too_small',
-        message: 'El rostro queda muy lejos. Acercate un poco y vuelve a tomar la foto.'
+        message: 'El rostro queda muy lejos. Acércate un poco y vuelve a tomar la foto.'
       };
     }
 
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'low_light',
-        message: 'La foto esta muy oscura. Busca luz natural de frente y vuelve a tomarla.'
+        message: 'La foto está muy oscura. Busca luz natural de frente y vuelve a tomarla.'
       };
     }
 
@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'overexposed',
-        message: 'La foto esta muy iluminada y quema detalles de la piel. Baja la luz directa e intenta de nuevo.'
+        message: 'La foto está muy iluminada y quema detalles de la piel. Baja la luz directa e intenta de nuevo.'
       };
     }
 
@@ -718,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         ok: false,
         reason: 'blur',
-        message: 'La foto se ve borrosa. Limpia la camara, mantente quieta y vuelve a tomarla.'
+        message: 'La foto se ve borrosa. Limpia la cámara, mantente quieta y vuelve a tomarla.'
       };
     }
 
@@ -1015,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (diagnosisSkinType) {
-      diagnosisSkinType.textContent = 'Pendiente de analisis';
+      diagnosisSkinType.textContent = 'Lista para analizar';
     }
 
     if (diagnosisConfidence) {
@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
       diagnosisNeeds.innerHTML = '';
     }
 
-    setAiNotes(message || 'La lectura cosmetica aparecera aqui despues de analizar la foto.');
+    setAiNotes(message || 'Tu lectura cosmética aparecerá aquí después de analizar la foto.');
   }
 
   function renderDiagnosis(ai) {
@@ -1071,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!notes.length && needs.length) {
-      notes.push('Gemini cruzo la foto, tus respuestas y el catalogo BSC para armar esta rutina.');
+      notes.push('Cruzamos la foto, tus respuestas y el catálogo BSC para armar esta rutina.');
     }
 
     setAiNotes(notes.join(' '));
@@ -1079,11 +1079,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function labelFor(value) {
     const labels = {
-      acne: 'Brotes',
+      acne: 'Brotes / acné',
       barrera: 'Barrera',
       glow: 'Glow',
       grasa: 'Grasa',
-      hidratacion: 'Hidratacion',
+      hidratacion: 'Hidratación',
       manchas: 'Manchas',
       mixta: 'Mixta',
       normal: 'Normal',
@@ -1104,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const firstBundle = routine.bundles[0] || {};
     if (savedRoutineTitle) {
-      savedRoutineTitle.textContent = firstBundle.title || 'Tu ultima recomendacion BSC';
+      savedRoutineTitle.textContent = firstBundle.title || 'Recupera tu recomendación guardada';
     }
 
     savedRoutine.classList.remove('is-hidden');
@@ -1139,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       window.localStorage.setItem(lastRoutineKey, JSON.stringify(stored));
       if (savedRoutine && savedRoutineTitle) {
-        savedRoutineTitle.textContent = stored.bundles[0] && stored.bundles[0].title ? stored.bundles[0].title : 'Tu ultima recomendacion BSC';
+        savedRoutineTitle.textContent = stored.bundles[0] && stored.bundles[0].title ? stored.bundles[0].title : 'Recupera tu recomendación guardada';
         savedRoutine.classList.remove('is-hidden');
       }
     } catch (error) {
