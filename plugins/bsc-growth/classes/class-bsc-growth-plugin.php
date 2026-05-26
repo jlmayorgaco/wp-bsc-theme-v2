@@ -43,6 +43,10 @@ class BSC_Growth_Plugin {
 		return is_callable( 'wc_get_cart_url' ) ? (string) call_user_func( 'wc_get_cart_url' ) : home_url( '/cart/' );
 	}
 
+	public static function checkout_url(): string {
+		return is_callable( 'wc_get_checkout_url' ) ? (string) call_user_func( 'wc_get_checkout_url' ) : home_url( '/checkout/' );
+	}
+
 	public static function shop_url(): string {
 		return is_callable( 'wc_get_page_permalink' ) ? (string) call_user_func( 'wc_get_page_permalink', 'shop' ) : home_url( '/shop/' );
 	}

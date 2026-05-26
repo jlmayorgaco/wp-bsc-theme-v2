@@ -167,9 +167,10 @@ class BSC_Growth_Bundles {
 
 		wp_send_json_success(
 			array(
-				'message'    => 'Rutina agregada al carrito.',
-				'cart_url'   => BSC_Growth_Plugin::cart_url(),
-				'cart_count' => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
+				'message'      => 'Rutina agregada al carrito.',
+				'cart_url'     => BSC_Growth_Plugin::cart_url(),
+				'checkout_url' => BSC_Growth_Plugin::checkout_url(),
+				'cart_count'   => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
 			)
 		);
 	}
@@ -193,9 +194,10 @@ class BSC_Growth_Bundles {
 
 		wp_send_json_success(
 			array(
-				'message'    => 'Rutina agregada al carrito.',
-				'cart_url'   => BSC_Growth_Plugin::cart_url(),
-				'cart_count' => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
+				'message'      => 'Rutina agregada al carrito.',
+				'cart_url'     => BSC_Growth_Plugin::cart_url(),
+				'checkout_url' => BSC_Growth_Plugin::checkout_url(),
+				'cart_count'   => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
 			)
 		);
 	}
