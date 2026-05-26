@@ -37,7 +37,7 @@ class BSC_Growth_AI_Service {
 
 	private function analyze_image( array $answers, array $image, BSC_Growth_Bundle_Repository $repository ): array {
 		$catalog = $repository->get_catalog_context( 80 );
-		$prompt  = $this->analysis_prompt( $answers, $catalog );
+		$prompt  = $this->analysis_prompt( $answers, $catalog, (array) ( $answers['vision_signals'] ?? array() ) );
 		$result  = $this->call_generate_content(
 			$this->analysis_model(),
 			array(
@@ -263,8 +263,32 @@ class BSC_Growth_AI_Service {
 		return array();
 	}
 
-	private function analysis_prompt( array $answers, array $catalog ): string {
-		return 'Actua como asesor cosmetico de K-beauty para ecommerce. No diagnostiques enfermedades, no identifiques a la persona y no prometas curas. Analiza solo senales cosmeticas visibles como brillo, textura, resequedad aparente, manchas visibles, brotes aparentes o sensibilidad percibida. Cruza la foto con las respuestas y el catalogo. Devuelve JSON valido sin markdown con esta forma exacta: {"skin_profile":{"skin_type":"grasa|mixta|seca|normal|sensible","needs":["acne","manchas","hidratacion","barrera","glow","protector-solar"],"confidence":0.0},"visible_notes":["nota corta"],"routine":{"title":"titulo","summary":"resumen","steps":[{"label":"paso","why":"razon"}]},"product_ids":[123,456],"after_description":"descripcion corta del acabado esperado"}. Elige 3 a 5 product_ids reales del catalogo, en orden de uso. Respuestas: ' . wp_json_encode( $answers ) . '. Catalogo: ' . wp_json_encode( $catalog ) . '.';
+	/**
+	 * Build the AI instruction used to turn a selfie into cosmetic guidance.
+	 */
+	private function analysis_prompt( array $answers, array $catalog, array $vision_signals ): string {
+		$context = array(
+			'answers'                 => array_diff_key( $answers, array( 'vision_signals' => true ) ),
+			'computer_vision_signals' => $vision_signals,
+			'catalog'                 => $catalog,
+		);
+
+		return implode(
+			"\n",
+			array(
+				'Actua como una asesora cosmetica senior de K-beauty para un ecommerce llamado Bubbles Skin Care.',
+				'Objetivo: entregar una asesoria cosmetica util, personalizada y comprable, no un diagnostico medico.',
+				'Reglas de seguridad: no diagnostiques enfermedades, no identifiques a la persona, no menciones edad/raza/genero, no prometas curas, no uses lenguaje clinico fuerte como inflamacion, lesion, rosacea, melasma o dermatitis. Usa "aparente", "visible", "tendencia" o "se percibe" cuando hables de la foto.',
+				'Fuentes que debes cruzar: 1) selfie, 2) respuestas de la cliente, 3) senales computacionales no diagnosticas, 4) catalogo real disponible.',
+				'Interpreta computer_vision_signals como pistas aproximadas de la zona tipo piel, no como verdad absoluta: brightness/contrast/saturation/sharpness van de 0 a 1; skin_pixel_ratio bajo sugiere que la foto no deja leer bien la piel; shine_signal sugiere brillo visible; redness_signal sugiere rojeces o brotes aparentes; dark_spot_signal sugiere manchas o sombras visibles; texture_signal sugiere textura/variacion; quality_flags puede indicar baja luz, sobreexposicion, bajo contraste, blur o zona de piel poco clara.',
+				'Prioriza una rutina facial equilibrada y simple: limpieza solo si hay producto facial claro, tonico/esencia, serum/tratamiento, crema/hidratante y SPF si corresponde. Divide mentalmente la recomendacion en manana y noche, y especifica frecuencia si un paso no debe usarse diario. No recomiendes hair care, lash, lip, makeup, body o productos no faciales aunque aparezcan en el catalogo.',
+				'Selecciona 3 a 5 product_ids reales del catalogo, en orden de uso. Evita duplicados funcionales salvo que la rutina lo justifique. Si no hay SPF facial disponible, no inventes producto.',
+				'La rutina debe explicar por que cada paso existe, que prioridad cosmetica cubre, como se integra con la piel percibida y que resultado realista puede esperar la cliente. Se concreta y evita claims exagerados.',
+				'Si la foto tiene calidad limitada, dilo con delicadeza en visible_notes y apoya mas la rutina en las respuestas. Si detectas posible sensibilidad, barrera comprometida o brotes aparentes, prioriza calma, hidratacion y SPF antes que una rutina agresiva.',
+				'Devuelve SOLO JSON valido, sin markdown, con esta forma exacta: {"skin_profile":{"skin_type":"grasa|mixta|seca|normal|sensible","needs":["acne","manchas","hidratacion","barrera","glow","protector-solar"],"confidence":0.0},"visible_notes":["2 a 4 observaciones cosmeticas accionables: lectura de piel, prioridad, cuidado o nota de foto"],"routine":{"title":"titulo especifico","summary":"resumen de valor para cliente","steps":[{"label":"Manana/Noche - paso + producto o categoria","why":"razon cosmetica concreta, frecuencia y beneficio realista"}]},"product_ids":[123,456],"after_description":"descripcion realista, sutil y no clinica del acabado esperado"}.',
+				'Contexto JSON: ' . wp_json_encode( $context ),
+			)
+		);
 	}
 
 	private function after_prompt( array $analysis ): string {
