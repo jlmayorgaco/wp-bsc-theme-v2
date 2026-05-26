@@ -6,7 +6,10 @@ defined( 'ABSPATH' ) || exit;
 
 class BSC_Growth_Skin_Quiz {
 	private const OPTION_SUBMISSIONS = 'bsc_skin_quiz_submissions';
+	private const OPTION_EVENTS      = 'bsc_skin_quiz_events';
+	private const USER_LAST_ROUTINE  = 'bsc_skin_quiz_last_routine';
 	private const MAX_SUBMISSIONS    = 300;
+	private const MAX_EVENTS         = 1200;
 
 	public static function register_hooks(): void {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
@@ -15,6 +18,8 @@ class BSC_Growth_Skin_Quiz {
 		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_recommend', array( __CLASS__, 'ajax_recommend' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_ai_recommend', array( __CLASS__, 'ajax_ai_recommend' ) );
 		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_ai_recommend', array( __CLASS__, 'ajax_ai_recommend' ) );
+		add_action( 'wp_ajax_bsc_skin_quiz_track', array( __CLASS__, 'ajax_track_event' ) );
+		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_track', array( __CLASS__, 'ajax_track_event' ) );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
 		add_filter( 'pre_handle_404', array( __CLASS__, 'prevent_404' ), 10, 2 );
 	}
@@ -78,6 +83,7 @@ class BSC_Growth_Skin_Quiz {
 				'nonce'          => wp_create_nonce( 'bsc_growth_action' ),
 				'cartUrl'        => BSC_Growth_Plugin::cart_url(),
 				'aiAvailable'    => ( new BSC_Growth_AI_Service() )->has_api_key(),
+				'savedRoutine'   => self::get_saved_routine_payload(),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Optional read-only routine preselection.
 				'initialRoutine' => isset( $_GET['routine'] ) ? sanitize_text_field( wp_unslash( $_GET['routine'] ) ) : '',
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Optional read-only mode preselection.
@@ -130,6 +136,13 @@ class BSC_Growth_Skin_Quiz {
 					</div>
 
 					<aside class="bsc-skin-quiz__results" data-bsc-skin-quiz-results>
+						<div class="bsc-skin-quiz__saved is-hidden" data-bsc-saved-routine>
+							<div>
+								<span>Rutina guardada</span>
+								<strong data-bsc-saved-routine-title>Tu ultima recomendacion BSC</strong>
+							</div>
+							<button type="button" class="bsc-skin-quiz__saved-button" data-bsc-restore-routine>Ver rutina</button>
+						</div>
 						<?php self::render_ai_visual(); ?>
 						<div class="bsc-skin-quiz__bundle-list" data-bsc-skin-quiz-bundles>
 							<?php foreach ( $bundles as $bundle ) : ?>
@@ -178,6 +191,12 @@ class BSC_Growth_Skin_Quiz {
 
 		self::persist_submission( $answers, $payload );
 		self::update_customer_profile( $answers );
+		self::save_customer_last_routine(
+			array(
+				'mode'    => 'normal',
+				'bundles' => $payload,
+			)
+		);
 
 		wp_send_json_success(
 			array(
@@ -204,8 +223,30 @@ class BSC_Growth_Skin_Quiz {
 
 		self::persist_submission( array_merge( $answers, array( 'mode' => 'ai' ) ), $response['bundles'] );
 		self::update_customer_profile( $answers );
+		self::save_customer_last_routine(
+			array(
+				'mode'    => 'ai',
+				'bundles' => $response['bundles'],
+				'ai'      => $response['ai'] ?? array(),
+			)
+		);
 
 		wp_send_json_success( $response );
+	}
+
+	public static function ajax_track_event(): void {
+		check_ajax_referer( 'bsc_growth_action', 'nonce' );
+
+		$event = isset( $_POST['event'] ) ? sanitize_key( wp_unslash( $_POST['event'] ) ) : '';
+		$mode  = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : 'normal';
+		$meta  = self::sanitize_tracking_meta( $_POST );
+
+		if ( '' === $event ) {
+			wp_send_json_error( array( 'message' => 'Evento invalido.' ), 400 );
+		}
+
+		self::track_event( $event, $mode, $meta );
+		wp_send_json_success( array( 'tracked' => true ) );
 	}
 
 	private static function render_normal_form( bool $hidden ): void {
@@ -236,6 +277,24 @@ class BSC_Growth_Skin_Quiz {
 		<form class="bsc-skin-quiz__form bsc-skin-quiz__form--ai <?php echo $hidden ? 'is-hidden' : ''; ?>" data-bsc-skin-quiz-form data-quiz-mode="ai" enctype="multipart/form-data">
 			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
 
+			<div class="bsc-skin-quiz__capture" data-bsc-camera-shell>
+				<span class="bsc-skin-quiz__capture-label">Foto para asesoria</span>
+				<div class="bsc-skin-quiz__mirror" data-bsc-camera-mirror>
+					<video class="bsc-skin-quiz__mirror-video is-hidden" data-bsc-camera-video autoplay muted playsinline></video>
+					<canvas class="bsc-skin-quiz__mirror-canvas is-hidden" data-bsc-camera-canvas></canvas>
+					<div class="bsc-skin-quiz__mirror-empty" data-bsc-camera-empty>
+						<strong>Usa la camara como espejo</strong>
+						<span>Busca luz natural y toma la foto de frente.</span>
+					</div>
+				</div>
+				<div class="bsc-skin-quiz__capture-actions">
+					<button type="button" class="bsc-skin-quiz__secondary-button" data-bsc-camera-start>Prender camara</button>
+					<button type="button" class="bsc-skin-quiz__secondary-button is-hidden" data-bsc-camera-shot>Tomar foto</button>
+					<button type="button" class="bsc-skin-quiz__ghost-button is-hidden" data-bsc-camera-stop>Apagar</button>
+				</div>
+				<p class="bsc-skin-quiz__photo-warning" data-bsc-photo-quality aria-live="polite"></p>
+			</div>
+
 			<label class="bsc-skin-quiz__upload">
 				<span class="bsc-skin-quiz__upload-label">Foto del rostro</span>
 				<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
@@ -262,6 +321,11 @@ class BSC_Growth_Skin_Quiz {
 					<option value="protector-solar">Protector solar</option>
 				</select>
 			</label>
+
+			<fieldset class="bsc-skin-quiz__fieldset">
+				<legend>Objetivo principal</legend>
+				<?php self::render_radio_group( 'skin_goal', self::skin_goal_options(), 'tono-uniforme' ); ?>
+			</fieldset>
 
 			<?php self::render_common_fields(); ?>
 
@@ -292,6 +356,32 @@ class BSC_Growth_Skin_Quiz {
 				<select name="routine_level">
 					<option value="basica">Basica</option>
 					<option value="completa">Completa</option>
+				</select>
+			</label>
+			<label class="bsc-skin-quiz__field">
+				<span>Protector solar</span>
+				<select name="sunscreen_habit">
+					<option value="diario">Lo uso todos los dias</option>
+					<option value="a-veces">A veces</option>
+					<option value="no-uso">Casi no lo uso</option>
+				</select>
+			</label>
+			<label class="bsc-skin-quiz__field">
+				<span>Despues de lavar</span>
+				<select name="post_cleanse_feel">
+					<option value="normal">Se siente normal</option>
+					<option value="tirante">Tirante o reseca</option>
+					<option value="brillante">Brillante rapido</option>
+					<option value="variable">Depende del dia</option>
+				</select>
+			</label>
+			<label class="bsc-skin-quiz__field">
+				<span>Brotes</span>
+				<select name="breakout_frequency">
+					<option value="ocasional">Ocasionales</option>
+					<option value="raro">Rara vez</option>
+					<option value="frecuente">Frecuentes</option>
+					<option value="hormonal">Por ciclos</option>
 				</select>
 			</label>
 		</div>
@@ -391,24 +481,35 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	private static function sanitize_answers( array $request ): array {
-		$skin_type     = isset( $request['skin_type'] ) ? sanitize_key( wp_unslash( $request['skin_type'] ) ) : 'mixta';
-		$sensitivity   = isset( $request['sensitivity'] ) ? sanitize_key( wp_unslash( $request['sensitivity'] ) ) : 'normal';
-		$routine_level = isset( $request['routine_level'] ) ? sanitize_key( wp_unslash( $request['routine_level'] ) ) : 'basica';
-		$needs         = isset( $request['needs'] ) && is_array( $request['needs'] )
+		$skin_type          = isset( $request['skin_type'] ) ? sanitize_key( wp_unslash( $request['skin_type'] ) ) : 'mixta';
+		$sensitivity        = isset( $request['sensitivity'] ) ? sanitize_key( wp_unslash( $request['sensitivity'] ) ) : 'normal';
+		$routine_level      = isset( $request['routine_level'] ) ? sanitize_key( wp_unslash( $request['routine_level'] ) ) : 'basica';
+		$skin_goal          = isset( $request['skin_goal'] ) ? sanitize_key( wp_unslash( $request['skin_goal'] ) ) : 'tono-uniforme';
+		$sunscreen_habit    = isset( $request['sunscreen_habit'] ) ? sanitize_key( wp_unslash( $request['sunscreen_habit'] ) ) : 'diario';
+		$post_cleanse_feel  = isset( $request['post_cleanse_feel'] ) ? sanitize_key( wp_unslash( $request['post_cleanse_feel'] ) ) : 'normal';
+		$breakout_frequency = isset( $request['breakout_frequency'] ) ? sanitize_key( wp_unslash( $request['breakout_frequency'] ) ) : 'ocasional';
+		$needs              = isset( $request['needs'] ) && is_array( $request['needs'] )
 			? array_values( array_unique( array_map( 'sanitize_key', wp_unslash( $request['needs'] ) ) ) )
 			: array();
 
 		return array(
-			'skin_type'      => $skin_type,
-			'sensitivity'    => $sensitivity,
-			'routine_level'  => $routine_level,
-			'needs'          => array_slice( $needs, 0, 4 ),
-			'vision_signals' => self::sanitize_vision_signals( $request ),
+			'skin_type'          => self::allowed_value( $skin_type, array_keys( self::skin_type_options() ), 'mixta' ),
+			'sensitivity'        => self::allowed_value( $sensitivity, array( 'normal', 'sensible', 'muy-sensible' ), 'normal' ),
+			'routine_level'      => self::allowed_value( $routine_level, array( 'basica', 'completa' ), 'basica' ),
+			'skin_goal'          => self::allowed_value( $skin_goal, array_keys( self::skin_goal_options() ), 'tono-uniforme' ),
+			'sunscreen_habit'    => self::allowed_value( $sunscreen_habit, array( 'diario', 'a-veces', 'no-uso' ), 'diario' ),
+			'post_cleanse_feel'  => self::allowed_value( $post_cleanse_feel, array( 'normal', 'tirante', 'brillante', 'variable' ), 'normal' ),
+			'breakout_frequency' => self::allowed_value( $breakout_frequency, array( 'raro', 'ocasional', 'frecuente', 'hormonal' ), 'ocasional' ),
+			'needs'              => array_slice( $needs, 0, 4 ),
+			'vision_signals'     => self::sanitize_vision_signals( $request ),
 		);
 	}
 
 	/**
 	 * Sanitize approximate browser-side image signals before sending them to AI.
+	 *
+	 * @param array $request Request payload.
+	 * @return array
 	 */
 	private static function sanitize_vision_signals( array $request ): array {
 		$raw = isset( $request['vision_signals'] ) ? sanitize_textarea_field( wp_unslash( $request['vision_signals'] ) ) : '';
@@ -431,6 +532,9 @@ class BSC_Growth_Skin_Quiz {
 			'contrast',
 			'saturation',
 			'skin_pixel_ratio',
+			'face_count',
+			'face_area_ratio',
+			'face_center_score',
 			'shine_signal',
 			'redness_signal',
 			'dark_spot_signal',
@@ -447,9 +551,15 @@ class BSC_Growth_Skin_Quiz {
 
 			if ( in_array( $key, array( 'width', 'height' ), true ) ) {
 				$signals[ $key ] = max( 0, min( 8000, (int) round( $value ) ) );
+			} elseif ( 'face_count' === $key ) {
+				$signals[ $key ] = max( 0, min( 8, (int) round( $value ) ) );
 			} else {
 				$signals[ $key ] = max( 0, min( 1, round( $value, 4 ) ) );
 			}
+		}
+
+		if ( isset( $data['face_detection'] ) ) {
+			$signals['face_detection'] = self::allowed_value( sanitize_key( (string) $data['face_detection'] ), array( 'supported', 'unsupported', 'failed' ), 'unsupported' );
 		}
 
 		if ( isset( $data['quality_flags'] ) && is_array( $data['quality_flags'] ) ) {
@@ -499,6 +609,135 @@ class BSC_Growth_Skin_Quiz {
 		foreach ( array_values( $answers['needs'] ) as $index => $need ) {
 			update_user_meta( $user_id, 'bsc_needs' . ( $index + 1 ), $need );
 		}
+
+		update_user_meta( $user_id, 'bsc_skin_goal', $answers['skin_goal'] ?? '' );
+		update_user_meta( $user_id, 'bsc_sunscreen_habit', $answers['sunscreen_habit'] ?? '' );
+		update_user_meta( $user_id, 'bsc_post_cleanse_feel', $answers['post_cleanse_feel'] ?? '' );
+		update_user_meta( $user_id, 'bsc_breakout_frequency', $answers['breakout_frequency'] ?? '' );
+	}
+
+	private static function save_customer_last_routine( array $routine ): void {
+		$user_id = get_current_user_id();
+
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		$routine['created_at'] = current_time( 'mysql' );
+		update_user_meta( $user_id, self::USER_LAST_ROUTINE, $routine );
+	}
+
+	private static function get_saved_routine_payload(): array {
+		$user_id = get_current_user_id();
+
+		if ( $user_id <= 0 ) {
+			return array();
+		}
+
+		$routine = get_user_meta( $user_id, self::USER_LAST_ROUTINE, true );
+
+		return is_array( $routine ) ? $routine : array();
+	}
+
+	private static function sanitize_tracking_meta( array $request ): array {
+		$raw = isset( $request['meta'] ) ? sanitize_textarea_field( wp_unslash( $request['meta'] ) ) : '';
+
+		if ( '' === $raw ) {
+			return array();
+		}
+
+		$decoded = json_decode( $raw, true );
+
+		if ( ! is_array( $decoded ) ) {
+			return array();
+		}
+
+		$meta = array();
+		foreach ( $decoded as $key => $value ) {
+			$key = sanitize_key( (string) $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_scalar( $value ) ) {
+				$meta[ $key ] = sanitize_text_field( (string) $value );
+			}
+		}
+
+		return array_slice( $meta, 0, 10, true );
+	}
+
+	private static function track_event( string $event, string $mode, array $meta = array() ): void {
+		$allowed_events = array(
+			'quiz_view',
+			'mode_change',
+			'photo_selected',
+			'camera_started',
+			'camera_captured',
+			'photo_quality_blocked',
+			'quiz_submit',
+			'quiz_result',
+			'routine_add_to_cart',
+			'routine_restore',
+		);
+
+		if ( ! in_array( $event, $allowed_events, true ) ) {
+			return;
+		}
+
+		$events = get_option( self::OPTION_EVENTS, array() );
+		$events = is_array( $events ) ? $events : array();
+
+		array_unshift(
+			$events,
+			array(
+				'created_at' => current_time( 'mysql' ),
+				'date'       => current_time( 'Y-m-d' ),
+				'event'      => $event,
+				'mode'       => in_array( $mode, array( 'normal', 'ai' ), true ) ? $mode : 'normal',
+				'user_id'    => get_current_user_id(),
+				'meta'       => $meta,
+			)
+		);
+
+		update_option( self::OPTION_EVENTS, array_slice( $events, 0, self::MAX_EVENTS ), false );
+	}
+
+	public static function get_tracking_summary( string $start_date, string $end_date ): array {
+		$events  = get_option( self::OPTION_EVENTS, array() );
+		$events  = is_array( $events ) ? $events : array();
+		$summary = array_fill_keys(
+			array(
+				'quiz_view',
+				'mode_change',
+				'photo_selected',
+				'camera_started',
+				'camera_captured',
+				'photo_quality_blocked',
+				'quiz_submit',
+				'quiz_result',
+				'routine_add_to_cart',
+				'routine_restore',
+			),
+			0
+		);
+
+		foreach ( $events as $event ) {
+			if ( ! is_array( $event ) ) {
+				continue;
+			}
+
+			$date = (string) ( $event['date'] ?? '' );
+			$name = (string) ( $event['event'] ?? '' );
+
+			if ( $date < $start_date || $date > $end_date || ! array_key_exists( $name, $summary ) ) {
+				continue;
+			}
+
+			++$summary[ $name ];
+		}
+
+		return $summary;
 	}
 
 	private static function unique_bundles( array $bundles ): array {
@@ -529,6 +768,17 @@ class BSC_Growth_Skin_Quiz {
 		);
 	}
 
+	private static function skin_goal_options(): array {
+		return array(
+			'tono-uniforme'  => 'Tono uniforme',
+			'control-brillo' => 'Control brillo',
+			'calmar-piel'    => 'Calmar piel',
+			'glow'           => 'Glow saludable',
+			'barrera'        => 'Barrera fuerte',
+			'brotes'         => 'Menos brotes',
+		);
+	}
+
 	private static function need_options(): array {
 		return array(
 			'acne'            => 'Acne',
@@ -538,5 +788,9 @@ class BSC_Growth_Skin_Quiz {
 			'glow'            => 'Glow',
 			'protector-solar' => 'Protector solar',
 		);
+	}
+
+	private static function allowed_value( string $value, array $allowed, string $fallback ): string {
+		return in_array( $value, $allowed, true ) ? $value : $fallback;
 	}
 }
