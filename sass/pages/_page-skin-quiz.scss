@@ -691,7 +691,9 @@
 .bsc-skin-quiz__compare-after {
   --bsc-compare-split: 50%;
 
-  width: var(--bsc-compare-split);
+  right: 0;
+  left: var(--bsc-compare-split);
+  width: auto;
   overflow: hidden;
 }
 
@@ -706,6 +708,8 @@
 }
 
 .bsc-skin-quiz__compare-image--after {
+  right: 0;
+  left: auto;
   width: 100%;
   max-width: none;
 }
@@ -878,6 +882,15 @@
   grid-template-columns: minmax(240px, 0.82fr) minmax(320px, 1.18fr);
 }
 
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+  border-color: rgba(247, 192, 205, 0.68);
+  background:
+    linear-gradient(135deg, rgba(255, 245, 248, 0.92), rgba(255, 255, 255, 0) 46%),
+    bsc.$surface;
+  box-shadow: 0 24px 58px rgba(31, 31, 31, 0.1);
+}
+
 .bsc-skin-quiz__bundle-header {
   padding: bsc.$space-md;
   text-align: center;
@@ -885,6 +898,26 @@
 
 .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle-header {
   text-align: left;
+}
+
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai .bsc-skin-quiz__bundle-header {
+  display: grid;
+  align-content: start;
+  gap: bsc.$space-xs;
+  padding: clamp(18px, 3vw, 28px);
+  border-right: 1px solid bsc.$border-muted;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(247, 192, 205, 0.42), transparent 32%),
+    linear-gradient(180deg, rgba(255, 245, 248, 0.94), rgba(255, 255, 255, 0.82));
+}
+
+.bsc-skin-quiz__bundle-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: bsc.$space-xs;
+  margin-bottom: bsc.$space-xs;
 }
 
 .bsc-skin-quiz__badge {
@@ -898,16 +931,52 @@
   font-weight: 800;
 }
 
+.bsc-skin-quiz__bundle-meta .bsc-skin-quiz__badge,
+.bsc-skin-quiz__bundle--ai .bsc-skin-quiz__badge {
+  margin-bottom: 0;
+}
+
+.bsc-skin-quiz__bundle--ai .bsc-skin-quiz__badge {
+  background: bsc.$text;
+  color: bsc.$surface;
+}
+
+.bsc-skin-quiz__bundle-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-pill;
+  background: bsc.$surface;
+  color: bsc.$text-soft;
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .bsc-skin-quiz__bundle h3 {
   margin: 0;
   font-size: 1.15rem;
   line-height: 1.2;
 }
 
+.bsc-skin-quiz__bundle--ai h3 {
+  max-width: 13em;
+  font-size: clamp(1.25rem, 2.4vw, 1.85rem);
+  line-height: 1.05;
+}
+
 .bsc-skin-quiz__bundle p {
   margin: bsc.$space-xs 0 0;
   color: bsc.$text-soft;
   line-height: 1.45;
+}
+
+.bsc-skin-quiz__bundle--ai p {
+  max-width: 38ch;
+  font-size: 0.95rem;
 }
 
 .bsc-skin-quiz__steps {
@@ -920,6 +989,14 @@
 
 .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__steps {
   align-content: start;
+}
+
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai .bsc-skin-quiz__steps {
+  grid-column: 1;
+  gap: 8px;
+  padding: 0 clamp(18px, 3vw, 28px) clamp(18px, 3vw, 28px);
+  border-right: 1px solid bsc.$border-muted;
+  background: rgba(255, 245, 248, 0.42);
 }
 
 .bsc-skin-quiz__steps li {
@@ -941,6 +1018,39 @@
   font-size: 0.84rem;
 }
 
+.bsc-skin-quiz__products-panel {
+  min-width: 0;
+}
+
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products-panel {
+  align-self: stretch;
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  min-width: 0;
+  padding: clamp(16px, 2.5vw, 24px);
+  background: bsc.$surface;
+}
+
+.bsc-skin-quiz__products-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: bsc.$space-xs;
+  margin-bottom: bsc.$space-sm;
+}
+
+.bsc-skin-quiz__products-heading strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.bsc-skin-quiz__products-heading span {
+  color: bsc.$text-soft;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .bsc-skin-quiz__products {
   display: grid;
   gap: 1px;
@@ -958,12 +1068,29 @@
   background: transparent;
 }
 
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products-panel .bsc-skin-quiz__products {
+  gap: bsc.$space-sm;
+  grid-row: auto;
+}
+
 .bsc-skin-quiz__products li {
   background: bsc.$surface;
 }
 
 .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products li {
   border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-md;
+  overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products li:hover {
+  border-color: rgba(247, 192, 205, 0.9);
+  box-shadow: 0 14px 28px rgba(31, 31, 31, 0.08);
+  transform: translateY(-2px);
 }
 
 .bsc-skin-quiz__products a {
@@ -978,10 +1105,20 @@
   text-align: center;
 }
 
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products a {
+  padding: 10px;
+  text-align: left;
+}
+
 .bsc-skin-quiz__products img {
   width: 100%;
   aspect-ratio: 1;
   object-fit: contain;
+}
+
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products img {
+  border-radius: calc(#{bsc.$radius-md} - 2px);
+  background: bsc.$surface-soft;
 }
 
 .bsc-skin-quiz__bundle-actions {
@@ -997,6 +1134,11 @@
   justify-content: space-between;
 }
 
+.bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai .bsc-skin-quiz__bundle-actions {
+  padding: clamp(14px, 2.4vw, 20px) clamp(18px, 3vw, 28px);
+  background: bsc.$surface-soft;
+}
+
 .bsc-skin-quiz__bundle-actions span {
   color: bsc.$text-muted;
   font-size: 0.84rem;
@@ -1004,6 +1146,10 @@
 }
 
 .bsc-skin-quiz__bundle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-width: 160px;
 }
 
@@ -1023,6 +1169,16 @@
 
   .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle {
     grid-template-columns: 1fr;
+  }
+
+  .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai .bsc-skin-quiz__bundle-header,
+  .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__bundle--ai .bsc-skin-quiz__steps {
+    border-right: 0;
+  }
+
+  .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products-panel {
+    grid-row: auto;
+    grid-column: auto;
   }
 
   .bsc-skin-quiz__row,
@@ -1094,5 +1250,9 @@
 
   .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bsc-skin-quiz__layout.is-ai-mode .bsc-skin-quiz__products-panel .bsc-skin-quiz__products {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

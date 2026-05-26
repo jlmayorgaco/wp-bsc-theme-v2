@@ -271,18 +271,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function createBundleCard(bundle) {
+    const badgeText = String(bundle.badge || '');
+    const isAiRoutine = currentMode() === 'ai' || badgeText.toLowerCase().includes('ai');
     const article = document.createElement('article');
-    article.className = 'bsc-skin-quiz__bundle';
+    article.className = isAiRoutine ? 'bsc-skin-quiz__bundle bsc-skin-quiz__bundle--ai' : 'bsc-skin-quiz__bundle';
     article.setAttribute('data-bundle-id', bundle.id || '');
 
     const header = document.createElement('div');
     header.className = 'bsc-skin-quiz__bundle-header';
 
-    if (bundle.badge) {
+    if (bundle.badge || (isAiRoutine && bundle.product_count)) {
+      const meta = document.createElement('div');
+      meta.className = 'bsc-skin-quiz__bundle-meta';
+
       const badge = document.createElement('span');
       badge.className = 'bsc-skin-quiz__badge';
-      badge.textContent = bundle.badge;
-      header.appendChild(badge);
+      badge.textContent = bundle.badge || 'Rutina BSC';
+      meta.appendChild(badge);
+
+      if (isAiRoutine && bundle.product_count) {
+        const count = document.createElement('span');
+        count.className = 'bsc-skin-quiz__bundle-count';
+        count.textContent = `${bundle.product_count} productos`;
+        meta.appendChild(count);
+      }
+
+      header.appendChild(meta);
     }
 
     const title = document.createElement('h3');
@@ -299,6 +313,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (Array.isArray(bundle.products) && bundle.products.length) {
+      const productsPanel = document.createElement('div');
+      productsPanel.className = 'bsc-skin-quiz__products-panel';
+
+      if (isAiRoutine) {
+        const productsHeading = document.createElement('div');
+        productsHeading.className = 'bsc-skin-quiz__products-heading';
+
+        const productsTitle = document.createElement('strong');
+        productsTitle.textContent = 'Productos recomendados';
+        productsHeading.appendChild(productsTitle);
+
+        const productsNote = document.createElement('span');
+        productsNote.textContent = 'Listos para tu carrito';
+        productsHeading.appendChild(productsNote);
+
+        productsPanel.appendChild(productsHeading);
+      }
+
       const list = document.createElement('ul');
       list.className = 'bsc-skin-quiz__products';
 
@@ -306,21 +338,35 @@ document.addEventListener('DOMContentLoaded', () => {
         list.appendChild(createProductItem(product));
       });
 
-      article.appendChild(list);
+      productsPanel.appendChild(list);
+      article.appendChild(productsPanel);
     }
 
     const actions = document.createElement('div');
     actions.className = 'bsc-skin-quiz__bundle-actions';
 
-    const label = document.createElement('span');
-    label.textContent = bundle.discount_label || '';
-    actions.appendChild(label);
+    const actionLabel = bundle.discount_label || (isAiRoutine ? 'Agrega la rutina completa en un clic' : '');
+    if (actionLabel) {
+      const label = document.createElement('span');
+      label.textContent = actionLabel;
+      actions.appendChild(label);
+    }
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'bsc__button bsc-skin-quiz__bundle-button';
     button.disabled = !bundle.product_count;
-    button.textContent = 'Agregar rutina';
+
+    if (isAiRoutine) {
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-cart-plus';
+      icon.setAttribute('aria-hidden', 'true');
+      button.appendChild(icon);
+    }
+
+    const buttonLabel = document.createElement('span');
+    buttonLabel.textContent = 'Agregar rutina';
+    button.appendChild(buttonLabel);
 
     if (Array.isArray(bundle.product_ids) && bundle.product_ids.length) {
       button.setAttribute('data-bsc-add-products', bundle.product_ids.join(','));
