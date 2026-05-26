@@ -278,8 +278,8 @@
 
 .bsc-skin-quiz__capture {
   display: grid;
-  gap: bsc.$space-sm;
-  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: clamp(12px, 2vw, 18px);
+  grid-template-columns: 1fr;
   align-items: start;
   margin-bottom: bsc.$space-lg;
   padding: clamp(14px, 2vw, 18px);
@@ -289,13 +289,11 @@
 }
 
 .bsc-skin-quiz__capture-label {
-  grid-column: 1 / -1;
   font-size: 0.95rem;
   font-weight: 800;
 }
 
 .bsc-skin-quiz__capture-help {
-  grid-column: 1 / -1;
   max-width: 48ch;
   margin: -4px 0 2px;
   color: bsc.$text-soft;
@@ -304,11 +302,82 @@
   line-height: 1.35;
 }
 
+.bsc-skin-quiz__photo-options {
+  display: grid;
+  gap: bsc.$space-sm;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bsc-skin-quiz__photo-option,
+.bsc-skin-quiz__upload-control {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: bsc.$space-sm;
+  width: 100%;
+  min-height: 74px;
+  padding: bsc.$space-sm;
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-md;
+  background: bsc.$surface;
+  color: bsc.$text;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.bsc-skin-quiz__photo-option i,
+.bsc-skin-quiz__upload-control i {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: bsc.$surface-soft;
+  color: bsc.$text;
+  font-size: 1rem;
+}
+
+.bsc-skin-quiz__photo-option strong,
+.bsc-skin-quiz__photo-option em,
+.bsc-skin-quiz__upload-control strong,
+.bsc-skin-quiz__upload-control em {
+  display: block;
+}
+
+.bsc-skin-quiz__photo-option strong,
+.bsc-skin-quiz__upload-control strong {
+  font-size: 0.96rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.bsc-skin-quiz__photo-option em,
+.bsc-skin-quiz__upload-control em {
+  margin-top: 3px;
+  overflow: hidden;
+  color: bsc.$text-soft;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bsc-skin-quiz__photo-option:hover,
+.bsc-skin-quiz__photo-option:focus-visible,
+.bsc-skin-quiz__upload:hover .bsc-skin-quiz__upload-control,
+.bsc-skin-quiz__upload:focus-within .bsc-skin-quiz__upload-control {
+  border-color: bsc.$brand;
+  background: bsc.$surface-soft;
+  box-shadow: 0 10px 28px rgba(247, 192, 205, 0.22);
+}
+
 .bsc-skin-quiz__mirror {
   position: relative;
-  display: grid;
-  grid-row: 3 / span 4;
-  grid-column: 1;
+  display: none;
   overflow: hidden;
   min-height: clamp(220px, 32vw, 270px);
   border: 1px solid bsc.$border-muted;
@@ -316,6 +385,15 @@
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(247, 192, 205, 0.16)),
     bsc.$surface-soft;
+}
+
+.bsc-skin-quiz__capture.is-camera-active .bsc-skin-quiz__mirror,
+.bsc-skin-quiz__capture.has-photo-preview .bsc-skin-quiz__mirror {
+  display: grid;
+}
+
+.bsc-skin-quiz__capture.is-camera-active .bsc-skin-quiz__photo-options {
+  display: none;
 }
 
 .bsc-skin-quiz__mirror-video,
@@ -342,26 +420,17 @@
 .bsc-skin-quiz__mirror-empty strong {
   max-width: 18rem;
   margin: 0 auto;
-  font-size: clamp(1.05rem, 2vw, 1.28rem);
-  line-height: 1.1;
-}
-
-.bsc-skin-quiz__mirror-empty span {
   color: bsc.$text-soft;
   font-size: 0.88rem;
-  line-height: 1.35;
+  letter-spacing: 1.2px;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .bsc-skin-quiz__capture-actions {
   display: grid;
   gap: bsc.$space-xs;
-  grid-row: 3;
-  grid-column: 2;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.bsc-skin-quiz__capture-actions .bsc-skin-quiz__secondary-button:first-child {
-  grid-column: 1 / -1;
 }
 
 .bsc-skin-quiz__secondary-button,
@@ -415,7 +484,6 @@
 
 .bsc-skin-quiz__photo-warning {
   display: none;
-  grid-column: 2;
   margin: 0;
   padding: bsc.$space-xs bsc.$space-sm;
   border: 1px solid rgba(188, 93, 72, 0.3);
@@ -439,7 +507,7 @@
 }
 
 .bsc-skin-quiz__upload {
-  grid-column: 2;
+  margin: 0;
   cursor: pointer;
 }
 
@@ -457,44 +525,6 @@
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-.bsc-skin-quiz__upload-control {
-  @include bsc.inline-stack(bsc.$space-sm, center, space-between, nowrap);
-
-  min-height: 58px;
-  padding: bsc.$space-sm;
-  border: 1px dashed bsc.$border-soft;
-  border-radius: bsc.$radius-md;
-  background: bsc.$surface;
-  cursor: pointer;
-}
-
-.bsc-skin-quiz__upload-control strong {
-  flex: 0 0 auto;
-  padding: 10px 15px;
-  border-radius: bsc.$radius-pill;
-  background: bsc.$text;
-  color: bsc.$surface;
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-.bsc-skin-quiz__upload-control em {
-  min-width: 0;
-  overflow: hidden;
-  color: bsc.$text-soft;
-  font-size: 0.84rem;
-  font-style: normal;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.bsc-skin-quiz__upload:hover .bsc-skin-quiz__upload-control,
-.bsc-skin-quiz__upload:focus-within .bsc-skin-quiz__upload-control {
-  border-color: bsc.$brand;
-  box-shadow: 0 10px 28px rgba(247, 192, 205, 0.22);
 }
 
 .bsc-skin-quiz__consent {
@@ -1054,14 +1084,8 @@
     grid-template-columns: 1fr;
   }
 
-  .bsc-skin-quiz__upload-control {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .bsc-skin-quiz__upload-control em {
-    width: 100%;
-    white-space: normal;
+  .bsc-skin-quiz__photo-options {
+    grid-template-columns: 1fr;
   }
 
   .bsc-skin-quiz__compare-frame {

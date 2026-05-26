@@ -24,7 +24,7 @@ function bsc_send_base_security_headers(): void {
 	header_remove( 'X-Powered-By' );
 	header( 'X-Content-Type-Options: nosniff' );
 	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
-	header( 'Permissions-Policy: accelerometer=(), autoplay=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self), usb=(), browsing-topics=()' );
+	header( 'Permissions-Policy: accelerometer=(), autoplay=(), camera=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self), usb=(), browsing-topics=()' );
 
 	if ( is_ssl() ) {
 		header( 'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload' );

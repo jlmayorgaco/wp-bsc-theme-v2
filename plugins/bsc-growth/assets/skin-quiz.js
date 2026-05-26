@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    label.textContent = file ? file.name : 'JPG, PNG o WebP, máximo 4 MB';
+    label.textContent = file ? file.name : 'Galería o archivo';
   }
 
   function initCameraControls(form) {
@@ -422,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = form.querySelector('[data-bsc-camera-video]');
     const canvas = form.querySelector('[data-bsc-camera-canvas]');
     const empty = form.querySelector('[data-bsc-camera-empty]');
+    const shell = form.querySelector('[data-bsc-camera-shell]');
 
     if (!startButton || !shotButton || !stopButton || !video || !canvas) {
       return;
@@ -454,6 +455,10 @@ document.addEventListener('DOMContentLoaded', () => {
           fileInput.value = '';
         }
         state.capturedFile = null;
+        if (shell) {
+          shell.classList.add('is-camera-active');
+          shell.classList.remove('has-photo-preview');
+        }
         video.classList.remove('is-hidden');
         canvas.classList.add('is-hidden');
         if (empty) {
@@ -492,6 +497,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       state.capturedFile = file;
+      if (shell) {
+        shell.classList.add('has-photo-preview');
+      }
       canvas.classList.remove('is-hidden');
       video.classList.add('is-hidden');
       stopCamera(form);
@@ -518,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shotButton = form.querySelector('[data-bsc-camera-shot]');
     const stopButton = form.querySelector('[data-bsc-camera-stop]');
     const video = form.querySelector('[data-bsc-camera-video]');
+    const shell = form.querySelector('[data-bsc-camera-shell]');
 
     if (state && state.stream) {
       state.stream.getTracks().forEach((track) => track.stop());
@@ -528,6 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
       video.pause();
       video.srcObject = null;
       video.classList.add('is-hidden');
+    }
+
+    if (shell) {
+      shell.classList.remove('is-camera-active');
     }
 
     if (startButton) {
@@ -544,6 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetCameraMirror(form) {
     const canvas = form.querySelector('[data-bsc-camera-canvas]');
     const empty = form.querySelector('[data-bsc-camera-empty]');
+    const shell = form.querySelector('[data-bsc-camera-shell]');
 
     stopCamera(form);
 
@@ -552,6 +566,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (empty) {
       empty.classList.remove('is-hidden');
+    }
+    if (shell) {
+      shell.classList.remove('is-camera-active', 'has-photo-preview');
     }
   }
 
@@ -714,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    if (flags.includes('skin_area_unclear') || skinRatio < 0.06) {
+    if (flags.includes('skin_area_unclear') && skinRatio < 0.03) {
       return {
         ok: false,
         reason: 'skin_area_unclear',
