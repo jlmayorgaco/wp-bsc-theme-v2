@@ -279,31 +279,40 @@ class BSC_Growth_Skin_Quiz {
 
 			<div class="bsc-skin-quiz__capture" data-bsc-camera-shell>
 				<span class="bsc-skin-quiz__capture-label">Agrega una foto de tu rostro</span>
-				<p class="bsc-skin-quiz__capture-help">La foto solo se usa para orientar brillo, textura y tono visible. No se guarda.</p>
+				<p class="bsc-skin-quiz__capture-help">Opcional. JPG, PNG o WebP. La imagen no se guarda.</p>
+				<div class="bsc-skin-quiz__photo-options">
+					<button type="button" class="bsc-skin-quiz__photo-option" data-bsc-camera-start>
+						<i class="fas fa-camera" aria-hidden="true"></i>
+						<span>
+							<strong>Tomar foto</strong>
+							<em>Cámara o selfie</em>
+						</span>
+					</button>
+
+					<label class="bsc-skin-quiz__upload">
+						<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+						<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
+						<span class="bsc-skin-quiz__upload-control">
+							<i class="fas fa-image" aria-hidden="true"></i>
+							<span>
+								<strong>Subir foto</strong>
+								<em data-bsc-upload-file>Galería o archivo</em>
+							</span>
+						</span>
+					</label>
+				</div>
 				<div class="bsc-skin-quiz__mirror" data-bsc-camera-mirror>
 					<video class="bsc-skin-quiz__mirror-video is-hidden" data-bsc-camera-video autoplay muted playsinline></video>
 					<canvas class="bsc-skin-quiz__mirror-canvas is-hidden" data-bsc-camera-canvas></canvas>
 					<div class="bsc-skin-quiz__mirror-empty" data-bsc-camera-empty>
-						<strong>Toma una foto o súbela desde tu galería</strong>
-						<span>Usa luz natural, mira de frente y evita filtros.</span>
+						<strong>Vista de cámara</strong>
 					</div>
 				</div>
 				<div class="bsc-skin-quiz__capture-actions">
-					<button type="button" class="bsc-skin-quiz__secondary-button" data-bsc-camera-start>Abrir cámara</button>
 					<button type="button" class="bsc-skin-quiz__secondary-button is-hidden" data-bsc-camera-shot>Usar esta foto</button>
-					<button type="button" class="bsc-skin-quiz__ghost-button is-hidden" data-bsc-camera-stop>Cerrar cámara</button>
+					<button type="button" class="bsc-skin-quiz__ghost-button is-hidden" data-bsc-camera-stop>Cancelar</button>
 				</div>
 				<p class="bsc-skin-quiz__photo-warning" data-bsc-photo-quality aria-live="polite"></p>
-
-				<label class="bsc-skin-quiz__upload">
-					<span class="bsc-skin-quiz__upload-label">O sube una foto</span>
-					<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
-					<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
-					<span class="bsc-skin-quiz__upload-control">
-						<strong>Subir foto</strong>
-						<em data-bsc-upload-file>JPG, PNG o WebP, máximo 4 MB</em>
-					</span>
-				</label>
 			</div>
 
 			<div class="bsc-skin-quiz__questions">
