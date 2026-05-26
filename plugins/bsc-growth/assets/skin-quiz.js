@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const config = window.bscGrowthQuiz || {};
   const ajaxUrl = config.ajaxUrl || '/wp-admin/admin-ajax.php';
   const nonce = config.nonce || '';
+  const checkoutUrl = config.checkoutUrl || config.cartUrl || '/checkout/';
 
   modeTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -105,6 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mode: currentMode(),
         source: productButton ? 'dynamic_products' : 'bundle'
       });
+      button.textContent = 'Redirigiendo...';
+      window.location.assign(data.checkout_url || checkoutUrl);
     } catch (error) {
       button.disabled = false;
       button.textContent = previousText;

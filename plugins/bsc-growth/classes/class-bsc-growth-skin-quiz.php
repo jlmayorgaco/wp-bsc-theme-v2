@@ -82,6 +82,7 @@ class BSC_Growth_Skin_Quiz {
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'bsc_growth_action' ),
 				'cartUrl'        => BSC_Growth_Plugin::cart_url(),
+				'checkoutUrl'    => BSC_Growth_Plugin::checkout_url(),
 				'aiAvailable'    => ( new BSC_Growth_AI_Service() )->has_api_key(),
 				'savedRoutine'   => self::get_saved_routine_payload(),
 				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Optional read-only routine preselection.
