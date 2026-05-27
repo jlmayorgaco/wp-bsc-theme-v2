@@ -33,6 +33,11 @@ test.describe('BSC Emails admin smoke', () => {
     await expect(page.getByRole('heading', { name: /Log operativo de correos de pedidos/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Templates editables/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Guardar/i })).toBeVisible();
+    await expect(page.getByLabel(/Servidor SMTP/i)).toBeVisible();
+    await expect(page.getByLabel(/Usuario SMTP/i)).toBeVisible();
+    await expect(page.getByLabel(/Password SMTP/i)).toBeVisible();
     await expect(page.getByRole('link', { name: /Preview/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Enviar prueba/i }).first()).toBeVisible();
+    await expect(page.locator('input[name="bsc_preview_target_email"]').first()).toBeVisible();
   });
 });

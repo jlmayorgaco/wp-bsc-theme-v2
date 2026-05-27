@@ -76,6 +76,47 @@ function bsc_metrics_current_date(): string {
 	return current_time( 'Y-m-d' );
 }
 
+function bsc_metrics_actor_hash(): string {
+	$user_id = get_current_user_id();
+
+	if ( $user_id > 0 ) {
+		return 'u' . $user_id;
+	}
+
+	$ip = function_exists( 'bsc_get_request_ip' )
+		? bsc_get_request_ip()
+		: sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
+
+	return 'ip' . md5( $ip );
+}
+
+function bsc_metrics_should_record_once( string $scope, int $ttl_seconds = 1800 ): bool {
+	$scope = sanitize_key( $scope );
+
+	if ( '' === $scope ) {
+		return false;
+	}
+
+	$key = 'bsc_metrics_seen_' . md5( bsc_metrics_current_date() . '|' . $scope . '|' . bsc_metrics_actor_hash() );
+
+	if ( get_transient( $key ) ) {
+		return false;
+	}
+
+	set_transient( $key, 1, max( MINUTE_IN_SECONDS, $ttl_seconds ) );
+	return true;
+}
+
+function bsc_metrics_is_probable_bot(): bool {
+	$user_agent = strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ) );
+
+	if ( '' === $user_agent ) {
+		return false;
+	}
+
+	return (bool) preg_match( '/bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|preview|headless/i', $user_agent );
+}
+
 function bsc_metrics_record_counter( string $counter, int $amount = 1, float $value = 0.0 ): void {
 	$counter = sanitize_key( $counter );
 	if ( '' === $counter || $amount < 1 ) {
@@ -150,6 +191,10 @@ function bsc_metrics_record_search( string $query, int $results_count ): void {
 		return;
 	}
 
+	if ( ! bsc_metrics_should_record_once( 'search_' . md5( $normalized_query ), 30 * MINUTE_IN_SECONDS ) ) {
+		return;
+	}
+
 	$store       = bsc_metrics_get_store();
 	$date        = bsc_metrics_current_date();
 	$results     = max( 0, $results_count );
@@ -193,9 +238,17 @@ function bsc_metrics_record_frontend_context(): void {
 		return;
 	}
 
+	if ( bsc_metrics_is_probable_bot() ) {
+		return;
+	}
+
 	if ( is_product() ) {
 		$product = wc_get_product( get_the_ID() );
 		if ( $product instanceof WC_Product ) {
+			if ( ! bsc_metrics_should_record_once( 'view_item_' . $product->get_id(), 30 * MINUTE_IN_SECONDS ) ) {
+				return;
+			}
+
 			bsc_metrics_record_counter( 'view_item' );
 			bsc_metrics_record_product_event( $product->get_id(), 'view_item' );
 		}
@@ -203,16 +256,28 @@ function bsc_metrics_record_frontend_context(): void {
 	}
 
 	if ( is_cart() ) {
+		if ( ! bsc_metrics_should_record_once( 'view_cart', 15 * MINUTE_IN_SECONDS ) ) {
+			return;
+		}
+
 		bsc_metrics_record_counter( 'view_cart' );
 		return;
 	}
 
 	if ( is_checkout() && ! is_wc_endpoint_url( 'order-received' ) ) {
+		if ( ! bsc_metrics_should_record_once( 'begin_checkout', 15 * MINUTE_IN_SECONDS ) ) {
+			return;
+		}
+
 		bsc_metrics_record_counter( 'begin_checkout' );
 		return;
 	}
 
 	if ( is_shop() || is_product_category() || is_search() ) {
+		if ( ! bsc_metrics_should_record_once( 'view_item_list_' . md5( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ) ), 30 * MINUTE_IN_SECONDS ) ) {
+			return;
+		}
+
 		bsc_metrics_record_counter( 'view_item_list' );
 	}
 }

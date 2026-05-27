@@ -71,6 +71,6 @@
     "test:e2e:visual:update": "playwright test tests/e2e/visual/public-pages.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/header-and-mobile-nav.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/account-and-post-purchase.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --update-snapshots",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "bundle": "dir-archiver --src . --dest ../wp-bsc-theme-v2.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md ROADMAP_BSC.md composer.json composer.lock node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist phpstan.neon phpstan-baseline.neon phpstan-bootstrap.php sass tests tools style.css.map yarn.lock test-results playwright-report Videos admin.zip admin2.zip"
+    "bundle": "dir-archiver --src . --dest ../wp-bsc-theme-v2.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md ROADMAP_BSC.md composer.json composer.lock cicd node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist phpstan.neon phpstan-baseline.neon phpstan-bootstrap.php sass tests tools style.css.map yarn.lock test-results playwright-report Videos admin.zip admin2.zip"
   }
 }

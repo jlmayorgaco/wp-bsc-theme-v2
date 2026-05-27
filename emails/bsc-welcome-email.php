@@ -31,8 +31,8 @@ bsc_email_render_message(
 );
 ?>
 				<tr>
-					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:32px;font-weight:400;letter-spacing:8px;line-height:36px;padding:0 0 14px;">
-						♡♡♡
+					<td align="center" style="padding:0 0 14px;">
+						<?php bsc_email_render_asset_img( 'bsc-email-welcome-hearts.png', 130, '' ); ?>
 					</td>
 				</tr>
 				<tr>

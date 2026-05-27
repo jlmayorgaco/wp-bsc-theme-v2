@@ -54,5 +54,21 @@
 }
 
 .bsc-admin-followup__templates-table {
-  max-width: 980px;
+  max-width: 1180px;
+}
+
+.bsc-admin-followup__preview-send-form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  input[type="email"] {
+    min-width: 220px;
+  }
+
+  .submit {
+    margin: 0;
+    padding: 0;
+  }
 }

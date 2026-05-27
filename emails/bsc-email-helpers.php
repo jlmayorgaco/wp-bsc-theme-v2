@@ -31,6 +31,129 @@ function bsc_get_email_headers( array $extra_headers = array() ): array {
 	return array_merge( $headers, $extra_headers );
 }
 
+function bsc_get_smtp_string_setting( string $option_name, string $constant_name = '', string $default = '' ): string {
+	$value = get_option( $option_name, null );
+
+	if ( is_string( $value ) && $value !== '' ) {
+		return sanitize_text_field( $value );
+	}
+
+	if ( is_numeric( $value ) ) {
+		return sanitize_text_field( (string) $value );
+	}
+
+	if ( $constant_name !== '' && defined( $constant_name ) ) {
+		return sanitize_text_field( (string) constant( $constant_name ) );
+	}
+
+	return $default;
+}
+
+function bsc_get_smtp_password(): string {
+	$password = (string) get_option( 'bsc_smtp_password', '' );
+
+	if ( $password !== '' ) {
+		return $password;
+	}
+
+	if ( defined( 'BSC_SMTP_PASSWORD' ) ) {
+		return (string) BSC_SMTP_PASSWORD;
+	}
+
+	return '';
+}
+
+function bsc_smtp_password_is_configured(): bool {
+	return bsc_get_smtp_password() !== '';
+}
+
+function bsc_get_smtp_settings(): array {
+	$host     = bsc_get_smtp_string_setting( 'bsc_smtp_host', 'BSC_SMTP_HOST', '' );
+	$username = bsc_get_smtp_string_setting( 'bsc_smtp_username', 'BSC_SMTP_USERNAME', '' );
+	$password = bsc_get_smtp_password();
+	$secure   = strtolower( bsc_get_smtp_string_setting( 'bsc_smtp_secure', 'BSC_SMTP_SECURE', 'ssl' ) );
+
+	if ( ! in_array( $secure, array( 'ssl', 'tls', '' ), true ) ) {
+		$secure = 'ssl';
+	}
+
+	$port = absint( bsc_get_smtp_string_setting( 'bsc_smtp_port', 'BSC_SMTP_PORT', '' ) );
+	if ( $port <= 0 ) {
+		$port = $secure === 'tls' ? 587 : 465;
+	}
+
+	$auth_raw = get_option( 'bsc_smtp_auth', '__missing__' );
+	if ( '__missing__' === $auth_raw ) {
+		$auth = defined( 'BSC_SMTP_AUTH' ) ? (bool) BSC_SMTP_AUTH : true;
+	} else {
+		$auth = (int) $auth_raw === 1;
+	}
+
+	$enabled_raw = get_option( 'bsc_smtp_enabled', '__missing__' );
+	if ( '__missing__' === $enabled_raw ) {
+		$enabled = $host !== '' && $username !== '' && $password !== '';
+	} else {
+		$enabled = (int) $enabled_raw === 1;
+	}
+
+	return array(
+		'enabled'  => $enabled,
+		'host'     => $host,
+		'port'     => $port,
+		'secure'   => $secure,
+		'auth'     => $auth,
+		'username' => $username,
+		'password' => $password,
+	);
+}
+
+add_filter(
+	'wp_mail_from',
+	static function ( string $from ): string {
+		$configured = bsc_get_email_from_address();
+		return is_email( $configured ) ? $configured : $from;
+	}
+);
+
+add_filter(
+	'wp_mail_from_name',
+	static function ( string $name ): string {
+		$configured = bsc_get_email_from_name();
+		return $configured !== '' ? $configured : $name;
+	}
+);
+
+add_action(
+	'phpmailer_init',
+	static function ( $phpmailer ): void {
+		$settings = bsc_get_smtp_settings();
+
+		if ( ! $settings['enabled'] || $settings['host'] === '' ) {
+			return;
+		}
+
+		if ( $settings['auth'] && ( $settings['username'] === '' || $settings['password'] === '' ) ) {
+			return;
+		}
+
+		$phpmailer->isSMTP();
+		$phpmailer->Host       = $settings['host'];
+		$phpmailer->SMTPAuth   = (bool) $settings['auth'];
+		$phpmailer->Port       = (int) $settings['port'];
+		$phpmailer->SMTPSecure = $settings['secure'];
+		$phpmailer->Username   = $settings['username'];
+		$phpmailer->Password   = $settings['password'];
+		$phpmailer->CharSet    = 'UTF-8';
+
+		$from_email = bsc_get_email_from_address();
+		if ( is_email( $from_email ) ) {
+			$phpmailer->From     = $from_email;
+			$phpmailer->FromName = bsc_get_email_from_name();
+		}
+	},
+	15
+);
+
 function bsc_get_email_whatsapp_url(): string {
 	if ( function_exists( 'bsc_get_whatsapp_url' ) ) {
 		return (string) bsc_get_whatsapp_url( 'general' );

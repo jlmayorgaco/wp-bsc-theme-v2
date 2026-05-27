@@ -24,7 +24,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> pronto estará llegando!<br>Lo preparamos con muchísimo cariño para que tu experiencia se sienta única<br>desde el momento en que lo recibes! Gracias por confiar en BSC y<br>permitirnos acompañarte en tu rutina coreana :)<br><br>A continuación encontrarás tu guía con número de seguimiento<br>para rastrear tu pedido:',
+		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> pronto estará llegando!<br>Lo preparamos con muchísimo cariño para que tu experiencia se sienta única<br>desde el momento en que lo recibes! <strong>Gracias por confiar en BSC y<br>permitirnos acompañarte en tu rutina coreana :)</strong><br><br>A continuación encontrarás tu <strong>guía con número de seguimiento</strong><br>para rastrear tu pedido:',
 		esc_html( $customer_name ),
 		esc_html( $order_number )
 	),

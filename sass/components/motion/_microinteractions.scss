@@ -1,0 +1,326 @@
+@keyframes bsc-soft-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes bsc-soft-pop {
+  0% {
+    transform: scale(0.96);
+  }
+
+  65% {
+    transform: scale(1.025);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bsc-quiet-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 166, 191, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 166, 191, 0.14);
+  }
+}
+
+@keyframes bsc-sheen {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+
+  to {
+    transform: translateX(120%) skewX(-18deg);
+  }
+}
+
+.bsc {
+  :where(.bsc__button, .button, button, input[type="submit"]) {
+    position: relative;
+    transform: translateZ(0);
+    transition:
+      transform var(--motion--base) var(--motion--ease-out),
+      box-shadow var(--motion--base) var(--motion--ease),
+      background-color var(--motion--base) var(--motion--ease),
+      border-color var(--motion--base) var(--motion--ease),
+      color var(--motion--base) var(--motion--ease),
+      opacity var(--motion--fast) var(--motion--ease);
+    will-change: transform;
+  }
+
+  :where(.bsc__button, .button, button, input[type="submit"]):where(:hover, :focus-visible) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow--interactive);
+  }
+
+  :where(.bsc__button, .button, button, input[type="submit"]):active {
+    transform: translateY(0) scale(0.985);
+    box-shadow: none;
+  }
+
+  :where(.bsc__button, .button, button, input[type="submit"]):focus-visible {
+    outline: 0;
+    box-shadow: var(--shadow--focus), var(--shadow--interactive);
+  }
+
+  :where(.bsc__button, .button, .bsc__button-add-to-cart, .bsc-skin-quiz__bundle-button)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    opacity: 0;
+    transform: translateX(-120%) skewX(-18deg);
+  }
+
+  :where(.bsc__button, .button, .bsc__button-add-to-cart, .bsc-skin-quiz__bundle-button):where(:hover, :focus-visible)::after {
+    animation: bsc-sheen 760ms var(--motion--ease-out);
+    opacity: 1;
+  }
+
+  :where(input, select, textarea) {
+    transition:
+      border-color var(--motion--base) var(--motion--ease),
+      box-shadow var(--motion--base) var(--motion--ease),
+      background-color var(--motion--base) var(--motion--ease),
+      transform var(--motion--base) var(--motion--ease-out);
+  }
+
+  :where(input, select, textarea):focus-visible {
+    outline: 0;
+    border-color: var(--color--main);
+    box-shadow: var(--shadow--focus);
+  }
+
+  :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .orders__zero-state, .bsc-bp-coupon, .bsc-bp-modal__panel) {
+    transform: translateZ(0);
+    transition:
+      transform var(--motion--slow) var(--motion--ease-out),
+      box-shadow var(--motion--slow) var(--motion--ease),
+      border-color var(--motion--base) var(--motion--ease),
+      background-color var(--motion--base) var(--motion--ease);
+  }
+
+  :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc-bp-coupon):where(:hover, :focus-within) {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow--interactive);
+  }
+
+  :where(.bsc__product-card .card__images, .bsc__menu-nav-image, .bsc-skin-quiz__products a, .bsc-skin-quiz__compare-frame) {
+    overflow: hidden;
+  }
+
+  :where(.bsc__product-card .card__image, .bsc__menu-nav-image img, .bsc-skin-quiz__products img, .header__image img, .footer__logo img) {
+    transform: translateZ(0);
+    transition:
+      transform var(--motion--slow) var(--motion--ease-out),
+      filter var(--motion--slow) var(--motion--ease),
+      opacity var(--motion--base) var(--motion--ease);
+  }
+
+  .bsc__product-card:hover .card__image,
+  .bsc__product-card:focus-within .card__image,
+  .bsc__menu-nav-image:hover img,
+  .bsc__menu-nav-image:focus-visible img,
+  .bsc-skin-quiz__products a:hover img,
+  .bsc-skin-quiz__products a:focus-visible img {
+    transform: scale(1.035);
+    filter: saturate(1.04) contrast(1.02);
+  }
+
+  .card__rating .star {
+    transition:
+      transform var(--motion--base) var(--motion--ease-spring),
+      color var(--motion--base) var(--motion--ease),
+      opacity var(--motion--base) var(--motion--ease);
+  }
+
+  .bsc__product-card:hover .card__rating .star,
+  .bsc__product-card:focus-within .card__rating .star {
+    transform: translateY(-2px) scale(1.08);
+  }
+
+  .bsc__product-card:hover .card__rating .star:nth-child(2),
+  .bsc__product-card:focus-within .card__rating .star:nth-child(2) {
+    transition-delay: 35ms;
+  }
+
+  .bsc__product-card:hover .card__rating .star:nth-child(3),
+  .bsc__product-card:focus-within .card__rating .star:nth-child(3) {
+    transition-delay: 70ms;
+  }
+
+  .bsc__product-card:hover .card__rating .star:nth-child(4),
+  .bsc__product-card:focus-within .card__rating .star:nth-child(4) {
+    transition-delay: 105ms;
+  }
+
+  .bsc__product-card:hover .card__rating .star:nth-child(5),
+  .bsc__product-card:focus-within .card__rating .star:nth-child(5) {
+    transition-delay: 140ms;
+  }
+
+  :where(.bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a, .tabs__button, .bsc-skin-quiz__mode-tab) {
+    position: relative;
+    transition:
+      color var(--motion--base) var(--motion--ease),
+      opacity var(--motion--base) var(--motion--ease),
+      transform var(--motion--base) var(--motion--ease-out);
+  }
+
+  :where(.bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a, .tabs__button, .bsc-skin-quiz__mode-tab):where(:hover, :focus-visible) {
+    transform: translateY(-1px);
+  }
+
+  :where(.bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a, .tabs__button, .bsc-skin-quiz__mode-tab)::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 0;
+    height: 1px;
+    background: currentcolor;
+    opacity: 0.7;
+    transform: translateX(-50%);
+    transition: width var(--motion--base) var(--motion--ease-out);
+  }
+
+  :where(.bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a, .tabs__button, .bsc-skin-quiz__mode-tab):where(:hover, :focus-visible, .is-active)::after {
+    width: 70%;
+  }
+
+  :where(.bsc-skin-quiz__choice, .bsc-skin-quiz__photo-option, .bsc-skin-quiz__upload-control, .bsc-skin-quiz__secondary-button, .bsc-skin-quiz__ghost-button, .bsc-skin-quiz__saved-button) {
+    transition:
+      transform var(--motion--base) var(--motion--ease-out),
+      box-shadow var(--motion--base) var(--motion--ease),
+      border-color var(--motion--base) var(--motion--ease),
+      background-color var(--motion--base) var(--motion--ease);
+  }
+
+  :where(.bsc-skin-quiz__choice, .bsc-skin-quiz__photo-option, .bsc-skin-quiz__upload-control):where(:hover, :focus-within) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow--interactive);
+  }
+
+  .bsc-skin-quiz__choice input:checked + span,
+  .bsc-skin-quiz__mode-tab.is-active,
+  .bsc-skin-quiz__compare.is-visible,
+  .bsc-skin-quiz__diagnosis.is-visible,
+  .bsc-skin-quiz__bundle-list:not(:empty) .bsc-skin-quiz__bundle {
+    animation: bsc-soft-reveal var(--motion--slow) var(--motion--ease-out) both;
+  }
+
+  .bsc-skin-quiz__compare.is-visible .bsc-skin-quiz__compare-handle {
+    animation: bsc-quiet-pulse 2.4s var(--motion--ease) 2;
+  }
+
+  .bsc-skin-quiz__diagnosis-needs li,
+  .bsc-skin-quiz__products li,
+  .bsc-skin-quiz__steps li {
+    animation: bsc-soft-reveal var(--motion--slow) var(--motion--ease-out) both;
+  }
+
+  .bsc-skin-quiz__diagnosis-needs li:nth-child(2),
+  .bsc-skin-quiz__products li:nth-child(2),
+  .bsc-skin-quiz__steps li:nth-child(2) {
+    animation-delay: 45ms;
+  }
+
+  .bsc-skin-quiz__diagnosis-needs li:nth-child(3),
+  .bsc-skin-quiz__products li:nth-child(3),
+  .bsc-skin-quiz__steps li:nth-child(3) {
+    animation-delay: 90ms;
+  }
+
+  .bsc-skin-quiz__diagnosis-needs li:nth-child(4),
+  .bsc-skin-quiz__products li:nth-child(4),
+  .bsc-skin-quiz__steps li:nth-child(4) {
+    animation-delay: 135ms;
+  }
+
+  :where(.quantity button, .bsc__quantity-controls button, .row_action_buttons button, .swiper-button-prev, .swiper-button-next) {
+    transition:
+      transform var(--motion--base) var(--motion--ease-out),
+      box-shadow var(--motion--base) var(--motion--ease),
+      opacity var(--motion--base) var(--motion--ease),
+      background-color var(--motion--base) var(--motion--ease);
+  }
+
+  :where(.quantity button, .bsc__quantity-controls button, .row_action_buttons button, .swiper-button-prev, .swiper-button-next):where(:hover, :focus-visible) {
+    transform: scale(1.06);
+    box-shadow: var(--shadow--interactive);
+  }
+
+  :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__orders-table tr, .bsc__order-progress-step) {
+    transition:
+      transform var(--motion--base) var(--motion--ease-out),
+      background-color var(--motion--base) var(--motion--ease),
+      border-color var(--motion--base) var(--motion--ease),
+      box-shadow var(--motion--base) var(--motion--ease);
+  }
+
+  :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+    transform: translateX(3px);
+    background-color: rgba(244, 166, 191, 0.06);
+  }
+
+  :where(.footer__whatsapp, .footer__shopping-cart, .header__profile, .header__search-button, .header__cart-button) {
+    transition:
+      transform var(--motion--base) var(--motion--ease-out),
+      filter var(--motion--base) var(--motion--ease),
+      box-shadow var(--motion--base) var(--motion--ease);
+  }
+
+  :where(.footer__whatsapp, .footer__shopping-cart, .header__profile, .header__search-button, .header__cart-button):where(:hover, :focus-visible) {
+    transform: translateY(-2px) scale(1.03);
+    filter: saturate(1.06);
+  }
+
+  .is-loading,
+  .bsc-is-loading {
+    cursor: wait;
+    opacity: 0.78;
+  }
+
+  .is-success,
+  .bsc-is-success {
+    animation: bsc-soft-pop var(--motion--slow) var(--motion--ease-out);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .bsc {
+    :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc-bp-coupon):where(:hover, :focus-within),
+    :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsc,
+  .bsc * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+
+  .bsc {
+    :where(.bsc__button, .button, button, input[type="submit"], .bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a):where(:hover, :focus-visible, :focus-within) {
+      transform: none !important;
+    }
+  }
+}

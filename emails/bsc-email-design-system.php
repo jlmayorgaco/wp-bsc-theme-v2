@@ -103,6 +103,15 @@ if ( ! function_exists( 'bsc_email_supported_html' ) ) {
 	}
 }
 
+if ( ! function_exists( 'bsc_email_render_asset_img' ) ) {
+	function bsc_email_render_asset_img( string $filename, int $width, string $alt = '', string $extra_style = '' ): void {
+		$width = max( 1, $width );
+		?>
+		<img src="<?php echo esc_url( bsc_email_asset_url( $filename ) ); ?>" width="<?php echo esc_attr( $width ); ?>" alt="<?php echo esc_attr( $alt ); ?>" style="border:0;display:block;height:auto;max-width:<?php echo esc_attr( $width ); ?>px;width:<?php echo esc_attr( $width ); ?>px;<?php echo esc_attr( $extra_style ); ?>">
+		<?php
+	}
+}
+
 if ( ! function_exists( 'bsc_email_render_button' ) ) {
 	function bsc_email_render_button( string $url, string $label, string $variant = 'dark', int $min_width = 0 ): void {
 		$background      = 'pink' === $variant ? '#f4b5c7' : ( 'blue' === $variant ? '#cceff7' : '#303030' );
@@ -110,7 +119,7 @@ if ( ! function_exists( 'bsc_email_render_button' ) ) {
 		$min_width_style = $min_width > 0 ? 'min-width:' . absint( $min_width ) . 'px;' : '';
 		?>
 		<a href="<?php echo esc_url( $url ); ?>"
-			style="background:<?php echo esc_attr( $background ); ?>;border-radius:24px;color:<?php echo esc_attr( $color ); ?>;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;line-height:20px;mso-padding-alt:0;padding:12px 28px;text-align:center;text-decoration:none;<?php echo esc_attr( $min_width_style ); ?>">
+			style="background:<?php echo esc_attr( $background ); ?>;border-radius:24px;color:<?php echo esc_attr( $color ); ?>;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;line-height:20px;mso-padding-alt:0;padding:12px 28px;text-align:center;text-decoration:none;white-space:nowrap;<?php echo esc_attr( $min_width_style ); ?>">
 			<?php echo esc_html( $label ); ?>
 		</a>
 		<?php
@@ -202,34 +211,41 @@ if ( ! function_exists( 'bsc_email_render_status_bar' ) ) {
 }
 
 if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
-	function bsc_email_render_coupon( string $code, string $headline, string $meta, string $accent = '#f4b5c7' ): void {
+	function bsc_email_render_coupon( string $code, string $headline, string $meta, string $accent = '#f4b5c7', string $graphic = 'smile' ): void {
+		$graphic_file  = 'heart' === $graphic ? 'bsc-email-coupon-heart-pink.png' : 'bsc-email-coupon-smile-pink.png';
+		$graphic_width = 'heart' === $graphic ? 136 : 104;
 		?>
 		<tr>
-			<td align="center" style="padding:0 52px 24px;">
-				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="370" style="border:1px solid #303030;border-radius:5px;">
+			<td align="center" style="padding:0 52px 26px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" style="border:2px solid #303030;border-radius:7px;">
 					<tr>
-						<td style="padding:12px 18px;">
+						<td style="padding:16px 16px 15px 18px;">
 							<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 								<tr>
-									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:13px;font-weight:800;letter-spacing:.4px;line-height:17px;">
-										<span style="color:#c84f75;">&#10003;</span> <?php echo esc_html( $code ); ?>
-									</td>
-									<td rowspan="3" align="right" width="84" style="font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;">
-										<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right">
+									<td style="padding:0;">
+										<table role="presentation" cellpadding="0" cellspacing="0" border="0">
 											<tr>
-												<td align="center" valign="middle" width="64" height="64" style="background:<?php echo esc_attr( $accent ); ?>;border:1px solid #303030;border-radius:32px;color:#303030;font-size:31px;line-height:64px;">:)</td>
+												<td width="30" style="padding:0 8px 0 0;">
+													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', 27, '' ); ?>
+												</td>
+												<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:20px;font-weight:900;letter-spacing:.7px;line-height:24px;white-space:nowrap;">
+													<?php echo esc_html( $code ); ?>
+												</td>
 											</tr>
 										</table>
 									</td>
+									<td rowspan="3" align="right" valign="middle" width="132" style="font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;padding-left:8px;">
+										<?php bsc_email_render_asset_img( $graphic_file, $graphic_width, '' ); ?>
+									</td>
 								</tr>
 								<tr>
-									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:26px;font-weight:900;letter-spacing:.4px;line-height:31px;padding-top:2px;">
+									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:31px;font-weight:900;letter-spacing:.4px;line-height:35px;padding-top:3px;">
 										<?php echo esc_html( $headline ); ?>
 									</td>
 								</tr>
 								<tr>
-									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:9px;font-weight:800;letter-spacing:.2px;line-height:13px;padding-top:4px;">
-										<span style="background:#f4b5c7;border-radius:7px;padding:3px 7px;">Activo</span>
+									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:12px;font-weight:900;letter-spacing:.2px;line-height:16px;padding-top:10px;white-space:nowrap;">
+										<span style="background:<?php echo esc_attr( $accent ); ?>;border:1px solid #303030;border-radius:10px;display:inline-block;padding:3px 9px;">Activo</span>
 										<?php echo esc_html( $meta ); ?>
 									</td>
 								</tr>
@@ -252,29 +268,40 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 		$url = '' !== $tracking_link ? $tracking_link : '#';
 		?>
 		<tr>
-			<td align="center" style="padding:2px 54px 28px;">
-				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="380" style="border:1px solid #303030;border-radius:5px;">
+			<td align="center" style="padding:2px 54px 30px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" style="border:2px solid #303030;border-radius:7px;">
 					<tr>
-						<td style="padding:14px 18px;">
+						<td width="218" style="padding:16px 0 16px 18px;">
 							<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 								<tr>
-									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:18px;font-weight:800;letter-spacing:.4px;line-height:21px;">
-										<span style="color:#c84f75;">&#10003;</span> Pedido enviado!
+									<td style="padding:0;">
+										<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+											<tr>
+												<td width="34" style="padding:0 8px 0 0;">
+													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', 30, '' ); ?>
+												</td>
+												<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:20px;font-weight:800;letter-spacing:.3px;line-height:24px;white-space:nowrap;">
+													Pedido enviado!
+												</td>
+											</tr>
+										</table>
 									</td>
 								</tr>
 								<tr>
-									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:30px;font-weight:900;letter-spacing:1px;line-height:36px;">
+									<td style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:33px;font-weight:900;letter-spacing:1px;line-height:38px;padding-top:1px;white-space:nowrap;">
 										<?php echo esc_html( $tracking_code ); ?>
 									</td>
 								</tr>
 								<tr>
 									<td style="padding-top:6px;">
-										<a href="<?php echo esc_url( $url ); ?>" style="background:#f4b5c7;border-radius:12px;color:#303030;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:12px;font-weight:900;letter-spacing:.7px;line-height:16px;padding:5px 12px;text-decoration:none;">Rastrear mi pedido</a>
+										<a href="<?php echo esc_url( $url ); ?>" style="background:#f4b5c7;border:1px solid #303030;border-radius:14px;color:#303030;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:17px;font-weight:900;letter-spacing:.4px;line-height:20px;padding:6px 14px;text-decoration:none;">Rastrear mi pedido</a>
 									</td>
 								</tr>
 							</table>
 						</td>
-						<td align="center" width="108" style="border-left:1px solid #303030;color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:42px;line-height:52px;padding:12px 8px;">&#9825;</td>
+						<td align="right" valign="middle" width="156" style="padding:8px 14px 8px 0;">
+							<?php bsc_email_render_asset_img( 'bsc-email-tracking-products.png', 148, '' ); ?>
+						</td>
 					</tr>
 				</table>
 			</td>
@@ -341,7 +368,7 @@ if ( ! function_exists( 'bsc_email_render_product_grid' ) ) {
 		$products = array_slice( $products, 0, 3 );
 		?>
 		<tr>
-			<td align="center" style="padding:2px 48px 22px;">
+			<td align="center" style="padding:6px 34px 26px;">
 				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 					<tr>
 						<?php foreach ( $products as $product ) : ?>
@@ -350,16 +377,16 @@ if ( ! function_exists( 'bsc_email_render_product_grid' ) ) {
 							$url       = (string) ( $product['url'] ?? bsc_email_shop_url() );
 							$image_url = (string) ( $product['image_url'] ?? '' );
 							?>
-							<td align="center" valign="top" width="33.333%" style="padding:0 9px 12px;">
+							<td align="center" valign="top" width="33.333%" style="padding:0 12px 12px;">
 								<a href="<?php echo esc_url( $url ); ?>" style="display:block;text-decoration:none;">
 									<?php if ( '' !== $image_url ) : ?>
-										<img src="<?php echo esc_url( $image_url ); ?>" width="104" alt="<?php echo esc_attr( $name ); ?>" style="border:0;display:block;height:auto;margin:0 auto 10px;max-width:104px;width:104px;">
+										<img src="<?php echo esc_url( $image_url ); ?>" width="170" alt="<?php echo esc_attr( $name ); ?>" style="border:0;display:block;height:auto;margin:0 auto 14px;max-width:170px;width:170px;">
 									<?php else : ?>
-										<span style="background:#f4f4f4;display:block;height:104px;margin:0 auto 10px;width:104px;">&nbsp;</span>
+										<span style="background:#f4f4f4;display:block;height:170px;margin:0 auto 14px;width:170px;">&nbsp;</span>
 									<?php endif; ?>
-									<span style="color:#303030;display:block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:10px;font-weight:900;letter-spacing:.2px;line-height:13px;min-height:28px;text-align:center;"><?php echo esc_html( $name ); ?></span>
+									<span style="color:#303030;display:block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:900;letter-spacing:.2px;line-height:18px;min-height:38px;text-align:center;"><?php echo esc_html( $name ); ?></span>
 								</a>
-								<a href="<?php echo esc_url( $url ); ?>" style="background:#cceff7;border-radius:12px;color:#303030;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:10px;font-weight:900;letter-spacing:.8px;line-height:13px;padding:5px 13px;text-align:center;text-decoration:none;">¡ Re stock !</a>
+								<a href="<?php echo esc_url( $url ); ?>" style="background:#cceff7;border-radius:18px;color:#303030;display:inline-block;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:900;letter-spacing:1.6px;line-height:20px;margin-top:14px;padding:8px 28px;text-align:center;text-decoration:none;white-space:nowrap;">¡ Re stock !</a>
 							</td>
 						<?php endforeach; ?>
 					</tr>
