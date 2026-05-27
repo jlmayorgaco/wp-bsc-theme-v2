@@ -36,19 +36,38 @@ function bsc_get_preview_email_manifest_row( string $slug ): array {
 function bsc_send_preview_email_to_target( string $slug, string $target_email ) {
 	$slug         = sanitize_key( $slug );
 	$target_email = sanitize_email( $target_email );
+	$debug        = array(
+		'time'    => current_time( 'mysql' ),
+		'slug'    => $slug,
+		'to'      => $target_email,
+		'smtp'    => function_exists( 'bsc_get_smtp_settings' ) ? bsc_get_smtp_settings() : array(),
+		'steps'   => array(),
+		'errors'  => array(),
+	);
 
 	if ( ! is_email( $target_email ) ) {
+		$debug['steps'][] = 'FAIL: email destino invalido';
+		bsc_store_preview_debug( $debug );
 		return new WP_Error( 'bsc_preview_target_invalid', 'Ingresa un email destino valido para enviar la prueba.' );
 	}
+	$debug['steps'][] = 'OK: email destino valido';
 
 	if ( ! function_exists( 'bsc_get_email_preview_definitions' ) || ! function_exists( 'bsc_get_email_preview_context' ) ) {
+		$debug['steps'][] = 'FAIL: sistema de previews no disponible';
+		bsc_store_preview_debug( $debug );
 		return new WP_Error( 'bsc_preview_unavailable', 'El sistema de previews no esta disponible.' );
 	}
+	$debug['steps'][] = 'OK: sistema de previews cargado';
 
 	$definitions = bsc_get_email_preview_definitions();
 	if ( ! isset( $definitions[ $slug ] ) ) {
+		$debug['steps'][] = 'FAIL: template no encontrado en definiciones';
+		bsc_store_preview_debug( $debug );
 		return new WP_Error( 'bsc_preview_template_missing', 'Template de preview no encontrado.' );
 	}
+	$debug['steps'][] = 'OK: template encontrado: ' . ( $definitions[ $slug ]['template'] ?? '?' );
+
+	$debug['template_file'] = (string) ( $definitions[ $slug ]['template'] ?? '' );
 
 	$html = bsc_render_email_template(
 		(string) $definitions[ $slug ]['template'],
@@ -56,13 +75,28 @@ function bsc_send_preview_email_to_target( string $slug, string $target_email ) 
 	);
 
 	if ( $html === '' ) {
+		$debug['steps'][] = 'FAIL: render del template devolvio string vacio';
+		bsc_store_preview_debug( $debug );
 		return new WP_Error( 'bsc_preview_render_failed', 'No se pudo renderizar el email de prueba.' );
 	}
+	$debug['steps'][] = 'OK: template renderizado (' . strlen( $html ) . ' bytes)';
 
 	$row     = bsc_get_preview_email_manifest_row( $slug );
 	$label   = (string) ( $row['label'] ?? $definitions[ $slug ]['label'] ?? $slug );
 	$subject = sprintf( 'Preview BSC: %s', $label );
-	$sent    = wp_mail(
+	$debug['subject'] = $subject;
+
+	$phpmailer_error = null;
+	add_action(
+		'wp_mail_failed',
+		function ( $error ) use ( &$phpmailer_error ) {
+			$phpmailer_error = $error;
+		}
+	);
+
+	$captured_phpmailer_debug = bsc_capture_phpmailer_debug();
+
+	$sent = wp_mail(
 		$target_email,
 		$subject,
 		$html,
@@ -73,15 +107,67 @@ function bsc_send_preview_email_to_target( string $slug, string $target_email ) 
 		)
 	);
 
-	if ( ! $sent ) {
-		return new WP_Error( 'bsc_preview_send_failed', 'WordPress no pudo enviar el email de prueba. Revisa SMTP, usuario, password y logs de PHP.' );
+	$debug['wp_mail_result']  = $sent ? 'true' : 'false';
+	$debug['phpmailer_debug'] = $captured_phpmailer_debug;
+
+	if ( $phpmailer_error instanceof WP_Error ) {
+		$debug['errors'][] = 'PHPMailer error: ' . $phpmailer_error->get_error_message();
+		$debug['errors'][] = 'PHPMailer data: ' . wp_json_encode( $phpmailer_error->get_error_data() );
 	}
+
+	if ( ! $sent ) {
+		$debug['steps'][] = 'FAIL: wp_mail() devolvio false';
+		$debug['errors'][] = 'wp_mail() returned false — posible fallo SMTP, credenciales, puerto, o firewall';
+		bsc_store_preview_debug( $debug );
+		return new WP_Error( 'bsc_preview_send_failed', 'WordPress no pudo enviar el email de prueba. Revisa los logs de debug abajo.' );
+	}
+
+	$debug['steps'][] = 'OK: wp_mail() devolvio true';
+	bsc_store_preview_debug( $debug );
 
 	return array(
 		'label'   => $label,
 		'subject' => $subject,
 		'to'      => $target_email,
 	);
+}
+
+function bsc_store_preview_debug( array $debug ): void {
+	$key   = 'bsc_preview_email_debug';
+	$stored = get_transient( $key );
+	if ( ! is_array( $stored ) ) {
+		$stored = array();
+	}
+	array_unshift( $stored, $debug );
+	$stored = array_slice( $stored, 0, 10 );
+	set_transient( $key, $stored, HOUR_IN_SECONDS );
+}
+
+function bsc_get_preview_debug_logs(): array {
+	$stored = get_transient( 'bsc_preview_email_debug' );
+	return is_array( $stored ) ? $stored : array();
+}
+
+function bsc_capture_phpmailer_debug(): string {
+	global $phpmailer;
+	if ( ! $phpmailer instanceof PHPMailer\PHPMailer\PHPMailer && ! $phpmailer instanceof \PHPMailer ) {
+		return 'PHPMailer global no disponible antes del envio';
+	}
+
+	ob_start();
+	if ( method_exists( $phpmailer, 'getSMTPInstance' ) ) {
+		$smtp = $phpmailer->getSMTPInstance();
+		if ( $smtp && method_exists( $smtp, 'getDebugOutput' ) ) {
+			echo esc_html( (string) $smtp->getDebugOutput() );
+		}
+	}
+	$output = (string) ob_get_clean();
+
+	if ( $output === '' ) {
+		return 'Sin debug SMTP capturado. Verifica que WP_DEBUG este activo.';
+	}
+
+	return $output;
 }
 
 function bsc_sanitize_smtp_secure_value( string $secure ): string {
@@ -172,6 +258,11 @@ function bsc_render_followup_emails_page(): void {
 				);
 			}
 		}
+
+		if ( isset( $_POST['bsc_clear_preview_debug'] ) ) {
+			delete_transient( 'bsc_preview_email_debug' );
+			$notice = 'Logs de debug eliminados.';
+		}
 	}
 
 	$last_run       = get_option( 'bsc_followup_email_last_run_summary', array() );
@@ -186,6 +277,67 @@ function bsc_render_followup_emails_page(): void {
 
 		<?php if ( $notice !== '' ) : ?>
 			<div class="notice <?php echo esc_attr( $notice_class ); ?> is-dismissible"><p><?php echo esc_html( $notice ); ?></p></div>
+		<?php endif; ?>
+
+		<?php $debug_logs = bsc_get_preview_debug_logs(); ?>
+		<?php if ( ! empty( $debug_logs ) ) : ?>
+			<details class="bsc-email-debug" style="margin:12px 0;border:1px solid #ccd0d4;border-radius:4px;background:#f6f7f7;">
+				<summary style="padding:10px 14px;cursor:pointer;font-weight:700;font-size:14px;color:#1d2327;">
+					<?php echo count( $debug_logs ); ?> envío(s) registrado(s) en debug — clic para expandir
+				</summary>
+				<div style="padding:0 14px 14px;max-height:600px;overflow:auto;">
+					<?php foreach ( $debug_logs as $index => $log ) : ?>
+						<div style="margin-bottom:14px;padding:12px;border:1px solid #dcdcde;border-radius:4px;background:#fff;">
+							<strong>#<?php echo (int) ( $index + 1 ); ?> — <?php echo esc_html( $log['time'] ?? '?' ); ?> — <?php echo esc_html( $log['slug'] ?? '?' ); ?> → <?php echo esc_html( $log['to'] ?? '?' ); ?></strong>
+							<div style="margin-top:6px;">
+								<strong>wp_mail result:</strong> <?php echo esc_html( $log['wp_mail_result'] ?? '?' ); ?>
+							</div>
+							<div style="margin-top:4px;">
+								<strong>SMTP:</strong>
+								<?php echo esc_html( ( $log['smtp']['enabled'] ?? false ) ? 'ACTIVO' : 'DESACTIVADO' ); ?>
+								<?php if ( ! empty( $log['smtp']['host'] ) ) : ?>
+									— <?php echo esc_html( $log['smtp']['host'] ); ?>:<?php echo esc_html( (string) ( $log['smtp']['port'] ?? '' ) ); ?>
+									(<?php echo esc_html( $log['smtp']['secure'] ?? '?' ); ?>,
+									auth: <?php echo empty( $log['smtp']['auth'] ) ? 'no' : 'si'; ?>,
+									user: <?php echo esc_html( $log['smtp']['username'] ?? '?' ); ?>)
+								<?php endif; ?>
+							</div>
+							<?php if ( ! empty( $log['steps'] ) ) : ?>
+								<div style="margin-top:6px;">
+									<strong>Pasos:</strong>
+									<ul style="margin:4px 0 0 16px;list-style:disc;">
+										<?php foreach ( $log['steps'] as $step ) : ?>
+											<li style="font-family:monospace;font-size:12px;<?php echo 0 === strpos( (string) $step, 'FAIL' ) ? 'color:#b32d2e;' : 'color:#007017;'; ?>">
+												<?php echo esc_html( $step ); ?>
+											</li>
+										<?php endforeach; ?>
+									</ul>
+								</div>
+							<?php endif; ?>
+							<?php if ( ! empty( $log['errors'] ) ) : ?>
+								<div style="margin-top:6px;padding:8px;background:#fcf0f1;border-left:4px solid #b32d2e;">
+									<strong style="color:#b32d2e;">Errores:</strong>
+									<ul style="margin:4px 0 0 16px;list-style:disc;">
+										<?php foreach ( $log['errors'] as $error ) : ?>
+											<li style="font-family:monospace;font-size:12px;color:#b32d2e;"><?php echo esc_html( is_array( $error ) ? wp_json_encode( $error ) : (string) $error ); ?></li>
+										<?php endforeach; ?>
+									</ul>
+								</div>
+							<?php endif; ?>
+							<?php if ( ! empty( $log['phpmailer_debug'] ) && is_string( $log['phpmailer_debug'] ) ) : ?>
+								<details style="margin-top:6px;">
+									<summary style="cursor:pointer;font-weight:600;font-size:12px;">PHPMailer/SMTP debug output</summary>
+									<pre style="margin-top:4px;padding:8px;background:#1d2327;color:#a7aaad;font-size:11px;line-height:1.4;overflow:auto;max-height:300px;border-radius:3px;"><?php echo esc_html( $log['phpmailer_debug'] ); ?></pre>
+								</details>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+					<form method="post" style="margin-top:8px;">
+						<?php wp_nonce_field( 'bsc_followup_emails_action', 'bsc_followup_emails_nonce' ); ?>
+						<button type="submit" name="bsc_clear_preview_debug" class="button button-small" style="color:#b32d2e;">Limpiar logs de debug</button>
+					</form>
+				</div>
+			</details>
 		<?php endif; ?>
 
 		<form method="post">

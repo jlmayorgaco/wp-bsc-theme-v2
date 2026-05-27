@@ -90,13 +90,14 @@ class BSC_Growth_Bundle_Repository {
 		$image_url  = $this->product_image_url( $product );
 		$brand      = '';
 		$terms      = get_the_terms( $product_id, 'product_cat' );
+		$categories = array();
 		$price_raw  = (float) $product->get_price();
 
 		if ( $terms && ! is_wp_error( $terms ) ) {
 			foreach ( $terms as $term ) {
+				$categories[] = $term->name;
 				if ( str_contains( $term->slug, '-marca' ) ) {
 					$brand = $term->name;
-					break;
 				}
 			}
 		}
@@ -107,6 +108,7 @@ class BSC_Growth_Bundle_Repository {
 			'permalink'   => esc_url_raw( get_permalink( $product_id ) ),
 			'image'       => esc_url_raw( $image_url ? $image_url : BSC_Growth_Plugin::placeholder_image() ),
 			'brand'       => wp_strip_all_tags( $brand ),
+			'categories'  => array_slice( array_values( array_unique( array_map( 'wp_strip_all_tags', $categories ) ) ), 0, 8 ),
 			'price'       => wp_strip_all_tags( $product->get_price_html() ),
 			'price_html'  => wp_kses_post( $product->get_price_html() ),
 			'price_raw'   => $price_raw,
@@ -301,6 +303,127 @@ class BSC_Growth_Bundle_Repository {
 		}
 
 		return $catalog;
+	}
+
+	public function get_makeup_catalog_context( int $limit = 48 ): array {
+		$products = BSC_Growth_Plugin::products(
+			array(
+				'limit'        => $limit,
+				'status'       => 'publish',
+				'stock_status' => 'instock',
+				'category'     => $this->makeup_category_slugs(),
+				'orderby'      => 'popularity',
+				'return'       => 'objects',
+			)
+		);
+		$catalog = array();
+
+		foreach ( $products as $product ) {
+			if ( ! $product instanceof WC_Product || ! $product->is_purchasable() ) {
+				continue;
+			}
+
+			$catalog[] = $this->product_to_makeup_context( $product );
+		}
+
+		return $catalog;
+	}
+
+	public function get_makeup_product_context( array $product_ids ): array {
+		$context = array();
+
+		foreach ( wp_parse_id_list( $product_ids ) as $product_id ) {
+			$product = wc_get_product( $product_id );
+			if ( ! $product instanceof WC_Product || 'publish' !== $product->get_status() || ! $this->is_makeup_product( $product ) ) {
+				continue;
+			}
+
+			$context[] = $this->product_to_makeup_context( $product );
+		}
+
+		return $context;
+	}
+
+	private function product_to_makeup_context( WC_Product $product ): array {
+		$card        = $this->product_to_card( $product );
+		$description = wp_strip_all_tags( $product->get_short_description() ? $product->get_short_description() : $product->get_description() );
+		$attributes  = array();
+
+		foreach ( $product->get_attributes() as $attribute ) {
+			if ( ! $attribute instanceof WC_Product_Attribute ) {
+				continue;
+			}
+
+			$label  = wc_attribute_label( $attribute->get_name() );
+			$values = $attribute->is_taxonomy()
+				? wc_get_product_terms( $product->get_id(), $attribute->get_name(), array( 'fields' => 'names' ) )
+				: $attribute->get_options();
+
+			if ( ! empty( $values ) && ! is_wp_error( $values ) ) {
+				$attributes[ sanitize_key( $label ) ] = implode(
+					', ',
+					array_slice(
+						array_map(
+							static fn( $value ): string => wp_strip_all_tags( (string) $value ),
+							(array) $values
+						),
+						0,
+						8
+					)
+				);
+			}
+		}
+
+		return array(
+			'id'           => (int) $card['id'],
+			'name'         => $card['name'],
+			'brand'        => $card['brand'],
+			'price'        => $card['price'],
+			'permalink'    => $card['permalink'],
+			'image'        => $card['image'],
+			'categories'   => $card['categories'],
+			'description'  => wp_trim_words( $description, 90, '' ),
+			'attributes'   => array_slice( $attributes, 0, 10 ),
+			'stock_status' => $card['stock_status'],
+		);
+	}
+
+	private function is_makeup_product( WC_Product $product ): bool {
+		$terms = get_the_terms( $product->get_id(), 'product_cat' );
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return false;
+		}
+
+		$makeup_slugs = array_flip( $this->makeup_category_slugs() );
+		foreach ( $terms as $term ) {
+			if ( isset( $makeup_slugs[ $term->slug ] ) || str_starts_with( $term->slug, 'mk-' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function makeup_category_slugs(): array {
+		$slugs = array( 'group-make-up', 'make-up', 'mk-productos' );
+		$root  = get_term_by( 'slug', 'group-make-up', 'product_cat' );
+
+		if ( $root instanceof WP_Term ) {
+			$children = get_terms(
+				array(
+					'taxonomy'   => 'product_cat',
+					'hide_empty' => false,
+					'child_of'   => $root->term_id,
+					'fields'     => 'slugs',
+				)
+			);
+
+			if ( is_array( $children ) ) {
+				$slugs = array_merge( $slugs, $children );
+			}
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'sanitize_key', $slugs ) ) ) );
 	}
 
 	public function get_need_catalog(): array {
