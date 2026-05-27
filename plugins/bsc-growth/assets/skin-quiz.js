@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const forms = Array.from(document.querySelectorAll('[data-bsc-skin-quiz-form]'));
   const results = document.querySelector('[data-bsc-skin-quiz-bundles]');
   const modeTabs = Array.from(document.querySelectorAll('[data-bsc-quiz-mode-tab]'));
+  const resultTabs = Array.from(document.querySelectorAll('[data-bsc-result-tab]'));
   const compare = document.querySelector('[data-bsc-ai-compare]');
   const diagnosis = document.querySelector('[data-bsc-ai-diagnosis]');
   const diagnosisSkinType = document.querySelector('[data-bsc-ai-skin-type]');
@@ -14,6 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const diagnosisFitScore = document.querySelector('[data-bsc-ai-fit-score]');
   const diagnosisPrimaryFocus = document.querySelector('[data-bsc-ai-primary-focus]');
   const diagnosisBaseNote = document.querySelector('[data-bsc-ai-base-note]');
+  const makeupStudio = document.querySelector('[data-bsc-makeup-studio]');
+  const makeupProducts = document.querySelector('[data-bsc-makeup-products]');
+  const makeupTitle = document.querySelector('[data-bsc-makeup-title]');
+  const makeupSummary = document.querySelector('[data-bsc-makeup-summary]');
+  const makeupNotes = document.querySelector('[data-bsc-makeup-notes]');
+  const makeupLookSelect = document.querySelector('[data-bsc-makeup-look]');
+  const makeupPreviewButton = document.querySelector('[data-bsc-makeup-preview]');
+  const makeupStatus = document.querySelector('[data-bsc-makeup-status]');
+  const makeupAvatar = document.querySelector('[data-bsc-makeup-avatar]');
+  const makeupAvatarNote = document.querySelector('[data-bsc-makeup-avatar-note]');
+  const makeupLayerSwatches = document.querySelector('[data-bsc-makeup-layer-swatches]');
+  const makeupToolButtons = Array.from(document.querySelectorAll('[data-bsc-makeup-tool]'));
+  const makeupIntensity = document.querySelector('[data-bsc-makeup-intensity]');
+  const makeupIntensityValue = document.querySelector('[data-bsc-makeup-intensity-value]');
   const beforeImage = document.querySelector('[data-bsc-before-image]');
   const afterImage = document.querySelector('[data-bsc-after-image]');
   const afterWrap = document.querySelector('[data-bsc-after-wrap]');
@@ -46,6 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let aiLoaderStartedAt = 0;
   let currentRunId = 0;
   let quizVariant = 'control';
+  let currentMakeup = null;
+  let selectedMakeupTool = 'all';
+  let makeupRenderTimer = 0;
+  let makeupHasRendered = false;
   let afterIntensityMode = 'natural';
   let modeTransitionTimer = 0;
   let updateCompare = () => {};
@@ -74,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { at: 8000, phrase: 'Leyendo senales visibles', detail: 'Revisando textura, brillo y tono.' },
     { at: 18000, phrase: 'Cruzando con productos BSC', detail: 'Buscando rutina compatible con tu piel.' },
     { at: 32000, phrase: 'Ajustando pasos AM y PM', detail: 'Ordenando productos y frecuencia de uso.' },
-    { at: 46000, phrase: 'Afinando el diagnostico', detail: 'Gemini esta cerrando prioridades y carrito.' },
+    { at: 46000, phrase: 'Afinando el diagnostico', detail: 'Cerrando prioridades y carrito.' },
     { at: 58000, phrase: 'Ya casi esta lista', detail: 'Si tarda un poco mas, seguimos esperando la respuesta.' }
   ];
   const diagnosisScoreConfig = [
@@ -91,6 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const mode = tab.getAttribute('data-bsc-quiz-mode-tab') || 'normal';
       setMode(mode);
       trackQuizEvent('mode_change', { mode });
+    });
+  });
+
+  resultTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      setResultsTab(tab.getAttribute('data-bsc-result-tab') || 'routine');
     });
   });
 
@@ -114,6 +139,43 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+
+  if (makeupStudio) {
+    makeupStudio.addEventListener('click', async (event) => {
+      const toolButton = event.target.closest('[data-bsc-makeup-tool]');
+      if (toolButton) {
+        setMakeupTool(toolButton.getAttribute('data-bsc-makeup-tool') || 'all');
+        return;
+      }
+
+      const productButton = event.target.closest('[data-bsc-makeup-product]');
+      if (productButton) {
+        toggleMakeupProduct(productButton);
+        return;
+      }
+
+      const previewButton = event.target.closest('[data-bsc-makeup-preview]');
+      if (previewButton) {
+        await runMakeupPreview();
+      }
+    });
+  }
+
+  if (makeupLookSelect) {
+    makeupLookSelect.addEventListener('change', () => {
+      setMakeupStatus('Variacion lista. Aplicando capas locales sobre tu foto.');
+      trackQuizEvent('makeup_product_toggle', { action: 'look_change', look: makeupLookSelect.value });
+      queueMakeupRender();
+    });
+  }
+
+  if (makeupIntensity) {
+    makeupIntensity.addEventListener('input', () => {
+      updateMakeupIntensityLabel();
+      queueMakeupRender();
+    });
+    updateMakeupIntensityLabel();
+  }
 
   results.addEventListener('click', async (event) => {
     const emailToggle = event.target.closest('[data-bsc-email-routine]');
@@ -247,6 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', updateCompare);
     updateCompare();
     initAfterIntensityControls();
+    initCompareModeControls();
+    initHeatmapControls();
+    initTimelineControls();
+    initZoomControls();
+    initShareButton();
+    initColorimetry();
   }
 
   const initialMode = config.initialMode === 'ai' ? 'ai' : 'normal';
@@ -292,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startAiLoader(form);
         analysisStarted = true;
         loaderStarted = true;
-        setStatus(form, 'Skincare AI está procesando la foto y armando tu rutina...');
+        setStatus(form, 'Tu estudio esta procesando la foto y armando tu rutina...');
       }
 
       const payload = new FormData(form);
@@ -328,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fallback: data.ai && data.ai.fallback ? '1' : '0',
         run_id: currentRunId
       });
-      const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. Lectura AI pendiente.' : 'Rutina personalizada lista.';
+      const fallbackLabel = data.ai && data.ai.fallback ? 'Rutina lista. Lectura con foto pendiente.' : 'Rutina personalizada lista.';
       if (loaderStarted) {
         finishAiLoader(form, true);
       }
@@ -341,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finishAiAnalysis(false);
       }
       if (mode === 'ai') {
-        resetDiagnosis('No fue posible completar el análisis AI. Intenta de nuevo con la misma foto.');
+        resetDiagnosis('No fue posible completar la lectura con foto. Intenta de nuevo con la misma foto.');
       }
       if (loaderStarted) {
         finishAiLoader(form, false);
@@ -656,7 +724,29 @@ document.addEventListener('DOMContentLoaded', () => {
       diagnosis.classList.toggle('is-visible', mode === 'ai');
     }
 
+    if (mode === 'ai') {
+      setResultsTab('routine');
+    }
+
     window.requestAnimationFrame(updateCompare);
+  }
+
+  function setResultsTab(tabName) {
+    const activeTab = ['routine', 'diagnosis', 'makeup'].includes(tabName) ? tabName : 'routine';
+
+    resultTabs.forEach((tab) => {
+      const isActive = tab.getAttribute('data-bsc-result-tab') === activeTab;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('[data-bsc-result-panel]').forEach((panel) => {
+      panel.classList.toggle('is-active', panel.getAttribute('data-bsc-result-panel') === activeTab);
+    });
+
+    if (activeTab === 'makeup' && currentMakeup && !makeupHasRendered) {
+      queueMakeupRender();
+    }
   }
 
   function renderBundles(bundles) {
@@ -685,6 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function createBundleCard(bundle) {
     const badgeText = String(bundle.badge || '');
     const isAiRoutine = currentMode() === 'ai' || badgeText.toLowerCase().includes('ai');
+    const visibleBadgeText = isAiRoutine && badgeText.toLowerCase().includes('ai') ? 'Estudio BSC' : badgeText;
     const article = document.createElement('article');
     article.className = isAiRoutine ? 'bsc-skin-quiz__bundle bsc-skin-quiz__bundle--ai' : 'bsc-skin-quiz__bundle';
     article.setAttribute('data-bundle-id', bundle.id || '');
@@ -701,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const badge = document.createElement('span');
       badge.className = 'bsc-skin-quiz__badge';
-      badge.textContent = bundle.badge || 'Rutina BSC';
+      badge.textContent = visibleBadgeText || (isAiRoutine ? 'Estudio BSC' : 'Rutina BSC');
       meta.appendChild(badge);
 
       if (isAiRoutine && bundle.product_count) {
@@ -2756,6 +2847,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (afterWrap) {
           afterWrap.classList.remove('is-fallback');
         }
+        updateColorimetry(signals);
         window.requestAnimationFrame(updateCompare);
       })
       .catch(() => {
@@ -2771,15 +2863,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const controls = document.createElement('div');
     controls.className = 'bsc-skin-quiz__after-controls';
     controls.setAttribute('data-bsc-after-intensity', '1');
+    controls.setAttribute('aria-label', 'Intensidad de simulación');
+    compare.setAttribute('data-bsc-intensity-mode', afterIntensityMode);
     [
       ['natural', 'Natural'],
       ['glow', 'Glow'],
-      ['visible', 'Más visible']
+      ['visible', 'Mas visible']
     ].forEach(([value, label]) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = value === afterIntensityMode ? 'is-active' : '';
       button.dataset.intensity = value;
+      button.setAttribute('aria-pressed', value === afterIntensityMode ? 'true' : 'false');
       button.textContent = label;
       controls.appendChild(button);
     });
@@ -2792,7 +2887,9 @@ document.addEventListener('DOMContentLoaded', () => {
       afterIntensityMode = button.dataset.intensity || 'natural';
       controls.querySelectorAll('button').forEach((item) => {
         item.classList.toggle('is-active', item === button);
+        item.setAttribute('aria-pressed', item === button ? 'true' : 'false');
       });
+      compare.setAttribute('data-bsc-intensity-mode', afterIntensityMode);
       if (skinPreviewRenderer) {
         skinPreviewRenderer.setIntensityMode(afterIntensityMode);
       }
@@ -2816,7 +2913,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alpha: true,
         antialias: false,
         depth: false,
-        preserveDrawingBuffer: false
+        preserveDrawingBuffer: true
       }) || canvas.getContext('experimental-webgl');
 
       if (!this.gl) {
@@ -2836,6 +2933,12 @@ document.addEventListener('DOMContentLoaded', () => {
       this.analysisActive = false;
       this.analysisProgress = 0;
       this.intensityMode = 'natural';
+      this.compareMode = 'slider';
+      this.heatmap = false;
+      this.heatmapMode = 'all';
+      this.timelineStage = 0;
+      this.zoomCenter = [0.5, 0.5];
+      this.zoomScale = 1.0;
       this.uniforms = {
         before: this.gl.getUniformLocation(this.program, 'u_before'),
         after: this.gl.getUniformLocation(this.program, 'u_after'),
@@ -2848,10 +2951,18 @@ document.addEventListener('DOMContentLoaded', () => {
         texture: this.gl.getUniformLocation(this.program, 'u_texture'),
         warmth: this.gl.getUniformLocation(this.program, 'u_warmth'),
         makeup: this.gl.getUniformLocation(this.program, 'u_makeup'),
+        glow: this.gl.getUniformLocation(this.program, 'u_glow'),
         analysis: this.gl.getUniformLocation(this.program, 'u_analysis'),
         analysisProgress: this.gl.getUniformLocation(this.program, 'u_analysis_progress'),
         beforeCover: this.gl.getUniformLocation(this.program, 'u_before_cover'),
-        afterCover: this.gl.getUniformLocation(this.program, 'u_after_cover')
+        afterCover: this.gl.getUniformLocation(this.program, 'u_after_cover'),
+        compareMode: this.gl.getUniformLocation(this.program, 'u_compare_mode'),
+        heatmap: this.gl.getUniformLocation(this.program, 'u_heatmap'),
+        heatmapMode: this.gl.getUniformLocation(this.program, 'u_heatmap_mode'),
+        timelineStage: this.gl.getUniformLocation(this.program, 'u_timeline_stage'),
+        timelineBlend: this.gl.getUniformLocation(this.program, 'u_timeline_blend'),
+        zoomCenter: this.gl.getUniformLocation(this.program, 'u_zoom_center'),
+        zoomScale: this.gl.getUniformLocation(this.program, 'u_zoom_scale')
       };
 
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
@@ -2860,6 +2971,60 @@ document.addEventListener('DOMContentLoaded', () => {
         new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
         this.gl.STATIC_DRAW
       );
+    }
+
+    setCompareMode(mode) {
+      this.compareMode = ['slider', 'side-by-side'].includes(mode) ? mode : 'slider';
+      if (this.beforeTexture) {
+        const now = window.performance ? window.performance.now() : Date.now();
+        this.draw((now - this.startedAt) / 1000);
+      }
+    }
+
+    setHeatmap(on, mode) {
+      this.heatmap = Boolean(on);
+      this.heatmapMode = ['all', 'redness', 'spots', 'texture'].includes(mode) ? mode : 'all';
+      if (this.beforeTexture) {
+        const now = window.performance ? window.performance.now() : Date.now();
+        this.draw((now - this.startedAt) / 1000);
+      }
+    }
+
+    setTimelineStage(stage) {
+      this.timelineStage = Math.max(0, Math.min(2, Number(stage) || 0));
+      if (this.beforeTexture) {
+        const now = window.performance ? window.performance.now() : Date.now();
+        this.draw((now - this.startedAt) / 1000);
+      }
+    }
+
+    timelineStageBlend() {
+      if (!this.hasAfter) return 0;
+      if (this.timelineStage >= 2) return 1.0;
+      if (this.timelineStage <= 0) return 0.1;
+      return 0.45;
+    }
+
+    setZoom(centerX, centerY, scale) {
+      this.zoomCenter = [Math.max(0, Math.min(1, Number(centerX) || 0.5)), Math.max(0, Math.min(1, Number(centerY) || 0.5))];
+      this.zoomScale = Math.max(1, Math.min(4, Number(scale) || 1));
+      if (this.beforeTexture) {
+        const now = window.performance ? window.performance.now() : Date.now();
+        this.draw((now - this.startedAt) / 1000);
+      }
+    }
+
+    resetZoom() {
+      this.setZoom(0.5, 0.5, 1);
+    }
+
+    exportToCanvas(width, height) {
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = width || this.canvas.width;
+      exportCanvas.height = height || this.canvas.height;
+      const ctx = exportCanvas.getContext('2d');
+      ctx.drawImage(this.canvas, 0, 0);
+      return exportCanvas;
     }
 
     async render(beforeSrc, afterSrc, signals, options = {}) {
@@ -3003,22 +3168,36 @@ document.addEventListener('DOMContentLoaded', () => {
       const warmth = undertone === 'warm' ? 1 : undertone === 'olive' ? 0.55 : undertone === 'cool' ? -0.55 : 0;
       const beforeCover = this.coverScaleFor(this.beforeSize);
       const afterCover = this.coverScaleFor(this.afterSize);
-      const intensityScale = this.intensityMode === 'visible' ? 1.08 : this.intensityMode === 'glow' ? 0.88 : 0.62;
-      const makeupScale = this.intensityMode === 'visible' ? 0.76 : this.intensityMode === 'glow' ? 0.58 : 0.34;
+      const modeConfig = {
+        natural: { retouch: 0.72, makeup: 0.26, glow: 0.18 },
+        glow: { retouch: 0.94, makeup: 0.46, glow: 1.12 },
+        visible: { retouch: 1.34, makeup: 0.82, glow: 0.56 }
+      }[this.intensityMode] || { retouch: 0.72, makeup: 0.26, glow: 0.18 };
+      const compareModeNum = this.compareMode === 'side-by-side' ? 1 : 0;
+      const heatmapNum = this.heatmap ? 1 : 0;
+      const heatmapModeNum = this.heatmapMode === 'redness' ? 0.16 : this.heatmapMode === 'spots' ? 0.5 : this.heatmapMode === 'texture' ? 0.83 : 0.25;
 
       gl.uniform1f(this.uniforms.hasAfter, this.hasAfter ? 1 : 0);
       gl.uniform1f(this.uniforms.time, time || 0);
-      gl.uniform1f(this.uniforms.intensity, Math.min(1, (0.42 + (redness * 0.16) + (spots * 0.12) + (texture * 0.1)) * intensityScale));
+      gl.uniform1f(this.uniforms.intensity, Math.min(1, (0.42 + (redness * 0.16) + (spots * 0.12) + (texture * 0.1)) * modeConfig.retouch));
       gl.uniform1f(this.uniforms.shine, Math.min(1, shine));
       gl.uniform1f(this.uniforms.redness, Math.min(1, redness));
       gl.uniform1f(this.uniforms.spots, Math.min(1, spots));
       gl.uniform1f(this.uniforms.texture, Math.min(1, texture));
       gl.uniform1f(this.uniforms.warmth, warmth);
-      gl.uniform1f(this.uniforms.makeup, this.hasAfter ? makeupScale : 0.3 * intensityScale);
+      gl.uniform1f(this.uniforms.makeup, this.hasAfter ? modeConfig.makeup : 0.3 * modeConfig.retouch);
+      gl.uniform1f(this.uniforms.glow, modeConfig.glow);
       gl.uniform1f(this.uniforms.analysis, this.analysisActive ? 1 : 0);
       gl.uniform1f(this.uniforms.analysisProgress, this.analysisProgress);
       gl.uniform2f(this.uniforms.beforeCover, beforeCover[0], beforeCover[1]);
       gl.uniform2f(this.uniforms.afterCover, afterCover[0], afterCover[1]);
+      gl.uniform1f(this.uniforms.compareMode, compareModeNum);
+      gl.uniform1f(this.uniforms.heatmap, heatmapNum);
+      gl.uniform1f(this.uniforms.heatmapMode, heatmapModeNum);
+      gl.uniform1f(this.uniforms.timelineStage, this.timelineStage);
+      gl.uniform1f(this.uniforms.timelineBlend, this.timelineStageBlend());
+      gl.uniform2f(this.uniforms.zoomCenter, this.zoomCenter[0], this.zoomCenter[1]);
+      gl.uniform1f(this.uniforms.zoomScale, this.zoomScale);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -3070,10 +3249,18 @@ document.addEventListener('DOMContentLoaded', () => {
         uniform float u_texture;
         uniform float u_warmth;
         uniform float u_makeup;
+        uniform float u_glow;
         uniform float u_analysis;
         uniform float u_analysis_progress;
         uniform vec2 u_before_cover;
         uniform vec2 u_after_cover;
+        uniform float u_compare_mode;
+        uniform float u_heatmap;
+        uniform float u_heatmap_mode;
+        uniform float u_timeline_stage;
+        uniform float u_timeline_blend;
+        uniform vec2 u_zoom_center;
+        uniform float u_zoom_scale;
         varying vec2 v_uv;
 
         float luma(vec3 color) {
@@ -3102,64 +3289,124 @@ document.addEventListener('DOMContentLoaded', () => {
           return ((uv - 0.5) * coverScale) + 0.5;
         }
 
+        vec2 applyZoom(vec2 uv) {
+          if (u_zoom_scale < 1.01) return uv;
+          return (uv - u_zoom_center) / u_zoom_scale + u_zoom_center;
+        }
+
+        float timelineFactor() {
+          return clamp(u_timeline_stage, 0.0, 2.0);
+        }
+
         void main() {
-          vec2 beforeUv = coverUv(v_uv, u_before_cover);
-          vec2 afterUv = coverUv(v_uv, u_after_cover);
+          vec2 rawUv = v_uv;
+          float useSideBySide = step(0.5, u_compare_mode);
+          vec2 beforeBase = useSideBySide > 0.5 ? rawUv * vec2(2.0, 1.0) : rawUv;
+          vec2 afterBase = useSideBySide > 0.5 ? (rawUv - vec2(0.5, 0.0)) * vec2(2.0, 1.0) : rawUv;
+
+          vec2 beforeUv = coverUv(applyZoom(beforeBase), u_before_cover);
+          vec2 afterUv = coverUv(applyZoom(afterBase), u_after_cover);
+
           vec4 beforeColor = texture2D(u_before, beforeUv);
           vec3 aiColor = texture2D(u_after, afterUv).rgb;
           float hasAfterImage = step(0.5, u_has_after);
-          vec3 color = mix(beforeColor.rgb, aiColor, hasAfterImage);
+          float timelineWeight = hasAfterImage * clamp(u_timeline_blend, 0.0, 1.0);
+          vec3 color = mix(beforeColor.rgb, aiColor, timelineWeight);
           vec2 faceCenter = vec2(0.5, 0.48);
           vec2 faceRadius = vec2(0.37, 0.48);
-          float faceDistance = ellipseDistance(v_uv, faceCenter, faceRadius);
+          float faceDistance = ellipseDistance(rawUv, faceCenter, faceRadius);
           float skinMask = 1.0 - smoothstep(0.72, 1.0, faceDistance);
           float tone = luma(color);
+
+          float t = timelineFactor();
+          vec3 timelineReduction = vec3(1.0 - (t * 0.22), 1.0 - (t * 0.16), 1.0 - (t * 0.12));
           vec3 warmTint = vec3(1.0 + (u_warmth * 0.035), 0.992 + abs(u_warmth) * 0.012, 1.0 - (u_warmth * 0.025));
           color = mix(color, color * warmTint, skinMask * 0.34);
 
           float redExcess = max(color.r - max(color.g, color.b), 0.0);
-          color.g += redExcess * (0.12 + u_redness * 0.22) * skinMask;
-          color.b += redExcess * (0.06 + u_redness * 0.12) * skinMask;
+          color.g += redExcess * (0.12 + u_redness * 0.22) * skinMask * timelineReduction.g;
+          color.b += redExcess * (0.06 + u_redness * 0.12) * skinMask * timelineReduction.b;
 
           float shadow = smoothstep(0.34, 0.05, tone) * skinMask;
-          color = mix(color, color + vec3(0.035, 0.026, 0.018), shadow * (0.28 + u_spots * 0.4));
+          color = mix(color, color + vec3(0.035, 0.026, 0.018), shadow * (0.28 + u_spots * 0.4) * timelineReduction.r);
 
-          float faceGlow = ellipse(v_uv, vec2(0.5, 0.48), vec2(0.28, 0.36));
-          float microGlow = sin((v_uv.x + v_uv.y + u_time * 0.08) * 34.0) * 0.004;
-          color += vec3(0.018, 0.013, 0.01) * faceGlow * u_intensity;
+          float faceGlow = ellipse(rawUv, vec2(0.5, 0.48), vec2(0.28, 0.36));
+          float microGlow = sin((rawUv.x + rawUv.y + u_time * 0.08) * 34.0) * 0.004;
+          color += vec3(0.018, 0.013, 0.01) * faceGlow * u_intensity * (1.0 + t * 0.35);
           color += vec3(microGlow) * faceGlow * (1.0 - u_shine);
 
-          float cheekLeft = ellipse(v_uv, vec2(0.35, 0.55), vec2(0.13, 0.09));
-          float cheekRight = ellipse(v_uv, vec2(0.65, 0.55), vec2(0.13, 0.09));
-          float lips = ellipse(v_uv, vec2(0.5, 0.73), vec2(0.13, 0.045));
+          float cheekGlowLeft = ellipse(rawUv, vec2(0.36, 0.52), vec2(0.16, 0.11));
+          float cheekGlowRight = ellipse(rawUv, vec2(0.64, 0.52), vec2(0.16, 0.11));
+          float foreheadGlow = ellipse(rawUv, vec2(0.5, 0.33), vec2(0.2, 0.09));
+          float hydrationGlow = max(faceGlow * 0.38, max(cheekGlowLeft, cheekGlowRight) * 0.74);
+          hydrationGlow = max(hydrationGlow, foreheadGlow * 0.42);
+          float glowMotion = 0.72 + (0.28 * sin((rawUv.x * 7.0) + (rawUv.y * 5.0) + (u_time * 0.7)));
+          color += vec3(0.074, 0.052, 0.034) * hydrationGlow * glowMotion * u_glow * (1.0 - (u_shine * 0.28)) * (1.0 + t * 0.4);
+          color = mix(color, color + vec3(0.034, 0.025, 0.018), skinMask * u_glow * 0.1 * (1.0 + t * 0.5));
+
+          float cheekLeft = ellipse(rawUv, vec2(0.35, 0.55), vec2(0.13, 0.09));
+          float cheekRight = ellipse(rawUv, vec2(0.65, 0.55), vec2(0.13, 0.09));
+          float lips = ellipse(rawUv, vec2(0.5, 0.73), vec2(0.13, 0.045));
           vec3 blush = u_warmth >= 0.0 ? vec3(1.0, 0.55, 0.42) : vec3(0.86, 0.46, 0.58);
           vec3 lipTint = u_warmth >= 0.0 ? vec3(0.78, 0.28, 0.2) : vec3(0.68, 0.22, 0.35);
           color = mix(color, mix(color, blush, 0.22), (cheekLeft + cheekRight) * 0.18 * u_makeup);
           color = mix(color, mix(color, lipTint, 0.34), lips * 0.28 * u_makeup);
 
-          float textureSoftener = clamp((u_texture * 0.24) + 0.06, 0.06, 0.28) * skinMask;
+          float textureSoftener = clamp((u_texture * 0.24) + 0.06, 0.06, 0.28) * skinMask * (1.0 + t * 0.3);
           vec3 lifted = color + vec3(0.014, 0.01, 0.008);
           color = mix(color, lifted, textureSoftener);
+
+          if (u_heatmap > 0.01 && skinMask > 0.1) {
+            if (u_heatmap_mode < 0.33) {
+              float heat = u_redness * skinMask;
+              vec3 heatCold = vec3(0.0, 0.62, 0.34);
+              vec3 heatMid = vec3(1.0, 0.84, 0.2);
+              vec3 heatHot = vec3(0.92, 0.18, 0.14);
+              float zoneCheek = max(cheekLeft, cheekRight);
+              float zoneForehead = ellipse(rawUv, vec2(0.5, 0.28), vec2(0.18, 0.08));
+              float heatZone = max(zoneCheek, zoneForehead);
+              vec3 heatColor = mix(heatCold, heatMid, clamp(heat * 2.5, 0.0, 1.0));
+              heatColor = mix(heatColor, heatHot, clamp(heat * 4.0 - 1.5, 0.0, 1.0));
+              color = mix(color, heatColor, heatZone * 0.48);
+            } else if (u_heatmap_mode < 0.66) {
+              float spotZone = ellipse(rawUv, vec2(0.5, 0.55), vec2(0.22, 0.16));
+              float darken = u_spots * spotZone;
+              vec3 spotColor = vec3(0.22, 0.1, 0.14);
+              color = mix(color, spotColor, darken * 0.36);
+            } else {
+              float texZone = ellipse(rawUv, vec2(0.5, 0.48), vec2(0.24, 0.32));
+              float texMap = u_texture * texZone;
+              vec3 texLow = vec3(0.55, 0.76, 0.62);
+              vec3 texHigh = vec3(0.9, 0.68, 0.24);
+              color = mix(color, mix(texLow, texHigh, texMap), texMap * 0.44);
+            }
+          }
+
+          float useSideBySideSplit = useSideBySide;
+          if (useSideBySideSplit > 0.5 && rawUv.x > 0.5 && hasAfterImage < 0.5) {
+            vec2 sbBeforeUv = coverUv(applyZoom(rawUv), u_before_cover);
+            color = texture2D(u_before, sbBeforeUv).rgb;
+          }
 
           if (u_analysis > 0.01) {
             float scanX = mix(-0.12, 1.12, clamp(u_analysis_progress, 0.0, 1.0));
             float liveScanX = scanX + sin(u_time * 1.6) * 0.025;
-            float scanBand = 1.0 - smoothstep(0.0, 0.13, abs(v_uv.x - liveScanX));
-            float scanCore = 1.0 - smoothstep(0.0, 0.018, abs(v_uv.x - liveScanX));
+            float scanBand = 1.0 - smoothstep(0.0, 0.13, abs(rawUv.x - liveScanX));
+            float scanCore = 1.0 - smoothstep(0.0, 0.018, abs(rawUv.x - liveScanX));
             float faceEdge = 1.0 - smoothstep(0.0, 0.045, abs(faceDistance - 0.78));
-            float retouchGlow = smoothstep(0.72, 1.0, 0.5 + (0.5 * sin((v_uv.x * 8.0) + (v_uv.y * 5.0) - (u_time * 1.2))));
+            float retouchGlow = smoothstep(0.72, 1.0, 0.5 + (0.5 * sin((rawUv.x * 8.0) + (rawUv.y * 5.0) - (u_time * 1.2))));
             float contour = (0.55 + (0.45 * sin((faceDistance * 26.0) - (u_time * 2.3)))) * skinMask;
-            float pointA = circlePulse(v_uv, vec2(0.43, 0.35), 0.035, 0.0);
-            float pointB = circlePulse(v_uv, vec2(0.34, 0.55), 0.032, 1.6);
-            float pointC = circlePulse(v_uv, vec2(0.61, 0.57), 0.032, 3.2);
+            float pointA = circlePulse(rawUv, vec2(0.43, 0.35), 0.035, 0.0);
+            float pointB = circlePulse(rawUv, vec2(0.34, 0.55), 0.032, 1.6);
+            float pointC = circlePulse(rawUv, vec2(0.61, 0.57), 0.032, 3.2);
             float pointMask = max(pointA, max(pointB, pointC));
-            float processed = step(v_uv.x, clamp(u_analysis_progress + 0.08, 0.0, 1.0));
+            float processed = step(rawUv.x, clamp(u_analysis_progress + 0.08, 0.0, 1.0));
             vec3 analysisPink = vec3(1.0, 0.72, 0.8);
             vec3 analysisCream = vec3(1.0, 0.96, 0.9);
-            float meshX = 1.0 - smoothstep(0.0, 0.012, abs(fract((v_uv.x * 8.0) + (sin(u_time * 0.8) * 0.04)) - 0.5));
-            float meshY = 1.0 - smoothstep(0.0, 0.012, abs(fract((v_uv.y * 10.0) - (u_time * 0.05)) - 0.5));
+            float meshX = 1.0 - smoothstep(0.0, 0.012, abs(fract((rawUv.x * 8.0) + (sin(u_time * 0.8) * 0.04)) - 0.5));
+            float meshY = 1.0 - smoothstep(0.0, 0.012, abs(fract((rawUv.y * 10.0) - (u_time * 0.05)) - 0.5));
             float mesh = max(meshX * 0.38, meshY * 0.28) * skinMask * processed;
-            float sparkle = pow(max(0.0, sin((v_uv.x * 44.0) + (v_uv.y * 31.0) + (u_time * 2.2))), 18.0) * skinMask * processed;
+            float sparkle = pow(max(0.0, sin((rawUv.x * 44.0) + (rawUv.y * 31.0) + (u_time * 2.2))), 18.0) * skinMask * processed;
 
             color = mix(color, color + analysisCream * 0.055, skinMask * processed * 0.48 * u_analysis);
             color = mix(color, analysisPink, faceEdge * 0.18 * u_analysis);
@@ -3182,7 +3429,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.gl.linkProgram(program);
 
       if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-        throw new Error(this.gl.getProgramInfoLog(program) || 'No fue posible crear el preview WebGL');
+        throw new Error(this.gl.getProgramInfoLog(program) || 'No fue posible crear la vista WebGL');
       }
 
       return program;
@@ -3226,7 +3473,329 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderSkinPreview(beforeSrc, afterSrc, lastVisionSignals);
     renderDiagnosis(ai);
+    renderMakeupStudio(ai && ai.makeup ? ai.makeup : null);
+    updateColorimetry(lastVisionSignals);
     window.requestAnimationFrame(updateCompare);
+  }
+
+  function initCompareModeControls() {
+    if (!compare || compare.querySelector('[data-bsc-compare-mode]')) {
+      return;
+    }
+
+    const controls = document.createElement('div');
+    controls.className = 'bsc-skin-quiz__compare-mode';
+    controls.setAttribute('data-bsc-compare-mode', '1');
+    controls.setAttribute('aria-label', 'Modo de comparación');
+    [
+      ['slider', 'Deslizante'],
+      ['side-by-side', 'Lado a lado']
+    ].forEach(([value, label]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = value === 'slider' ? 'is-active' : '';
+      button.dataset.compareMode = value;
+      button.setAttribute('aria-pressed', value === 'slider' ? 'true' : 'false');
+      button.textContent = label;
+      controls.appendChild(button);
+    });
+
+    controls.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-compare-mode]');
+      if (!button) {
+        return;
+      }
+      const mode = button.dataset.compareMode || 'slider';
+      controls.querySelectorAll('button').forEach((item) => {
+        item.classList.toggle('is-active', item === button);
+        item.setAttribute('aria-pressed', item === button ? 'true' : 'false');
+      });
+      if (skinPreviewRenderer) {
+        skinPreviewRenderer.setCompareMode(mode);
+      }
+      const handle = compare.querySelector('.bsc-skin-quiz__compare-handle');
+      const range = compare.querySelector('.bsc-skin-quiz__compare-range');
+      const labels = compare.querySelectorAll('.bsc-skin-quiz__compare-label');
+      if (mode === 'side-by-side') {
+        if (handle) handle.style.display = 'none';
+        if (range) range.style.display = 'none';
+        labels.forEach((l) => { l.style.display = 'none'; });
+      } else {
+        if (handle) handle.style.display = '';
+        if (range) range.style.display = '';
+        labels.forEach((l) => { l.style.display = ''; });
+      }
+    });
+
+    compare.appendChild(controls);
+  }
+
+  function initHeatmapControls() {
+    if (!compare || compare.querySelector('[data-bsc-heatmap]')) {
+      return;
+    }
+
+    const controls = document.createElement('div');
+    controls.className = 'bsc-skin-quiz__heatmap-controls';
+    controls.setAttribute('data-bsc-heatmap', '1');
+    controls.setAttribute('aria-label', 'Mapa de calor diagnóstico');
+    [
+      ['off', 'Normal'],
+      ['all', 'Todo'],
+      ['redness', 'Rojeces'],
+      ['spots', 'Manchas'],
+      ['texture', 'Textura']
+    ].forEach(([value, label]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = value === 'off' ? 'is-active' : '';
+      button.dataset.heatmap = value;
+      button.setAttribute('aria-pressed', value === 'off' ? 'true' : 'false');
+      button.textContent = label;
+      controls.appendChild(button);
+    });
+
+    controls.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-heatmap]');
+      if (!button) {
+        return;
+      }
+      const mode = button.dataset.heatmap || 'off';
+      controls.querySelectorAll('button').forEach((item) => {
+        item.classList.toggle('is-active', item === button);
+        item.setAttribute('aria-pressed', item === button ? 'true' : 'false');
+      });
+      if (skinPreviewRenderer) {
+        skinPreviewRenderer.setHeatmap(mode !== 'off', mode === 'off' ? 'all' : mode);
+      }
+    });
+
+    compare.appendChild(controls);
+  }
+
+  function initTimelineControls() {
+    if (!compare || compare.querySelector('[data-bsc-timeline]')) {
+      return;
+    }
+
+    const controls = document.createElement('div');
+    controls.className = 'bsc-skin-quiz__timeline-controls';
+    controls.setAttribute('data-bsc-timeline', '1');
+    controls.setAttribute('aria-label', 'Progresión de rutina');
+    [
+      ['0', 'Hoy'],
+      ['1', '+2 semanas'],
+      ['2', '+1 mes']
+    ].forEach(([value, label]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = value === '0' ? 'is-active' : '';
+      button.dataset.timeline = value;
+      button.setAttribute('aria-pressed', value === '0' ? 'true' : 'false');
+      button.textContent = label;
+      controls.appendChild(button);
+    });
+
+    controls.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-timeline]');
+      if (!button) {
+        return;
+      }
+      const stage = Number(button.dataset.timeline || '0');
+      controls.querySelectorAll('button').forEach((item) => {
+        item.classList.toggle('is-active', item === button);
+        item.setAttribute('aria-pressed', item === button ? 'true' : 'false');
+      });
+      if (skinPreviewRenderer) {
+        skinPreviewRenderer.setTimelineStage(stage);
+      }
+    });
+
+    compare.appendChild(controls);
+  }
+
+  function initZoomControls() {
+    if (!compare || !webglCanvas || compare.querySelector('[data-bsc-zoom]')) {
+      return;
+    }
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let startCenterX = 0.5;
+    let startCenterY = 0.5;
+
+    const zoomHint = document.createElement('div');
+    zoomHint.className = 'bsc-skin-quiz__zoom-hint';
+    zoomHint.setAttribute('data-bsc-zoom', '1');
+    zoomHint.textContent = 'Rueda para zoom · Arrastra para mover · Doble clic para reiniciar';
+    compare.appendChild(zoomHint);
+
+    compare.addEventListener('wheel', (event) => {
+      if (!skinPreviewRenderer) return;
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? 0.15 : -0.15;
+      const newScale = Math.max(1, Math.min(4, skinPreviewRenderer.zoomScale + delta));
+      skinPreviewRenderer.setZoom(skinPreviewRenderer.zoomCenter[0], skinPreviewRenderer.zoomCenter[1], newScale);
+    }, { passive: false });
+
+    compare.addEventListener('pointerdown', (event) => {
+      if (!skinPreviewRenderer || skinPreviewRenderer.zoomScale <= 1.01) return;
+      isDragging = true;
+      startX = event.clientX;
+      startY = event.clientY;
+      startCenterX = skinPreviewRenderer.zoomCenter[0];
+      startCenterY = skinPreviewRenderer.zoomCenter[1];
+      compare.setPointerCapture(event.pointerId);
+    });
+
+    compare.addEventListener('pointermove', (event) => {
+      if (!isDragging || !skinPreviewRenderer) return;
+      const rect = webglCanvas.getBoundingClientRect();
+      const dx = (event.clientX - startX) / rect.width / skinPreviewRenderer.zoomScale;
+      const dy = (event.clientY - startY) / rect.height / skinPreviewRenderer.zoomScale;
+      skinPreviewRenderer.setZoom(startCenterX - dx, startCenterY - dy, skinPreviewRenderer.zoomScale);
+    });
+
+    compare.addEventListener('pointerup', () => {
+      isDragging = false;
+    });
+
+    compare.addEventListener('dblclick', () => {
+      if (skinPreviewRenderer) {
+        skinPreviewRenderer.resetZoom();
+      }
+    });
+  }
+
+  function generateShareCard() {
+    if (!skinPreviewRenderer || !webglCanvas) {
+      return null;
+    }
+
+    const cardWidth = 1200;
+    const cardHeight = 900;
+    const sourceCanvas = skinPreviewRenderer.exportToCanvas();
+    const card = document.createElement('canvas');
+    card.width = cardWidth;
+    card.height = cardHeight;
+    const ctx = card.getContext('2d');
+
+    ctx.fillStyle = '#fff5f7';
+    ctx.fillRect(0, 0, cardWidth, cardHeight);
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '900 36px Helvetica, Arial, sans-serif';
+    ctx.fillText('Mi diagnóstico BSC', 60, 70);
+
+    const previewHeight = 560;
+    const previewY = 110;
+    ctx.drawImage(sourceCanvas, 60, previewY, cardWidth - 120, previewHeight);
+
+    ctx.strokeStyle = 'rgba(31, 31, 31, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(60, previewY, cardWidth - 120, previewHeight);
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = '800 24px Helvetica, Arial, sans-serif';
+    ctx.fillText('bubbleskincare.com/skin-quiz', 60, previewY + previewHeight + 50);
+
+    ctx.fillStyle = '#8a7a80';
+    ctx.font = '700 16px Helvetica, Arial, sans-serif';
+    ctx.fillText('Descubre tu rutina personalizada con análisis de piel por IA', 60, previewY + previewHeight + 80);
+
+    return card;
+  }
+
+  function downloadShareCard() {
+    const card = generateShareCard();
+    if (!card) return;
+
+    card.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'bsc-skin-quiz-diagnostico.png';
+      link.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  }
+
+  function initShareButton() {
+    if (!compare || compare.querySelector('[data-bsc-share-card]')) {
+      return;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'bsc-skin-quiz__share-card-button';
+    button.setAttribute('data-bsc-share-card', '1');
+    button.innerHTML = '<i class="fas fa-download" aria-hidden="true"></i> Descargar comparativa';
+
+    button.addEventListener('click', () => {
+      downloadShareCard();
+    });
+
+    compare.appendChild(button);
+  }
+
+  function initColorimetry() {
+    if (!compare || compare.querySelector('[data-bsc-colorimetry]')) {
+      return;
+    }
+
+    const bar = document.createElement('div');
+    bar.className = 'bsc-skin-quiz__colorimetry';
+    bar.setAttribute('data-bsc-colorimetry', '1');
+    bar.setAttribute('aria-label', 'Colorimetría y tono de piel');
+
+    const header = document.createElement('div');
+    header.className = 'bsc-skin-quiz__colorimetry-header';
+    header.innerHTML = '<span>Tu colorimetría</span><strong data-bsc-colorimetry-undertone>Analizando...</strong>';
+    bar.appendChild(header);
+
+    const palette = document.createElement('div');
+    palette.className = 'bsc-skin-quiz__colorimetry-palette';
+    palette.setAttribute('data-bsc-colorimetry-palette', '1');
+    bar.appendChild(palette);
+
+    const hint = document.createElement('p');
+    hint.className = 'bsc-skin-quiz__colorimetry-hint';
+    hint.textContent = 'Estos tonos complementan tu colorimetría natural.';
+    bar.appendChild(hint);
+
+    compare.appendChild(bar);
+  }
+
+  function updateColorimetry(signals) {
+    const bar = document.querySelector('[data-bsc-colorimetry]');
+    if (!bar) return;
+
+    const undertoneEl = bar.querySelector('[data-bsc-colorimetry-undertone]');
+    const paletteEl = bar.querySelector('[data-bsc-colorimetry-palette]');
+    if (!undertoneEl || !paletteEl) return;
+
+    const undertone = String(signals.undertone_proxy || signals.undertone || 'neutral');
+    const undertoneLabels = { warm: 'Cálido', cool: 'Frío', olive: 'Oliva', neutral: 'Neutro' };
+    const label = undertoneLabels[undertone] || 'Neutro';
+    undertoneEl.textContent = label + ' · ' + ['Claro', 'Medio', 'Profundo'][Math.round((Number(signals.skin_depth_proxy || signals.skin_depth || 0.5)) * 2)];
+
+    const palettes = {
+      warm: ['#D4956A', '#C17A4E', '#E8C4A2', '#F4A460', '#B5653A', '#E8B87C', '#CC6644', '#F0CDA0'],
+      cool: ['#E8B4B8', '#D4A0A5', '#C4909E', '#B5808C', '#F0C0C8', '#E09CA8', '#D0888C', '#F4B8C0'],
+      olive: ['#C4A882', '#B0986C', '#D4C4A0', '#A89060', '#E8D4B8', '#C8B48C', '#B8A070', '#DCC8A8'],
+      neutral: ['#D4B896', '#C4A886', '#E0CCB0', '#B4986C', '#E8D4C0', '#CCB490', '#C0A880', '#DCC8B0']
+    };
+    const colors = palettes[undertone] || palettes.neutral;
+
+    paletteEl.innerHTML = '';
+    colors.forEach((color) => {
+      const swatch = document.createElement('span');
+      swatch.className = 'bsc-skin-quiz__colorimetry-swatch';
+      swatch.style.backgroundColor = color;
+      swatch.setAttribute('aria-label', color);
+      paletteEl.appendChild(swatch);
+    });
   }
 
   function setStatus(form, message, isError = false) {
@@ -3298,6 +3867,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateDiagnosisSummary([], {}, 0, []);
 
+    renderMakeupStudio(null);
     setAiNotes(message || 'Tu lectura cosmética aparecerá aquí después de analizar la foto.');
   }
 
@@ -3355,6 +3925,640 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setAiNotes(notes);
+  }
+
+  function renderMakeupStudio(makeup) {
+    currentMakeup = makeup && Array.isArray(makeup.products) && makeup.products.length ? makeup : null;
+
+    if (!makeupStudio) {
+      return;
+    }
+
+    if (!currentMakeup) {
+      makeupStudio.classList.add('is-hidden');
+      makeupHasRendered = false;
+      if (makeupProducts) {
+        makeupProducts.innerHTML = '';
+      }
+      updateMakeupAvatar();
+      setMakeupStatus('');
+      return;
+    }
+
+    makeupStudio.classList.remove('is-hidden');
+
+    if (makeupTitle) {
+      makeupTitle.textContent = currentMakeup.title || 'Look BSC';
+    }
+
+    if (makeupSummary) {
+      makeupSummary.textContent = currentMakeup.summary || 'Elige zona, cambia producto y ajusta capas sobre tu foto.';
+    }
+
+    if (makeupLookSelect) {
+      makeupLookSelect.value = 'recommended';
+    }
+
+    renderMakeupProducts(currentMakeup.products);
+    renderMakeupNotes(currentMakeup.application_notes || []);
+    updateMakeupAvatar();
+    setMakeupTool(selectedMakeupTool);
+    setMakeupStatus('Activa herramientas y productos. Las capas se aplican localmente sobre tu foto.');
+  }
+
+  function renderMakeupProducts(products) {
+    if (!makeupProducts) {
+      return;
+    }
+
+    makeupProducts.innerHTML = '';
+    products.forEach((product) => {
+      const button = document.createElement('button');
+      const swatch = document.createElement('span');
+      const media = document.createElement('span');
+      const body = document.createElement('span');
+      const meta = document.createElement('span');
+      const name = document.createElement('strong');
+      const shade = document.createElement('em');
+      const why = document.createElement('small');
+      const check = document.createElement('i');
+
+      button.type = 'button';
+      button.className = 'bsc-skin-quiz__makeup-product is-selected';
+      button.setAttribute('data-bsc-makeup-product', String(product.id || ''));
+      button.setAttribute('data-makeup-role', makeupProductRole(product));
+      button.setAttribute('aria-pressed', 'true');
+
+      swatch.className = 'bsc-skin-quiz__makeup-swatch';
+      swatch.style.backgroundColor = product.color_hex || '#C78D8A';
+      swatch.setAttribute('aria-hidden', 'true');
+
+      media.className = 'bsc-skin-quiz__makeup-product-media';
+      if (product.image) {
+        const image = document.createElement('img');
+        image.src = product.image;
+        image.alt = product.name || '';
+        media.appendChild(image);
+      } else {
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-wand-magic-sparkles';
+        media.appendChild(icon);
+      }
+
+      body.className = 'bsc-skin-quiz__makeup-product-body';
+      meta.className = 'bsc-skin-quiz__makeup-product-meta';
+      meta.textContent = [makeupRoleLabel(makeupProductRole(product)), product.brand || ''].filter(Boolean).join(' / ');
+      name.textContent = product.name || 'Producto makeup';
+      shade.textContent = product.shade_hint || product.color_story || '';
+      why.textContent = product.why || stripHtml(product.price_html || product.price || '');
+      body.append(meta, name);
+      if (shade.textContent) {
+        body.appendChild(shade);
+      }
+      if (why.textContent) {
+        body.appendChild(why);
+      }
+
+      check.className = 'fas fa-check';
+      check.setAttribute('aria-hidden', 'true');
+
+      button.append(swatch, media, body, check);
+      makeupProducts.appendChild(button);
+    });
+  }
+
+  function renderMakeupNotes(notes) {
+    if (!makeupNotes) {
+      return;
+    }
+
+    makeupNotes.innerHTML = '';
+    const cleanNotes = Array.isArray(notes) ? notes.filter(Boolean).slice(0, 4) : [];
+
+    cleanNotes.forEach((note) => {
+      const item = document.createElement('span');
+      item.textContent = note;
+      makeupNotes.appendChild(item);
+    });
+  }
+
+  function setMakeupTool(tool) {
+    selectedMakeupTool = ['all', 'lip', 'blush', 'eye', 'base'].includes(tool) ? tool : 'all';
+
+    makeupToolButtons.forEach((button) => {
+      const isActive = button.getAttribute('data-bsc-makeup-tool') === selectedMakeupTool;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    if (makeupProducts) {
+      Array.from(makeupProducts.querySelectorAll('[data-bsc-makeup-product]')).forEach((button) => {
+        const role = button.getAttribute('data-makeup-role') || 'product';
+        button.classList.toggle('is-tool-hidden', !makeupRoleMatchesTool(role, selectedMakeupTool));
+      });
+    }
+  }
+
+  function makeupRoleMatchesTool(role, tool) {
+    if (tool === 'all') {
+      return true;
+    }
+
+    if (tool === 'base') {
+      return ['base', 'highlight', 'glow', 'concealer'].includes(role);
+    }
+
+    if (tool === 'eye') {
+      return ['eye', 'mascara', 'brow'].includes(role);
+    }
+
+    return role === tool;
+  }
+
+  function toggleMakeupProduct(button) {
+    const selectedCount = selectedMakeupButtons().length;
+    const isSelected = button.classList.contains('is-selected');
+
+    if (isSelected && selectedCount <= 1) {
+      setMakeupStatus('Deja al menos un producto activo para aplicar el look.', true);
+      return;
+    }
+
+    button.classList.toggle('is-selected', !isSelected);
+    button.setAttribute('aria-pressed', !isSelected ? 'true' : 'false');
+    setMakeupStatus(!isSelected ? 'Producto activado para el look.' : 'Producto removido del look.');
+    trackQuizEvent('makeup_product_toggle', {
+      product_id: button.getAttribute('data-bsc-makeup-product') || '',
+      selected: !isSelected ? '1' : '0'
+    });
+    updateMakeupAvatar();
+    queueMakeupRender();
+  }
+
+  function updateMakeupAvatar() {
+    if (!makeupAvatar) {
+      return;
+    }
+
+    const selected = selectedMakeupProducts();
+    const colorFor = (roles, fallback) => {
+      const roleList = Array.isArray(roles) ? roles : [roles];
+      const item = selected.find((product) => roleList.includes(makeupProductRole(product)) && product.color_hex);
+      return item && item.color_hex ? item.color_hex : fallback;
+    };
+
+    makeupAvatar.style.setProperty('--bsc-look-base', colorFor('base', '#D6A681'));
+    makeupAvatar.style.setProperty('--bsc-look-blush', colorFor('blush', '#D98D86'));
+    makeupAvatar.style.setProperty('--bsc-look-lip', colorFor('lip', '#A94F5F'));
+    makeupAvatar.style.setProperty('--bsc-look-eye', colorFor('eye', '#775D4E'));
+    makeupAvatar.style.setProperty('--bsc-look-highlight', colorFor(['highlight', 'glow'], '#F3D2A4'));
+    makeupAvatar.classList.toggle('has-products', selected.length > 0);
+
+    if (makeupLayerSwatches) {
+      makeupLayerSwatches.innerHTML = '';
+      selected.slice(0, 6).forEach((product) => {
+        const swatch = document.createElement('span');
+        swatch.style.backgroundColor = product.color_hex || colorFromProduct(product, '#C78D8A');
+        swatch.title = product.name || makeupRoleLabel(makeupProductRole(product));
+        makeupLayerSwatches.appendChild(swatch);
+      });
+    }
+
+    if (makeupAvatarNote) {
+      const labels = Array.from(new Set(selected.map((product) => makeupRoleLabel(makeupProductRole(product))).filter(Boolean)));
+      makeupAvatarNote.textContent = selected.length ? labels.slice(0, 4).join(' / ') : 'Sin productos activos';
+    }
+  }
+
+  function selectedMakeupButtons() {
+    if (!makeupProducts) {
+      return [];
+    }
+
+    return Array.from(makeupProducts.querySelectorAll('[data-bsc-makeup-product].is-selected'));
+  }
+
+  function selectedMakeupProducts() {
+    if (!currentMakeup || !Array.isArray(currentMakeup.products)) {
+      return [];
+    }
+
+    const selectedIds = new Set(selectedMakeupButtons().map((button) => button.getAttribute('data-bsc-makeup-product') || ''));
+    return currentMakeup.products.filter((product) => selectedIds.has(String(product.id || '')));
+  }
+
+  function makeupSelectionPayload() {
+    const selected = selectedMakeupProducts();
+    const look = makeupLookSelect ? makeupLookSelect.value : 'recommended';
+    const description = makeupDescriptionForLook(look);
+
+    return {
+      look,
+      title: currentMakeup && currentMakeup.title ? currentMakeup.title : 'Look BSC',
+      summary: currentMakeup && currentMakeup.summary ? currentMakeup.summary : '',
+      finish: currentMakeup && currentMakeup.finish ? currentMakeup.finish : '',
+      color_story: currentMakeup && currentMakeup.color_story ? currentMakeup.color_story : '',
+      description,
+      product_ids: selected.map((product) => product.id).filter(Boolean),
+      products: selected.map((product) => ({
+        id: product.id,
+        name: product.name || '',
+        brand: product.brand || '',
+        price: stripHtml(product.price_html || product.price || ''),
+        permalink: product.permalink || '',
+        image: product.image || '',
+        categories: Array.isArray(product.categories) ? product.categories : [],
+        role: makeupProductRole(product),
+        shade_hint: product.shade_hint || '',
+        color_hex: product.color_hex || '',
+        why: product.why || ''
+      })),
+      application_notes: currentMakeup && Array.isArray(currentMakeup.application_notes) ? currentMakeup.application_notes : []
+    };
+  }
+
+  function makeupDescriptionForLook(look) {
+    const base = currentMakeup && currentMakeup.summary ? currentMakeup.summary : 'Look makeup natural con productos BSC.';
+    const variants = {
+      fresh_glow: 'Haz el look mas fresco y glowy: piel luminosa, rubor suave y labios hidratados.',
+      soft_matte: 'Haz el look soft matte: controla brillo sin apagar la piel y conserva textura real.',
+      lip_focus: 'Haz que los labios sean el foco principal, con mejillas y piel mas suaves.',
+      blush_focus: 'Haz que el rubor sea el foco principal, con labios equilibrados y acabado natural.',
+      recommended: base
+    };
+
+    return variants[look] || base;
+  }
+
+  function queueMakeupRender() {
+    if (!currentMakeup || !makeupStudio || !makeupStudio.classList.contains('is-active')) {
+      return;
+    }
+
+    if (!beforeImage || !beforeImage.src) {
+      return;
+    }
+
+    window.clearTimeout(makeupRenderTimer);
+    makeupRenderTimer = window.setTimeout(() => {
+      makeupRenderTimer = 0;
+      runMakeupPreview();
+    }, 140);
+  }
+
+  function updateMakeupIntensityLabel() {
+    if (!makeupIntensity || !makeupIntensityValue) {
+      return;
+    }
+
+    makeupIntensityValue.textContent = `${Math.round(Number(makeupIntensity.value || 74))}%`;
+  }
+
+  function makeupIntensityValueForRender() {
+    return Math.max(0.35, Math.min(1, Number(makeupIntensity && makeupIntensity.value ? makeupIntensity.value : 74) / 100));
+  }
+
+  async function renderLocalMakeupImage(beforeSrc, products, options = {}) {
+    const image = await loadImageForCanvas(beforeSrc);
+    const maxSize = 1400;
+    const scale = Math.min(1, maxSize / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height, 1));
+    const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+    const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('No fue posible preparar el editor de makeup.');
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(image, 0, 0, width, height);
+
+    const geometry = makeupGeometry(options.signals || {}, width, height);
+    const intensity = Math.max(0.35, Math.min(1, Number(options.intensity || 0.74)));
+    const look = makeupLookMix(options.look || 'recommended');
+    const base = productForMakeupRole(products, ['base', 'primer', 'concealer']);
+    const blush = productForMakeupRole(products, ['blush']);
+    const lip = productForMakeupRole(products, ['lip']);
+    const eye = productForMakeupRole(products, ['eye', 'mascara', 'brow']);
+    const highlight = productForMakeupRole(products, ['highlight', 'glow']);
+
+    if (base) {
+      drawBaseLayer(context, geometry, colorFromProduct(base, '#D6A681'), intensity * look.base);
+    }
+
+    if (blush) {
+      drawBlushLayer(context, geometry, colorFromProduct(blush, '#D98D86'), intensity * look.blush);
+    }
+
+    if (highlight || look.glow > 0) {
+      drawHighlightLayer(context, geometry, colorFromProduct(highlight, '#F3D2A4'), intensity * Math.max(look.glow, highlight ? 0.42 : 0));
+    }
+
+    if (eye) {
+      drawEyeLayer(context, geometry, colorFromProduct(eye, '#5B4037'), intensity * look.eye);
+    }
+
+    if (lip) {
+      drawLipLayer(context, geometry, colorFromProduct(lip, '#A94F5F'), intensity * look.lip, options.look || 'recommended');
+    }
+
+    return canvas.toDataURL('image/jpeg', 0.92);
+  }
+
+  function loadImageForCanvas(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener('load', () => resolve(image), { once: true });
+      image.addEventListener('error', () => reject(new Error('No fue posible leer la foto para makeup.')), { once: true });
+      if (!/^data:|^blob:/i.test(src)) {
+        image.crossOrigin = 'anonymous';
+      }
+      image.src = src;
+    });
+  }
+
+  function makeupGeometry(signals, width, height) {
+    const box = faceBoxFor(signals);
+    const x = box.x * width;
+    const y = box.y * height;
+    const w = box.width * width;
+    const h = box.height * height;
+
+    return {
+      face: { cx: x + (w * 0.5), cy: y + (h * 0.52), rx: w * 0.46, ry: h * 0.53 },
+      lip: { cx: x + (w * 0.5), cy: y + (h * 0.69), rx: w * 0.15, ry: h * 0.045 },
+      leftCheek: { cx: x + (w * 0.34), cy: y + (h * 0.54), rx: w * 0.14, ry: h * 0.09 },
+      rightCheek: { cx: x + (w * 0.66), cy: y + (h * 0.54), rx: w * 0.14, ry: h * 0.09 },
+      leftEye: { cx: x + (w * 0.36), cy: y + (h * 0.39), rx: w * 0.12, ry: h * 0.035 },
+      rightEye: { cx: x + (w * 0.64), cy: y + (h * 0.39), rx: w * 0.12, ry: h * 0.035 },
+      noseGlow: { cx: x + (w * 0.5), cy: y + (h * 0.5), rx: w * 0.045, ry: h * 0.19 },
+      browGlow: { cx: x + (w * 0.5), cy: y + (h * 0.31), rx: w * 0.2, ry: h * 0.035 }
+    };
+  }
+
+  function makeupLookMix(look) {
+    const mixes = {
+      fresh_glow: { base: 0.9, blush: 1.08, lip: 0.92, eye: 0.86, glow: 0.72 },
+      soft_matte: { base: 1.08, blush: 0.78, lip: 0.84, eye: 0.72, glow: 0.1 },
+      lip_focus: { base: 0.82, blush: 0.68, lip: 1.22, eye: 0.76, glow: 0.26 },
+      blush_focus: { base: 0.86, blush: 1.28, lip: 0.78, eye: 0.72, glow: 0.34 },
+      recommended: { base: 0.92, blush: 0.94, lip: 0.96, eye: 0.82, glow: 0.28 }
+    };
+
+    return mixes[look] || mixes.recommended;
+  }
+
+  function productForMakeupRole(products, roles) {
+    const roleList = Array.isArray(roles) ? roles : [roles];
+    const matching = products.filter((product) => roleList.includes(makeupProductRole(product)));
+    return matching.length ? matching[matching.length - 1] : null;
+  }
+
+  function colorFromProduct(product, fallback) {
+    return sanitizeHexColor(product && product.color_hex ? product.color_hex : '') || fallback;
+  }
+
+  function sanitizeHexColor(value) {
+    const match = String(value || '').trim().match(/^#?([a-f0-9]{6})$/i);
+    return match ? `#${match[1].toUpperCase()}` : '';
+  }
+
+  function hexToRgb(hex) {
+    const color = sanitizeHexColor(hex);
+    if (!color) {
+      return { r: 0, g: 0, b: 0 };
+    }
+
+    return {
+      r: parseInt(color.slice(1, 3), 16),
+      g: parseInt(color.slice(3, 5), 16),
+      b: parseInt(color.slice(5, 7), 16)
+    };
+  }
+
+  function rgba(hex, alpha) {
+    const color = hexToRgb(hex);
+    return `rgba(${color.r}, ${color.g}, ${color.b}, ${Math.max(0, Math.min(1, alpha))})`;
+  }
+
+  function drawSoftEllipse(context, zone, color, alpha, blur = 0, composite = 'source-over') {
+    context.save();
+    context.globalCompositeOperation = composite;
+    context.globalAlpha = Math.max(0, Math.min(1, alpha));
+    context.filter = blur ? `blur(${Math.max(0, blur)}px)` : 'none';
+    context.fillStyle = color;
+    context.beginPath();
+    context.ellipse(zone.cx, zone.cy, Math.max(1, zone.rx), Math.max(1, zone.ry), 0, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+
+  function drawBaseLayer(context, geometry, color, intensity) {
+    drawSoftEllipse(context, geometry.face, rgba(color, 0.22), 0.42 * intensity, geometry.face.rx * 0.035, 'soft-light');
+    drawSoftEllipse(context, geometry.face, rgba(color, 0.12), 0.24 * intensity, geometry.face.rx * 0.018, 'source-over');
+  }
+
+  function drawBlushLayer(context, geometry, color, intensity) {
+    const blur = Math.max(8, geometry.leftCheek.rx * 0.34);
+    drawSoftEllipse(context, geometry.leftCheek, rgba(color, 0.62), 0.42 * intensity, blur, 'multiply');
+    drawSoftEllipse(context, geometry.rightCheek, rgba(color, 0.62), 0.42 * intensity, blur, 'multiply');
+    drawSoftEllipse(context, geometry.leftCheek, rgba(color, 0.2), 0.28 * intensity, blur * 1.45, 'source-over');
+    drawSoftEllipse(context, geometry.rightCheek, rgba(color, 0.2), 0.28 * intensity, blur * 1.45, 'source-over');
+  }
+
+  function drawHighlightLayer(context, geometry, color, intensity) {
+    drawSoftEllipse(context, geometry.noseGlow, rgba(color, 0.34), 0.28 * intensity, geometry.noseGlow.rx * 0.65, 'screen');
+    drawSoftEllipse(context, geometry.browGlow, rgba(color, 0.26), 0.22 * intensity, geometry.browGlow.rx * 0.32, 'screen');
+  }
+
+  function drawEyeLayer(context, geometry, color, intensity) {
+    [geometry.leftEye, geometry.rightEye].forEach((eye) => {
+      drawSoftEllipse(context, { ...eye, cy: eye.cy + (eye.ry * 0.35), ry: eye.ry * 1.8 }, rgba(color, 0.2), 0.5 * intensity, eye.rx * 0.14, 'multiply');
+      context.save();
+      context.globalCompositeOperation = 'multiply';
+      context.globalAlpha = 0.68 * intensity;
+      context.strokeStyle = rgba(color, 0.78);
+      context.lineWidth = Math.max(1.4, eye.rx * 0.055);
+      context.lineCap = 'round';
+      context.beginPath();
+      context.moveTo(eye.cx - eye.rx, eye.cy);
+      context.quadraticCurveTo(eye.cx, eye.cy - (eye.ry * 1.4), eye.cx + eye.rx, eye.cy);
+      context.stroke();
+      context.restore();
+    });
+  }
+
+  function drawLipLayer(context, geometry, color, intensity, look) {
+    const lip = geometry.lip;
+    const alpha = (look === 'lip_focus' ? 0.72 : 0.56) * intensity;
+
+    context.save();
+    context.globalCompositeOperation = 'multiply';
+    context.globalAlpha = Math.max(0.18, Math.min(0.78, alpha));
+    context.filter = `blur(${Math.max(0.35, lip.rx * 0.012)}px)`;
+    context.fillStyle = rgba(color, 0.82);
+    context.beginPath();
+    context.moveTo(lip.cx - lip.rx, lip.cy);
+    context.bezierCurveTo(lip.cx - (lip.rx * 0.58), lip.cy - (lip.ry * 1.2), lip.cx - (lip.rx * 0.18), lip.cy - (lip.ry * 0.95), lip.cx, lip.cy - (lip.ry * 0.2));
+    context.bezierCurveTo(lip.cx + (lip.rx * 0.18), lip.cy - (lip.ry * 0.95), lip.cx + (lip.rx * 0.58), lip.cy - (lip.ry * 1.2), lip.cx + lip.rx, lip.cy);
+    context.bezierCurveTo(lip.cx + (lip.rx * 0.62), lip.cy + (lip.ry * 1.25), lip.cx + (lip.rx * 0.16), lip.cy + (lip.ry * 1.18), lip.cx, lip.cy + (lip.ry * 0.55));
+    context.bezierCurveTo(lip.cx - (lip.rx * 0.16), lip.cy + (lip.ry * 1.18), lip.cx - (lip.rx * 0.62), lip.cy + (lip.ry * 1.25), lip.cx - lip.rx, lip.cy);
+    context.closePath();
+    context.fill();
+    context.restore();
+
+    if (look !== 'soft_matte') {
+      drawSoftEllipse(context, { cx: lip.cx - (lip.rx * 0.18), cy: lip.cy - (lip.ry * 0.12), rx: lip.rx * 0.34, ry: lip.ry * 0.18 }, 'rgba(255, 255, 255, 0.48)', 0.36 * intensity, lip.rx * 0.02, 'screen');
+    }
+  }
+
+  async function runMakeupPreview() {
+    const selected = selectedMakeupProducts();
+    const form = forms.find((item) => item.dataset.quizMode === 'ai') || forms[0];
+
+    if (!currentMakeup || !selected.length) {
+      setMakeupStatus('Selecciona al menos un producto de makeup.', true);
+      return;
+    }
+
+    if (!form) {
+      setMakeupStatus('No encontramos el formulario de foto para enviar la imagen.', true);
+      return;
+    }
+
+    const previousText = makeupPreviewButton ? makeupPreviewButton.textContent : '';
+    const selection = makeupSelectionPayload();
+
+    try {
+      if (makeupPreviewButton) {
+        makeupPreviewButton.disabled = true;
+        makeupPreviewButton.setAttribute('aria-busy', 'true');
+        makeupPreviewButton.textContent = 'Aplicando...';
+      }
+
+      setMakeupStatus('Aplicando capas locales sobre tu foto...');
+      await ensureAiPreview(form);
+
+      const beforeSrc = beforeImage && beforeImage.src ? beforeImage.src : '';
+      if (!beforeSrc) {
+        throw new Error('Sube o toma una foto antes de probar makeup.');
+      }
+
+      const makeupImage = await renderLocalMakeupImage(beforeSrc, selected, {
+        intensity: makeupIntensityValueForRender(),
+        look: selection.look,
+        signals: lastVisionSignals
+      });
+
+      if (afterImage) {
+        afterImage.src = makeupImage;
+        afterImage.classList.remove('is-fallback');
+        afterImage.addEventListener('load', updateCompare, { once: true });
+      }
+      if (afterWrap) {
+        afterWrap.classList.remove('is-fallback');
+      }
+      if (compare) {
+        webglRenderTicket += 1;
+        compare.classList.remove('has-webgl');
+        compare.classList.remove('is-empty');
+        compare.classList.add('is-visible', 'has-makeup-preview');
+      }
+
+      makeupHasRendered = true;
+      setResultsTab('makeup');
+      setMakeupStatus('Vista de makeup lista. Puedes cambiar productos y aplicar otra version.');
+      setActiveStatus('Vista de makeup lista.');
+      trackQuizEvent('makeup_preview', {
+        product_count: selected.length,
+        look: selection.look
+      });
+      window.requestAnimationFrame(updateCompare);
+    } catch (error) {
+      setMakeupStatus(error.message || 'No fue posible aplicar el look de makeup.', true);
+      setActiveStatus(error.message || 'No fue posible aplicar el look de makeup.', true);
+    } finally {
+      if (makeupPreviewButton) {
+        makeupPreviewButton.disabled = false;
+        makeupPreviewButton.removeAttribute('aria-busy');
+        makeupPreviewButton.textContent = previousText || 'Aplicar look';
+      }
+    }
+  }
+
+  function getAiPhotoFile(form) {
+    const capturedFile = getCapturedFile(form);
+    if (capturedFile) {
+      return capturedFile;
+    }
+
+    const fileInput = form.querySelector('[data-bsc-skin-photo]');
+    return fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+  }
+
+  function setMakeupStatus(message, isError = false) {
+    if (!makeupStatus) {
+      return;
+    }
+
+    makeupStatus.textContent = message || '';
+    makeupStatus.classList.toggle('is-visible', Boolean(message));
+    makeupStatus.classList.toggle('is-error', Boolean(message) && isError);
+    makeupStatus.classList.toggle('is-success', Boolean(message) && !isError && /listo|activado/i.test(message));
+  }
+
+  function makeupProductRole(product = {}) {
+    const rawRole = String(product.role || '').toLowerCase();
+    const knownRoles = ['base', 'blush', 'lip', 'eye', 'mascara', 'brow', 'highlight', 'glow', 'primer', 'concealer', 'setting'];
+    if (knownRoles.includes(rawRole)) {
+      return rawRole;
+    }
+
+    const categories = Array.isArray(product.categories) ? product.categories.join(' ') : '';
+    const haystack = `${rawRole} ${product.name || ''} ${product.brand || ''} ${product.shade_hint || ''} ${categories}`.toLowerCase();
+
+    if (/(lip|labial|labios|tint|gloss|balm)/.test(haystack)) {
+      return 'lip';
+    }
+
+    if (/(blush|rubor|cheek|mejilla)/.test(haystack)) {
+      return 'blush';
+    }
+
+    if (/(mascara|pesta|eye|ojos|shadow|sombra|brow|ceja)/.test(haystack)) {
+      return rawRole === 'brow' ? 'brow' : rawRole === 'mascara' ? 'mascara' : 'eye';
+    }
+
+    if (/(highlight|iluminador|glow)/.test(haystack)) {
+      return 'highlight';
+    }
+
+    if (/(base|foundation|concealer|corrector|primer|skin tint|tinted)/.test(haystack)) {
+      return rawRole === 'primer' ? 'primer' : rawRole === 'concealer' ? 'concealer' : 'base';
+    }
+
+    return rawRole || 'product';
+  }
+
+  function makeupRoleLabel(role) {
+    const labels = {
+      base: 'Base',
+      blush: 'Rubor',
+      lip: 'Labios',
+      eye: 'Ojos',
+      mascara: 'Pestanas',
+      setting: 'Sellado',
+      highlight: 'Iluminador',
+      brow: 'Cejas',
+      primer: 'Primer',
+      concealer: 'Corrector',
+      glow: 'Glow',
+      product: 'Makeup'
+    };
+
+    return labels[role] || 'Makeup';
   }
 
   function renderDiagnosticBars(scores) {
