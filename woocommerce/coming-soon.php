@@ -7,6 +7,7 @@ $coming_soon_css_url  = trailingslashit( get_template_directory_uri() ) . 'wooco
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Bubbles Skin Care est&aacute; en mantenimiento. Muy pronto volveremos con skincare coreano, maquillaje y productos para tu rutina.">
 	<title>&iexcl;Pronto regresaremos! - Bubbles Skin Care</title>
 	<link rel="stylesheet" href="<?php echo esc_url( add_query_arg( 'ver', file_exists( $coming_soon_css_path ) ? (string) filemtime( $coming_soon_css_path ) : '1', $coming_soon_css_url ) ); ?>">
 </head>

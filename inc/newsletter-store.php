@@ -72,5 +72,9 @@ function bsc_newsletter_get_subscribers(): array {
 }
 
 function bsc_newsletter_save_subscribers( array $subscribers ): void {
+	$subscribers = function_exists( 'bsc_privacy_prune_rows' )
+		? bsc_privacy_prune_rows( $subscribers, 1000 )
+		: array_slice( array_values( $subscribers ), -1000 );
+
 	update_option( 'bsc_newsletter_subscribers', array_values( $subscribers ), false );
 }

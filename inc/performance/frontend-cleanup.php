@@ -21,24 +21,58 @@ remove_action( 'wp_head', 'wlwmanifest_link' );
 remove_action( 'wp_head', 'rsd_link' );
 remove_action( 'wp_head', 'wp_generator' );
 
+add_filter( 'woocommerce_should_load_block_assets', 'bsc_should_load_woocommerce_block_assets', 20 );
+
+/**
+ * Avoid WooCommerce block assets on catalog/product pages handled by custom templates.
+ *
+ * @param bool $should_load Whether WooCommerce wants to load block assets.
+ */
+function bsc_should_load_woocommerce_block_assets( bool $should_load ): bool {
+	if ( is_admin() ) {
+		return $should_load;
+	}
+
+	if ( function_exists( 'is_cart' ) && is_cart() ) {
+		return $should_load;
+	}
+
+	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+		return $should_load;
+	}
+
+	return false;
+}
+
 add_action(
 	'wp_enqueue_scripts',
 	function () {
 		wp_dequeue_style( 'wp-block-library' );
 		wp_dequeue_style( 'wp-block-library-theme' );
 		wp_dequeue_style( 'wc-blocks-style' );
+		wp_dequeue_style( 'wc-blocks-vendors-style' );
 
 		if ( function_exists( 'is_shop' ) && ( is_shop() || is_product_category() || is_product_tag() ) ) {
 			wp_dequeue_script( 'bsc-filter-slider-script' );
 		}
+
+		if ( ! ( function_exists( 'is_cart' ) && is_cart() ) && ! ( function_exists( 'is_checkout' ) && is_checkout() ) ) {
+			$block_asset_handles = array(
+				'wc-blocks',
+				'wc-blocks-registry',
+				'wc-blocks-middleware',
+				'wc-blocks-data-store',
+				'wc-blocks-checkout',
+				'wc-cart-checkout-base',
+				'wc-cart-checkout-vendors',
+				'wc-blocks-components',
+			);
+
+			foreach ( $block_asset_handles as $handle ) {
+				wp_dequeue_script( $handle );
+				wp_deregister_script( $handle );
+			}
+		}
 	},
 	100
-);
-
-add_action(
-	'wp_head',
-	function () {
-		echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
-	},
-	1
 );

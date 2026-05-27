@@ -3,8 +3,6 @@
 @use "typography";
 @use "widths";
 
-@import url("https://fonts.cdnfonts.com/css/helvetica-neue-55");
-
 .bsc {
   --color--main: #{colors.$color__pink};
   --color--text: #{colors.$color__black};
@@ -30,6 +28,17 @@
   --radius--md: #{structure.$bsc-radius-md};
   --radius--lg: #{structure.$bsc-radius-lg};
   --radius--pill: #{structure.$bsc-radius-pill};
+
+  --motion--fast: 140ms;
+  --motion--base: 220ms;
+  --motion--slow: 360ms;
+  --motion--ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --motion--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion--ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --shadow--interactive: 0 10px 24px rgba(51, 51, 51, 0.08);
+  --shadow--interactive-strong: 0 16px 36px rgba(51, 51, 51, 0.13);
+  --shadow--focus: 0 0 0 4px rgba(244, 166, 191, 0.28);
 
   --size--control-h: #{structure.$bsc-control-height};
   --size--input-h: #{structure.$bsc-input-height};

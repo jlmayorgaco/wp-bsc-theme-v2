@@ -57,14 +57,14 @@ assertIncludes(
   'SELECT RELEASE_LOCK(%s)',
   'Bubble Points ledger writes must release the per-user database lock.'
 );
-assertIncludes(
+assertMatches(
   bubblePointsStore,
-  "return ['ok' => false, 'balance' => $current, 'error' => 'insufficient_points'",
+  /'ok'\s*=>\s*false[\s\S]*'balance'\s*=>\s*\$current[\s\S]*'error'\s*=>\s*'insufficient_points'/,
   'Bubble Points debits must reject insufficient balances.'
 );
-assertIncludes(
+assertMatches(
   bubblePointsStore,
-  'bsc_bp_set_balance($user_id, $current);',
+  /bsc_bp_set_balance\(\s*\$user_id,\s*\$current\s*\);/,
   'Bubble Points must revert balance if ledger insert fails.'
 );
 

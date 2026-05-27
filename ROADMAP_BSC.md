@@ -1,6 +1,6 @@
 # BSC Unified Roadmap and Operating Manual
 
-Ultima consolidacion: 2026-05-24
+Ultima consolidacion: 2026-05-25
 Repositorio: wp-bsc-theme-v2
 Rama esperada de release: MVP2
 Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
@@ -173,6 +173,36 @@ Gate performance/quality hardening documentado el 2026-05-24:
 - SEO tecnico ampliado: meta title/description/canonical/OG/Twitter centralizados, reglas noindex para cuenta/carrito/checkout/busqueda/filtros, campos SEO en productos/paginas/categorias, copy inferior y FAQs de categorias, Organization/WebSite/SearchAction/FAQ schema, robots.txt/sitemap hardening y feed Merchant Center leyendo GTIN/MPN/meta SEO.
 - Pendiente fuera de este gate: Lighthouse/WebPageTest contra storefront productivo real, CDN/cache/object cache, limpieza WPCS completa y migrar metricas/carritos de options a tablas si el trafico crece.
 
+Gate growth MVP documentado el 2026-05-25:
+
+- `npm run lint`: verde; incluye encoding, URLs locales, inline styles no-email, JS, SCSS, Stylelint, CSS build sync y PHP syntax.
+- `phpstan analyse --configuration=phpstan.neon --memory-limit=1536M`: verde usando el runtime PHP local.
+- WPCS subset de riesgo seguridad/DB (`ValidatedSanitizedInput`, `NonceVerification`, `EscapeOutput`, `DirectDatabaseQuery`, `PreparedSQL`): verde en 249 archivos.
+- Playwright local `http://bsc.local/skin-quiz/`: status 200, formulario visible, 3 rutinas renderizadas, AJAX de recomendacion devuelve `Rutina lista.` sin errores de consola propios.
+- Playwright local de busqueda: `bsc_search_products` para `manchas` devuelve 8 productos y 4 sugerencias enriquecidas, incluyendo necesidad, rutinas/categorias/marcas cuando aplican.
+- Se agrego modulo interno `plugins/bsc-growth` con clases OOP para bundles/rutinas, Skin Quiz, CRM, conversion, search enrichment y recompra en cuenta.
+- Se agrego CPT `bsc_routine_bundle` administrable desde BSC para rutinas/carritos prearmados con productos por IDs, necesidades, tipo de piel, etiqueta y texto de beneficio.
+- Se agrego ruta discreta `/skin-quiz/` enlazada desde footer bajo Programas, con Sass basado en tokens/mixins y JS progresivo para recomendar/agregar rutinas.
+- Se agregaron paginas admin BSC `Clientes CRM` y `Conversion` para ver perfil de cliente, pedidos, puntos, carritos abandonados, notas internas, recompra y embudo producto -> carrito -> checkout -> compra.
+- Se conecto la busqueda existente con sugerencias de necesidades, rutinas, categorias y marcas, preservando cache/transients y registro de busquedas sin resultados.
+- Se agrego bloque de recompra en cuenta usando compras previas y `_bsc_repurchase_days`, sin duplicar el motor de emails de follow-up existente.
+
+Gate Skin Quiz AI documentado el 2026-05-25:
+
+- `npm run compile:css`: verde.
+- `npm run lint`: verde.
+- `phpstan analyse --configuration=phpstan.neon --memory-limit=1536M`: verde.
+- WPCS subset de riesgo seguridad/DB (`ValidatedSanitizedInput`, `NonceVerification`, `EscapeOutput`, `DirectDatabaseQuery`, `PreparedSQL`): verde en 250 archivos.
+- Playwright local `https://bsc.local/skin-quiz/`: Skin Quiz 1 devuelve `Rutina lista.`, renderiza 3 rutinas y conserva tabs `Skin Quiz 1` / `Skin Quiz 2 AI` sin errores de consola propios.
+- Playwright local `https://bsc.local/skin-quiz/?mode=ai`: Skin Quiz 2 AI acepta foto, consentimiento, 3 preguntas, fallback sin API key, slider antes/despues con preview local, 3 rutinas y 3 botones de agregar productos.
+- Se separo `/skin-quiz/` en dos modos: quiz normal guiado y quiz AI Enhanced.
+- El modo AI valida JPG/PNG/WebP hasta 4MB, requiere consentimiento explicito y no guarda la imagen en DB, options ni submissions; solo lee el archivo temporal para enviar a Gemini cuando hay API key.
+- Se agrego servicio OOP `BSC_Growth_AI_Service` con prompts acotados a skincare cosmetico, sin diagnostico medico, sin identidad facial, sin promesas de cura y con fallback seguro al motor normal.
+- Se agrego configuracion en BSC Config para `BSC_GEMINI_API_KEY`/`GEMINI_API_KEY`/option admin, modelo de analisis, modelo de imagen y toggle de simulacion visual.
+- El catalogo enviado a AI queda limitado a productos reales publicados, con IDs, nombre, precio, categorias y tags; la respuesta se normaliza para crear rutinas dinamicas con `product_ids` reales.
+- Se agrego endpoint para agregar listas dinamicas de productos al carrito en un click, reutilizando el flujo de carrito de bundles.
+- La UI del slider antes/despues vive en Sass bajo `sass/pages/_page-skin-quiz.scss`, usando tokens/mixins y salida compilada en `style.css`.
+
 Scope ya cerrado en MVP2:
 
 - Hardening de ordenes, cuenta y rutas autenticadas.
@@ -189,18 +219,21 @@ Scope ya cerrado en MVP2:
 - Post-MVP2 tickets 4-10: reportes de stock con paginacion/busqueda/sort server-side; CSS source of truth con `lint:css-build`; auditoria Woo templates; tests edge checkout; seed QA estable; guard tests de stock/Bubble Points; auditoria de dependencias/assets; baseline de escaping/requests.
 - Post-MVP2 CSS/Sass hardening: tokens publicos separados de CSS emitido, migracion inicial de checkout/header/cuenta/shop/contacto/creators/tabs a tokens semanticos, Stylelint SCSS, guard de inline styles estaticos y `.gitattributes` para finales de linea consistentes.
 - Performance/quality hardening del 2026-05-24: imagenes visibles con AVIF/WebP responsive, Composer/WPCS/PHPStan configurados con metadata real BSC, baseline PHPStan inicial, artifacts ZIP de release eliminados/excluidos, Woo overrides estrictos actualizados y suite visual/smoke revalidada.
+- Mantenimiento pre-GO del 2026-05-25: se mantiene storefront anonimo en mantenimiento mientras se termina QA; codigo reforzado con headers de seguridad, bloqueo REST users publico, author archives anonimos redirigidos, fallback de imagen social SEO, limpieza de Woo Blocks en paginas no checkout/cart, bundle sin artefactos internos y webhook de deploy que limpia archivos publicos internos y reescribe `robots.txt`.
 - Importador BSC embebido: la ruta admin legacy `admin.php?page=bsc-plugin` queda servida por el theme bundle y cubierta por smoke desktop.
+- Growth MVP del 2026-05-25: rutinas/bundles internos, Skin Quiz discreto, CRM cliente, dashboard de conversion, busqueda enriquecida y recompra en cuenta quedaron implementados en `plugins/bsc-growth` con Sass/token pipeline y gates verdes.
+- Skin Quiz AI del 2026-05-25: dos versiones de quiz, Gemini configurable, carga privada de foto sin persistencia, slider antes/despues, rutina dinamica y carrito de productos en un click quedaron implementados con fallback sin API key.
 
 Notas residuales:
 
 - WP admin local sigue siendo mas lento y fragil que storefront.
 - Safari/iPhone/WebKit ya tiene gate automatizado; antes de GO sigue recomendada una revision manual en iPhone real si la cliente puede validar.
 - Visual baselines deben revisarse antes de marcar release verde.
-- Performance productiva real sigue bloqueada por infraestructura: `https://bubbleskincare.co` no expone storefront y redirige a `/lander`; se requiere URL final/staging publico para WebPageTest.
+- Performance productiva real sigue bloqueada por mantenimiento anonimo en `https://bubblesskincare.com/`; se requiere mantenerlo asi por decision del cliente hasta terminar QA y luego repetir Lighthouse/WebPageTest con storefront publico o staging autenticable.
 - WPCS ya existe como gate ejecutable, pero todavia no es verde por deuda historica; se redujo a 2.340 errores y 153 warnings en 208 archivos. El subset de riesgo seguridad/DB esta verde y lo restante debe cerrarse por docblocks, text domain, naming legacy y convenciones WPCS.
 - Los audits de request/output ya estan elevados a `--strict`; cualquier hallazgo nuevo no revisado falla.
 - P1 amplio que queda como seguimiento no bloqueante: refresh de snapshots publicos, migraciones de datos no urgentes, paginacion server-side de reportes grandes y rate limiting atomico si se instala object cache/CDN.
-- `cicd/deploy.php` esta fuera del scope actual salvo instruccion explicita.
+- `cicd/deploy.php` queda incluido en mantenimiento pre-GO para limpiar artefactos internos y escribir robots raiz durante deploy.
 
 ## Mapa del sistema
 
@@ -2988,7 +3021,7 @@ Medio. Debe revisarse consentimiento/legal antes de produccion final y confirmar
 
 Prioridad: MVP2
 Area: SEO, adquisicion, catalogo
-Estado: Cerrado ampliado en MVP2, 2026-05-24
+Estado: Cerrado ampliado en MVP2, actualizado 2026-05-25
 
 Objetivo:
 Exponer datos estructurados y feed XML para que productos tengan mejor superficie en Google/Search/Merchant.
@@ -3012,9 +3045,11 @@ Acceptance:
 - Cerrado: Home expone `Organization` y `WebSite` con `SearchAction`.
 - Cerrado: `robots.txt` agrega disallows para rutas privadas/filtros y referencia `/wp-sitemap.xml`; sitemap excluye paginas Woo privadas.
 - Cerrado: Merchant feed y Product schema leen GTIN/MPN desde metadatos BSC cuando existan.
+- Cerrado: Open Graph/Twitter usan fallback configurable `bsc_seo_default_image_url` y, si no existe, site icon/logo/placeholder del theme para evitar paginas compartidas sin imagen.
+- Cerrado: `wp_robots` corre con prioridad alta para evitar robots conflictivos tipo `nofollow, follow` en rutas privadas.
 
 Riesgo:
-Medio-bajo. En produccion hay que validar el feed en Merchant Center, completar GTIN/MPN cuando existan, revisar Rich Results y medir indexacion/canonicals en Search Console.
+Medio-bajo. En produccion hay que validar el feed en Merchant Center, completar GTIN/MPN cuando existan, revisar Rich Results y medir indexacion/canonicals en Search Console cuando se levante mantenimiento.
 
 ## BSC-RM-065 - Conversion en catalogo, carrito y checkout
 
@@ -3091,7 +3126,7 @@ Medio. Los emails HTML dependen de soporte de clientes reales; antes de producci
 
 Prioridad: Pre-GO
 Area: Performance, infraestructura
-Estado: Bloqueado por infraestructura externa el 2026-05-24; codigo local reforzado.
+Estado: Bloqueado por mantenimiento anonimo el 2026-05-25; codigo local reforzado.
 
 Problema:
 Las optimizaciones locales de imagenes y assets no sustituyen medicion real contra produccion/staging. LCP, cache, CDN, object cache y peso final dependen del hosting y del contenido final.
@@ -3104,12 +3139,13 @@ Implementacion minima:
 - Documentar thresholds objetivo y regresiones aceptadas.
 
 Acceptance:
-- Bloqueado: `https://bubbleskincare.co` no sirve storefront; responde HTML minimo con redireccion JS a `/lander`, por lo que Lighthouse/WebPageTest productivo no mide la tienda.
+- Bloqueado: `https://bubblesskincare.com/` sirve mantenimiento para anonimos por decision del cliente; Lighthouse/WebPageTest productivo aun no mide la tienda real.
 - Baseline local `http://bsc.local/`: performance 75, accessibility 86, best practices 78, SEO 92, LCP 4.7s, CLS 0, TBT 0ms, transfer 1.606 KiB.
 - Baseline local `http://bsc.local/product-category/group-skin-care/`: performance 67, accessibility 81, best practices 74, SEO 92, LCP 9.0s, CLS 0.004, TBT 0ms, transfer 1.301 KiB.
 - Baseline local `http://bsc.local/login/`: performance 67, accessibility 86, best practices 78, SEO 92, LCP 6.9s, CLS 0, TBT 40ms, transfer 1.052 KiB.
 - Codigo local: login cover queda `fetchpriority="high"` y la primera imagen de producto en listados de categoria usa `loading="eager"`/`fetchpriority="high"` para reducir retraso de LCP.
-- Pendiente externo: proveer dominio/staging publico real, activar/validar page cache, object cache y CDN, y repetir Lighthouse/WebPageTest con cache caliente y fria.
+- Codigo local: WooCommerce Blocks se desactiva en paginas que no son carrito/checkout para reducir CSS/JS de storefront.
+- Pendiente externo: cuando se levante mantenimiento, activar/validar page cache, object cache y CDN, y repetir Lighthouse/WebPageTest con cache caliente y fria.
 
 ## BSC-RM-068 - Reducir deuda WPCS hasta gate verde
 
@@ -3154,6 +3190,37 @@ Acceptance:
 - `npm run audit:php-output -- --strict`: verde; 32 lineas revisadas, 0 no revisadas.
 - Se corrigieron lecturas directas en admin/products, product edit, followup emails, order labels, catalog filters, Bubble Points y custom types.
 - Se agregaron allowlists revisadas en `tools/php-request-audit-reviewed.json` y `tools/php-output-audit-reviewed.json`; cualquier nuevo hallazgo no revisado falla en strict.
+
+## BSC-RM-070 - Mantenimiento pre-GO SEO, seguridad y performance
+
+Prioridad: Pre-GO
+Area: SEO, seguridad, performance, deploy
+Estado: Cerrado en codigo el 2026-05-25; validacion productiva final pendiente de deploy y storefront publico.
+
+Problema:
+El sitio debe permanecer en mantenimiento para anonimos hasta terminar QA, pero el codigo productivo no debe exponer artefactos internos, endpoints innecesarios, robots confusos ni assets pesados evitables.
+
+Implementacion minima:
+- Mantener mantenimiento anonimo hasta terminar pruebas finales.
+- Endurecer headers HTTP desde PHP sin romper checkout, admin ni integraciones.
+- Bloquear enumeracion publica de usuarios via REST y author archives anonimos.
+- Corregir robots conflictivos en rutas privadas y escribir `robots.txt` raiz desde deploy.
+- Evitar OG/Twitter sin imagen en home/shop/categorias.
+- Reducir assets WooCommerce Blocks fuera de carrito/checkout.
+- Asegurar que bundle y webhook limpien `ROADMAP_BSC.md`, `project documentation`, tests, tools, Sass, configs y artefactos ZIP.
+
+Acceptance:
+- `npm run lint`: verde el 2026-05-25.
+- `phpstan analyse --configuration=phpstan.neon --memory-limit=1536M`: verde el 2026-05-25.
+- WPCS risk gate de seguridad/DB: verde el 2026-05-25.
+- `git diff --check`: verde el 2026-05-25.
+- `npm run bundle`: verde; el ZIP no contiene `ROADMAP_BSC.md`, `project documentation`, `composer.json`, `package.json`, `phpstan-baseline.neon`, `sass/`, `style.css.map`, `tools/`, `tests/`, `admin.zip` ni `admin2.zip`.
+- Validacion local `http://bsc.local/wp-json/wp/v2/users`: anonimo responde 404, conserva `X-Robots-Tag: noindex`, aplica headers base y no expone `X-Powered-By`.
+- Validacion local `http://bsc.local/cart/`: robots queda `max-image-preview:large, noindex, nofollow` sin conflicto `follow`.
+- Validacion local `http://bsc.local/`: home emite `og:image` y `twitter:image` con fallback si no hay imagen configurada.
+- Lighthouse produccion anonima 2026-05-25 mide mantenimiento, no storefront: mobile performance 100, accessibility 97, best practices 96, SEO 92; desktop performance 100, accessibility 97, best practices 100, SEO 92; peso 27 KiB, 7 requests. SEO 92 se debe a falta de meta description en mantenimiento y queda corregido en `woocommerce/coming-soon.php`.
+- Lighthouse produccion autenticada 2026-05-25 mide home real con admin bar/no-cache, no cache anonima final: mobile performance 86, accessibility 89, best practices 96, SEO 100; desktop performance 93, accessibility 93, best practices 96, SEO 100; peso aproximado 2.4 MiB, 137 requests. Pendiente tras abrir tienda: medir anonimo real con cache/CDN.
+- Pendiente post-deploy: validar en produccion headers reales, REST users 403/404, robots raiz, ausencia de artefactos publicos y Lighthouse/WebPageTest cuando se levante mantenimiento.
 
 ---
 

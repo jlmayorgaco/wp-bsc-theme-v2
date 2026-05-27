@@ -44,6 +44,7 @@ require_once get_template_directory() . '/inc/privacy-data.php';
 require_once get_template_directory() . '/inc/newsletter-store.php';
 require_once get_template_directory() . '/inc/bsc-static-pages.php';
 require_once get_template_directory() . '/inc/bsc-url-helpers.php';
+require_once get_template_directory() . '/inc/local-url-scheme.php';
 require_once get_template_directory() . '/inc/responsive-images.php';
 require_once get_template_directory() . '/inc/seo/meta.php';
 require_once get_template_directory() . '/inc/seo/structured-data.php';

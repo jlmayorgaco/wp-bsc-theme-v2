@@ -1,0 +1,87 @@
+@use "../../tokens/public" as bsc;
+
+.bsc-growth-repurchase {
+  margin: 36px 0;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-lg;
+  background: bsc.$surface;
+}
+
+.bsc-growth-repurchase__header {
+  @include bsc.inline-stack(bsc.$space-md, center, space-between);
+
+  margin-bottom: bsc.$space-md;
+}
+
+.bsc-growth-repurchase__header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.bsc-growth-repurchase__header a {
+  @include bsc.link-reset(bsc.$text, 800);
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bsc-growth-repurchase__list {
+  display: grid;
+  gap: bsc.$space-sm;
+}
+
+.bsc-growth-repurchase__item {
+  display: grid;
+  align-items: center;
+  gap: bsc.$space-md;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  padding: bsc.$space-sm;
+  border: 1px solid bsc.$border-muted;
+  border-radius: bsc.$radius-md;
+}
+
+.bsc-growth-repurchase__image img {
+  width: 72px;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.bsc-growth-repurchase__item h3,
+.bsc-growth-repurchase__item p {
+  margin: 0;
+}
+
+.bsc-growth-repurchase__item h3 {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.bsc-growth-repurchase__item h3 a {
+  @include bsc.link-reset(bsc.$text, 800);
+}
+
+.bsc-growth-repurchase__item p {
+  margin-top: 4px;
+  color: bsc.$text-muted;
+  font-size: 0.88rem;
+}
+
+.bsc-growth-repurchase__button {
+  min-width: 112px;
+}
+
+@include bsc.media-max("tablet") {
+  .bsc-growth-repurchase__item {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  .bsc-growth-repurchase__image img {
+    width: 56px;
+  }
+
+  .bsc-growth-repurchase__button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

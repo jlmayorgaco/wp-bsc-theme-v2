@@ -10,6 +10,88 @@ defined( 'ABSPATH' ) || exit;
 add_filter( 'the_generator', '__return_empty_string' );
 add_filter( 'xmlrpc_enabled', '__return_false' );
 
+add_action( 'send_headers', 'bsc_send_security_headers' );
+add_filter( 'rest_pre_serve_request', 'bsc_send_rest_security_headers' );
+
+/**
+ * Send baseline security headers shared by frontend and REST responses.
+ */
+function bsc_send_base_security_headers(): void {
+	if ( headers_sent() ) {
+		return;
+	}
+
+	header_remove( 'X-Powered-By' );
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+	header( 'Permissions-Policy: accelerometer=(), autoplay=(), camera=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self), usb=(), browsing-topics=()' );
+
+	if ( is_ssl() ) {
+		header( 'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload' );
+	}
+}
+
+/**
+ * Send browser security headers.
+ */
+function bsc_send_security_headers(): void {
+	bsc_send_base_security_headers();
+
+	if ( headers_sent() ) {
+		return;
+	}
+
+	header( 'X-Frame-Options: SAMEORIGIN' );
+
+	if ( ! is_admin() ) {
+		$upgrade_insecure_requests = ( 'local' === wp_get_environment_type() && ! is_ssl() ) ? '' : '; upgrade-insecure-requests';
+
+		header( "Content-Security-Policy: default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https:; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https:" . $upgrade_insecure_requests );
+	}
+}
+
+/**
+ * Send security headers on REST responses too.
+ *
+ * @param bool $served Whether the REST response has already been served.
+ */
+function bsc_send_rest_security_headers( bool $served ): bool {
+	bsc_send_base_security_headers();
+
+	return $served;
+}
+
+add_filter( 'rest_endpoints', 'bsc_restrict_rest_user_endpoints' );
+
+/**
+ * Hide public REST user endpoints from non-admin actors.
+ *
+ * @param array $endpoints Registered REST endpoints.
+ */
+function bsc_restrict_rest_user_endpoints( array $endpoints ): array {
+	if ( current_user_can( 'list_users' ) ) {
+		return $endpoints;
+	}
+
+	unset( $endpoints['/wp/v2/users'], $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+
+	return $endpoints;
+}
+
+add_action( 'template_redirect', 'bsc_disable_public_author_archives' );
+
+/**
+ * Avoid public author archive enumeration.
+ */
+function bsc_disable_public_author_archives(): void {
+	if ( ! is_author() || is_user_logged_in() ) {
+		return;
+	}
+
+	wp_safe_redirect( home_url( '/' ), 301 );
+	exit;
+}
+
 add_action(
 	'wp_login_failed',
 	function ( string $username ): void {
