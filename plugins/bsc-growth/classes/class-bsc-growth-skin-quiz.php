@@ -114,20 +114,19 @@ class BSC_Growth_Skin_Quiz {
 		}
 
 		$repository = new BSC_Growth_Bundle_Repository();
-		$bundles    = $repository->get_bundles( 3 );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only mode preselection.
 		$mode = isset( $_GET['mode'] ) && 'ai' === sanitize_key( wp_unslash( $_GET['mode'] ) ) ? 'ai' : 'normal';
 
 		get_header();
 		?>
-		<main id="primary" class="site-main bsc-skin-quiz">
+		<main id="primary" class="site-main bsc-skin-quiz <?php echo 'ai' === $mode ? 'is-ai-mode' : ''; ?>">
 			<section class="bsc-skin-quiz__hero">
 				<div class="bsc-skin-quiz__container">
 					<p class="bsc-skin-quiz__eyebrow">Asesoría BSC</p>
 					<h1 class="bsc-skin-quiz__title">Encuentra tu rutina ideal</h1>
 					<p class="bsc-skin-quiz__intro">Responde unas preguntas y, si quieres, usa una foto para recibir una rutina facial personalizada con productos listos para agregar al carrito.</p>
 					<div class="bsc-skin-quiz__hero-signals" aria-label="Resumen del Skin Quiz">
-						<span><strong>2 modos</strong><em>quiz o AI</em></span>
+						<span><strong>2 modos</strong><em>quiz o foto</em></span>
 						<span><strong>Lectura</strong><em>cosmetica</em></span>
 						<span><strong>Carrito</strong><em>listo</em></span>
 					</div>
@@ -137,8 +136,8 @@ class BSC_Growth_Skin_Quiz {
 			<section class="bsc-skin-quiz__content" aria-label="Skin Quiz">
 				<div class="bsc-skin-quiz__container">
 					<div class="bsc-skin-quiz__mode-tabs" role="tablist" aria-label="Versiones del Skin Quiz">
-						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'normal' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="normal" role="tab" aria-selected="<?php echo 'normal' === $mode ? 'true' : 'false'; ?>">Quiz rápido</button>
-						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'ai' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="ai" role="tab" aria-selected="<?php echo 'ai' === $mode ? 'true' : 'false'; ?>">Skincare AI</button>
+						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'normal' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="normal" role="tab" aria-selected="<?php echo 'normal' === $mode ? 'true' : 'false'; ?>"><i class="fas fa-list-check" aria-hidden="true"></i><span>Quiz rápido</span></button>
+						<button type="button" class="bsc-skin-quiz__mode-tab <?php echo 'ai' === $mode ? 'is-active' : ''; ?>" data-bsc-quiz-mode-tab="ai" role="tab" aria-selected="<?php echo 'ai' === $mode ? 'true' : 'false'; ?>"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i><span>Estudio con foto</span></button>
 					</div>
 				</div>
 
@@ -157,10 +156,12 @@ class BSC_Growth_Skin_Quiz {
 							<button type="button" class="bsc-skin-quiz__saved-button" data-bsc-restore-routine>Ver recomendación</button>
 						</div>
 						<?php self::render_ai_visual(); ?>
-						<div class="bsc-skin-quiz__bundle-list" data-bsc-skin-quiz-bundles>
-							<?php foreach ( $bundles as $bundle ) : ?>
-								<?php self::render_bundle_card( $repository->format_bundle_for_response( $bundle ) ); ?>
-							<?php endforeach; ?>
+						<div class="bsc-skin-quiz__bundle-list is-active" data-bsc-skin-quiz-bundles data-bsc-result-panel="routine">
+							<div class="bsc-skin-quiz__empty-results" data-bsc-empty-results>
+								<span class="bsc-skin-quiz__empty-results-icon" aria-hidden="true"><i class="fas fa-sparkles"></i></span>
+								<strong>Tu rutina ideal te espera</strong>
+								<p>Responde las preguntas para descubrir tu rutina personalizada con productos listos para agregar al carrito.</p>
+							</div>
 						</div>
 					</aside>
 				</div>
@@ -352,6 +353,11 @@ class BSC_Growth_Skin_Quiz {
 				<?php self::render_checkbox_group( 'needs', self::need_options() ); ?>
 			</fieldset>
 
+			<fieldset class="bsc-skin-quiz__fieldset bsc-skin-quiz__fieldset--goal">
+				<legend>Meta principal</legend>
+				<?php self::render_radio_group( 'skin_goal', self::skin_goal_options(), 'glow' ); ?>
+			</fieldset>
+
 			<?php self::render_common_fields(); ?>
 
 			<button type="submit" class="bsc__button bsc__button--primary bsc-skin-quiz__submit">Ver rutina</button>
@@ -367,13 +373,13 @@ class BSC_Growth_Skin_Quiz {
 
 			<div class="bsc-skin-quiz__capture" data-bsc-camera-shell data-bsc-photo-dropzone>
 				<div class="bsc-skin-quiz__capture-intro">
-					<span class="bsc-skin-quiz__capture-kicker">Estudio Skin AI</span>
-					<h2 class="bsc-skin-quiz__capture-title">Foto para tu lectura cosmética</h2>
-					<p class="bsc-skin-quiz__capture-help">Sube una selfie o abre la cámara. Analizamos luz, textura y señales visibles para crear tu rutina.</p>
+					<span class="bsc-skin-quiz__capture-kicker">Estudio BSC</span>
+					<h2 class="bsc-skin-quiz__capture-title">Lectura con foto</h2>
+					<p class="bsc-skin-quiz__capture-help">Sube una selfie o abre la cámara con luz frontal y rostro centrado.</p>
 					<div class="bsc-skin-quiz__quality-pills" aria-label="Checklist para una buena foto">
 						<span><i class="fas fa-sun" aria-hidden="true"></i>Luz frontal</span>
 						<span><i class="fas fa-user-check" aria-hidden="true"></i>Rostro centrado</span>
-						<span><i class="fas fa-sparkles" aria-hidden="true"></i>Sin filtros</span>
+						<span><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>Sin filtros</span>
 					</div>
 					<div class="bsc-skin-quiz__photo-signals" data-bsc-photo-signals aria-label="Estado de foto">
 						<span data-bsc-photo-signal="lighting"><i aria-hidden="true"></i>Luz</span>
@@ -402,7 +408,7 @@ class BSC_Growth_Skin_Quiz {
 							<i class="fas fa-camera" aria-hidden="true"></i>
 							<span>
 								<strong>Abrir cámara</strong>
-								<em>Usar preview como espejo</em>
+								<em>Usar vista como espejo</em>
 							</span>
 						</button>
 					</div>
@@ -470,7 +476,7 @@ class BSC_Growth_Skin_Quiz {
 						<span class="bsc-skin-quiz__ai-loader-orbit" aria-hidden="true"></span>
 						<div>
 							<strong data-bsc-ai-loader-phrase>Preparando tu lectura</strong>
-							<em data-bsc-ai-loader-detail>Gemini esta procesando foto y respuestas.</em>
+							<em data-bsc-ai-loader-detail>Procesando foto y respuestas.</em>
 						</div>
 						<time data-bsc-ai-loader-time datetime="PT0S">0:00</time>
 					</div>
@@ -551,12 +557,12 @@ class BSC_Growth_Skin_Quiz {
 			<div class="bsc-skin-quiz__compare is-empty" data-bsc-ai-compare>
 				<div class="bsc-skin-quiz__compare-frame">
 					<div class="bsc-skin-quiz__compare-placeholder" data-bsc-compare-placeholder>
-						<span>Skincare AI</span>
+						<span>Vista comparativa</span>
 						<strong>Agrega una foto para activar la comparación</strong>
 					</div>
 					<img class="bsc-skin-quiz__compare-image" data-bsc-before-image alt="Foto original">
 					<div class="bsc-skin-quiz__compare-after" data-bsc-after-wrap>
-						<img class="bsc-skin-quiz__compare-image bsc-skin-quiz__compare-image--after" data-bsc-after-image alt="Simulación AI">
+						<img class="bsc-skin-quiz__compare-image bsc-skin-quiz__compare-image--after" data-bsc-after-image alt="Simulación BSC">
 						<canvas class="bsc-skin-quiz__webgl-canvas" data-bsc-webgl-preview aria-hidden="true"></canvas>
 					</div>
 					<div class="bsc-skin-quiz__analysis" data-bsc-ai-analysis aria-hidden="true">
@@ -588,7 +594,12 @@ class BSC_Growth_Skin_Quiz {
 					<span class="bsc-skin-quiz__compare-label bsc-skin-quiz__compare-label--after">Después</span>
 				</div>
 			</div>
-			<div class="bsc-skin-quiz__diagnosis is-empty" data-bsc-ai-diagnosis aria-live="polite">
+			<div class="bsc-skin-quiz__result-tabs" data-bsc-result-tabs role="tablist" aria-label="Paneles de resultado">
+				<button type="button" class="is-active" data-bsc-result-tab="routine" role="tab" aria-selected="true"><i class="fas fa-list-check" aria-hidden="true"></i><span>Rutina</span></button>
+				<button type="button" data-bsc-result-tab="diagnosis" role="tab" aria-selected="false"><i class="fas fa-chart-simple" aria-hidden="true"></i><span>Lectura</span></button>
+				<button type="button" data-bsc-result-tab="makeup" role="tab" aria-selected="false"><i class="fas fa-palette" aria-hidden="true"></i><span>Look</span></button>
+			</div>
+			<div class="bsc-skin-quiz__diagnosis is-empty" data-bsc-ai-diagnosis data-bsc-result-panel="diagnosis" aria-live="polite">
 				<div class="bsc-skin-quiz__diagnosis-header">
 					<span>Lectura cosmética</span>
 					<strong data-bsc-ai-skin-type>Lista para analizar</strong>
@@ -617,6 +628,55 @@ class BSC_Growth_Skin_Quiz {
 				</div>
 				<div class="bsc-skin-quiz__diagnosis-bars" data-bsc-ai-diagnostic-bars></div>
 				<div class="bsc-skin-quiz__ai-notes" data-bsc-ai-notes>Tu lectura cosmética aparecerá aquí después de analizar la foto.</div>
+			</div>
+			<div class="bsc-skin-quiz__makeup is-hidden" data-bsc-makeup-studio data-bsc-result-panel="makeup" aria-live="polite">
+				<div class="bsc-skin-quiz__makeup-header">
+					<span>BSC Color Lab</span>
+					<strong data-bsc-makeup-title>Look recomendado</strong>
+					<p data-bsc-makeup-summary>Una mesa compacta para probar tono, producto e intensidad sobre tu foto.</p>
+				</div>
+				<div class="bsc-skin-quiz__makeup-workbench">
+					<div class="bsc-skin-quiz__makeup-tools" aria-label="Herramientas de makeup">
+						<div class="bsc-skin-quiz__makeup-tool-tabs" role="tablist" aria-label="Zona del rostro">
+							<button type="button" class="is-active" data-bsc-makeup-tool="all" aria-pressed="true"><i class="fas fa-border-all" aria-hidden="true"></i><span>Todo</span></button>
+							<button type="button" data-bsc-makeup-tool="lip" aria-pressed="false"><i class="fas fa-fill-drip" aria-hidden="true"></i><span>Labios</span></button>
+							<button type="button" data-bsc-makeup-tool="blush" aria-pressed="false"><i class="fas fa-circle" aria-hidden="true"></i><span>Mejillas</span></button>
+							<button type="button" data-bsc-makeup-tool="eye" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i><span>Ojos</span></button>
+							<button type="button" data-bsc-makeup-tool="base" aria-pressed="false"><i class="fas fa-droplet" aria-hidden="true"></i><span>Base</span></button>
+						</div>
+						<label class="bsc-skin-quiz__makeup-intensity">
+							<span>Intensidad</span>
+							<input type="range" min="35" max="100" value="74" step="1" data-bsc-makeup-intensity>
+							<em data-bsc-makeup-intensity-value>74%</em>
+						</label>
+					</div>
+					<div class="bsc-skin-quiz__makeup-stage">
+						<div class="bsc-skin-quiz__makeup-product-area">
+							<div class="bsc-skin-quiz__makeup-products" data-bsc-makeup-products></div>
+							<div class="bsc-skin-quiz__makeup-notes" data-bsc-makeup-notes></div>
+						</div>
+						<div class="bsc-skin-quiz__makeup-avatar" data-bsc-makeup-avatar>
+							<span>Capas activas</span>
+							<strong>Look actual</strong>
+							<div class="bsc-skin-quiz__makeup-layer-swatches" data-bsc-makeup-layer-swatches aria-hidden="true"></div>
+							<em data-bsc-makeup-avatar-note>Productos activos</em>
+						</div>
+					</div>
+				</div>
+				<div class="bsc-skin-quiz__makeup-controls">
+					<label class="bsc-skin-quiz__field">
+						<span>Acabado</span>
+						<select data-bsc-makeup-look>
+							<option value="recommended">Recomendado</option>
+							<option value="fresh_glow">Glow fresco</option>
+							<option value="soft_matte">Soft matte</option>
+							<option value="lip_focus">Labios protagonistas</option>
+							<option value="blush_focus">Rubor protagonista</option>
+						</select>
+					</label>
+					<button type="button" class="bsc-skin-quiz__secondary-button" data-bsc-makeup-preview>Aplicar look</button>
+				</div>
+				<p class="bsc-skin-quiz__status" data-bsc-makeup-status></p>
 			</div>
 		</div>
 		<?php
@@ -708,13 +768,15 @@ class BSC_Growth_Skin_Quiz {
 
 		$vision_signals = self::sanitize_vision_signals( $request );
 		$age_range      = self::allowed_value( $age_range, array_keys( self::age_range_options() ), 'prefiero-no-decir' );
+		$skin_goal      = self::allowed_value( $skin_goal, array_keys( self::skin_goal_options() ), 'tono-uniforme' );
+		$needs          = self::merge_goal_need( $needs, $skin_goal );
 
 		return array(
 			'skin_type'          => self::allowed_value( $skin_type, array_keys( self::skin_type_options() ), 'mixta' ),
 			'age_range'          => $age_range,
 			'sensitivity'        => self::allowed_value( $sensitivity, array( 'normal', 'sensible', 'muy-sensible' ), 'normal' ),
 			'routine_level'      => self::allowed_value( $routine_level, array( 'basica', 'completa' ), 'basica' ),
-			'skin_goal'          => self::allowed_value( $skin_goal, array_keys( self::skin_goal_options() ), 'tono-uniforme' ),
+			'skin_goal'          => $skin_goal,
 			'sunscreen_habit'    => self::allowed_value( $sunscreen_habit, array( 'diario', 'a-veces', 'no-uso' ), 'diario' ),
 			'post_cleanse_feel'  => self::allowed_value( $post_cleanse_feel, array( 'normal', 'tirante', 'brillante', 'variable' ), 'normal' ),
 			'breakout_frequency' => self::allowed_value( $breakout_frequency, array( 'raro', 'ocasional', 'frecuente', 'hormonal' ), 'ocasional' ),
@@ -724,8 +786,25 @@ class BSC_Growth_Skin_Quiz {
 		);
 	}
 
+	private static function merge_goal_need( array $needs, string $skin_goal ): array {
+		$goal_map = array(
+			'tono-uniforme'  => 'manchas',
+			'control-brillo' => 'acne',
+			'calmar-piel'    => 'barrera',
+			'glow'           => 'glow',
+			'barrera'        => 'barrera',
+			'brotes'         => 'acne',
+		);
+
+		if ( isset( $goal_map[ $skin_goal ] ) ) {
+			$needs[] = $goal_map[ $skin_goal ];
+		}
+
+		return array_values( array_unique( array_filter( $needs ) ) );
+	}
+
 	/**
-	 * Sanitize approximate browser-side image signals before sending them to AI.
+	 * Sanitize approximate browser-side image signals before sending them to the visual service.
 	 *
 	 * @param array $request Request payload.
 	 * @return array
@@ -1243,6 +1322,8 @@ class BSC_Growth_Skin_Quiz {
 			'photo_quality_blocked',
 			'quiz_submit',
 			'quiz_result',
+			'makeup_product_toggle',
+			'makeup_preview',
 			'routine_add_to_cart',
 			'routine_restore',
 			'routine_send',
@@ -1285,6 +1366,7 @@ class BSC_Growth_Skin_Quiz {
 				'photo_quality_blocked',
 				'quiz_submit',
 				'quiz_result',
+				'makeup_preview',
 				'routine_add_to_cart',
 				'routine_restore',
 			),
