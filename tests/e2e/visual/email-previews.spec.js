@@ -13,6 +13,7 @@ const previewCases = [
   { slug: 'order-cancelled', expected: 'Tu pedido fue cancelado' },
   { slug: 'followup-inactive', expected: 'Te extra' },
   { slug: 'followup-repurchase', expected: 'Tu rutina puede estar por acabarse' },
+  { slug: 'abandoned-cart', expected: 'Tu carrito BSC te espera' },
 ];
 
 async function ensureEmailPreviewLoaded(page, adminFixture, previewCase) {

@@ -285,20 +285,30 @@ function bsc_merchant_center_write_item( WC_Product $product, ?WC_Product $paren
 	return true;
 }
 
-function bsc_merchant_center_output_feed(): void {
-	if ( ! bsc_merchant_center_is_enabled() || ! class_exists( 'WooCommerce' ) ) {
-		status_header( 404 );
-		exit;
-	}
+function bsc_merchant_center_feed_cache_key(): string {
+	return 'bsc_merchant_feed_' . md5(
+		implode(
+			'|',
+			array(
+				(string) get_option( 'bsc_merchant_feed_cache_version', '1' ),
+				(string) get_option( 'blog_charset' ),
+				(string) get_option( 'bsc_merchant_feed_default_brand', get_bloginfo( 'name' ) ),
+			)
+		)
+	);
+}
 
-	while ( ob_get_level() > 0 ) {
-		ob_end_clean();
-	}
+function bsc_merchant_center_flush_feed_cache(): void {
+	update_option( 'bsc_merchant_feed_cache_version', (string) time(), false );
+}
+add_action( 'save_post_product', 'bsc_merchant_center_flush_feed_cache' );
+add_action( 'deleted_post', 'bsc_merchant_center_flush_feed_cache' );
+add_action( 'edited_product_cat', 'bsc_merchant_center_flush_feed_cache' );
+add_action( 'created_product_cat', 'bsc_merchant_center_flush_feed_cache' );
+add_action( 'delete_product_cat', 'bsc_merchant_center_flush_feed_cache' );
 
-	status_header( 200 );
-	header( 'Content-Type: application/rss+xml; charset=' . get_option( 'blog_charset' ), true );
-	nocache_headers();
-
+function bsc_merchant_center_build_feed_xml(): string {
+	ob_start();
 	echo '<?xml version="1.0" encoding="' . esc_attr( get_option( 'blog_charset' ) ) . "\"?>\n";
 	echo '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
 	echo "\t<channel>\n";
@@ -347,6 +357,35 @@ function bsc_merchant_center_output_feed(): void {
 
 	echo "\t</channel>\n";
 	echo "</rss>\n";
+
+	return (string) ob_get_clean();
+}
+
+function bsc_merchant_center_output_feed(): void {
+	if ( ! bsc_merchant_center_is_enabled() || ! class_exists( 'WooCommerce' ) ) {
+		status_header( 404 );
+		exit;
+	}
+
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+
+	$cache_key = bsc_merchant_center_feed_cache_key();
+	$xml       = get_transient( $cache_key );
+	$cache     = 'hit';
+
+	if ( ! is_string( $xml ) || '' === $xml ) {
+		$cache = 'miss';
+		$xml   = bsc_merchant_center_build_feed_xml();
+		set_transient( $cache_key, $xml, 30 * MINUTE_IN_SECONDS );
+	}
+
+	status_header( 200 );
+	header( 'Content-Type: application/rss+xml; charset=' . get_option( 'blog_charset' ), true );
+	header( 'Cache-Control: public, max-age=900, s-maxage=1800', true );
+	header( 'X-BSC-Feed-Cache: ' . $cache, true );
+	echo $xml; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Feed XML is escaped by the writer helpers during generation.
 	exit;
 }
 

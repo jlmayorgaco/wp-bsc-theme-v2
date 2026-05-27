@@ -150,6 +150,7 @@ class BSC_Growth_Bundles {
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 
 		$bundle_id  = isset( $_POST['bundle_id'] ) ? sanitize_text_field( wp_unslash( $_POST['bundle_id'] ) ) : '';
+		$run_id     = isset( $_POST['run_id'] ) ? absint( $_POST['run_id'] ) : 0;
 		$repository = new BSC_Growth_Bundle_Repository();
 		$bundle     = $repository->find_bundle( $bundle_id );
 
@@ -157,7 +158,7 @@ class BSC_Growth_Bundles {
 			wp_send_json_error( array( 'message' => 'No encontramos productos disponibles para esta rutina.' ), 404 );
 		}
 
-		$added = self::add_products_to_cart( $bundle['product_ids'], $bundle['id'], $bundle['title'] );
+		$added = self::add_products_to_cart( $bundle['product_ids'], $bundle['id'], $bundle['title'], $run_id );
 
 		if ( $added <= 0 ) {
 			wp_send_json_error( array( 'message' => 'Los productos de esta rutina no estan disponibles.' ), 409 );
@@ -179,12 +180,13 @@ class BSC_Growth_Bundles {
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 
 		$product_ids = isset( $_POST['product_ids'] ) ? wp_parse_id_list( wp_unslash( $_POST['product_ids'] ) ) : array();
+		$run_id      = isset( $_POST['run_id'] ) ? absint( $_POST['run_id'] ) : 0;
 
 		if ( empty( $product_ids ) ) {
 			wp_send_json_error( array( 'message' => 'No encontramos productos para agregar.' ), 400 );
 		}
 
-		$added = self::add_products_to_cart( $product_ids, 'dynamic-routine', 'Rutina recomendada' );
+		$added = self::add_products_to_cart( $product_ids, 'dynamic-routine', 'Rutina recomendada', $run_id );
 
 		if ( $added <= 0 ) {
 			wp_send_json_error( array( 'message' => 'Los productos recomendados no estan disponibles.' ), 409 );
@@ -202,7 +204,7 @@ class BSC_Growth_Bundles {
 		);
 	}
 
-	private static function add_products_to_cart( array $product_ids, string $bundle_id, string $bundle_title ): int {
+	private static function add_products_to_cart( array $product_ids, string $bundle_id, string $bundle_title, int $run_id = 0 ): int {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return 0;
 		}
@@ -227,16 +229,22 @@ class BSC_Growth_Bundles {
 				continue;
 			}
 
+			$cart_item_data = array(
+				'bsc_bundle_id'    => $bundle_id,
+				'bsc_bundle_title' => $bundle_title,
+			);
+
+			if ( $run_id > 0 ) {
+				$cart_item_data['bsc_skin_quiz_run_id'] = $run_id;
+			}
+
 			$result = call_user_func(
 				array( $cart, 'add_to_cart' ),
 				$product->get_id(),
 				1,
 				0,
 				array(),
-				array(
-					'bsc_bundle_id'    => $bundle_id,
-					'bsc_bundle_title' => $bundle_title,
-				)
+				$cart_item_data
 			);
 
 			if ( $result ) {

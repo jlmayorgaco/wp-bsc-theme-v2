@@ -188,6 +188,20 @@ function bsc_theme_importer_validate_categories_payload( array $payload ): array
 	return $payload;
 }
 
+function bsc_theme_importer_product_row_is_placeholder( array $node ): bool {
+	foreach ($node as $field => $value) {
+		if ((string) $field === 'ID') {
+			continue;
+		}
+
+		if (is_array( $value ) ? !empty( $value ) : trim( (string) $value ) !== '') {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 function bsc_theme_importer_validate_products_payload( array $payload ): array {
 	$groups   = array( 'sk', 'hc', 'mk' );
 	$has_rows = false;
@@ -202,14 +216,23 @@ function bsc_theme_importer_validate_products_payload( array $payload ): array {
 			throw new RuntimeException( 'El grupo "' . $group . '" debe ser una lista de productos.' );
 		}
 
+		$valid_nodes = array();
+
 		foreach ($payload[ $group ] as $index => $node) {
+			if (is_array( $node ) && bsc_theme_importer_product_row_is_placeholder( $node )) {
+				continue;
+			}
+
 			if (!is_array( $node ) || empty( $node['ID'] ) || empty( $node['NAME'] ) || !array_key_exists( 'PRICE', $node )) {
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception messages are escaped when rendered in the admin notice.
 				throw new RuntimeException( 'El JSON de productos necesita ID, NAME y PRICE. Error en ' . strtoupper( $group ) . ' fila ' . ( (int) $index + 1 ) . '.' );
 			}
 
+			$valid_nodes[] = $node;
 			$has_rows = true;
 		}
+
+		$payload[ $group ] = $valid_nodes;
 	}
 
 	if (!$has_rows) {

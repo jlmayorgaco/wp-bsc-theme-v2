@@ -87,10 +87,10 @@ class BSC_Growth_Bundle_Repository {
 
 	public function product_to_card( WC_Product $product ): array {
 		$product_id = $product->get_id();
-		$image_id   = $product->get_image_id();
-		$image_url  = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '';
+		$image_url  = $this->product_image_url( $product );
 		$brand      = '';
 		$terms      = get_the_terms( $product_id, 'product_cat' );
+		$price_raw  = (float) $product->get_price();
 
 		if ( $terms && ! is_wp_error( $terms ) ) {
 			foreach ( $terms as $term ) {
@@ -108,12 +108,30 @@ class BSC_Growth_Bundle_Repository {
 			'image'       => esc_url_raw( $image_url ? $image_url : BSC_Growth_Plugin::placeholder_image() ),
 			'brand'       => wp_strip_all_tags( $brand ),
 			'price'       => wp_strip_all_tags( $product->get_price_html() ),
+			'price_html'  => wp_kses_post( $product->get_price_html() ),
+			'price_raw'   => $price_raw,
+			'stock_status' => $product->is_in_stock() ? 'instock' : 'outofstock',
+			'stock_label' => $product->is_in_stock() ? 'Disponible' : 'Agotado',
 			'is_addable'  => $product->is_purchasable() && $product->is_in_stock(),
 			'add_to_cart' => esc_url_raw( $product->add_to_cart_url() ),
 		);
 	}
 
 	public function format_bundle_for_response( array $bundle ): array {
+		$products    = $this->get_bundle_cards( $bundle );
+		$addable_ids = array_values(
+			array_map(
+				'absint',
+				array_column(
+					array_filter(
+						$products,
+						static fn( array $product ): bool => ! empty( $product['is_addable'] )
+					),
+					'id'
+				)
+			)
+		);
+
 		return array(
 			'id'             => $bundle['id'],
 			'title'          => $bundle['title'],
@@ -121,21 +139,44 @@ class BSC_Growth_Bundle_Repository {
 			'badge'          => $bundle['badge'],
 			'discount_label' => $bundle['discount_label'],
 			'url'            => $bundle['url'],
-			'product_count'  => count( $bundle['product_ids'] ),
-			'product_ids'    => array_values( array_map( 'absint', $bundle['product_ids'] ) ),
-			'products'       => $this->get_bundle_cards( $bundle ),
+			'product_count'  => count( $addable_ids ),
+			'product_ids'    => $addable_ids,
+			'products'       => $products,
+			'total_raw'      => $this->products_total( $products ),
+			'total_html'     => BSC_Growth_Plugin::price_html( $this->products_total( $products ) ),
 		);
 	}
 
 	public function format_dynamic_bundle_for_response( array $bundle ): array {
 		$product_ids = array_values( array_map( 'absint', (array) ( $bundle['product_ids'] ?? array() ) ) );
 		$products    = array();
+		$addable_ids = array();
 
 		foreach ( $product_ids as $product_id ) {
 			$product = wc_get_product( $product_id );
 
-			if ( $product && 'publish' === $product->get_status() ) {
-				$products[] = $this->product_to_card( $product );
+			if ( ! $product || 'publish' !== $product->get_status() ) {
+				continue;
+			}
+
+			if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+				$replacement = $this->find_replacement_product( $product );
+
+				if ( $replacement instanceof WC_Product ) {
+					$card                            = $this->product_to_card( $replacement );
+					$card['replaces_product_id']     = $product->get_id();
+					$card['replacement_label']       = 'Reemplazo disponible';
+					$products[]                      = $card;
+					$addable_ids[]                   = $replacement->get_id();
+					continue;
+				}
+			}
+
+			$card       = $this->product_to_card( $product );
+			$products[] = $card;
+
+			if ( ! empty( $card['is_addable'] ) ) {
+				$addable_ids[] = (int) $card['id'];
 			}
 		}
 
@@ -146,10 +187,81 @@ class BSC_Growth_Bundle_Repository {
 			'badge'          => (string) ( $bundle['badge'] ?? 'Recomendacion' ),
 			'discount_label' => (string) ( $bundle['discount_label'] ?? 'Carrito listo' ),
 			'url'            => home_url( '/skin-quiz/' ),
-			'product_count'  => count( $product_ids ),
-			'product_ids'    => $product_ids,
+			'product_count'  => count( $addable_ids ),
+			'product_ids'    => $addable_ids,
 			'products'       => $products,
+			'total_raw'      => $this->products_total( $products ),
+			'total_html'     => BSC_Growth_Plugin::price_html( $this->products_total( $products ) ),
 			'steps'          => array_values( (array) ( $bundle['steps'] ?? array() ) ),
+		);
+	}
+
+	private function product_image_url( WC_Product $product ): string {
+		$image_id = $product->get_image_id();
+
+		if ( ! $image_id && $product->is_type( 'variation' ) ) {
+			$parent = wc_get_product( $product->get_parent_id() );
+			if ( $parent instanceof WC_Product ) {
+				$image_id = $parent->get_image_id();
+				if ( ! $image_id ) {
+					$parent_gallery = $parent->get_gallery_image_ids();
+					$image_id       = ! empty( $parent_gallery ) ? (int) $parent_gallery[0] : 0;
+				}
+			}
+		}
+
+		if ( ! $image_id ) {
+			$gallery = $product->get_gallery_image_ids();
+			$image_id = ! empty( $gallery ) ? (int) $gallery[0] : 0;
+		}
+
+		$image_url = $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '';
+
+		return is_string( $image_url ) ? $image_url : '';
+	}
+
+	private function find_replacement_product( WC_Product $product ): ?WC_Product {
+		$terms = get_the_terms( $product->get_id(), 'product_cat' );
+
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return null;
+		}
+
+		$category_slugs = array_values(
+			array_filter(
+				array_map(
+					static fn( WP_Term $term ): string => $term->slug,
+					$terms
+				)
+			)
+		);
+
+		if ( empty( $category_slugs ) ) {
+			return null;
+		}
+
+		$candidates = BSC_Growth_Plugin::products(
+			array(
+				'limit'        => 1,
+				'status'       => 'publish',
+				'stock_status' => 'instock',
+				'exclude'      => array( $product->get_id() ),
+				'category'     => $category_slugs,
+				'orderby'      => 'popularity',
+				'return'       => 'objects',
+			)
+		);
+
+		$replacement = $candidates[0] ?? null;
+
+		return $replacement instanceof WC_Product && $replacement->is_purchasable() ? $replacement : null;
+	}
+
+	private function products_total( array $products ): float {
+		return array_reduce(
+			$products,
+			static fn( float $carry, array $product ): float => $carry + (float) ( $product['price_raw'] ?? 0 ),
+			0.0
 		);
 	}
 

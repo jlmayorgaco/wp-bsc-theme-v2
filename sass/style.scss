@@ -86,6 +86,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "components/bubble-points/bubble-points-modal";
 @use "components/bubble-points/bubble-points-coupons-list";
 
+@use "components/motion/microinteractions";
+
 .woocommerce-account .widget-area,
 .woocommerce-account .site-footer {
   display: none;

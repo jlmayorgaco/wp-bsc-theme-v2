@@ -76,11 +76,3 @@ add_action(
 	},
 	100
 );
-
-add_action(
-	'wp_head',
-	function () {
-		echo '<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>' . "\n";
-	},
-	1
-);

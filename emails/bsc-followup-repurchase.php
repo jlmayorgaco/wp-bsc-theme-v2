@@ -31,7 +31,7 @@ bsc_email_render_message(
 );
 ?>
 				<tr>
-					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:900;letter-spacing:.7px;line-height:22px;padding:0 44px 18px;">
+					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:22px;font-weight:900;letter-spacing:.7px;line-height:27px;padding:0 44px 22px;">
 						Tus últimos productos k-Beauty:
 					</td>
 				</tr>

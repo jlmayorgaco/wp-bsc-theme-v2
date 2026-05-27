@@ -64,6 +64,7 @@ function bsc_creator_apply() {
 	}
 
 	$applications   = get_option( 'bsc_creator_applications', array() );
+	$applications   = is_array( $applications ) ? $applications : array();
 	$applications[] = array_merge(
 		array(
 			'nombre'    => $nombre,
@@ -77,6 +78,10 @@ function bsc_creator_apply() {
 		),
 		function_exists( 'bsc_privacy_form_metadata' ) ? bsc_privacy_form_metadata() : array()
 	);
+	$applications   = function_exists( 'bsc_privacy_prune_rows' )
+		? bsc_privacy_prune_rows( $applications, 1000 )
+		: array_slice( array_values( $applications ), -1000 );
+
 	update_option( 'bsc_creator_applications', $applications, false );
 
 	$creator_email = bsc_get_creator_email_recipient();

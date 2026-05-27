@@ -40,3 +40,60 @@ function bsc_privacy_delete_indexed_row( array $rows, int $index ): array {
 
 	return array_values( $rows );
 }
+
+function bsc_privacy_row_timestamp( array $row ): int {
+	foreach ( array( 'date', 'created_at', 'updated_at' ) as $field ) {
+		if ( empty( $row[ $field ] ) ) {
+			continue;
+		}
+
+		$timestamp = strtotime( (string) $row[ $field ] );
+		if ( false !== $timestamp ) {
+			return $timestamp;
+		}
+	}
+
+	return 0;
+}
+
+function bsc_privacy_prune_rows( array $rows, int $max_rows = 1000 ): array {
+	$now  = current_time( 'timestamp' );
+	$keep = array();
+
+	foreach ( $rows as $row ) {
+		if ( ! is_array( $row ) ) {
+			continue;
+		}
+
+		$retention_days = absint( $row['retention_days'] ?? 0 );
+		$retention_days = $retention_days > 0 ? $retention_days : bsc_privacy_get_form_retention_days();
+		$timestamp      = bsc_privacy_row_timestamp( $row );
+
+		if ( $timestamp > 0 && $timestamp < strtotime( '-' . $retention_days . ' days', $now ) ) {
+			continue;
+		}
+
+		$keep[] = $row;
+	}
+
+	return array_values( array_slice( $keep, -absint( $max_rows ) ) );
+}
+
+function bsc_privacy_prune_form_data(): void {
+	if ( function_exists( 'bsc_newsletter_get_subscribers' ) && function_exists( 'bsc_newsletter_save_subscribers' ) ) {
+		bsc_newsletter_save_subscribers( bsc_newsletter_get_subscribers() );
+	}
+
+	$applications = get_option( 'bsc_creator_applications', array() );
+	if ( is_array( $applications ) ) {
+		update_option( 'bsc_creator_applications', bsc_privacy_prune_rows( $applications, 1000 ), false );
+	}
+}
+add_action( 'bsc_privacy_prune_form_data', 'bsc_privacy_prune_form_data' );
+
+function bsc_privacy_schedule_form_data_prune(): void {
+	if ( ! wp_next_scheduled( 'bsc_privacy_prune_form_data' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'bsc_privacy_prune_form_data' );
+	}
+}
+add_action( 'init', 'bsc_privacy_schedule_form_data_prune' );

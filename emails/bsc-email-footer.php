@@ -23,11 +23,11 @@ $email_whatsapp_url = function_exists( 'bsc_get_email_whatsapp_url' )
 						<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
 							<tr>
 								<td align="center" style="padding:0 10px 0 0;">
-									<img src="<?php echo esc_url( get_template_directory_uri() . '/images/BSC_COMING_SOON_SOCIAL_INSTAGRAM.png' ); ?>" width="22" alt="Instagram" style="border:0;display:block;height:auto;width:22px;">
+									<img src="<?php echo esc_url( bsc_email_asset_url( 'bsc-email-social-instagram.png' ) ); ?>" width="22" alt="Instagram" style="border:0;display:block;height:auto;width:22px;">
 								</td>
 								<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:22px;line-height:22px;padding:0 12px;">|</td>
 								<td align="center" style="padding:0 18px 0 0;">
-									<img src="<?php echo esc_url( get_template_directory_uri() . '/images/BSC_COMING_SOON_SOCIAL_TIKTOK.png' ); ?>" width="22" alt="TikTok" style="border:0;display:block;height:auto;width:22px;">
+									<img src="<?php echo esc_url( bsc_email_asset_url( 'bsc-email-social-tiktok.png' ) ); ?>" width="22" alt="TikTok" style="border:0;display:block;height:auto;width:22px;">
 								</td>
 								<td align="left" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:11px;letter-spacing:.2px;line-height:13px;">
 									<strong style="font-size:12px;">© <?php echo esc_html( wp_date( 'Y' ) ); ?> BSC | Bubbles Skin Care</strong><br>

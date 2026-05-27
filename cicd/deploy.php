@@ -14,20 +14,39 @@ if ( file_exists( $env_path ) ) {
 		}
 
 		list( $key, $value ) = explode( '=', $line, 2 );
-		$key                = trim( $key );
-		$value              = trim( $value );
-		$_ENV[ $key ]       = $value;
+		$key                 = trim( $key );
+		$value               = trim( $value );
+		$_ENV[ $key ]        = $value;
 		putenv( $key . '=' . $value );
 	}
 }
 
-$secret   = getenv( 'GITHUB_WEBHOOK_SECRET' ) ?: '';
-$web_root = getenv( 'BSC_DEPLOY_WEB_ROOT' ) ?: '/var/www/bubblesskincare.com/htdocs';
-$repo_dir = getenv( 'BSC_DEPLOY_REPO_DIR' ) ?: $web_root . '/wp-content/themes/wp-bsc-theme-v2';
+/**
+ * Read a deployment environment variable.
+ *
+ * @param string $key     Environment variable name.
+ * @param string $default Default value.
+ */
+function bsc_deploy_env( string $key, string $default = '' ): string {
+	$value = getenv( $key );
+
+	return false === $value ? $default : (string) $value;
+}
+
+$secret   = bsc_deploy_env( 'GITHUB_WEBHOOK_SECRET' );
+$web_root = bsc_deploy_env( 'BSC_DEPLOY_WEB_ROOT', '/var/www/bubblesskincare.com/htdocs' );
+$repo_dir = bsc_deploy_env( 'BSC_DEPLOY_REPO_DIR', $web_root . '/wp-content/themes/wp-bsc-theme-v2' );
+$enabled  = strtolower( bsc_deploy_env( 'BSC_DEPLOY_WEBHOOK_ENABLED' ) );
 
 header( 'Content-Type: text/plain; charset=UTF-8' );
 
-$request_method = filter_input( INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS ) ?: '';
+if ( ! in_array( $enabled, array( '1', 'true', 'yes' ), true ) ) {
+	http_response_code( 404 );
+	exit( 'Not found' );
+}
+
+$request_method = filter_input( INPUT_SERVER, 'REQUEST_METHOD', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+$request_method = is_string( $request_method ) ? $request_method : '';
 if ( 'POST' !== $request_method ) {
 	http_response_code( 405 );
 	exit( 'Method not allowed' );
@@ -38,13 +57,29 @@ if ( '' === $secret ) {
 	exit( 'Webhook secret is not configured' );
 }
 
-$payload   = file_get_contents( 'php://input' ) ?: '';
+$payload   = file_get_contents( 'php://input' );
+$payload   = false === $payload ? '' : $payload;
 $signature = 'sha256=' . hash_hmac( 'sha256', $payload, $secret );
 
-$webhook_signature = filter_input( INPUT_SERVER, 'HTTP_X_HUB_SIGNATURE_256', FILTER_UNSAFE_RAW ) ?: '';
+$webhook_signature = filter_input( INPUT_SERVER, 'HTTP_X_HUB_SIGNATURE_256', FILTER_UNSAFE_RAW );
+$webhook_signature = is_string( $webhook_signature ) ? $webhook_signature : '';
 if ( ! hash_equals( $signature, $webhook_signature ) ) {
 	http_response_code( 403 );
 	exit( 'Invalid signature' );
+}
+
+$github_event = filter_input( INPUT_SERVER, 'HTTP_X_GITHUB_EVENT', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+$github_event = is_string( $github_event ) ? $github_event : '';
+if ( 'push' !== $github_event ) {
+	http_response_code( 202 );
+	exit( 'Ignored event' );
+}
+
+$decoded_payload = json_decode( $payload, true );
+$allowed_ref     = bsc_deploy_env( 'BSC_DEPLOY_REF', 'refs/heads/MVP2' );
+if ( ! is_array( $decoded_payload ) || ( $decoded_payload['ref'] ?? '' ) !== $allowed_ref ) {
+	http_response_code( 202 );
+	exit( 'Ignored ref' );
 }
 
 /**
@@ -103,7 +138,7 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 	}
 
 	$repo_real_prefix = rtrim( $repo_real_path, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
-	$paths = array(
+	$paths            = array(
 		'.github',
 		'.gitattributes',
 		'.gitignore',
@@ -113,6 +148,7 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 		'ROADMAP_BSC.md',
 		'composer.json',
 		'composer.lock',
+		'cicd',
 		'node_modules',
 		'package.json',
 		'package-lock.json',
@@ -131,7 +167,7 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 		'admin.zip',
 		'admin2.zip',
 	);
-	$removed = array();
+	$removed          = array();
 
 	foreach ( $paths as $relative_path ) {
 		$path = realpath( $repo_dir . '/' . $relative_path );

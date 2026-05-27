@@ -9,7 +9,9 @@ class BSC_Growth_Plugin {
 
 	public static function register_hooks(): void {
 		BSC_Growth_Bundles::register_hooks();
+		BSC_Growth_Skin_Quiz_Store::register_hooks();
 		BSC_Growth_Skin_Quiz::register_hooks();
+		BSC_Growth_Skin_Quiz_Admin::register_hooks();
 		BSC_Growth_CRM::register_hooks();
 		BSC_Growth_Conversion::register_hooks();
 		BSC_Growth_Repurchase::register_hooks();
