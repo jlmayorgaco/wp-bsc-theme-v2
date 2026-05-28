@@ -388,34 +388,41 @@ class BSC_Growth_Skin_Quiz {
 					</div>
 				</div>
 
-				<div class="bsc-skin-quiz__mirror" data-bsc-camera-mirror>
-					<video class="bsc-skin-quiz__mirror-video is-hidden" data-bsc-camera-video autoplay muted playsinline></video>
-					<canvas class="bsc-skin-quiz__mirror-canvas is-hidden" data-bsc-camera-canvas></canvas>
-					<div class="bsc-skin-quiz__mirror-empty" data-bsc-camera-empty>
-						<span class="bsc-skin-quiz__mirror-ring" aria-hidden="true"></span>
-						<strong>Espejo de análisis</strong>
-					</div>
-				</div>
-
-				<div class="bsc-skin-quiz__photo-stage" data-bsc-upload-dropzone>
-					<label class="bsc-skin-quiz__photo-action">
-						<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
-						<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
+				<div class="bsc-skin-quiz__photo-stage" data-bsc-upload-dropzone data-bsc-camera-mirror>
+					<div class="bsc-skin-quiz__photo-preview" data-bsc-photo-preview>
 						<canvas class="bsc-skin-quiz__upload-canvas" data-bsc-upload-canvas aria-hidden="true"></canvas>
-						<i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
-						<span>
-							<strong>Subir selfie</strong>
-							<em data-bsc-upload-file>Arrastra aquí o elige foto</em>
-						</span>
-					</label>
 
-					<button type="button" class="bsc-skin-quiz__photo-action" data-bsc-camera-start>
-						<i class="fas fa-camera" aria-hidden="true"></i>
-						<span>
-							<strong>Abrir cámara</strong>
-							<em>Usar vista como espejo</em>
-						</span>
-					</button>
+						<label class="bsc-skin-quiz__photo-input">
+							<input type="file" name="skin_photo" accept="image/jpeg,image/png,image/webp" data-bsc-skin-photo>
+							<input type="hidden" name="vision_signals" value="" data-bsc-vision-signals>
+						</label>
+
+						<video class="bsc-skin-quiz__mirror-video is-hidden" data-bsc-camera-video autoplay muted playsinline></video>
+						<canvas class="bsc-skin-quiz__mirror-canvas is-hidden" data-bsc-camera-canvas></canvas>
+
+						<div class="bsc-skin-quiz__mirror-empty" data-bsc-camera-empty>
+							<span class="bsc-skin-quiz__mirror-ring" aria-hidden="true"></span>
+							<strong>Espejo de análisis</strong>
+						</div>
+					</div>
+
+					<div class="bsc-skin-quiz__photo-actions">
+						<button type="button" class="bsc-skin-quiz__photo-toggle" data-bsc-photo-action="upload" aria-pressed="false">
+							<i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
+							<span>
+								<strong>Subir selfie</strong>
+								<em data-bsc-upload-file>JPG, PNG o WebP</em>
+							</span>
+						</button>
+
+						<button type="button" class="bsc-skin-quiz__photo-toggle" data-bsc-photo-action="camera" aria-pressed="false">
+							<i class="fas fa-camera" aria-hidden="true"></i>
+							<span>
+								<strong>Abrir cámara</strong>
+								<em>Vista como espejo</em>
+							</span>
+						</button>
+					</div>
 				</div>
 
 				<div class="bsc-skin-quiz__capture-actions">
