@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initCameraControls(form);
     initPhotoCaptureUx(form);
+    initPhotoToggles(form);
 
     const fileInput = form.querySelector('[data-bsc-skin-photo]');
     if (fileInput) {
@@ -1515,6 +1516,100 @@ document.addEventListener('DOMContentLoaded', () => {
       shell.classList.remove('is-camera-active', 'has-photo-preview');
     }
     updateCaptureState(form, null);
+  }
+
+  function initPhotoToggles(form) {
+    const toggles = form.querySelectorAll('[data-bsc-photo-action]');
+    const shell = form.querySelector('[data-bsc-camera-shell]');
+    const fileInput = form.querySelector('[data-bsc-skin-photo]');
+    const stage = form.querySelector('[data-bsc-upload-dropzone]');
+
+    if (!toggles.length || !shell || !fileInput) {
+      return;
+    }
+
+    let activeAction = null;
+
+    function deactivateAll() {
+      activeAction = null;
+      toggles.forEach((btn) => btn.setAttribute('aria-pressed', 'false'));
+      if (stage) {
+        stage.classList.remove('is-upload-active', 'is-camera-active');
+      }
+      stopCamera(form);
+      if (shell) {
+        shell.classList.remove('is-camera-active', 'has-photo-preview');
+      }
+      shell.classList.remove('has-photo-ready', 'is-photo-quality-warning');
+      fileInput.value = '';
+      clearPhotoQuality(form);
+      updateCaptureState(form, null);
+      const empty = form.querySelector('[data-bsc-camera-empty]');
+      if (empty) empty.classList.remove('is-hidden');
+      const video = form.querySelector('[data-bsc-camera-video]');
+      if (video) video.classList.add('is-hidden');
+      const canvas = form.querySelector('[data-bsc-camera-canvas]');
+      if (canvas) canvas.classList.add('is-hidden');
+    }
+
+    function activateUpload() {
+      if (activeAction === 'upload') {
+        deactivateAll();
+        return;
+      }
+      deactivateAll();
+      activeAction = 'upload';
+      toggles.forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn.dataset.photoAction === 'upload' ? 'true' : 'false');
+      });
+      if (stage) stage.classList.add('is-upload-active');
+      fileInput.click();
+    }
+
+    async function activateCamera() {
+      if (activeAction === 'camera') {
+        deactivateAll();
+        return;
+      }
+      deactivateAll();
+      activeAction = 'camera';
+      toggles.forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn.dataset.photoAction === 'camera' ? 'true' : 'false');
+      });
+      if (stage) stage.classList.add('is-camera-active');
+
+      const startButton = form.querySelector('[data-bsc-camera-start]');
+      if (startButton) {
+        startButton.click();
+      }
+    }
+
+    toggles.forEach((toggle) => {
+      toggle.addEventListener('click', () => {
+        const action = toggle.dataset.photoAction;
+        if (action === 'upload') {
+          activateUpload();
+        } else if (action === 'camera') {
+          activateCamera();
+        }
+      });
+    });
+
+    const empty = form.querySelector('[data-bsc-camera-empty]');
+    const shotButton = form.querySelector('[data-bsc-camera-shot]');
+    const stopButton = form.querySelector('[data-bsc-camera-stop]');
+
+    if (shotButton) {
+      shotButton.addEventListener('click', () => {
+        if (stage) stage.classList.add('is-upload-active');
+      });
+    }
+
+    if (stopButton) {
+      stopButton.addEventListener('click', () => {
+        deactivateAll();
+      });
+    }
   }
 
   function canvasToFile(canvas, name) {
