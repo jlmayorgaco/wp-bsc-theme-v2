@@ -53,6 +53,175 @@
   margin-top: 24px;
 }
 
+.bsc-email-diagnostics {
+  @include admin.admin-card;
+  box-shadow: admin.$shadow-card;
+  margin: 16px 0;
+  max-width: 1180px;
+}
+
+.bsc-email-diagnostics__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+  }
+
+  p {
+    color: admin.$text-soft;
+    margin: 0;
+  }
+}
+
+.bsc-email-diagnostics__grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 14px;
+
+  div {
+    background: admin.$surface-soft;
+    border: 1px solid admin.$border-muted;
+    border-left: 3px solid admin.$wp-blue;
+    border-radius: admin.$radius-md;
+    padding: 10px 12px;
+  }
+
+  strong,
+  span {
+    display: block;
+  }
+
+  span {
+    color: admin.$text-soft;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+  }
+}
+
+.bsc-email-diagnostics__warnings {
+  background: #fcf0f1;
+  border-left: 4px solid #b32d2e;
+  margin-top: 14px;
+  padding: 10px 12px;
+}
+
+.bsc-email-diagnostics__send-test {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+
+  input[type="email"] {
+    min-width: 260px;
+  }
+
+  .submit {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.bsc-email-debug__details {
+  margin-top: 10px;
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+}
+
+.bsc-email-debug {
+  @include admin.admin-card($padding: 0);
+  background: admin.$surface-muted;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.bsc-email-debug__summary {
+  color: admin.$text;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 14px;
+}
+
+.bsc-email-debug__body {
+  max-height: 600px;
+  overflow: auto;
+  padding: 0 14px 14px;
+}
+
+.bsc-email-debug__event {
+  @include admin.admin-card($padding: 12px, $radius: admin.$radius-md);
+  margin-bottom: 14px;
+}
+
+.bsc-email-debug__line {
+  margin-top: 6px;
+}
+
+.bsc-email-debug__steps,
+.bsc-email-debug__errors ul {
+  list-style: disc;
+  margin: 4px 0 0 18px;
+}
+
+.bsc-email-debug__steps li,
+.bsc-email-debug__errors li {
+  font-family: admin.$font-code;
+  font-size: 12px;
+}
+
+.bsc-email-debug__steps .is-ok {
+  color: admin.$success;
+}
+
+.bsc-email-debug__steps .is-fail,
+.bsc-email-debug__errors,
+.bsc-email-debug__errors strong,
+.bsc-email-debug__errors li,
+.bsc-email-debug__clear-button {
+  color: admin.$danger-strong;
+}
+
+.bsc-email-debug__errors {
+  background: #fcf0f1;
+  border-left: 4px solid #b32d2e;
+  margin-top: 6px;
+  padding: 8px;
+}
+
+.bsc-email-debug__json {
+  background: #1d2327;
+  border-radius: 3px;
+  color: #c3c4c7;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 8px 0 0;
+  max-height: 360px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.bsc-email-debug__list {
+  list-style: disc;
+  margin: 6px 0 0 18px;
+
+  li {
+    margin-bottom: 4px;
+  }
+}
+
+.bsc-email-debug__clear {
+  margin-top: 8px;
+}
+
 .bsc-admin-followup__templates-table {
   max-width: 1180px;
 }

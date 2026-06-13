@@ -12,7 +12,11 @@ function bsc_recommendation_product_is_eligible( ?WC_Product $product, array $ex
 		return false;
 	}
 
-	return $product->get_status() === 'publish'
+	$is_publicly_listable = function_exists( 'bsc_product_is_publicly_listable' )
+		? bsc_product_is_publicly_listable( $product )
+		: $product->get_status() === 'publish';
+
+	return $is_publicly_listable
 		&& $product->get_sku() !== ''
 		&& $product->is_purchasable()
 		&& $product->is_in_stock();

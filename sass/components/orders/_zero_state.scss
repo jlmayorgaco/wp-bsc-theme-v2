@@ -1,50 +1,47 @@
-.bsc__orders {
+.bsc__orders--empty-orders {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8.4rem 2rem 9rem;
+  width: min(100%, 960px);
+  padding: clamp(3.25rem, 7vw, 5.5rem) 1.5rem;
+  margin: 0 auto;
+  background-color: #fff;
   text-align: center;
   color: #333;
 
-  &--empty-orders {
-    background-color: #fff;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
   .orders__title {
-    font-size: clamp(2rem, 2.1vw, 2.8rem);
+    font-size: clamp(1.45rem, 2vw, 2rem);
     font-weight: 800;
     line-height: 1.15;
-    letter-spacing: 0.11em;
+    letter-spacing: 0.07em;
     margin: 0;
     color: #333;
   }
 
   .orders__subtitle {
-    font-size: clamp(1.6rem, 2.05vw, 2.7rem);
+    max-width: 680px;
+    font-size: clamp(1rem, 1.35vw, 1.35rem);
     font-weight: 400;
-    line-height: 1.18;
-    letter-spacing: 0.06em;
-    margin: 0.35rem 0 4.9rem;
+    line-height: 1.28;
+    letter-spacing: 0.03em;
+    margin: 0.35rem 0 2.35rem;
     color: #333;
-    white-space: nowrap;
   }
 
   .orders__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 210px;
-    min-height: 58px;
-    padding: 0.72rem 2.35rem 0.78rem;
+    min-width: 172px;
+    min-height: 46px;
+    padding: 0.6rem 1.55rem 0.68rem;
     background-color: #333;
     color: #fff;
-    font-size: clamp(1.35rem, 1.9vw, 2.1rem);
+    font-size: clamp(1rem, 1.25vw, 1.25rem);
     font-weight: 400;
-    line-height: 1;
-    letter-spacing: 0.08em;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
     border-radius: 999px;
     text-decoration: none;
     transition: background-color 0.2s ease;
@@ -62,17 +59,16 @@
 }
 
 @media (max-width: 767px) {
-  .bsc__orders {
-    padding: 4rem 1.25rem 5rem;
+  .bsc__orders--empty-orders {
+    padding: 3rem 1.25rem 4rem;
 
     .orders__title {
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
     }
 
     .orders__subtitle {
-      margin-bottom: 3rem;
+      margin-bottom: 1.9rem;
       letter-spacing: 0.03em;
-      white-space: normal;
     }
 
     .orders__button {

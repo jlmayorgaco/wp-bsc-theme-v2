@@ -1,6 +1,6 @@
 # BSC Unified Roadmap and Operating Manual
 
-Ultima consolidacion: 2026-05-25
+Ultima consolidacion: 2026-06-13
 Repositorio: wp-bsc-theme-v2
 Rama esperada de release: MVP2
 Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
@@ -79,6 +79,15 @@ Regla CSS/Sass:
 ## Estado actual de release
 
 Branch activo: `MVP2`
+
+Gate prod-readiness cliente documentado el 2026-06-13:
+
+- Admin productos: validado flujo para editar precio regular desde `bsc-products`, guardar stock/precio en linea, activar seleccion por checklist y aplicar descuento porcentual por lote; porcentaje `0` remueve el precio de oferta.
+- Admin producto: validado contrato de estados operativo para publicar, dejar en borrador, ocultar, archivar o enviar a papelera desde `bsc-product-edit`.
+- Checkout/cart: checkout queda como destino unico; `/cart/` redirige a checkout y remover el ultimo producto desde checkout vuelve al estado vacio de checkout sin enviar al carrito.
+- Catalogo/search: las consultas publicas excluyen productos ocultos/archivados, la categoria Skin Care conserva fallback para productos WooCommerce `instock` sin metadatos duales BSC, y la busqueda del header no renderiza sugerencias de marca como `TOCOBO / Marca`.
+- QA ejecutado: `php -l` sobre PHP tocados, `node --check` sobre JS tocados, Playwright desktop/mobile para busqueda, checkout edge cases y tarjetas de categoria, mas smoke desktop de admin productos.
+- Pendiente productivo fuera del tema: SMTP/Zoho requiere revisar credenciales o password de app en WordPress/Zoho; backups 2 veces al dia a Drive/Upload requieren configurar plugin/hosting y permisos de Drive; Wompi requiere activar plugin/keys test y reales y ejecutar pruebas con tarjeta/PSE desde WordPress y dashboard Wompi.
 
 Gate de cierre P1 documentado el 2026-05-22:
 

@@ -15,6 +15,8 @@ function bsc_2_0_scripts() {
 	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION );
 	wp_style_add_data( 'bsc-2-0-style', 'rtl', 'replace' );
 
+	$checkout_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );
+
 	// Scripts globales - necesarios en todas las paginas
 	wp_enqueue_script(
 		'bsc-2-0-navigation',
@@ -28,10 +30,11 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-navigation',
 		'bsc_ajax',
 		array(
-			'ajax_url'  => admin_url( 'admin-ajax.php' ),
-			'theme_uri' => get_template_directory_uri(),
-			'cart_url'  => function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : home_url( '/cart/' ),
-			'nonce'     => wp_create_nonce( 'bsc_ajax_action' ),
+			'ajax_url'     => admin_url( 'admin-ajax.php' ),
+			'theme_uri'    => get_template_directory_uri(),
+			'cart_url'     => $checkout_url,
+			'checkout_url' => $checkout_url,
+			'nonce'        => wp_create_nonce( 'bsc_ajax_action' ),
 		)
 	);
 

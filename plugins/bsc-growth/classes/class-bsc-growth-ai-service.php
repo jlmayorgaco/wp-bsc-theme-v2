@@ -115,6 +115,8 @@ class BSC_Growth_AI_Service {
 		$routine      = is_array( $analysis['routine'] ?? null ) ? $analysis['routine'] : array();
 		$product_ids  = wp_parse_id_list( (array) ( $analysis['product_ids'] ?? array() ) );
 		$signals      = is_array( $answers['vision_signals'] ?? null ) ? (array) $answers['vision_signals'] : array();
+		$steps        = $this->sanitize_steps( (array) ( $routine['steps'] ?? array() ) );
+		$assessment   = $this->sanitize_assessment( $analysis['professional_assessment'] ?? array() );
 
 		if ( empty( $product_ids ) ) {
 			$fallback    = $repository->recommend_bundles( $this->answers_from_profile( $answers, $skin_profile ), 1 );
@@ -129,7 +131,7 @@ class BSC_Growth_AI_Service {
 				'badge'          => 'Estudio BSC',
 				'discount_label' => 'Carrito listo',
 				'product_ids'    => array_slice( $product_ids, 0, 6 ),
-				'steps'          => $this->sanitize_steps( (array) ( $routine['steps'] ?? array() ) ),
+				'steps'          => $steps,
 			)
 		);
 
@@ -144,10 +146,21 @@ class BSC_Growth_AI_Service {
 					'badge'          => 'Estudio BSC',
 					'discount_label' => 'Carrito listo',
 					'product_ids'    => array_slice( $product_ids, 0, 6 ),
-					'steps'          => $this->sanitize_steps( (array) ( $routine['steps'] ?? array() ) ),
+					'steps'          => $steps,
 				)
 			);
 		}
+
+		$product_rationale = $this->sanitize_product_rationale(
+			(array) ( $analysis['product_rationale'] ?? array() ),
+			wp_parse_id_list( array_merge( $product_ids, (array) ( $bundle['product_ids'] ?? array() ) ) )
+		);
+
+		if ( empty( $product_rationale ) ) {
+			$product_rationale = $this->product_rationale_from_steps( $steps, wp_parse_id_list( array_merge( $product_ids, (array) ( $bundle['product_ids'] ?? array() ) ) ) );
+		}
+
+		$bundle = $this->attach_product_rationale( $bundle, $product_rationale );
 
 		return array(
 			'bundles' => array( $bundle ),
@@ -156,7 +169,7 @@ class BSC_Growth_AI_Service {
 				'fallback'            => false,
 				'skin_profile'        => $this->sanitize_profile( $skin_profile ),
 				'diagnostic_scores'   => $this->sanitize_diagnostic_scores( (array) ( $analysis['diagnostic_scores'] ?? array() ), $signals, $skin_profile ),
-				'assessment'          => $this->sanitize_assessment( $analysis['professional_assessment'] ?? array() ),
+				'assessment'          => $assessment,
 				'makeup'              => $this->sanitize_makeup_look( (array) ( $analysis['makeup_look'] ?? array() ), $repository ),
 				'after_image_data_uri' => ! empty( $after['data'] ) ? 'data:' . $after['mime_type'] . ';base64,' . $after['data'] : '',
 				'after_description'   => sanitize_text_field( (string) ( $analysis['after_description'] ?? 'Acabado hidratado, uniforme y luminoso después de la rutina.' ) ),
@@ -180,8 +193,11 @@ class BSC_Growth_AI_Service {
 				'skin_profile'        => array(),
 				'diagnostic_scores'   => $this->sanitize_diagnostic_scores( array(), is_array( $answers['vision_signals'] ?? null ) ? (array) $answers['vision_signals'] : array(), array() ),
 				'assessment'          => array(
-					'headline' => 'Lectura preliminar',
-					'summary'  => 'Armamos una rutina con tus respuestas y las señales visibles disponibles. Cuando la lectura con foto este activa, incluira una asesoria cosmetica mas profunda por zonas, prioridades y uso de producto.',
+					'headline'         => 'Lectura preliminar',
+					'summary'          => 'Armamos una rutina con tus respuestas y las señales visibles disponibles. Cuando la lectura con foto este activa, incluira una asesoria cosmetica mas profunda por zonas, prioridades y uso de producto.',
+					'skin_type_review' => 'Perfil basado en tus respuestas del quiz.',
+					'needs_review'     => 'La rutina prioriza las necesidades que seleccionaste y mantiene el orden de uso simple.',
+					'product_review'   => 'Los productos se eligieron desde los bundles disponibles mientras se recupera la lectura avanzada con foto.',
 				),
 				'makeup'              => array(),
 				'after_image_data_uri' => '',
@@ -334,18 +350,18 @@ class BSC_Growth_AI_Service {
 				'Edad y piel: usa age_range solo porque la cliente lo declaró. No estimes edad aparente ni digas una "edad de piel" numérica. Si age_context.alignment es aligned_or_lower_support, puedes decir que la rutina va bien como mantenimiento/preventiva para su rango. Si es preventive_extra_support o extra_support_recommended, dilo con tacto como "para tu rango conviene reforzar..." y enfoca la rutina en antioxidantes, barrera, hidratación, SPF, tono o textura según las señales. Nunca digas "tu piel se ve vieja" ni "pareces mayor".',
 				'Fuentes que debes cruzar: 1) selfie, 2) respuestas de la cliente, 3) señales computacionales no diagnósticas, 4) catálogo real disponible.',
 				'Interpreta computer_vision_signals como pistas aproximadas de la zona tipo piel, no como verdad absoluta. Son resultados de un motor local BSC hecho con Canvas/WebGL: skin mask, mapas de borde/textura, clusters de manchas/sombras/rojeces y lectura por zonas faciales aproximadas. brightness/contrast/saturation/sharpness van de 0 a 1; skin_pixel_ratio y mask_skin_confidence indican si hay suficiente piel visible; skin_type_proxy sugiere tipo de piel probable por evidencia visual, pero debes cruzarlo con la respuesta declarada; skin_support_signal resume cuánto soporte cosmético parece pedir la piel sin convertirlo en edad; face_detection, face_count, face_area_ratio, face_center_score y face_box_* solo indican encuadre útil; lighting_temperature_proxy, lighting_tint_proxy, lighting_evenness_signal, lighting_cast_signal y lighting_shadow_bias indican si debes desconfiar de color/manchas por luz; symmetry_balance_signal y asymmetric_* indican si una marca puede ser sombra/pose; shine_signal, oil_control_signal, zone_forehead_shine, zone_nose_shine y zone_t_shine sugieren brillo visible; redness_signal, zone_cheek_redness, red_cluster_signal y barrier_stress_signal sugieren rojeces o brotes aparentes; dark_spot_signal, spot_cluster_signal, spot_area_signal, pigment_spot_proxy, lighting_shadow_proxy, spot_shadow_confidence, tone_unevenness_signal y spf_priority_signal sugieren manchas, sombras o tono desigual; texture_signal, fine_texture_signal, pores_proxy_signal y zone_chin_texture sugieren textura; dryness_signal e hydration_need_signal sugieren necesidad de hidratación/barrera; under_eye_shadow_signal es solo acabado cosmético de mirada descansada; corrected_skin_tone_* es mejor para colorimetría que skin_tone_* cuando hay cast de luz; makeup_profile_version=makeup_profile_v2, undertone_proxy y skin_depth_proxy son pistas de colorimetría cosmética, no identidad; makeup_base_finish, makeup_coverage_hint, makeup_color_family y makeup_*_v2 ayudan a recomendar un look sutil si hay maquillaje disponible; progress_tracking_ready, progress_signature y progress_context solo sirven para comparar futuras sesiones, no para prometer resultados; cosmetic_priority_flags y routine_focus_hint resumen prioridades; quality_flags puede indicar baja luz, sobreexposición, bajo contraste, blur o zona de piel poco clara.',
-				'Usa las señales computacionales como ventaja diferencial: primero valida calidad de foto, luego cruza prioridades por zona y finalmente elige productos del catálogo. Si cosmetic_priority_flags incluye tone_evening o spf_priority, prioriza antioxidantes/iluminadores suaves y SPF. Si incluye hydration_barrier o calming, prioriza barrera, hidratación y calma. Si incluye tzone_shine o breakout_support, equilibra sebo sin resecar. Si incluye texture_refinement, usa exfoliación o renovación suave solo si el catálogo lo permite y con frecuencia moderada.',
+				'Usa las señales computacionales como ventaja diferencial: primero valida calidad de foto, luego cruza prioridades por zona y finalmente elige productos del catálogo. Si cosmetic_priority_flags incluye tone_evening o spf_priority, prioriza antioxidantes/iluminadores suaves y SPF. Si incluye hydration_barrier o calming, prioriza barrera, hidratación y calma. Si incluye tzone_shine o breakout_support, equilibra sebo sin resecar. Si incluye texture_refinement, usa exfoliación o renovación suave solo si el catálogo lo permite y con frecuencia moderada. Si skin_support_signal, fine_texture_signal o age_context sugieren soporte extra, habla de lineas visibles, firmeza cosmética, hidratación, antioxidantes y SPF, sin estimar edad ni prometer borrar arrugas.',
 				'Usa las respuestas nuevas para dar asesoría real: age_range y age_context ajustan nivel de prevención y soporte sin estimar edad; progress_context puede mencionar continuidad solo si hay snapshot previo comparable; skin_goal define la prioridad comercial y cosmética; sunscreen_habit define si debes reforzar SPF; post_cleanse_feel ayuda a inferir barrera/resequedad/brillo; breakout_frequency ajusta intensidad y evita recomendar rutinas agresivas.',
 				'Prioriza una rutina facial equilibrada y simple: limpieza solo si hay producto facial claro, tonico/esencia, serum/tratamiento, crema/hidratante y SPF si corresponde. Divide mentalmente la recomendacion en manana y noche, y especifica frecuencia si un paso no debe usarse diario. No incluyas hair care, lash, lip, makeup, body o productos no faciales dentro de routine aunque aparezcan en el catalogo de skincare.',
 				'Si makeup_catalog trae productos, agrega un bloque makeup_look separado de la rutina. Recomienda 2 a 5 productos reales de makeup_catalog para un look natural K-beauty comprable. Usa product_id solo de makeup_catalog, no inventes tonos ni productos. Usa undertone_proxy, skin_depth_proxy, makeup_base_finish, makeup_coverage_hint, makeup_color_family, makeup_blush_v2 y makeup_lip_v2 solo como pistas cosmeticas, no como identidad.',
 				'Cada producto de makeup_look.products debe traer role (base, blush, lip, eye, setting, highlight, brow o primer), shade_hint, color_hex aproximado para la UI (#RRGGBB) y why. El look debe poder cambiarse despues por la cliente, asi que separa bien productos de base, color y acabado.',
-				'Selecciona 3 a 5 product_ids reales del catálogo, en orden de uso. Evita duplicados funcionales salvo que la rutina lo justifique. Si no hay SPF facial disponible, no inventes producto.',
+				'Selecciona 3 a 5 product_ids reales del catálogo, en orden de uso. Lee nombre, marca, categorías, tags, descripción y atributos para entender función real del producto. Evita duplicados funcionales salvo que la rutina lo justifique. Si no hay SPF facial disponible, no inventes producto; si sí existe y la foto/respuesta lo pide, inclúyelo como paso de mañana.',
 				'La rutina debe explicar por qué cada paso existe, qué prioridad cosmética cubre, cómo se integra con la piel percibida y qué resultado realista puede esperar la cliente. Sé concreta y evita claims exagerados.',
 				'Si la foto tiene calidad limitada, dilo con delicadeza en visible_notes y apoya más la rutina en las respuestas. Si detectas posible sensibilidad, barrera comprometida o brotes aparentes, prioriza calma, hidratación y SPF antes que una rutina agresiva.',
-				'diagnostic_scores debe medir prioridad cosmética de trabajo, no severidad médica. Cada valor va de 0.0 a 1.0 y debe estar alineado con foto, respuestas, señales locales y productos elegidos: sebum_balance = control de brillo/zona T; hydration_barrier = hidratación y barrera; tone_evenness = tono, manchas aparentes o uniformidad; calmness = calma, rojeces aparentes o brotes; texture_refinement = textura/poros visibles; spf_priority = importancia de protector solar.',
-				'professional_assessment debe sentirse como asesoría real: headline corto y summary de 55 a 85 palabras en segunda persona. Debe cruzar al menos 3 datos: zona visible, señal computacional/respuesta, prioridad de rutina, y advertencia suave si la foto limita la lectura. No repitas exactamente visible_notes.',
+				'diagnostic_scores debe medir prioridad cosmética de trabajo, no severidad médica. Cada valor va de 0.0 a 1.0 y debe estar alineado con foto, respuestas, señales locales y productos elegidos: sebum_balance = control de brillo/zona T; hydration_barrier = hidratación y barrera; tone_evenness = tono, manchas aparentes o uniformidad; calmness = calma, rojeces aparentes o brotes; texture_refinement = textura/poros visibles; firmness_lines = lineas visibles, elasticidad percibida y soporte preventivo; spf_priority = importancia de protector solar.',
+				'professional_assessment debe sentirse como asesoría real: headline corto y summary de 55 a 85 palabras en segunda persona. Además debe incluir skin_type_review, needs_review, product_review y routine_logic. Debe cruzar al menos 3 datos: zona visible, señal computacional/respuesta, prioridad de rutina, producto elegido y advertencia suave si la foto limita la lectura. No repitas exactamente visible_notes.',
 				'visible_notes debe traer 3 a 5 observaciones accionables, cada una con zona/prioridad/cuidado. routine.summary debe ser más comercial y claro: qué vamos a trabajar y cómo se sentirá la rutina.',
-				'Devuelve SOLO JSON valido, sin markdown, con esta forma exacta: {"skin_profile":{"skin_type":"grasa|mixta|seca|normal|sensible","needs":["acne","manchas","hidratacion","barrera","glow","protector-solar"],"confidence":0.0},"diagnostic_scores":{"sebum_balance":0.0,"hydration_barrier":0.0,"tone_evenness":0.0,"calmness":0.0,"texture_refinement":0.0,"spf_priority":0.0},"professional_assessment":{"headline":"lectura corta","summary":"asesoria cosmetica profesional, profunda y accionable"},"visible_notes":["3 a 5 observaciones cosmeticas accionables basadas en foto + senales + respuestas: zona, prioridad y cuidado"],"routine":{"title":"titulo especifico","summary":"resumen de valor para cliente","steps":[{"time_of_day":"manana|noche|semanal","frequency":"diario|2-3 veces por semana|solo noche","product_id":123,"label":"paso + producto o categoria","amount":"cantidad sugerida breve","why":"razon cosmetica concreta, frecuencia y beneficio realista","warning":"precaucion suave si aplica"}]},"product_ids":[123,456],"makeup_look":{"title":"look corto","summary":"por que combina","finish":"skinlike|glowy|soft_matte|fresh|defined","color_story":"familia de color","products":[{"product_id":123,"role":"base|blush|lip|eye|setting|highlight|brow|primer","shade_hint":"tono/acabado sugerido","color_hex":"#D99A8F","why":"razon"}],"application_notes":["2 a 4 notas de aplicacion"]},"after_description":"descripcion realista, sutil y no clinica del acabado esperado, mencionando acabado de zona T, tono, textura o glow solo si aplica"}.',
+				'Devuelve SOLO JSON valido, sin markdown, con esta forma exacta: {"skin_profile":{"skin_type":"grasa|mixta|seca|normal|sensible","needs":["acne","manchas","hidratacion","barrera","glow","protector-solar","lineas"],"confidence":0.0},"diagnostic_scores":{"sebum_balance":0.0,"hydration_barrier":0.0,"tone_evenness":0.0,"calmness":0.0,"texture_refinement":0.0,"firmness_lines":0.0,"spf_priority":0.0},"professional_assessment":{"headline":"lectura corta","summary":"asesoria cosmetica profesional, profunda y accionable","skin_type_review":"por que identificas ese tipo de piel, cruzando foto y respuestas","needs_review":"que necesita la piel ahora y por que","product_review":"por que estos productos son los correctos para este caso","routine_logic":"como se usa la rutina y que prioriza"},"visible_notes":["3 a 5 observaciones cosmeticas accionables basadas en foto + senales + respuestas: zona, prioridad y cuidado"],"routine":{"title":"titulo especifico","summary":"resumen de valor para cliente","steps":[{"time_of_day":"manana|noche|semanal","frequency":"diario|2-3 veces por semana|solo noche","product_id":123,"label":"paso + producto o categoria","amount":"cantidad sugerida breve","why":"razon cosmetica concreta, frecuencia y beneficio realista","warning":"precaucion suave si aplica"}]},"product_ids":[123,456],"product_rationale":[{"product_id":123,"role":"limpieza|serum|crema|spf|tratamiento","priority":"manana|noche|semanal|base","why":"razon concreta segun rostro, respuestas, senales y catalogo"}],"makeup_look":{"title":"look corto","summary":"por que combina","finish":"skinlike|glowy|soft_matte|fresh|defined","color_story":"familia de color","products":[{"product_id":123,"role":"base|blush|lip|eye|setting|highlight|brow|primer","shade_hint":"tono/acabado sugerido","color_hex":"#D99A8F","why":"razon"}],"application_notes":["2 a 4 notas de aplicacion"]},"after_description":"descripcion realista, sutil y no clinica del acabado esperado, mencionando acabado de zona T, tono, textura, lineas visibles o glow solo si aplica"}.',
 				'Contexto JSON: ' . wp_json_encode( $context ),
 			)
 		);
@@ -674,15 +690,90 @@ class BSC_Growth_AI_Service {
 
 		return array_filter(
 			array(
-				'headline' => sanitize_text_field( (string) ( $assessment['headline'] ?? '' ) ),
-				'summary'  => sanitize_textarea_field( (string) ( $assessment['summary'] ?? '' ) ),
+				'headline'         => sanitize_text_field( (string) ( $assessment['headline'] ?? '' ) ),
+				'summary'          => sanitize_textarea_field( (string) ( $assessment['summary'] ?? '' ) ),
+				'skin_type_review' => sanitize_textarea_field( (string) ( $assessment['skin_type_review'] ?? '' ) ),
+				'needs_review'     => sanitize_textarea_field( (string) ( $assessment['needs_review'] ?? '' ) ),
+				'product_review'   => sanitize_textarea_field( (string) ( $assessment['product_review'] ?? '' ) ),
+				'routine_logic'    => sanitize_textarea_field( (string) ( $assessment['routine_logic'] ?? '' ) ),
 			)
 		);
 	}
 
+	private function sanitize_product_rationale( array $items, array $valid_ids ): array {
+		$valid_ids = array_flip( wp_parse_id_list( $valid_ids ) );
+		$clean     = array();
+
+		foreach ( array_filter( $items, 'is_array' ) as $item ) {
+			$product_id = absint( $item['product_id'] ?? $item['id'] ?? 0 );
+
+			if ( $product_id <= 0 || ! isset( $valid_ids[ $product_id ] ) || isset( $clean[ $product_id ] ) ) {
+				continue;
+			}
+
+			$clean[ $product_id ] = array_filter(
+				array(
+					'routine_role'     => sanitize_text_field( (string) ( $item['role'] ?? $item['routine_role'] ?? '' ) ),
+					'routine_why'      => sanitize_textarea_field( (string) ( $item['why'] ?? $item['routine_why'] ?? '' ) ),
+					'routine_priority' => sanitize_key( (string) ( $item['priority'] ?? $item['routine_priority'] ?? '' ) ),
+				)
+			);
+		}
+
+		return $clean;
+	}
+
+	private function product_rationale_from_steps( array $steps, array $valid_ids ): array {
+		$valid_ids = array_flip( wp_parse_id_list( $valid_ids ) );
+		$clean     = array();
+
+		foreach ( $steps as $step ) {
+			if ( ! is_array( $step ) ) {
+				continue;
+			}
+
+			$product_id = absint( $step['product_id'] ?? 0 );
+			if ( $product_id <= 0 || ! isset( $valid_ids[ $product_id ] ) || isset( $clean[ $product_id ] ) ) {
+				continue;
+			}
+
+			$clean[ $product_id ] = array_filter(
+				array(
+					'routine_role'     => sanitize_text_field( (string) ( $step['label'] ?? '' ) ),
+					'routine_why'      => sanitize_textarea_field( (string) ( $step['why'] ?? '' ) ),
+					'routine_priority' => sanitize_key( (string) ( $step['time_of_day'] ?? '' ) ),
+				)
+			);
+		}
+
+		return $clean;
+	}
+
+	private function attach_product_rationale( array $bundle, array $rationale ): array {
+		if ( empty( $rationale ) || empty( $bundle['products'] ) || ! is_array( $bundle['products'] ) ) {
+			return $bundle;
+		}
+
+		foreach ( $bundle['products'] as $index => $product ) {
+			if ( ! is_array( $product ) ) {
+				continue;
+			}
+
+			$product_id = absint( $product['id'] ?? 0 );
+			$source_id  = absint( $product['replaces_product_id'] ?? 0 );
+			$reason     = $rationale[ $product_id ] ?? ( $source_id ? ( $rationale[ $source_id ] ?? array() ) : array() );
+
+			if ( ! empty( $reason ) ) {
+				$bundle['products'][ $index ] = array_merge( $product, $reason );
+			}
+		}
+
+		return $bundle;
+	}
+
 	private function sanitize_diagnostic_scores( array $scores, array $signals, array $profile ): array {
 		$derived = $this->derive_diagnostic_scores( $signals, $profile );
-		$keys    = array( 'sebum_balance', 'hydration_barrier', 'tone_evenness', 'calmness', 'texture_refinement', 'spf_priority' );
+		$keys    = array( 'sebum_balance', 'hydration_barrier', 'tone_evenness', 'calmness', 'texture_refinement', 'firmness_lines', 'spf_priority' );
 		$clean   = array();
 
 		foreach ( $keys as $key ) {
@@ -722,6 +813,7 @@ class BSC_Growth_AI_Service {
 			'tone_evenness'      => max( $score( array( 'tone_unevenness_signal', 'dark_spot_signal', 'pigment_spot_proxy', 'spot_cluster_signal' ) ), $need_boost( 'manchas' ), $need_boost( 'glow' ) * 0.62 ),
 			'calmness'           => max( $score( array( 'redness_signal', 'zone_cheek_redness', 'red_cluster_signal', 'barrier_stress_signal' ) ), $type_boost( array( 'sensible' ) ), $need_boost( 'acne' ) * 0.62 ),
 			'texture_refinement' => max( $score( array( 'texture_signal', 'fine_texture_signal', 'pores_proxy_signal', 'zone_chin_texture' ) ), $need_boost( 'glow' ) * 0.52 ),
+			'firmness_lines'     => max( $score( array( 'skin_support_signal', 'fine_texture_signal', 'texture_signal', 'dryness_signal' ) ), $need_boost( 'lineas' ), $need_boost( 'barrera' ) * 0.46 ),
 			'spf_priority'       => max( $score( array( 'spf_priority_signal', 'tone_unevenness_signal', 'pigment_spot_proxy' ) ), $need_boost( 'protector-solar' ), $need_boost( 'manchas' ) * 0.82 ),
 		);
 	}

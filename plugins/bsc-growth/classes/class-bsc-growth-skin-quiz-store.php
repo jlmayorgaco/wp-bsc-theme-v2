@@ -624,6 +624,9 @@ class BSC_Growth_Skin_Quiz_Store {
 						'stock_status'        => sanitize_key( (string) ( $product['stock_status'] ?? '' ) ),
 						'stock_label'         => sanitize_text_field( (string) ( $product['stock_label'] ?? '' ) ),
 						'is_addable'          => ! empty( $product['is_addable'] ),
+						'routine_role'        => sanitize_text_field( (string) ( $product['routine_role'] ?? '' ) ),
+						'routine_why'         => sanitize_textarea_field( (string) ( $product['routine_why'] ?? '' ) ),
+						'routine_priority'    => sanitize_key( (string) ( $product['routine_priority'] ?? '' ) ),
 						'replaces_product_id' => absint( $product['replaces_product_id'] ?? 0 ),
 						'replacement_label'   => sanitize_text_field( (string) ( $product['replacement_label'] ?? '' ) ),
 					);

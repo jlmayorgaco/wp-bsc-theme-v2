@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const diagnosisFitScore = document.querySelector('[data-bsc-ai-fit-score]');
   const diagnosisPrimaryFocus = document.querySelector('[data-bsc-ai-primary-focus]');
   const diagnosisBaseNote = document.querySelector('[data-bsc-ai-base-note]');
+  const aiReview = document.querySelector('[data-bsc-ai-review]');
+  const aiReviewHeadline = document.querySelector('[data-bsc-ai-review-headline]');
+  const aiReviewSummary = document.querySelector('[data-bsc-ai-review-summary]');
+  const aiReviewSkin = document.querySelector('[data-bsc-ai-review-skin]');
+  const aiReviewNeeds = document.querySelector('[data-bsc-ai-review-needs]');
+  const aiReviewProducts = document.querySelector('[data-bsc-ai-review-products]');
   const makeupStudio = document.querySelector('[data-bsc-makeup-studio]');
   const makeupProducts = document.querySelector('[data-bsc-makeup-products]');
   const makeupTitle = document.querySelector('[data-bsc-makeup-title]');
@@ -102,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { key: 'tone_evenness', label: 'Tono uniforme', hint: 'Manchas visibles' },
     { key: 'calmness', label: 'Calma', hint: 'Rojeces / brotes' },
     { key: 'texture_refinement', label: 'Textura', hint: 'Poros / suavidad' },
+    { key: 'firmness_lines', label: 'Lineas y soporte', hint: 'Firmeza / prevencion' },
     { key: 'spf_priority', label: 'Prioridad SPF', hint: 'Protección diaria' }
   ];
 
@@ -753,6 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderBundles(bundles) {
     results.innerHTML = '';
     results.classList.toggle('has-ai-recommendation', currentMode() === 'ai');
+    results.classList.toggle('is-empty', !bundles.length);
 
     if (!bundles.length) {
       const empty = document.createElement('p');
@@ -1083,6 +1091,34 @@ document.addEventListener('DOMContentLoaded', () => {
       link.appendChild(meta);
     }
 
+    const reasonText = String(product.routine_why || product.why || '').trim();
+    const roleText = String(product.routine_role || product.role || '').trim();
+    const priorityText = String(product.routine_priority || product.priority || '').trim();
+    if (reasonText || roleText) {
+      const reason = document.createElement('div');
+      reason.className = 'bsc-skin-quiz__product-reason';
+
+      if (roleText) {
+        const role = document.createElement('strong');
+        role.textContent = labelFor(roleText);
+        reason.appendChild(role);
+      }
+
+      if (reasonText) {
+        const why = document.createElement('span');
+        why.textContent = reasonText;
+        reason.appendChild(why);
+      }
+
+      if (priorityText) {
+        const priority = document.createElement('small');
+        priority.textContent = labelFor(priorityText);
+        reason.appendChild(priority);
+      }
+
+      link.appendChild(reason);
+    }
+
     item.appendChild(link);
     return item;
   }
@@ -1124,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    label.textContent = file ? file.name : 'Arrastra aquí o elige una foto';
+    label.textContent = file ? file.name : 'JPG · PNG · WebP';
   }
 
   function handlePhotoFile(form, file, source = 'upload', fileInput = null, options = {}) {
@@ -1542,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       shell.classList.remove('has-photo-ready', 'is-photo-quality-warning');
       fileInput.value = '';
+      updateUploadLabel(form, null);
       clearPhotoQuality(form);
       updateCaptureState(form, null);
       const empty = form.querySelector('[data-bsc-camera-empty]');
@@ -1553,10 +1590,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function activateUpload() {
-      if (activeAction === 'upload') {
-        deactivateAll();
-        return;
-      }
       deactivateAll();
       activeAction = 'upload';
       toggles.forEach((btn) => {
@@ -1567,10 +1600,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function activateCamera() {
-      if (activeAction === 'camera') {
-        deactivateAll();
-        return;
-      }
       deactivateAll();
       activeAction = 'camera';
       toggles.forEach((btn) => {
@@ -1598,12 +1627,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const empty = form.querySelector('[data-bsc-camera-empty]');
     const shotButton = form.querySelector('[data-bsc-camera-shot]');
     const stopButton = form.querySelector('[data-bsc-camera-stop]');
-
-    if (shotButton) {
-      shotButton.addEventListener('click', () => {
-        if (stage) stage.classList.add('is-upload-active');
-      });
-    }
 
     if (stopButton) {
       stopButton.addEventListener('click', () => {
@@ -3961,6 +3984,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateDiagnosisSummary([], {}, 0, []);
+    renderAssessmentReview(null, {}, []);
 
     renderMakeupStudio(null);
     setAiNotes(message || 'Tu lectura cosmética aparecerá aquí después de analizar la foto.');
@@ -4002,8 +4026,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const diagnosticScores = normalizeDiagnosticScores(ai && ai.diagnostic_scores, profile, lastVisionSignals);
     renderDiagnosticBars(diagnosticScores);
     updateDiagnosisSummary(diagnosticScores, profile, confidence, needs);
+    const hasReview = renderAssessmentReview(assessment, profile, needs);
 
-    if (assessment.headline || assessment.summary) {
+    if (!hasReview && (assessment.headline || assessment.summary)) {
       notes.push([assessment.headline, assessment.summary].filter(Boolean).join('. '));
     }
 
@@ -4020,6 +4045,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setAiNotes(notes);
+  }
+
+  function renderAssessmentReview(assessment, profile, needs) {
+    if (!aiReview) {
+      return false;
+    }
+
+    const data = assessment && typeof assessment === 'object' ? assessment : {};
+    const skinType = profile && profile.skin_type ? labelFor(profile.skin_type) : '';
+    const needLabels = Array.isArray(needs) ? needs.map(labelFor).filter(Boolean) : [];
+    const headline = String(data.headline || (skinType ? `Piel ${skinType}` : '')).trim();
+    const summary = String(data.summary || '').trim();
+    const skinText = String(data.skin_type_review || (skinType ? `La lectura apunta a piel ${skinType.toLowerCase()} al cruzar foto y respuestas.` : '')).trim();
+    const needsText = String(data.needs_review || (needLabels.length ? `Prioridad: ${needLabels.join(', ')}.` : '')).trim();
+    const productsText = String(data.product_review || data.routine_logic || '').trim();
+    const hasContent = Boolean(headline || summary || skinText || needsText || productsText);
+
+    aiReview.classList.toggle('is-empty', !hasContent);
+
+    if (aiReviewHeadline) {
+      aiReviewHeadline.textContent = headline || 'Lectura en preparacion';
+    }
+    if (aiReviewSummary) {
+      aiReviewSummary.textContent = summary || 'Sube una foto y completa el quiz para ver una lectura clara de tipo de piel, necesidades y productos.';
+    }
+    if (aiReviewSkin) {
+      aiReviewSkin.textContent = skinText || '--';
+    }
+    if (aiReviewNeeds) {
+      aiReviewNeeds.textContent = needsText || '--';
+    }
+    if (aiReviewProducts) {
+      aiReviewProducts.textContent = productsText || '--';
+    }
+
+    return hasContent;
   }
 
   function renderMakeupStudio(makeup) {
@@ -4751,6 +4812,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tone_evenness: Math.max(maxSignal(signals, ['tone_unevenness_signal', 'dark_spot_signal', 'pigment_spot_proxy', 'spot_cluster_signal']), needBoost('manchas'), needBoost('glow', 0.46)),
       calmness: Math.max(maxSignal(signals, ['redness_signal', 'zone_cheek_redness', 'red_cluster_signal', 'barrier_stress_signal']), typeBoost(['sensible']), needBoost('acne', 0.45)),
       texture_refinement: Math.max(maxSignal(signals, ['texture_signal', 'fine_texture_signal', 'pores_proxy_signal', 'zone_chin_texture']), needBoost('glow', 0.42)),
+      firmness_lines: Math.max(maxSignal(signals, ['skin_support_signal', 'fine_texture_signal', 'texture_signal', 'dryness_signal']), needBoost('lineas'), needBoost('barrera', 0.42)),
       spf_priority: Math.max(maxSignal(signals, ['spf_priority_signal', 'tone_unevenness_signal', 'pigment_spot_proxy']), needBoost('protector-solar'), needBoost('manchas', 0.6))
     };
   }
@@ -4777,12 +4839,22 @@ document.addEventListener('DOMContentLoaded', () => {
       glow: 'Glow',
       grasa: 'Grasa',
       hidratacion: 'Hidratación',
+      lineas: 'Lineas / firmeza',
       manchas: 'Manchas',
       mixta: 'Mixta',
       normal: 'Normal',
       'protector-solar': 'Protector solar',
       seca: 'Seca',
-      sensible: 'Sensible'
+      sensible: 'Sensible',
+      limpieza: 'Limpieza',
+      serum: 'Serum',
+      crema: 'Crema',
+      spf: 'SPF',
+      tratamiento: 'Tratamiento',
+      manana: 'Mañana',
+      noche: 'Noche',
+      semanal: 'Semanal',
+      base: 'Base'
     };
 
     return labels[value] || String(value || '').replace(/-/g, ' ');

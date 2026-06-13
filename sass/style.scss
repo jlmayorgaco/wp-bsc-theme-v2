@@ -26,6 +26,7 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 // Import variables and mixins.
 
 @use "tokens/css-vars";
+@use "components/primitives/typography";
 
 @use "generic/box-sizing";
 @use "generic/normalize";
@@ -87,12 +88,4 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "components/bubble-points/bubble-points-coupons-list";
 
 @use "components/motion/microinteractions";
-
-.woocommerce-account .widget-area,
-.woocommerce-account .site-footer {
-  display: none;
-}
-
-.bsc__my-account-header .header__name.bsc__title.bsc__title--centered{
-  padding-top: 0px !important;
-}
+@use "components/profile/my_account_overrides";

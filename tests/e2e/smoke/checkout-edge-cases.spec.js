@@ -11,8 +11,19 @@ test.describe('BSC checkout edge cases', () => {
 
     await gotoAndStabilize(page, routes.checkout);
 
+    await expect(page).toHaveURL(/\/checkout\/?/);
+    expect(page.url()).not.toContain('/cart');
     await expect(page.locator('.bsc__page--empty, .container__empty').first()).toBeVisible();
     await expect(page.locator('form.checkout, form[name="checkout"]')).toHaveCount(0);
+  });
+
+  test('cart page redirects to checkout', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for checkout edge coverage');
+
+    await gotoAndStabilize(page, routes.cart);
+
+    await expect(page).toHaveURL(/\/checkout\/?/);
+    expect(page.url()).not.toContain('/cart');
   });
 
   test('removing the last checkout item returns to empty cart state', async ({ page }, testInfo) => {
@@ -30,6 +41,8 @@ test.describe('BSC checkout edge cases', () => {
 
     await item.locator('.delete-btn').click();
     await expect(page.locator('.footer__cart-count').first()).toHaveText('0');
+    await expect(page).toHaveURL(/\/checkout\/?/, { timeout: 15_000 });
+    expect(page.url()).not.toContain('/cart');
     await expect(page.locator('.bsc__page--empty, .container__empty').first()).toBeVisible({
       timeout: 15_000,
     });

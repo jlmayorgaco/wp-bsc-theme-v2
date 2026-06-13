@@ -2,40 +2,40 @@
 
 .bsc__my-account-header {
   text-align: center;
-  padding: 2rem 0;
+  padding: 1.25rem 0 1rem;
 
   .header__logo img {
-    width: 170px;
-    margin: 0 auto 1rem;
+    width: 128px;
+    margin: 0 auto 0.7rem;
   }
 
   .header__name {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: bold;
     color: #333;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .menu__items {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 0.6rem;
     padding: 0;
-    margin: 2rem 0 0;
+    margin: 1rem 0 0;
     list-style: none;
   }
 
   .menu__link {
     display: block;
-    padding: 0.5rem 1.25rem;
+    padding: 0.42rem 0.9rem;
     border: 1px solid #333;
     color: #333;
     background-color: #fff;
     text-decoration: none;
     font-weight: 500;
-    font-size: 1rem;
-    letter-spacing: 1px;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
     transition: all 0.2s ease;
 
     &:hover,
@@ -62,7 +62,8 @@
 
     .menu__items {
       width: 100%;
-      padding: 5px 15px;
+      padding: 5px 15px 10px;
+      gap: 0.5rem;
     }
 
     .menu__item {

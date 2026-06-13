@@ -43,19 +43,52 @@ class BSCShopPage {
 
 		// Dictionary: parent group slug → child slug
 		$map = array(
-			'group-skin-care' => 'sk-rutina',
-			'group-hair-care' => 'hc-rutina',
-			'group-make-up'   => 'mk-productos',
+			'group-skin-care' => array( 'sk-rutina', 'skin-care-rutina', 'rutina-skin-care', 'skin-care' ),
+			'group-hair-care' => array( 'hc-rutina', 'hair-care-rutina', 'rutina-hair-care', 'hair-care' ),
+			'group-make-up'   => array( 'mk-productos', 'make-up-productos', 'productos-make-up', 'make-up' ),
 		);
 
 		if (!isset( $map[ $cat->slug ] )) {
 			return null;
 		}
 
-		$childSlug = $map[ $cat->slug ];
-		$childTerm = get_term_by( 'slug', $childSlug, 'product_cat' );
+		$candidates = array();
 
-		return ( $childTerm instanceof WP_Term ) ? $childTerm : null;
+		foreach ($map[ $cat->slug ] as $child_slug) {
+			$child_term = get_term_by( 'slug', $child_slug, 'product_cat' );
+			if ($child_term instanceof WP_Term) {
+				$candidates[ $child_term->term_id ] = $child_term;
+			}
+		}
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'parent'     => $cat->term_id,
+			)
+		);
+
+		if (is_array( $children ) && !is_wp_error( $children )) {
+			foreach ($children as $child_term) {
+				if ($child_term instanceof WP_Term) {
+					$candidates[ $child_term->term_id ] = $child_term;
+				}
+			}
+		}
+
+		foreach ($candidates as $candidate) {
+			if ($this->termHasVisibleProducts( $candidate )) {
+				return $candidate;
+			}
+		}
+
+		if ($this->termHasVisibleProducts( $cat )) {
+			return $cat;
+		}
+
+		return reset( $candidates ) ?: null;
 	}
 
 	/**
@@ -96,11 +129,41 @@ class BSCShopPage {
 	}
 
 	private function addAvailableStockConstraint( array $args ): array {
+		if (function_exists( 'bsc_apply_public_product_query_constraints' )) {
+			$args = bsc_apply_public_product_query_constraints( $args );
+		}
+
 		if (class_exists( 'BSC_Stock' )) {
 			$args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
 		}
 
 		return $args;
+	}
+
+	private function termHasVisibleProducts( WP_Term $term ): bool {
+		$query = new WP_Query(
+			$this->addAvailableStockConstraint(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => 'publish',
+					'fields'                 => 'ids',
+					'posts_per_page'         => 1,
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'tax_query'              => array(
+						array(
+							'taxonomy'         => 'product_cat',
+							'field'            => 'term_id',
+							'terms'            => array( $term->term_id ),
+							'include_children' => true,
+						),
+					),
+				)
+			)
+		);
+
+		return !empty( $query->posts );
 	}
 
 	private function shouldCollapseMiddleBreadcrumb( ?WP_Term $grandparent, ?WP_Term $parent ): bool {

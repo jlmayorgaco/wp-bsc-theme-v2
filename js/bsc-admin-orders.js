@@ -102,6 +102,14 @@
     $badge.toggleClass('is-visible', isPending);
   }
 
+  function updateSelectionSummary() {
+    var selectedCount = $('input[name="order_ids[]"]:checked').length;
+    var label = selectedCount + (selectedCount === 1 ? ' pedido seleccionado' : ' pedidos seleccionados');
+
+    $('#bsc-orders-selection-count').text(label);
+    $('.bsc-orders-bulk-actions').toggleClass('is-active', selectedCount > 0);
+  }
+
   function withNewTabTarget($form, callback) {
     $form.attr('target', '_blank');
     callback();
@@ -198,7 +206,10 @@
     var checked = $(this).prop('checked');
     $('input[name="order_ids[]"]').prop('checked', checked);
     $('#cb-select-all-1, #cb-select-all-2').prop('checked', checked);
+    updateSelectionSummary();
   });
+
+  $(document).on('change', 'input[name="order_ids[]"]', updateSelectionSummary);
 
   $(document).on('click', '#bsc-packing-btn', function (event) {
     var $form = $('#bsc-orders-form');
@@ -258,4 +269,6 @@
   $('.bsc-status-select').each(function () {
     updateStatusPendingState($(this));
   });
+
+  updateSelectionSummary();
 })(jQuery);
