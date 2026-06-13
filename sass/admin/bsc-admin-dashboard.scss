@@ -1,9 +1,9 @@
 @use "foundation" as admin;
 
 .bsc-admin-dashboard__title {
-  display: flex;
   align-items: center;
-  gap: 12px;
+  display: flex;
+  gap: admin.$space-4;
 }
 
 .bsc-admin-dashboard__refresh-form {
@@ -17,55 +17,42 @@
 }
 
 .bsc-admin-dashboard__filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px 0;
-  padding: 12px;
-  background: admin.$surface;
-  border: 1px solid admin.$border-strong;
-  border-radius: 6px;
+  margin-top: 10px;
 }
 
-.bsc-admin-dashboard__filters label {
-  font-weight: 600;
+.bsc-admin-dashboard__priority-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .bsc-admin-dashboard__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: admin.$space-4;
   margin: 16px 0;
 }
 
 .bsc-admin-dashboard__card {
-  background: admin.$surface;
-  border: 1px solid admin.$border;
-  border-radius: 10px;
-  padding: 18px 20px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .bsc-admin-dashboard__card--warning {
-  border-color: admin.$warning-soft;
-  background: admin.$surface-warning-soft;
+  border-color: admin.$warning-border;
+  background: admin.$surface-warning;
 }
 
 .bsc-admin-dashboard__value {
-  font-size: 1.8rem;
-  font-weight: 800;
   color: admin.$text-strong;
+  font-size: 1.65rem;
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .bsc-admin-dashboard__label {
-  font-size: 0.78rem;
   color: admin.$text-muted;
-  margin-top: 4px;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+  margin-top: 4px;
   text-transform: uppercase;
 }
 
@@ -96,9 +83,13 @@
   margin: 4px 0 18px;
 }
 
+.bsc-admin-dashboard__panel {
+  min-width: 0;
+}
+
 .bsc-admin-dashboard__panel-title {
   font-size: 1rem;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
 }
 
 .bsc-admin-dashboard__empty-row {
@@ -112,7 +103,6 @@
 
 .bsc-admin-dashboard__low-stock-table {
   background: admin.$surface-danger;
-  border: 1px solid #fc8181;
 }
 
 .bsc-admin-dashboard__low-stock-value {
@@ -121,20 +111,17 @@
 }
 
 .bsc-admin-dashboard__low-stock-ok {
-  color: #276749;
-  background: #f0fff4;
-  border: 1px solid #9ae6b4;
+  @include admin.status-surface(admin.$surface-success, admin.$success-border, admin.$success);
+  border: 1px solid admin.$success-border;
+  border-radius: admin.$radius-md;
+  margin: 0;
   padding: 10px 16px;
-  border-radius: 6px;
 }
 
 .bsc-admin-dashboard__quick-links {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 12px;
-  background: admin.$surface;
-  border: 1px solid admin.$border-strong;
 }
 
 .bsc-admin-settings__section-title {
@@ -151,4 +138,10 @@
   flex-wrap: wrap;
   gap: 8px;
   margin: 8px 0 0;
+}
+
+@media (max-width: 782px) {
+  .bsc-admin-dashboard__filters .bsc-admin-field {
+    width: 100%;
+  }
 }

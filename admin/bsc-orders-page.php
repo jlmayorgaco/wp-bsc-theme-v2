@@ -23,10 +23,12 @@ add_action(
 		$js_path  = get_template_directory() . '/js/bsc-admin-orders.js';
 		$css_path = get_template_directory() . '/admin/bsc-admin-orders.css';
 
+		bsc_enqueue_admin_ui_assets();
+
 		wp_enqueue_style(
 			'bsc-admin-orders',
 			get_template_directory_uri() . '/admin/bsc-admin-orders.css',
-			array(),
+			array( 'bsc-admin-ui' ),
 			file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
 		);
 
@@ -261,10 +263,23 @@ function bsc_render_orders_page(): void {
 	$table->prepare_items();
 
 	$base_url = admin_url( 'admin.php?page=bsc-orders' );
+	$current_tab_label = isset( $status_tabs[ $active_status ] )
+		? (string) $status_tabs[ $active_status ]['label']
+		: (string) $status_tabs['']['label'];
+	$active_filters_count = ( $date_start ? 1 : 0 ) + ( $date_end ? 1 : 0 ) + ( $search ? 1 : 0 );
 	?>
 	<div class="wrap bsc-admin-orders">
-		<h1 class="wp-heading-inline">Pedidos BSC</h1>
-		<hr class="wp-header-end">
+		<div class="bsc-admin-page-header">
+			<div>
+				<span class="bsc-admin-page-header__eyebrow">Operacion diaria</span>
+				<h1 class="wp-heading-inline">Pedidos BSC</h1>
+				<p class="bsc-admin-page-header__description">Filtra, prepara, exporta e imprime pedidos desde el flujo BSC.</p>
+			</div>
+			<div class="bsc-admin-page-header__actions">
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-dashboard' ) ); ?>">Dashboard</a>
+				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>">Revisar stock</a>
+			</div>
+		</div>
 
 		<?php
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag.
@@ -277,8 +292,31 @@ function bsc_render_orders_page(): void {
 		<?php endif; ?>
 		<?php // phpcs:enable WordPress.Security.NonceVerification.Recommended ?>
 
+		<div class="bsc-admin-stat-grid bsc-orders-summary">
+			<div class="bsc-admin-stat-card">
+				<span class="bsc-admin-stat-card__label">Vista actual</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( $current_tab_label ); ?></span>
+				<span class="bsc-admin-stat-card__help"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts[ $active_status ] ?? $tab_counts[''] ?? 0 ) ) ); ?> pedidos en esta vista.</span>
+			</div>
+			<div class="bsc-admin-stat-card<?php echo esc_attr( (int) ( $tab_counts['wc-pending'] ?? 0 ) > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>">
+				<span class="bsc-admin-stat-card__label">Pendientes</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-pending'] ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Por revisar o confirmar.</span>
+			</div>
+			<div class="bsc-admin-stat-card">
+				<span class="bsc-admin-stat-card__label">En preparacion</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-preparing'] ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Listos para empaque y guia.</span>
+			</div>
+			<div class="bsc-admin-stat-card">
+				<span class="bsc-admin-stat-card__label">Filtros activos</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( $active_filters_count ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Fecha o busqueda aplicada.</span>
+			</div>
+		</div>
+
 		<!-- Status tabs -->
-		<nav class="bsc-orders-tabs">
+		<nav class="bsc-orders-tabs" aria-label="Estados de pedidos">
 			<?php
 			foreach ( $status_tabs as $slug => $config ) :
 				$tab_url   = $slug
@@ -296,28 +334,30 @@ function bsc_render_orders_page(): void {
 		</nav>
 
 		<!-- Filters -->
-		<form method="get" class="bsc-orders-filters">
+		<form method="get" class="bsc-orders-filters bsc-admin-filter-panel">
 			<input type="hidden" name="page" value="bsc-orders">
 			<?php if ( $active_status ) : ?>
 			<input type="hidden" name="order_status" value="<?php echo esc_attr( $active_status ); ?>">
 			<?php endif; ?>
-			<div>
-				<label>Desde</label>
-				<input type="date" name="date_start" value="<?php echo esc_attr( $date_start ); ?>">
+			<div class="bsc-admin-field">
+				<label for="bsc-orders-date-start">Desde</label>
+				<input type="date" id="bsc-orders-date-start" name="date_start" value="<?php echo esc_attr( $date_start ); ?>">
 			</div>
-			<div>
-				<label>Hasta</label>
-				<input type="date" name="date_end" value="<?php echo esc_attr( $date_end ); ?>">
+			<div class="bsc-admin-field">
+				<label for="bsc-orders-date-end">Hasta</label>
+				<input type="date" id="bsc-orders-date-end" name="date_end" value="<?php echo esc_attr( $date_end ); ?>">
 			</div>
-			<div>
-				<label>Buscar</label>
-				<input type="search" name="s" value="<?php echo esc_attr( $search ); ?>"
+			<div class="bsc-admin-field bsc-admin-field--grow">
+				<label for="bsc-orders-search">Buscar</label>
+				<input type="search" id="bsc-orders-search" name="s" value="<?php echo esc_attr( $search ); ?>"
 						placeholder="Nombre, email o # de orden" class="bsc-orders-search-input">
 			</div>
-			<button type="submit" class="button button-primary">Filtrar</button>
-			<?php if ( $date_start || $date_end || $search ) : ?>
-				<a href="<?php echo esc_url( $active_status ? add_query_arg( 'order_status', $active_status, $base_url ) : $base_url ); ?>" class="button">Limpiar</a>
-			<?php endif; ?>
+			<div class="bsc-admin-filter-panel__actions">
+				<button type="submit" class="button button-primary">Filtrar</button>
+				<?php if ( $date_start || $date_end || $search ) : ?>
+					<a href="<?php echo esc_url( $active_status ? add_query_arg( 'order_status', $active_status, $base_url ) : $base_url ); ?>" class="button">Limpiar</a>
+				<?php endif; ?>
+			</div>
 		</form>
 
 		<!-- Table with bulk export form -->
@@ -325,16 +365,22 @@ function bsc_render_orders_page(): void {
 		<form method="post" id="bsc-orders-form"
 				action="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">
 			<?php wp_nonce_field( 'bsc_bulk_export', 'bsc_export_nonce' ); ?>
-			<div class="bsc-orders-bulk-actions">
-				<button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
-					Descargar CSV
-				</button>
-				<button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
-					Vista de empaque
-				</button>
-				<button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
-					Imprimir con datos (PDF)
-				</button>
+			<div class="bsc-orders-bulk-actions bsc-admin-panel bsc-admin-panel--compact">
+				<div class="bsc-orders-bulk-actions__copy">
+					<strong>Acciones masivas</strong>
+					<span id="bsc-orders-selection-count">0 pedidos seleccionados</span>
+				</div>
+				<div class="bsc-orders-bulk-actions__buttons">
+					<button type="submit" name="bsc_bulk_action" value="export_csv" class="button" id="bsc-csv-btn">
+						Descargar CSV
+					</button>
+					<button type="submit" name="bsc_bulk_action" value="print_packing" class="button" id="bsc-packing-btn">
+						Vista de empaque
+					</button>
+					<button type="submit" name="bsc_bulk_action" value="print_order_labels" class="button button-primary" id="bsc-labels-btn">
+						Imprimir con datos (PDF)
+					</button>
+				</div>
 				<div class="bsc-orders-bulk-status">
 					<label for="bsc-bulk-status">Cambiar estado</label>
 					<select name="bsc_bulk_status" id="bsc-bulk-status">
@@ -351,7 +397,9 @@ function bsc_render_orders_page(): void {
 					Selecciona al menos un pedido primero.
 				</span>
 			</div>
-			<?php $table->display(); ?>
+			<div class="bsc-admin-table-wrap bsc-admin-orders__table-wrap">
+				<?php $table->display(); ?>
+			</div>
 		</form>
 	</div>
 	<?php

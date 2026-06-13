@@ -23,6 +23,7 @@ const routes = {
     process.env.PW_ROUTE_PRODUCT ||
     fixture?.routes?.product ||
     '',
+  cart: process.env.PW_ROUTE_CART || '/cart/',
   checkout: process.env.PW_ROUTE_CHECKOUT || '/checkout/',
   shop: process.env.PW_ROUTE_SHOP || '/shop/',
   contact: process.env.PW_ROUTE_CONTACT || '/contact-us/',

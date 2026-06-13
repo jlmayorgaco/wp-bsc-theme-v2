@@ -75,7 +75,35 @@
   }
 
   function getInputs($row) {
-    return $row.find('.bsc-stock-input');
+    return $row.find('.bsc-product-inline-input');
+  }
+
+  function productTable() {
+    return $('.bsc-admin-products__table');
+  }
+
+  function discountControls() {
+    return $('#bsc-discount-controls');
+  }
+
+  function discountCheckboxes() {
+    return $('.bsc-product-discount-checkbox');
+  }
+
+  function selectedDiscountCheckboxes() {
+    return discountCheckboxes().filter(':checked');
+  }
+
+  function discountPercentInput() {
+    return $('#bsc-discount-percent');
+  }
+
+  function applyDiscountButton() {
+    return $('#bsc-apply-discount');
+  }
+
+  function selectAllDiscountCheckbox() {
+    return $('#bsc-discount-select-all');
   }
 
   function getPendingBadge($row) {
@@ -90,12 +118,30 @@
     return String($input.val()) !== String($input.data('original'));
   }
 
+  function isStockInput($input) {
+    return $input.hasClass('bsc-stock-input');
+  }
+
+  function isPriceInput($input) {
+    return $input.hasClass('bsc-price-input');
+  }
+
   function isInputValid($input) {
-    var value = parseInt($input.val(), 10);
-    return !isNaN(value) && value >= 0;
+    var rawValue = String($input.val()).trim();
+    var value;
+
+    value = isStockInput($input)
+      ? parseInt(rawValue, 10)
+      : Number(rawValue);
+
+    return rawValue !== '' && !isNaN(value) && value >= 0;
   }
 
   function syncLowStockClass($input) {
+    if (!isStockInput($input)) {
+      return;
+    }
+
     var value = parseInt($input.val(), 10);
     if (isNaN(value) || !lowStockThreshold) {
       return;
@@ -132,20 +178,25 @@
 
     $inputs.each(function () {
       var $input = $(this);
-      var value = parseInt($input.val(), 10);
+      var value = String($input.val()).trim();
 
-      if (isNaN(value) || value < 0) {
+      if (!isInputValid($input)) {
         invalidInput = $input;
         return false;
       }
 
-      payload[$input.data('type')] = value;
+      if (isStockInput($input)) {
+        payload[$input.data('type')] = parseInt(value, 10);
+      } else if (isPriceInput($input)) {
+        payload[$input.data('field')] = value;
+      }
+
       return undefined;
     });
 
     if (invalidInput) {
       invalidInput.trigger('focus');
-      showToast(strings.saveError || 'No se pudo guardar el stock.', 'error');
+      showToast(strings.priceError || strings.saveError || 'No se pudieron guardar los cambios.', 'error');
       return;
     }
 
@@ -155,22 +206,33 @@
     $.post(ajaxUrl, payload)
       .done(function (response) {
         if (!response || !response.success || !response.data) {
-          showToast(strings.saveError || 'No se pudo guardar el stock.', 'error');
+          showToast(
+            (response && response.data && response.data.message) || strings.saveError || 'No se pudieron guardar los cambios.',
+            'error'
+          );
           return;
         }
 
         $inputs.each(function () {
           var $input = $(this);
-          var type = $input.data('type');
-          var value = response.data[type];
+          var key = isStockInput($input) ? $input.data('type') : $input.data('field');
+          var value = response.data[key];
           $input.val(value).data('original', value).removeClass('is-pending');
           syncLowStockClass($input);
         });
 
         getPendingBadge($row).removeClass('is-visible');
-        showToast(strings.saved || 'Stock guardado.', 'success');
+        showToast(strings.saved || 'Cambios guardados.', 'success');
       })
-      .fail(function () {
+      .fail(function (xhr) {
+        var message = xhr.responseJSON && xhr.responseJSON.data
+          ? xhr.responseJSON.data.message
+          : '';
+
+        if (message) {
+          showToast(message, 'error');
+          return;
+        }
         showToast(strings.connectionError || 'Error de conexión. Intenta de nuevo.', 'error');
       })
       .always(function () {
@@ -180,13 +242,139 @@
       });
   }
 
-  $(document).on('input change', '.bsc-stock-input', function () {
+  function setDiscountMode(enabled) {
+    productTable().toggleClass('is-discount-mode', enabled);
+    discountControls().prop('hidden', !enabled);
+    discountCheckboxes().prop('disabled', !enabled).prop('checked', false);
+    selectAllDiscountCheckbox().prop('disabled', !enabled).prop('checked', false);
+    discountPercentInput().prop('disabled', !enabled).val('');
+
+    if (!enabled) {
+      applyDiscountButton().prop('disabled', true).text('Guardar descuento');
+    }
+
+    updateDiscountState();
+  }
+
+  function updateDiscountState() {
+    var selectedCount = selectedDiscountCheckboxes().length;
+    var rawPercent = String(discountPercentInput().val()).trim();
+    var percent = Number(rawPercent);
+    var validPercent = rawPercent !== '' && !isNaN(percent) && percent >= 0 && percent < 100;
+
+    $('#bsc-discount-selection-count').text(
+      selectedCount + (selectedCount === 1 ? ' seleccionado' : ' seleccionados')
+    );
+    applyDiscountButton().prop('disabled', !selectedCount || !validPercent);
+    selectAllDiscountCheckbox().prop(
+      'checked',
+      discountCheckboxes().length > 0 && selectedCount === discountCheckboxes().length
+    );
+  }
+
+  function applyDiscountToSelection() {
+    var selectedIds = selectedDiscountCheckboxes().map(function () {
+      return $(this).val();
+    }).get();
+    var rawPercent = String(discountPercentInput().val()).trim();
+    var percent = Number(rawPercent);
+    var $applyButton = applyDiscountButton();
+
+    if (!selectedIds.length) {
+      showToast(strings.discountNoSelection || 'Selecciona al menos un producto.', 'error');
+      return;
+    }
+
+    if (rawPercent === '' || isNaN(percent) || percent < 0 || percent >= 100) {
+      discountPercentInput().trigger('focus');
+      showToast(strings.discountInvalidPercent || 'Ingresa un descuento entre 0% y 99%.', 'error');
+      return;
+    }
+
+    $applyButton.prop('disabled', true).text('Aplicando...');
+    discountCheckboxes().prop('disabled', true);
+    discountPercentInput().prop('disabled', true);
+
+    $.post(ajaxUrl, {
+      action: 'bsc_apply_product_discount',
+      nonce: nonce,
+      product_ids: selectedIds,
+      discount_percent: percent
+    }).done(function (response) {
+      var updated = response && response.data ? Number(response.data.updated || 0) : 0;
+      var prices = response && response.data && response.data.prices ? response.data.prices : {};
+
+      if (!response || !response.success || !updated) {
+        showToast(
+          (response && response.data && response.data.message) || strings.saveError || 'No se pudieron guardar los cambios.',
+          'error'
+        );
+        return;
+      }
+
+      Object.keys(prices).forEach(function (productId) {
+        var productPrice = prices[productId];
+        var $row = $('.bsc-admin-products__row[data-product-id="' + productId + '"]');
+        var $note = $row.find('[data-role="sale-price-note"]');
+
+        if (productPrice.sale_price_label) {
+          $note
+            .text('Oferta: ' + productPrice.sale_price_label)
+            .removeClass('is-hidden');
+        } else {
+          $note
+            .text('')
+            .addClass('is-hidden');
+        }
+      });
+
+      showToast(
+        (strings.discountApplied || 'Descuento aplicado.') + ' ' + updated + (updated === 1 ? ' producto.' : ' productos.'),
+        'success'
+      );
+      setDiscountMode(false);
+    }).fail(function (xhr) {
+      var message = xhr.responseJSON && xhr.responseJSON.data
+        ? xhr.responseJSON.data.message
+        : '';
+
+      showToast(message || strings.connectionError || 'Error de conexion. Intenta de nuevo.', 'error');
+    }).always(function () {
+      $applyButton.text('Guardar descuento');
+
+      if (productTable().hasClass('is-discount-mode')) {
+        discountCheckboxes().prop('disabled', false);
+        discountPercentInput().prop('disabled', false);
+        updateDiscountState();
+      }
+    });
+  }
+
+  $(document).on('input change', '.bsc-product-inline-input', function () {
     syncRowState(getRow($(this)));
   });
 
-  $(document).on('click', '.bsc-product-stock-save', function () {
+  $(document).on('click', '.bsc-product-row-save', function () {
     saveRow(getRow($(this)));
   });
+
+  $(document).on('click', '#bsc-discount-mode-toggle', function () {
+    setDiscountMode(true);
+  });
+
+  $(document).on('click', '#bsc-discount-mode-cancel', function () {
+    setDiscountMode(false);
+  });
+
+  $(document).on('change', '#bsc-discount-select-all', function () {
+    discountCheckboxes().prop('checked', $(this).prop('checked'));
+    updateDiscountState();
+  });
+
+  $(document).on('change', '.bsc-product-discount-checkbox', updateDiscountState);
+  $(document).on('input change', '#bsc-discount-percent', updateDiscountState);
+
+  $(document).on('click', '#bsc-apply-discount', applyDiscountToSelection);
 
   $(document).on('click', '.bsc-stock-history-btn', function () {
     var productId = $(this).data('product-id');
@@ -217,4 +405,6 @@
   $('.bsc-admin-products__row').each(function () {
     syncRowState($(this));
   });
+
+  updateDiscountState();
 }(jQuery));

@@ -149,6 +149,18 @@ function bsc_remove_cart_item() {
 		// Recalcular totales
 		bsc_recalculate_checkout_totals( true );
 
+		if ( WC()->cart->is_empty() ) {
+			wc_clear_notices();
+			wp_send_json_success(
+				array(
+					'cart_count'    => 0,
+					'cart_item_key' => $cart_item_key,
+					'fragments'     => array(),
+					'removed'       => true,
+				)
+			);
+		}
+
 		// Obtener fragmentos actualizados
 		WC_AJAX::get_refreshed_fragments();
 	} else {

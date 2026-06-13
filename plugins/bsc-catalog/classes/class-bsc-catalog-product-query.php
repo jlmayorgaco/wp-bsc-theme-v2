@@ -77,6 +77,10 @@ class BSC_Catalog_Product_Query {
 			$args['tax_query'] = $tax_query;
 		}
 
+		if (function_exists( 'bsc_apply_public_product_query_constraints' )) {
+			$args = bsc_apply_public_product_query_constraints( $args );
+		}
+
 		return $args;
 	}
 

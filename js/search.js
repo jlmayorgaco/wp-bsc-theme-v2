@@ -13,8 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchCache[query]) {
       renderResults(
         searchCache[query].products || [],
-        resultsList,
-        searchCache[query].suggestions || []
+        resultsList
       );
       return;
     }
@@ -44,9 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       const products = data.success && Array.isArray(data.data.products) ? data.data.products : [];
-      const suggestions = data.success && Array.isArray(data.data.suggestions) ? data.data.suggestions : [];
 
-      if (!data.success || (products.length === 0 && suggestions.length === 0)) {
+      if (!data.success || products.length === 0) {
         setSingleResultMessage(resultsList, 'search-empty', 'No se encontraron productos.');
         return;
       }
@@ -55,9 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cacheKeys.length >= SEARCH_CACHE_MAX) {
         delete searchCache[cacheKeys[0]];
       }
-      searchCache[query] = { products, suggestions };
+      searchCache[query] = { products };
 
-      renderResults(products, resultsList, suggestions);
+      renderResults(products, resultsList);
     } catch (err) {
       if (err.name === 'AbortError') {
         return;
@@ -67,54 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderResults(products, resultsList, suggestions = []) {
+  function renderResults(products, resultsList) {
     resultsList.innerHTML = '';
 
     const placeholderImg =
       window.bsc_search && window.bsc_search.placeholder_img
         ? window.bsc_search.placeholder_img
         : '';
-
-    suggestions.forEach((suggestion) => {
-      const li = document.createElement('li');
-      li.classList.add('search-result-item', 'search-result-item--suggestion');
-      li.tabIndex = 0;
-      li.setAttribute('role', 'option');
-      li.setAttribute('aria-selected', 'false');
-
-      const info = document.createElement('div');
-      info.classList.add('search-result-info');
-
-      const name = document.createElement('span');
-      name.classList.add('search-result-name');
-      name.textContent = suggestion.label || '';
-      info.appendChild(name);
-
-      if (suggestion.meta) {
-        const meta = document.createElement('span');
-        meta.classList.add('search-result-brand');
-        meta.textContent = suggestion.meta;
-        info.appendChild(meta);
-      }
-
-      li.appendChild(info);
-
-      const goToSuggestion = () => {
-        if (suggestion.url) {
-          window.location.href = suggestion.url;
-        }
-      };
-
-      li.addEventListener('click', goToSuggestion);
-      li.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          goToSuggestion();
-        }
-      });
-
-      resultsList.appendChild(li);
-    });
 
     products.forEach((product) => {
       const li = document.createElement('li');

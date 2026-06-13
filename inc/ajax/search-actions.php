@@ -37,6 +37,26 @@ function bsc_search_products() {
 			? $cached['suggestions']
 			: ( function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, $cached_product_ids ) : array() );
 
+		if ( function_exists( 'bsc_product_is_publicly_listable' ) ) {
+			$cached_products = array_values(
+				array_filter(
+					$cached_products,
+					static function ( $cached_product ): bool {
+						if ( ! is_array( $cached_product ) ) {
+							return false;
+						}
+
+						$product = wc_get_product( absint( $cached_product['id'] ?? 0 ) );
+
+						return bsc_product_is_publicly_listable( $product, 'search' )
+							&& $product instanceof WC_Product
+							&& $product->is_purchasable()
+							&& $product->is_in_stock();
+					}
+				)
+			);
+		}
+
 		if ( function_exists( 'bsc_metrics_record_search' ) ) {
 			bsc_metrics_record_search( $query, count( $cached_products ) );
 		}
@@ -51,42 +71,48 @@ function bsc_search_products() {
 	$collected_ids = array();
 
 	// ── 1. Title + description ─────────────────────────────────────────────
-	$q1 = new WP_Query(
-		array(
-			'post_type'              => 'product',
-			'post_status'            => 'publish',
-			's'                      => $query,
-			'fields'                 => 'ids',
-			'posts_per_page'         => 8,
-			'no_found_rows'          => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-		)
+	$q1_args = array(
+		'post_type'              => 'product',
+		'post_status'            => 'publish',
+		's'                      => $query,
+		'fields'                 => 'ids',
+		'posts_per_page'         => 8,
+		'no_found_rows'          => true,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
 	);
+	if ( function_exists( 'bsc_apply_public_product_query_constraints' ) ) {
+		$q1_args = bsc_apply_public_product_query_constraints( $q1_args, 'search' );
+	}
+
+	$q1 = new WP_Query( $q1_args );
 	if ( ! empty( $q1->posts ) ) {
 		$collected_ids = array_merge( $collected_ids, $q1->posts );
 	}
 
 	// ── 2. SKU (product meta _sku) ─────────────────────────────────────────
 	if ( count( $collected_ids ) < 8 ) {
-		$q2 = new WP_Query(
-			array(
-				'post_type'              => 'product',
-				'post_status'            => 'publish',
-				'fields'                 => 'ids',
-				'posts_per_page'         => 8,
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'meta_query'             => array(
-					array(
-						'key'     => '_sku',
-						'value'   => $query,
-						'compare' => 'LIKE',
-					),
+		$q2_args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'fields'                 => 'ids',
+			'posts_per_page'         => 8,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'meta_query'             => array(
+				array(
+					'key'     => '_sku',
+					'value'   => $query,
+					'compare' => 'LIKE',
 				),
-			)
+			),
 		);
+		if ( function_exists( 'bsc_apply_public_product_query_constraints' ) ) {
+			$q2_args = bsc_apply_public_product_query_constraints( $q2_args, 'search' );
+		}
+
+		$q2 = new WP_Query( $q2_args );
 		if ( ! empty( $q2->posts ) ) {
 			$collected_ids = array_merge( $collected_ids, $q2->posts );
 		}
@@ -104,24 +130,27 @@ function bsc_search_products() {
 		);
 
 		if ( ! empty( $matching_terms ) && ! is_wp_error( $matching_terms ) ) {
-			$q3 = new WP_Query(
-				array(
-					'post_type'              => 'product',
-					'post_status'            => 'publish',
-					'fields'                 => 'ids',
-					'posts_per_page'         => 8,
-					'no_found_rows'          => true,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
-					'tax_query'              => array(
-						array(
-							'taxonomy' => 'product_cat',
-							'field'    => 'term_id',
-							'terms'    => $matching_terms,
-						),
+			$q3_args = array(
+				'post_type'              => 'product',
+				'post_status'            => 'publish',
+				'fields'                 => 'ids',
+				'posts_per_page'         => 8,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'tax_query'              => array(
+					array(
+						'taxonomy' => 'product_cat',
+						'field'    => 'term_id',
+						'terms'    => $matching_terms,
 					),
-				)
+				),
 			);
+			if ( function_exists( 'bsc_apply_public_product_query_constraints' ) ) {
+				$q3_args = bsc_apply_public_product_query_constraints( $q3_args, 'search' );
+			}
+
+			$q3 = new WP_Query( $q3_args );
 			if ( ! empty( $q3->posts ) ) {
 				$collected_ids = array_merge( $collected_ids, $q3->posts );
 			}
@@ -160,7 +189,11 @@ function bsc_search_products() {
 		if ( ! $product ) {
 			continue;
 		}
-		if ( $product->get_status() !== 'publish' || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		$is_publicly_listable = function_exists( 'bsc_product_is_publicly_listable' )
+			? bsc_product_is_publicly_listable( $product, 'search' )
+			: 'publish' === $product->get_status();
+
+		if ( ! $is_publicly_listable || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
 			continue;
 		}
 

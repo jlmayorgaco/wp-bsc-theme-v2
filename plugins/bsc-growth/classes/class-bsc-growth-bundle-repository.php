@@ -284,21 +284,20 @@ class BSC_Growth_Bundle_Repository {
 				continue;
 			}
 
-			$product_id = $product->get_id();
-			$terms      = get_the_terms( $product_id, 'product_cat' );
-			$categories = array();
-
-			if ( $terms && ! is_wp_error( $terms ) ) {
-				foreach ( $terms as $term ) {
-					$categories[] = $term->name;
-				}
-			}
+			$product_id  = $product->get_id();
+			$card        = $this->product_to_card( $product );
+			$description = wp_strip_all_tags( $product->get_short_description() ? $product->get_short_description() : $product->get_description() );
 
 			$catalog[] = array(
-				'id'         => $product_id,
-				'name'       => wp_strip_all_tags( $product->get_name() ),
-				'price'      => wp_strip_all_tags( $product->get_price_html() ),
-				'categories' => array_slice( $categories, 0, 8 ),
+				'id'           => (int) $card['id'],
+				'name'         => $card['name'],
+				'brand'        => $card['brand'],
+				'price'        => $card['price'],
+				'categories'   => $card['categories'],
+				'tags'         => $this->product_term_names( $product_id, 'product_tag', 10 ),
+				'description'  => wp_trim_words( $description, 48, '' ),
+				'attributes'   => $this->product_attributes_context( $product, 10 ),
+				'stock_status' => $card['stock_status'],
 			);
 		}
 
@@ -344,10 +343,31 @@ class BSC_Growth_Bundle_Repository {
 		return $context;
 	}
 
-	private function product_to_makeup_context( WC_Product $product ): array {
-		$card        = $this->product_to_card( $product );
-		$description = wp_strip_all_tags( $product->get_short_description() ? $product->get_short_description() : $product->get_description() );
-		$attributes  = array();
+	private function product_term_names( int $product_id, string $taxonomy, int $limit = 8 ): array {
+		$terms = get_the_terms( $product_id, $taxonomy );
+
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return array();
+		}
+
+		return array_slice(
+			array_values(
+				array_unique(
+					array_filter(
+						array_map(
+							static fn( WP_Term $term ): string => wp_strip_all_tags( $term->name ),
+							$terms
+						)
+					)
+				)
+			),
+			0,
+			$limit
+		);
+	}
+
+	private function product_attributes_context( WC_Product $product, int $limit = 10 ): array {
+		$attributes = array();
 
 		foreach ( $product->get_attributes() as $attribute ) {
 			if ( ! $attribute instanceof WC_Product_Attribute ) {
@@ -374,6 +394,13 @@ class BSC_Growth_Bundle_Repository {
 			}
 		}
 
+		return array_slice( $attributes, 0, $limit );
+	}
+
+	private function product_to_makeup_context( WC_Product $product ): array {
+		$card        = $this->product_to_card( $product );
+		$description = wp_strip_all_tags( $product->get_short_description() ? $product->get_short_description() : $product->get_description() );
+
 		return array(
 			'id'           => (int) $card['id'],
 			'name'         => $card['name'],
@@ -383,7 +410,7 @@ class BSC_Growth_Bundle_Repository {
 			'image'        => $card['image'],
 			'categories'   => $card['categories'],
 			'description'  => wp_trim_words( $description, 90, '' ),
-			'attributes'   => array_slice( $attributes, 0, 10 ),
+			'attributes'   => $this->product_attributes_context( $product, 10 ),
 			'stock_status' => $card['stock_status'],
 		);
 	}
