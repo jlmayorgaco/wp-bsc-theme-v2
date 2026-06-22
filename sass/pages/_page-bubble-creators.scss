@@ -19,22 +19,21 @@ $bc-placeholder: bsc.$text-muted;
   .bc__intro {
     width: min(100%, 720px);
     margin: 0 auto;
-    padding: 66px 20px 0;
+    padding: clamp(44px, 5vw, 66px) 20px 0;
     text-align: center;
   }
 
   .bc__intro-logo {
     position: relative;
-    width: 183px;
-    height: 161px;
-    margin: 0 auto 35px;
-
+    width: 218px;
+    height: 174px;
+    margin: 0 auto 30px;
 
     img {
       position: absolute;
       left: 50%;
       bottom: 0;
-      width: 162px;
+      width: 190px;
       max-width: none;
       transform: translateX(-50%);
     }
@@ -44,10 +43,11 @@ $bc-placeholder: bsc.$text-muted;
     position: absolute;
     z-index: 2;
     top: 0;
-    left: -3px;
+    left: 50%;
     width: 190px;
     height: 74px;
     overflow: visible;
+    transform: translateX(-50%);
 
     path {
       fill: none;
@@ -84,7 +84,7 @@ $bc-placeholder: bsc.$text-muted;
 
   .bc__benefits {
     width: min(100%, 1050px);
-    margin: 35px auto 0;
+    margin: 30px auto 0;
     padding: 0 20px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -380,25 +380,19 @@ $bc-placeholder: bsc.$text-muted;
     }
 
     .bc__intro-logo {
-      width: 154px;
-      height: 136px;
-      margin-bottom: 30px;
-
-      &::before {
-        bottom: 10px;
-        width: 98px;
-        height: 98px;
-      }
+      width: 174px;
+      height: 142px;
+      margin-bottom: 26px;
 
       img {
-        width: 136px;
+        width: 154px;
       }
     }
 
     .bc__intro-logo-text {
       top: 0;
-      left: -18px;
-      transform: scale(0.82);
+      left: 50%;
+      transform: translateX(-50%) scale(0.82);
 
       text {
         font-size: 19px;

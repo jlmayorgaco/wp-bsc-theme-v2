@@ -18,7 +18,6 @@ class BSC_Growth_Skin_Quiz_Store {
 		add_action( 'wp_ajax_bsc_skin_quiz_delete_run', array( __CLASS__, 'ajax_delete_run' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_send_routine', array( __CLASS__, 'ajax_send_routine' ) );
 		add_action( 'wp_ajax_nopriv_bsc_skin_quiz_send_routine', array( __CLASS__, 'ajax_send_routine' ) );
-		add_action( 'woocommerce_account_dashboard', array( __CLASS__, 'render_account_panel' ), 38 );
 	}
 
 	public static function maybe_install(): void {
@@ -388,44 +387,6 @@ class BSC_Growth_Skin_Quiz_Store {
 		wp_send_json_success( array( 'message' => 'Rutina enviada a tu correo.' ) );
 	}
 
-	public static function render_account_panel(): void {
-		if ( ! is_user_logged_in() ) {
-			return;
-		}
-
-		$runs = self::get_user_runs( get_current_user_id(), 5 );
-		if ( empty( $runs ) ) {
-			return;
-		}
-
-		?>
-		<section class="bsc-skin-quiz-account" aria-labelledby="bsc-skin-quiz-account-title">
-			<div class="bsc-skin-quiz-account__header">
-				<h2 id="bsc-skin-quiz-account-title">Mi Skin Quiz</h2>
-				<a href="<?php echo esc_url( home_url( '/skin-quiz/?mode=ai' ) ); ?>">Repetir quiz</a>
-			</div>
-			<div class="bsc-skin-quiz-account__list">
-				<?php foreach ( $runs as $run ) : ?>
-					<article class="bsc-skin-quiz-account__item" data-bsc-run-id="<?php echo esc_attr( (string) $run['id'] ); ?>">
-						<?php if ( ! empty( $run['image_path'] ) ) : ?>
-							<img src="<?php echo esc_url( self::image_url( (int) $run['id'] ) ); ?>" alt="Selfie guardada del Skin Quiz" loading="lazy">
-						<?php endif; ?>
-						<div>
-							<span><?php echo esc_html( mysql2date( get_option( 'date_format' ), $run['created_at'] ) ); ?></span>
-							<strong><?php echo esc_html( $run['bundle_title'] ? $run['bundle_title'] : 'Rutina BSC' ); ?></strong>
-							<p><?php echo esc_html( $run['skin_type'] ? ucfirst( $run['skin_type'] ) : 'Lectura guardada' ); ?> · <?php echo wp_kses_post( BSC_Growth_Plugin::price_html( (float) $run['total_raw'] ) ); ?></p>
-							<div class="bsc-skin-quiz-account__actions">
-								<a class="bsc__button" href="<?php echo esc_url( self::share_url( $run ) ); ?>">Ver rutina</a>
-								<button type="button" class="bsc-skin-quiz__ghost-button" data-bsc-delete-run="<?php echo esc_attr( (string) $run['id'] ); ?>">Eliminar fotos</button>
-							</div>
-						</div>
-					</article>
-				<?php endforeach; ?>
-			</div>
-		</section>
-		<?php
-	}
-
 	public static function cleanup_expired_runs(): void {
 		self::maybe_install();
 
@@ -624,6 +585,9 @@ class BSC_Growth_Skin_Quiz_Store {
 						'stock_status'        => sanitize_key( (string) ( $product['stock_status'] ?? '' ) ),
 						'stock_label'         => sanitize_text_field( (string) ( $product['stock_label'] ?? '' ) ),
 						'is_addable'          => ! empty( $product['is_addable'] ),
+						'routine_role'        => sanitize_text_field( (string) ( $product['routine_role'] ?? '' ) ),
+						'routine_why'         => sanitize_textarea_field( (string) ( $product['routine_why'] ?? '' ) ),
+						'routine_priority'    => sanitize_key( (string) ( $product['routine_priority'] ?? '' ) ),
 						'replaces_product_id' => absint( $product['replaces_product_id'] ?? 0 ),
 						'replacement_label'   => sanitize_text_field( (string) ( $product['replacement_label'] ?? '' ) ),
 					);

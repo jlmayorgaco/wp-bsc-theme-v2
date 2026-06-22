@@ -2,7 +2,7 @@
 /**
  * BSC-065: Simplified BSC product editor for Shop Manager.
  * Allows editing: name, short description, main image, gallery, categories,
- * tags, SKU, dual stock, and review toggle without the full WC editor.
+ * tags, SKU, price, discount, dual stock, and review toggle without the full WC editor.
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -54,6 +54,42 @@ function bsc_get_product_edit_current_category_ids( int $product_id ): array {
 	}
 
 	return array_values( array_map( 'intval', $term_ids ) );
+}
+
+function bsc_get_product_edit_status_value( WP_Post $post, WC_Product $product ): string {
+	if ('1' === (string) get_post_meta( $post->ID, '_bsc_product_archived', true )) {
+		return 'archive';
+	}
+
+	if ('draft' === $post->post_status) {
+		return 'draft';
+	}
+
+	if ('publish' === $post->post_status && 'hidden' === $product->get_catalog_visibility()) {
+		return 'hidden';
+	}
+
+	return 'publish';
+}
+
+function bsc_apply_product_edit_status( int $product_id, WC_Product $product, string $status ): void {
+	if ('archive' === $status) {
+		update_post_meta( $product_id, '_bsc_product_archived', '1' );
+		$product->set_catalog_visibility( 'hidden' );
+		$product->save();
+		return;
+	}
+
+	delete_post_meta( $product_id, '_bsc_product_archived' );
+
+	if ('hidden' === $status) {
+		$product->set_catalog_visibility( 'hidden' );
+		$product->save();
+		return;
+	}
+
+	$product->set_catalog_visibility( 'visible' );
+	$product->save();
 }
 
 function bsc_get_product_edit_script_data( int $product_id ): array {
@@ -139,9 +175,16 @@ function bsc_render_product_edit_page(): void {
 		$new_title       = sanitize_text_field( wp_unslash( $_POST['post_title'] ?? '' ) );
 		$new_excerpt     = wp_kses_post( wp_unslash( $_POST['post_excerpt'] ?? '' ) );
 		$post_status_raw = isset( $_POST['post_status'] ) ? sanitize_key( wp_unslash( $_POST['post_status'] ) ) : '';
-		$new_status      = in_array( $post_status_raw, array( 'publish', 'draft' ), true )
+		$product_status  = in_array( $post_status_raw, array( 'publish', 'draft', 'hidden', 'archive', 'delete' ), true )
 			? $post_status_raw
 			: 'draft';
+		$new_status      = in_array( $product_status, array( 'publish', 'hidden' ), true ) ? 'publish' : 'draft';
+
+		if ('delete' === $product_status) {
+			wp_trash_post( $product_id );
+			wp_safe_redirect( admin_url( 'admin.php?page=bsc-products&deleted=1' ) );
+			exit;
+		}
 
 		wp_update_post(
 			array(
@@ -152,8 +195,52 @@ function bsc_render_product_edit_page(): void {
 			)
 		);
 
+		$product = wc_get_product( $product_id );
+		if (!$product instanceof WC_Product) {
+			wp_die( esc_html__( 'Producto no encontrado.', 'bsc-2-0' ) );
+		}
+
+		bsc_apply_product_edit_status( $product_id, $product, $product_status );
+
 		$sku = sanitize_text_field( wp_unslash( $_POST['_sku'] ?? '' ) );
 		update_post_meta( $product_id, '_sku', $sku );
+
+		$regular_price        = bsc_sanitize_product_price_value( wp_unslash( $_POST['_regular_price'] ?? '' ) );
+		$discount_percent_raw = isset( $_POST['_discount_percent'] )
+			? trim( str_replace( ',', '.', sanitize_text_field( wp_unslash( $_POST['_discount_percent'] ) ) ) )
+			: '';
+
+		if ($regular_price === null) {
+			wp_die( esc_html__( 'Precio invalido.', 'bsc-2-0' ) );
+		}
+
+		$sale_price = '';
+		if ($discount_percent_raw !== '') {
+			if (!is_numeric( $discount_percent_raw )) {
+				wp_die( esc_html__( 'Descuento invalido.', 'bsc-2-0' ) );
+			}
+
+			$discount_percent = (float) $discount_percent_raw;
+			if ($discount_percent < 0 || $discount_percent >= 100) {
+				wp_die( esc_html__( 'El descuento debe estar entre 0% y 99.99%.', 'bsc-2-0' ) );
+			}
+
+			if ($discount_percent > 0) {
+				if ($regular_price === '') {
+					wp_die( esc_html__( 'Descuento invalido.', 'bsc-2-0' ) );
+				}
+
+				$sale_price = wc_format_decimal(
+					(float) $regular_price * ( ( 100 - $discount_percent ) / 100 ),
+					wc_get_price_decimals()
+				);
+			}
+		}
+
+		$price_error = bsc_update_product_price_values( $product, $regular_price, $sale_price );
+		if ($price_error !== null) {
+			wp_die( esc_html( $price_error ) );
+		}
 
 		$thumbnail_id = absint( $_POST['_thumbnail_id'] ?? 0 );
 		if ($thumbnail_id) {
@@ -214,6 +301,16 @@ function bsc_render_product_edit_page(): void {
 
 	$stock                   = BSC_Stock::get_stock( $product_id );
 	$sku                     = $product->get_sku();
+	$product_status          = bsc_get_product_edit_status_value( $post, $product );
+	$regular_price           = $product->get_regular_price();
+	$sale_price              = $product->get_sale_price();
+	$discount_percent        = '';
+	if ($regular_price !== '' && $sale_price !== '' && (float) $regular_price > 0) {
+		$discount_percent = wc_format_decimal(
+			( 1 - ( (float) $sale_price / (float) $regular_price ) ) * 100,
+			2
+		);
+	}
 	$gallery                 = $product->get_gallery_image_ids();
 	$thumbnail_id            = get_post_thumbnail_id( $product_id );
 	$thumbnail_src           = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'medium' ) : '';
@@ -273,11 +370,49 @@ function bsc_render_product_edit_page(): void {
 						</label>
 
 						<label class="bsc-admin-product-edit__field">
+							<span class="bsc-admin-product-edit__field-label">Precio regular (COP)</span>
+							<input
+								type="number"
+								min="0"
+								step="1"
+								inputmode="numeric"
+								name="_regular_price"
+								value="<?php echo esc_attr( $regular_price ); ?>"
+								class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
+							>
+						</label>
+
+						<label class="bsc-admin-product-edit__field">
+							<span class="bsc-admin-product-edit__field-label">Descuento (%)</span>
+							<input
+								type="number"
+								min="0"
+								max="99.99"
+								step="0.01"
+								inputmode="decimal"
+								name="_discount_percent"
+								value="<?php echo esc_attr( $discount_percent ); ?>"
+								placeholder="0"
+								class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
+							>
+							<span class="bsc-admin-product-edit__field-note">
+								Dejalo vacio o en 0 para quitar el descuento.
+								<?php if ($sale_price !== '') : ?>
+									Precio con descuento actual: <?php echo wp_kses_post( wc_price( (float) $sale_price ) ); ?>.
+								<?php endif; ?>
+							</span>
+						</label>
+
+						<label class="bsc-admin-product-edit__field">
 							<span class="bsc-admin-product-edit__field-label">Estado</span>
 							<select name="post_status">
-								<option value="publish" <?php selected( $post->post_status, 'publish' ); ?>>Publicado</option>
-								<option value="draft" <?php selected( $post->post_status, 'draft' ); ?>>Borrador</option>
+								<option value="publish" <?php selected( $product_status, 'publish' ); ?>>Publicado</option>
+								<option value="draft" <?php selected( $product_status, 'draft' ); ?>>Borrador</option>
+								<option value="hidden" <?php selected( $product_status, 'hidden' ); ?>>Oculto</option>
+								<option value="archive" <?php selected( $product_status, 'archive' ); ?>>Archivado</option>
+								<option value="delete">Borrar</option>
 							</select>
+							<span class="bsc-admin-product-edit__field-note">Borrar envia el producto a la papelera.</span>
 						</label>
 
 						<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--checkbox">

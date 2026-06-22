@@ -50,6 +50,54 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('#profile-button-mobile').first()).toBeVisible();
   });
 
+  test('header search hides brand suggestions', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for header search smoke');
+
+    await page.route('**/wp-admin/admin-ajax.php*', async (route) => {
+      const request = route.request();
+
+      if (request.method() === 'GET' && request.url().includes('action=bsc_search_products')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: {
+              products: [],
+              suggestions: [{ label: 'TOCOBO', meta: 'Marca', url: '/marca/tocobo/' }],
+            },
+          }),
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    await gotoAndStabilize(page, routes.home);
+
+    const isDesktop = testInfo.project.name === 'desktop';
+    const toggle = page.locator(isDesktop ? '.bsc__header--desktop .btn-search-toggle' : '#mobile-search-btn').first();
+    const input = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .header-search-input'
+        : '.bsc-mobile-search-panel .header-search-input'
+    ).first();
+    const results = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .search-results'
+        : '.bsc-mobile-search-panel .search-results'
+    ).first();
+
+    await toggle.click();
+    await input.fill('tocobo');
+
+    await expect(results.locator('.search-empty')).toContainText('No se encontraron productos.');
+    await expect(results.locator('.search-result-item--suggestion')).toHaveCount(0);
+    await expect(results).not.toContainText('TOCOBO');
+    await expect(results).not.toContainText('Marca');
+  });
+
   test('mobile menu toggles open and closed', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for mobile-nav smoke');
     test.skip(testInfo.project.name === 'desktop', 'Mobile/tablet-only smoke');

@@ -40,22 +40,70 @@ class BSCShopPage {
 	 * Example: group-skin-care → skin-care-rutina
 	 */
 	private function getDefaultChildTermForGroup( WP_Term $cat ): ?WP_Term {
+		$cache_key      = 'bsc_default_child_term_' . $cat->term_id;
+		$cached_term_id = (int) get_transient( $cache_key );
+		if ( $cached_term_id > 0 ) {
+			$cached_term = get_term( $cached_term_id, 'product_cat' );
+			if ( $cached_term instanceof WP_Term && ! is_wp_error( $cached_term ) ) {
+				return $cached_term;
+			}
+		}
 
 		// Dictionary: parent group slug → child slug
 		$map = array(
-			'group-skin-care' => 'sk-rutina',
-			'group-hair-care' => 'hc-rutina',
-			'group-make-up'   => 'mk-productos',
+			'group-skin-care' => array( 'sk-rutina', 'skin-care-rutina', 'rutina-skin-care', 'skin-care' ),
+			'group-hair-care' => array( 'hc-rutina', 'hair-care-rutina', 'rutina-hair-care', 'hair-care' ),
+			'group-make-up'   => array( 'mk-productos', 'make-up-productos', 'productos-make-up', 'make-up' ),
 		);
 
 		if (!isset( $map[ $cat->slug ] )) {
 			return null;
 		}
 
-		$childSlug = $map[ $cat->slug ];
-		$childTerm = get_term_by( 'slug', $childSlug, 'product_cat' );
+		$candidates = array();
 
-		return ( $childTerm instanceof WP_Term ) ? $childTerm : null;
+		foreach ($map[ $cat->slug ] as $child_slug) {
+			$child_term = get_term_by( 'slug', $child_slug, 'product_cat' );
+			if ($child_term instanceof WP_Term) {
+				$candidates[ $child_term->term_id ] = $child_term;
+			}
+		}
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'parent'     => $cat->term_id,
+			)
+		);
+
+		if (is_array( $children ) && !is_wp_error( $children )) {
+			foreach ($children as $child_term) {
+				if ($child_term instanceof WP_Term) {
+					$candidates[ $child_term->term_id ] = $child_term;
+				}
+			}
+		}
+
+		foreach ($candidates as $candidate) {
+			if ($this->termHasVisibleProducts( $candidate )) {
+				set_transient( $cache_key, (string) $candidate->term_id, 5 * MINUTE_IN_SECONDS );
+				return $candidate;
+			}
+		}
+
+		if ($this->termHasVisibleProducts( $cat )) {
+			set_transient( $cache_key, (string) $cat->term_id, 5 * MINUTE_IN_SECONDS );
+			return $cat;
+		}
+
+		$fallback = reset( $candidates ) ?: null;
+		if ( $fallback instanceof WP_Term ) {
+			set_transient( $cache_key, (string) $fallback->term_id, 5 * MINUTE_IN_SECONDS );
+		}
+
+		return $fallback;
 	}
 
 	/**
@@ -96,11 +144,178 @@ class BSCShopPage {
 	}
 
 	private function addAvailableStockConstraint( array $args ): array {
+		if (function_exists( 'bsc_apply_public_product_query_constraints' )) {
+			$args = bsc_apply_public_product_query_constraints( $args );
+		}
+
 		if (class_exists( 'BSC_Stock' )) {
 			$args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
 		}
 
 		return $args;
+	}
+
+	private function termHasVisibleProducts( WP_Term $term ): bool {
+		$cache_key = 'bsc_term_has_visible_products_' . $term->term_id;
+		$cached    = get_transient( $cache_key );
+		if ( '1' === $cached ) {
+			return true;
+		}
+		if ( '0' === $cached ) {
+			return false;
+		}
+
+		$has_products = ! empty( $this->getVisibleProductIdsForTerm( $term, 1, 24 ) );
+		set_transient( $cache_key, $has_products ? '1' : '0', 5 * MINUTE_IN_SECONDS );
+
+		return $has_products;
+	}
+
+	private function normalizeProductIds( array $product_ids ): array {
+		return array_values( array_unique( array_filter( array_map( 'absint', $product_ids ) ) ) );
+	}
+
+	private function primeProductCardCaches( array $product_ids ): void {
+		$product_ids = $this->normalizeProductIds( $product_ids );
+		if ( empty( $product_ids ) ) {
+			return;
+		}
+
+		update_meta_cache( 'post', $product_ids );
+		update_object_term_cache( $product_ids, 'product' );
+
+		$image_ids = array();
+		foreach ( $product_ids as $product_id ) {
+			$image_id = (int) get_post_meta( $product_id, '_thumbnail_id', true );
+			if ( $image_id > 0 ) {
+				$image_ids[] = $image_id;
+			}
+		}
+
+		$image_ids = $this->normalizeProductIds( $image_ids );
+		if ( ! empty( $image_ids ) ) {
+			update_meta_cache( 'post', $image_ids );
+		}
+	}
+
+	private function getProductCategoryTermsByProductId( array $product_ids ): array {
+		$product_ids = $this->normalizeProductIds( $product_ids );
+		if ( empty( $product_ids ) ) {
+			return array();
+		}
+
+		$terms = wp_get_object_terms(
+			$product_ids,
+			'product_cat',
+			array(
+				'fields' => 'all_with_object_id',
+			)
+		);
+
+		if ( is_wp_error( $terms ) || ! is_array( $terms ) ) {
+			return array();
+		}
+
+		$terms_by_product_id = array();
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof WP_Term ) {
+				continue;
+			}
+
+			$object_id = (int) ( $term->object_id ?? 0 );
+			if ( $object_id <= 0 ) {
+				continue;
+			}
+
+			$terms_by_product_id[ $object_id ][] = $term;
+		}
+
+		return $terms_by_product_id;
+	}
+
+	private function productIdHasCatalogStock( int $product_id ): bool {
+		if ( $product_id <= 0 ) {
+			return false;
+		}
+
+		if ( class_exists( 'BSC_Stock' ) && BSC_Stock::has_dual_stock( $product_id ) ) {
+			return BSC_Stock::get_total_stock( $product_id ) > 0;
+		}
+
+		return 'instock' === (string) get_post_meta( $product_id, '_stock_status', true );
+	}
+
+	private function getVisibleProductIdsForTerm( WP_Term $term, int $limit, int $batch_size = 240 ): array {
+		$limit      = max( 1, $limit );
+		$batch_size = max( $limit, $batch_size );
+		$visible    = array();
+		$page       = 1;
+
+		do {
+			$tax_query = array(
+				array(
+					'taxonomy'         => 'product_cat',
+					'field'            => 'term_id',
+					'terms'            => array( $term->term_id ),
+					'include_children' => true,
+				),
+			);
+
+			if ( function_exists( 'bsc_get_public_product_visibility_tax_query' ) ) {
+				$visibility_tax_query = bsc_get_public_product_visibility_tax_query( 'catalog' );
+				if ( ! empty( $visibility_tax_query ) ) {
+					$tax_query[] = $visibility_tax_query;
+				}
+			}
+
+			if ( count( $tax_query ) > 1 ) {
+				$tax_query['relation'] = 'AND';
+			}
+
+			$query = new WP_Query(
+				array(
+					'post_type'              => 'product',
+					'post_status'            => 'publish',
+					'fields'                 => 'ids',
+					'posts_per_page'         => $batch_size,
+					'paged'                  => $page,
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'orderby'                => array(
+						'menu_order' => 'ASC',
+						'date'       => 'DESC',
+					),
+					'tax_query'              => $tax_query,
+				)
+			);
+
+			$candidate_ids = $this->normalizeProductIds( $query->posts );
+			if ( empty( $candidate_ids ) ) {
+				break;
+			}
+
+			update_meta_cache( 'post', $candidate_ids );
+
+			foreach ( $candidate_ids as $product_id ) {
+				if ( '1' === (string) get_post_meta( $product_id, '_bsc_product_archived', true ) ) {
+					continue;
+				}
+
+				if ( ! $this->productIdHasCatalogStock( $product_id ) ) {
+					continue;
+				}
+
+				$visible[] = $product_id;
+				if ( count( $visible ) >= $limit ) {
+					break 2;
+				}
+			}
+
+			++$page;
+		} while ( count( $candidate_ids ) === $batch_size && $page <= 5 );
+
+		return array_slice( $visible, 0, $limit );
 	}
 
 	private function shouldCollapseMiddleBreadcrumb( ?WP_Term $grandparent, ?WP_Term $parent ): bool {
@@ -285,16 +500,6 @@ class BSCShopPage {
 			echo "<p class='bsc__description bsc__description--description-category'>" . wp_kses_post( $cat->description ) . '</p>';
 		}
 
-		// 1) Subcats directas del grupo (si las quieres usar luego)
-		$subcats = get_terms(
-			array(
-				'taxonomy'   => 'product_cat',
-				'hide_empty' => false,
-				'parent'     => $cat->term_id,
-			)
-		);
-		// $this->renderCategoryGrid($subcats); // si quieres el grid normal
-
 		// 2) Default child según diccionario (skin-care-rutina, etc.)
 		$defaultChild = $this->getDefaultChildTermForGroup( $cat );
 
@@ -320,28 +525,27 @@ class BSCShopPage {
 		// --- sub-subcategorías (botones) ---
 		$subsubcats = get_terms(
 			array(
-				'taxonomy'   => 'product_cat',
-				'hide_empty' => false,
-				'parent'     => $defaultChild->term_id,
+				'taxonomy'               => 'product_cat',
+				'hide_empty'             => false,
+				'parent'                 => $defaultChild->term_id,
+				'update_term_meta_cache' => false,
 			)
 		);
 
 		// Para la lógica de filtrado, queremos todos los descendientes
 		$descendants = get_terms(
 			array(
-				'taxonomy'   => 'product_cat',
-				'hide_empty' => false,
-				'child_of'   => $defaultChild->term_id,
+				'taxonomy'               => 'product_cat',
+				'hide_empty'             => false,
+				'child_of'               => $defaultChild->term_id,
+				'fields'                 => 'id=>slug',
+				'update_term_meta_cache' => false,
 			)
 		);
 
 		$descendant_slugs = array();
-		if (!is_wp_error( $descendants )) {
-			foreach ($descendants as $t) {
-				if ($t instanceof WP_Term) {
-					$descendant_slugs[] = $t->slug;
-				}
-			}
+		if ( is_array( $descendants ) && ! is_wp_error( $descendants ) ) {
+			$descendant_slugs = array_values( array_map( 'strval', $descendants ) );
 		}
 
 		echo "<section class='bsc__default-subsubcategory'>";
@@ -432,14 +636,18 @@ class BSCShopPage {
 		// --- productos del defaultChild + todos sus descendientes ---
 		// Cap at 120 products: client-side filter needs all records upfront,
 		// but -1 causes full table scan and OOM on large catalogues.
-		$products_query = new WP_Query(
-			$this->addAvailableStockConstraint(
-				array(
-					'post_type'      => 'product',
-					'post_status'    => 'publish',
-					'posts_per_page' => 120,
+		$product_ids_for_level = $this->getVisibleProductIdsForTerm( $defaultChild, 120 );
+		$products_query        = new WP_Query(
+			array(
+					'post_type'              => 'product',
+					'post_status'            => 'publish',
+					'post__in'               => ! empty( $product_ids_for_level ) ? $product_ids_for_level : array( 0 ),
+					'orderby'                => 'post__in',
+					'posts_per_page'         => max( 1, count( $product_ids_for_level ) ),
 					'no_found_rows'  => true, // skip COUNT(*) — pagination not needed here
-					'tax_query'      => array(
+					'update_post_meta_cache' => true,
+					'update_post_term_cache' => true,
+					'tax_query'              => array(
 						array(
 							'taxonomy'         => 'product_cat',
 							'field'            => 'term_id',
@@ -447,7 +655,6 @@ class BSCShopPage {
 							'include_children' => true,
 						),
 					),
-				)
 			)
 		);
 
@@ -465,7 +672,10 @@ class BSCShopPage {
 
 		if ($products_query->have_posts()) {
 
-			$card_index = 0;
+			$product_ids                 = wp_list_pluck( $products_query->posts, 'ID' );
+			$this->primeProductCardCaches( $product_ids );
+			$product_terms_by_product_id = $this->getProductCategoryTermsByProductId( $product_ids );
+			$card_index                  = 0;
 			while ($products_query->have_posts()) {
 				$products_query->the_post();
 				global $product;
@@ -475,7 +685,8 @@ class BSCShopPage {
 				}
 
 				// Categorías del producto para usar en data-subcat
-				$prod_terms     = get_the_terms( $product->get_id(), 'product_cat' );
+				$product_id     = $product->get_id();
+				$prod_terms     = $product_terms_by_product_id[ $product_id ] ?? array();
 				$slugs_for_data = array();
 
 				if (!is_wp_error( $prod_terms ) && !empty( $prod_terms )) {
@@ -501,7 +712,7 @@ class BSCShopPage {
 
 				// Render card normal
 				$card = new BSC_Products_Card();
-				$card->setProduct( $product );
+				$card->setProduct( $product, $prod_terms );
 				$card->setImagePriority( $card_index === 0 );
 				$card->render();
 				++$card_index;
@@ -587,11 +798,13 @@ class BSCShopPage {
 
 		$args = $this->addAvailableStockConstraint(
 			array(
-				'post_type'      => 'product',
-				'post_status'    => 'publish',
-				'posts_per_page' => 24,
-				'paged'          => $paged,
-				'tax_query'      => array(
+				'post_type'              => 'product',
+				'post_status'            => 'publish',
+				'posts_per_page'         => 24,
+				'paged'                  => $paged,
+				'update_post_meta_cache' => true,
+				'update_post_term_cache' => true,
+				'tax_query'              => array(
 					array(
 						'taxonomy' => 'product_cat',
 						'field'    => 'slug',
@@ -623,13 +836,16 @@ class BSCShopPage {
 		$query = new WP_Query( $args );
 
 		if ($query->have_posts()) {
-			$card_index = 0;
+			$product_ids                 = wp_list_pluck( $query->posts, 'ID' );
+			$this->primeProductCardCaches( $product_ids );
+			$product_terms_by_product_id = $this->getProductCategoryTermsByProductId( $product_ids );
+			$card_index                  = 0;
 			while ($query->have_posts()) {
 				$query->the_post();
 				global $product;
 				if ($product instanceof WC_Product) {
 					$card = new BSC_Products_Card();
-					$card->setProduct( $product );
+					$card->setProduct( $product, $product_terms_by_product_id[ $product->get_id() ] ?? array() );
 					$card->setImagePriority( $card_index === 0 );
 					$card->render();
 					++$card_index;

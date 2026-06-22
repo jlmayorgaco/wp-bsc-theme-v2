@@ -1,23 +1,20 @@
-@use "../../tokens/public" as bsc;
-
 $menu-title-font: 'Helvetica', sans-serif;
 
 .search-result-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.5rem;
+  padding: 0.625rem 0.5rem;
   cursor: pointer;
 }
 
 .search-result-item:hover,
 .search-result-item.is-active {
-  background-color: #f4f4f4;
+  background-color: #f7f7f7;
 }
 
 .search-result-item.is-active {
-  outline: 2px solid #333;
-  outline-offset: -2px;
+  outline: none;
 }
 
 .search-result-item--all {
@@ -28,12 +25,6 @@ $menu-title-font: 'Helvetica', sans-serif;
   font-weight: 700;
   letter-spacing: 0;
   border-top: 1px solid #e7e7e7;
-}
-
-.search-result-item--suggestion {
-  min-height: 44px;
-  border-left: 3px solid bsc.$brand;
-  background: bsc.$surface-soft;
 }
 
 .search-result-image {
@@ -50,10 +41,11 @@ $menu-title-font: 'Helvetica', sans-serif;
   right: var(--header-search-right, 0px);
   background: white;
   z-index: 1000;
-  width: 400px;
-  border: 1px solid #333333;
+  width: min(400px, calc(100vw - 32px));
+  border: 0;
   border-radius: 0;
-  padding: 0.5em;
+  padding: 0.75rem 1rem 0.875rem;
+  box-shadow: 0 14px 30px rgba(51, 51, 51, 0.1);
   display: none;
 
   &.visible {
@@ -62,19 +54,22 @@ $menu-title-font: 'Helvetica', sans-serif;
 
   .header-search-input {
     width: 100%;
-    padding: 0.5em;
+    padding: 0.25rem 0 0.625rem;
     font-size: 1em;
     border: none;
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-    letter-spacing: 1px;
+    outline: none;
+    letter-spacing: 0;
     font-family: $menu-title-font;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid rgba(51, 51, 51, 0.35);
     background: transparent;
+    box-shadow: none;
   }
 
+  .header-search-input:focus,
   .header-search-input:focus-visible {
-    outline-color: #333;
+    border-bottom-color: #333;
+    outline: none;
+    box-shadow: none;
   }
 
   .search-results {
@@ -105,7 +100,8 @@ $menu-title-font: 'Helvetica', sans-serif;
   z-index: 9999;
   padding: 12px 16px;
   border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 0;
+  box-shadow: 0 12px 24px rgba(51, 51, 51, 0.08);
   box-sizing: border-box;
   display: none;
 }
@@ -120,18 +116,26 @@ $menu-title-font: 'Helvetica', sans-serif;
   padding: 0 14px;
   font-size: 16px;
   font-family: $menu-title-font;
-  letter-spacing: 0.5px;
-  border: 1px solid #333;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
+  letter-spacing: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(51, 51, 51, 0.35);
+  outline: none;
   background: #fff;
   box-sizing: border-box;
+  box-shadow: none;
 }
 
-.bsc-mobile-search-panel .header-search-input:focus-visible,
+.bsc-mobile-search-panel .header-search-input:focus,
+.bsc-mobile-search-panel .header-search-input:focus-visible {
+  border-bottom-color: #333;
+  outline: none;
+  box-shadow: none;
+}
+
+.search-result-item:focus,
 .search-result-item:focus-visible {
-  outline: 2px solid #333;
-  outline-offset: 2px;
+  outline: none;
+  background-color: #f7f7f7;
 }
 
 .bsc-mobile-search-panel .search-results {

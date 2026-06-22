@@ -156,9 +156,9 @@ class BSC_Growth_Skin_Quiz {
 							<button type="button" class="bsc-skin-quiz__saved-button" data-bsc-restore-routine>Ver recomendación</button>
 						</div>
 						<?php self::render_ai_visual(); ?>
-						<div class="bsc-skin-quiz__bundle-list is-active" data-bsc-skin-quiz-bundles data-bsc-result-panel="routine">
+						<div class="bsc-skin-quiz__bundle-list is-empty is-active" data-bsc-skin-quiz-bundles data-bsc-result-panel="routine">
 							<div class="bsc-skin-quiz__empty-results" data-bsc-empty-results>
-								<span class="bsc-skin-quiz__empty-results-icon" aria-hidden="true"><i class="fas fa-sparkles"></i></span>
+								<span class="bsc-skin-quiz__empty-results-icon" aria-hidden="true"><i class="fas fa-wand-magic-sparkles"></i></span>
 								<strong>Tu rutina ideal te espera</strong>
 								<p>Responde las preguntas para descubrir tu rutina personalizada con productos listos para agregar al carrito.</p>
 							</div>
@@ -402,25 +402,26 @@ class BSC_Growth_Skin_Quiz {
 
 						<div class="bsc-skin-quiz__mirror-empty" data-bsc-camera-empty>
 							<span class="bsc-skin-quiz__mirror-ring" aria-hidden="true"></span>
-							<strong>Espejo de análisis</strong>
+							<strong>Tu selfie aquí</strong>
+							<span>Elige una opción abajo</span>
 						</div>
 					</div>
 
-					<div class="bsc-skin-quiz__photo-actions">
-						<button type="button" class="bsc-skin-quiz__photo-toggle" data-bsc-photo-action="upload" aria-pressed="false">
-							<i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
-							<span>
-								<strong>Subir selfie</strong>
-								<em data-bsc-upload-file>JPG, PNG o WebP</em>
+					<div class="bsc-skin-quiz__photo-source" role="group" aria-label="Cómo subir tu foto">
+						<button type="button" class="bsc-skin-quiz__source-card" data-bsc-photo-action="upload" aria-pressed="false">
+							<span class="bsc-skin-quiz__source-icon" aria-hidden="true">
+								<i class="fas fa-image"></i>
 							</span>
+							<strong>Desde galería</strong>
+							<em data-bsc-upload-file>JPG · PNG · WebP</em>
 						</button>
 
-						<button type="button" class="bsc-skin-quiz__photo-toggle" data-bsc-photo-action="camera" aria-pressed="false">
-							<i class="fas fa-camera" aria-hidden="true"></i>
-							<span>
-								<strong>Abrir cámara</strong>
-								<em>Vista como espejo</em>
+						<button type="button" class="bsc-skin-quiz__source-card" data-bsc-photo-action="camera" aria-pressed="false">
+							<span class="bsc-skin-quiz__source-icon" aria-hidden="true">
+								<i class="fas fa-camera"></i>
 							</span>
+							<strong>Tomar selfie</strong>
+							<em>Cámara frontal</em>
 						</button>
 					</div>
 				</div>
@@ -456,6 +457,7 @@ class BSC_Growth_Skin_Quiz {
 						<option value="barrera">Barrera</option>
 						<option value="glow">Glow</option>
 						<option value="protector-solar">Protector solar</option>
+						<option value="lineas">Lineas / firmeza</option>
 					</select>
 				</label>
 
@@ -624,6 +626,27 @@ class BSC_Growth_Skin_Quiz {
 						<span>Base</span>
 						<strong data-bsc-ai-base-note>Foto + quiz</strong>
 					</div>
+				</div>
+				<div class="bsc-skin-quiz__review" data-bsc-ai-review>
+					<div class="bsc-skin-quiz__review-header">
+						<span>Reseña BSC</span>
+						<strong data-bsc-ai-review-headline>Lectura en preparación</strong>
+						<p data-bsc-ai-review-summary>Sube una foto y completa el quiz para ver una lectura clara de tipo de piel, necesidades y productos.</p>
+					</div>
+					<dl class="bsc-skin-quiz__review-grid">
+						<div>
+							<dt>Tipo de piel</dt>
+							<dd data-bsc-ai-review-skin>--</dd>
+						</div>
+						<div>
+							<dt>Necesita</dt>
+							<dd data-bsc-ai-review-needs>--</dd>
+						</div>
+						<div>
+							<dt>Productos</dt>
+							<dd data-bsc-ai-review-products>--</dd>
+						</div>
+					</dl>
 				</div>
 				<ul class="bsc-skin-quiz__diagnosis-needs" data-bsc-ai-needs></ul>
 				<div class="bsc-skin-quiz__diagnosis-bars-title">
@@ -798,6 +821,7 @@ class BSC_Growth_Skin_Quiz {
 			'glow'           => 'glow',
 			'barrera'        => 'barrera',
 			'brotes'         => 'acne',
+			'lineas'         => 'lineas',
 		);
 
 		if ( isset( $goal_map[ $skin_goal ] ) ) {
@@ -1431,6 +1455,7 @@ class BSC_Growth_Skin_Quiz {
 			'glow'           => 'Glow saludable',
 			'barrera'        => 'Barrera fuerte',
 			'brotes'         => 'Menos brotes',
+			'lineas'         => 'Lineas y firmeza',
 		);
 	}
 
@@ -1453,6 +1478,7 @@ class BSC_Growth_Skin_Quiz {
 			'barrera'         => 'Barrera',
 			'glow'            => 'Glow',
 			'protector-solar' => 'Protector solar',
+			'lineas'          => 'Lineas / firmeza',
 		);
 	}
 

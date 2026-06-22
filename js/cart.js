@@ -40,11 +40,11 @@ jQuery(function ($) {
       || currentPath.endsWith('/checkout');
   }
 
-  function redirectToEmptyCartFromCheckout() {
+  function redirectToEmptyCheckoutState() {
     if (!isCheckoutPage()) return false;
 
-    const cartUrl = window.bsc_ajax?.cart_url || '/cart/';
-    window.location.assign(cartUrl);
+    const checkoutUrl = window.bsc_ajax?.checkout_url || '/checkout/';
+    window.location.assign(checkoutUrl);
 
     return true;
   }
@@ -223,7 +223,7 @@ jQuery(function ($) {
 
       syncCartCount(cartCount);
 
-      if (Number(cartCount) === 0 && redirectToEmptyCartFromCheckout()) {
+      if (Number(cartCount) === 0 && redirectToEmptyCheckoutState()) {
         return;
       }
 
@@ -298,9 +298,16 @@ jQuery(function ($) {
         return;
       }
 
+      const serverCartCount = res.data?.cart_count;
+
+      if (Number(serverCartCount) === 0 && redirectToEmptyCheckoutState()) {
+        syncCartCount(0);
+        return;
+      }
+
       if (emptiesCheckout) {
         syncCartCount(0);
-        redirectToEmptyCartFromCheckout();
+        redirectToEmptyCheckoutState();
         return;
       }
 

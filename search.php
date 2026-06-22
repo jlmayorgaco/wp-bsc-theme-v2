@@ -25,34 +25,44 @@ if ( ! function_exists( 'bsc_search_get_product_ids' ) ) {
 
 		$collected_ids = array();
 
-		$title_query   = new WP_Query(
-			array(
-				'post_type'      => 'product',
-				'post_status'    => 'publish',
-				's'              => $query,
-				'fields'         => 'ids',
-				'posts_per_page' => $limit * 2,
-				'no_found_rows'  => true,
-			)
+		$title_args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			's'                      => $query,
+			'fields'                 => 'ids',
+			'posts_per_page'         => $limit * 4,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		);
+		if ( function_exists( 'bsc_search_apply_public_query_constraints' ) ) {
+			$title_args = bsc_search_apply_public_query_constraints( $title_args );
+		}
+
+		$title_query  = new WP_Query( $title_args );
 		$collected_ids = array_merge( $collected_ids, array_map( 'absint', $title_query->posts ) );
 
-		$sku_query     = new WP_Query(
-			array(
-				'post_type'      => 'product',
-				'post_status'    => 'publish',
-				'fields'         => 'ids',
-				'posts_per_page' => $limit,
-				'no_found_rows'  => true,
-				'meta_query'     => array(
-					array(
-						'key'     => '_sku',
-						'value'   => $query,
-						'compare' => 'LIKE',
-					),
+		$sku_args = array(
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'fields'                 => 'ids',
+			'posts_per_page'         => $limit * 2,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'meta_query'             => array(
+				array(
+					'key'     => '_sku',
+					'value'   => $query,
+					'compare' => 'LIKE',
 				),
-			)
+			),
 		);
+		if ( function_exists( 'bsc_search_apply_public_query_constraints' ) ) {
+			$sku_args = bsc_search_apply_public_query_constraints( $sku_args );
+		}
+
+		$sku_query     = new WP_Query( $sku_args );
 		$collected_ids = array_merge( $collected_ids, array_map( 'absint', $sku_query->posts ) );
 
 		$matching_terms = get_terms(
@@ -65,37 +75,33 @@ if ( ! function_exists( 'bsc_search_get_product_ids' ) ) {
 		);
 
 		if ( ! empty( $matching_terms ) && ! is_wp_error( $matching_terms ) ) {
-			$term_query    = new WP_Query(
-				array(
-					'post_type'      => 'product',
-					'post_status'    => 'publish',
-					'fields'         => 'ids',
-					'posts_per_page' => $limit,
-					'no_found_rows'  => true,
-					'tax_query'      => array(
-						array(
-							'taxonomy' => 'product_cat',
-							'field'    => 'term_id',
-							'terms'    => array_map( 'absint', $matching_terms ),
-						),
+			$term_args = array(
+				'post_type'              => 'product',
+				'post_status'            => 'publish',
+				'fields'                 => 'ids',
+				'posts_per_page'         => $limit * 2,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'tax_query'              => array(
+					array(
+						'taxonomy' => 'product_cat',
+						'field'    => 'term_id',
+						'terms'    => array_map( 'absint', $matching_terms ),
 					),
-				)
+				),
 			);
+			if ( function_exists( 'bsc_search_apply_public_query_constraints' ) ) {
+				$term_args = bsc_search_apply_public_query_constraints( $term_args );
+			}
+
+			$term_query    = new WP_Query( $term_args );
 			$collected_ids = array_merge( $collected_ids, array_map( 'absint', $term_query->posts ) );
 		}
 
-		$eligible_ids = array();
-		foreach ( array_values( array_unique( $collected_ids ) ) as $product_id ) {
-			$product = wc_get_product( $product_id );
-			if (
-				$product instanceof WC_Product
-				&& $product->get_status() === 'publish'
-				&& $product->is_purchasable()
-				&& $product->is_in_stock()
-			) {
-				$eligible_ids[] = $product_id;
-			}
-		}
+		$eligible_ids = function_exists( 'bsc_search_filter_eligible_product_ids' )
+			? bsc_search_filter_eligible_product_ids( $collected_ids, 0 )
+			: array_values( array_unique( array_map( 'absint', $collected_ids ) ) );
 
 		$total  = count( $eligible_ids );
 		$offset = max( 0, ( $paged - 1 ) * $limit );

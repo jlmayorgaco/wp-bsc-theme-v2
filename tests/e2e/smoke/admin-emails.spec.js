@@ -30,6 +30,10 @@ test.describe('BSC Emails admin smoke', () => {
   test('emails page loads settings, operational log and previews', async ({ page }, testInfo) => {
     await openEmailsAdmin(page, testInfo);
 
+    await expect(page.getByRole('heading', { name: /Diagnostico SMTP actual/i })).toBeVisible();
+    await expect(page.getByText(/Password SMTP/i).first()).toBeVisible();
+    await expect(page.getByText(/sha256_12|No configurada/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Enviar prueba con debug/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Log operativo de correos de pedidos/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /Templates editables/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Guardar/i })).toBeVisible();

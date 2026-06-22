@@ -23,10 +23,12 @@ function bsc_enqueue_dashboard_assets( string $hook ): void {
 
 	$css_path = get_template_directory() . '/admin/bsc-admin-dashboard.css';
 
+	bsc_enqueue_admin_ui_assets();
+
 	wp_enqueue_style(
 		'bsc-admin-dashboard',
 		get_template_directory_uri() . '/admin/bsc-admin-dashboard.css',
-		array(),
+		array( 'bsc-admin-ui' ),
 		file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
 	);
 }
@@ -532,56 +534,99 @@ function bsc_render_dashboard(): void {
 	$add_to_cart_rate    = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['add_to_cart'], (float) $metric_counters['view_item'] ) : 0.0;
 	$checkout_conversion = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['purchase'], (float) $metric_counters['begin_checkout'] ) : 0.0;
 	$cart_recovery_rate  = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['abandoned_cart_converted'], (float) $metric_counters['abandoned_cart_capture'] ) : 0.0;
+	$low_stock_count     = count( (array) ( $kpis['low_stock_ids'] ?? array() ) );
+	$attention_orders    = (int) $kpis['pendientes'] + (int) $kpis['preparando'];
 	?>
 	<div class="wrap bsc-admin-dashboard">
-		<h1 class="bsc-admin-dashboard__title">
-			BSC Dashboard
-			<form method="post" class="bsc-admin-dashboard__refresh-form">
-				<?php wp_nonce_field( 'bsc_dashboard_action', 'bsc_dashboard_nonce' ); ?>
-				<input type="hidden" name="bsc_dashboard_action" value="clear_cache">
-				<button type="submit" class="page-title-action">Actualizar</button>
-			</form>
-		</h1>
+		<div class="bsc-admin-page-header">
+			<div>
+				<span class="bsc-admin-page-header__eyebrow">Centro operativo</span>
+				<h1 class="bsc-admin-dashboard__title">BSC Dashboard</h1>
+				<p class="bsc-admin-page-header__description">Prioriza pedidos, stock y conversion desde una vista rapida de la operacion.</p>
+			</div>
+			<div class="bsc-admin-page-header__actions">
+				<form method="post" class="bsc-admin-dashboard__refresh-form">
+					<?php wp_nonce_field( 'bsc_dashboard_action', 'bsc_dashboard_nonce' ); ?>
+					<input type="hidden" name="bsc_dashboard_action" value="clear_cache">
+					<button type="submit" class="button">Actualizar datos</button>
+				</form>
+				<?php if ( bsc_current_user_has_bsc_page_access( 'bsc-orders' ) ) : ?>
+					<a class="button button-primary" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>">Ir a pedidos</a>
+				<?php endif; ?>
+			</div>
+		</div>
 		<?php settings_errors( 'bsc_dashboard' ); ?>
 
-		<form method="get" class="bsc-admin-dashboard__filters">
+		<div class="bsc-admin-stat-grid bsc-admin-dashboard__priority-grid">
+			<?php if ( bsc_current_user_has_bsc_page_access( 'bsc-orders' ) ) : ?>
+				<a class="bsc-admin-stat-card bsc-admin-stat-card--interactive<?php echo esc_attr( $attention_orders > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders&order_status=wc-pending' ) ); ?>">
+					<span class="bsc-admin-stat-card__label">Pedidos por atender</span>
+					<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( $attention_orders ) ); ?></span>
+					<span class="bsc-admin-stat-card__help">Pendientes o en preparacion.</span>
+				</a>
+			<?php endif; ?>
+			<?php if ( bsc_current_user_has_bsc_page_access( 'bsc-products' ) ) : ?>
+				<a class="bsc-admin-stat-card bsc-admin-stat-card--interactive<?php echo esc_attr( $low_stock_count > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>">
+					<span class="bsc-admin-stat-card__label">Stock bajo</span>
+					<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( $low_stock_count ) ); ?></span>
+					<span class="bsc-admin-stat-card__help">Productos bajo el umbral de bodega.</span>
+				</a>
+			<?php endif; ?>
+			<?php if ( $can_view_metrics ) : ?>
+				<div class="bsc-admin-stat-card">
+					<span class="bsc-admin-stat-card__label">Busquedas sin resultado</span>
+					<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) $metric_counters['search_no_results'] ) ); ?></span>
+					<span class="bsc-admin-stat-card__help">Oportunidades de catalogo y sinonimos.</span>
+				</div>
+			<?php endif; ?>
+		</div>
+
+		<form method="get" class="bsc-admin-dashboard__filters bsc-admin-filter-panel">
 			<input type="hidden" name="page" value="bsc-dashboard">
-			<label for="dashboard_range">Periodo</label>
-			<select id="dashboard_range" name="dashboard_range">
-				<?php foreach ( bsc_dashboard_range_options() as $range_key => $range_label ) : ?>
-					<option value="<?php echo esc_attr( $range_key ); ?>" <?php selected( $range['key'], $range_key ); ?>>
-						<?php echo esc_html( $range_label ); ?>
-					</option>
-				<?php endforeach; ?>
-			</select>
-			<label for="dashboard_start">Desde</label>
-			<input type="date" id="dashboard_start" name="dashboard_start" value="<?php echo esc_attr( $range['start_date'] ); ?>">
-			<label for="dashboard_end">Hasta</label>
-			<input type="date" id="dashboard_end" name="dashboard_end" value="<?php echo esc_attr( $range['end_date'] ); ?>">
-			<button type="submit" class="button">Aplicar</button>
+			<div class="bsc-admin-field">
+				<label for="dashboard_range">Periodo</label>
+				<select id="dashboard_range" name="dashboard_range">
+					<?php foreach ( bsc_dashboard_range_options() as $range_key => $range_label ) : ?>
+						<option value="<?php echo esc_attr( $range_key ); ?>" <?php selected( $range['key'], $range_key ); ?>>
+							<?php echo esc_html( $range_label ); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<div class="bsc-admin-field">
+				<label for="dashboard_start">Desde</label>
+				<input type="date" id="dashboard_start" name="dashboard_start" value="<?php echo esc_attr( $range['start_date'] ); ?>">
+			</div>
+			<div class="bsc-admin-field">
+				<label for="dashboard_end">Hasta</label>
+				<input type="date" id="dashboard_end" name="dashboard_end" value="<?php echo esc_attr( $range['end_date'] ); ?>">
+			</div>
+			<div class="bsc-admin-filter-panel__actions">
+				<button type="submit" class="button button-primary">Aplicar</button>
+			</div>
 		</form>
 
 		<!-- KPI Cards -->
 		<div class="bsc-admin-dashboard__grid">
 			<?php if ( $can_view_financials ) : ?>
-			<div class="bsc-admin-dashboard__card">
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 				<div class="bsc-admin-dashboard__value"><?php echo wp_kses_post( wc_price( (float) $kpis['ventas_periodo'] ) ); ?></div>
 				<div class="bsc-admin-dashboard__label">Ventas <?php echo esc_html( $range['label'] ); ?></div>
 			</div>
 			<?php endif; ?>
-			<div class="bsc-admin-dashboard__card">
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['pedidos_periodo'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">Pedidos <?php echo esc_html( $range['label'] ); ?></div>
 			</div>
-			<div class="bsc-admin-dashboard__card<?php echo esc_attr( $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : '' ); ?>">
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card<?php echo esc_attr( $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : '' ); ?>">
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['pendientes'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">Pendientes</div>
 			</div>
-			<div class="bsc-admin-dashboard__card">
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['preparando'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">En preparación</div>
 			</div>
-			<div class="bsc-admin-dashboard__card">
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['enviados'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">Enviados</div>
 			</div>
@@ -591,34 +636,34 @@ function bsc_render_dashboard(): void {
 		<section class="bsc-admin-dashboard__metrics" aria-labelledby="bsc-dashboard-ecommerce-metrics">
 			<h2 id="bsc-dashboard-ecommerce-metrics" class="bsc-admin-dashboard__section-title">Metricas ecommerce</h2>
 			<div class="bsc-admin-dashboard__grid bsc-admin-dashboard__grid--metrics">
-				<div class="bsc-admin-dashboard__card">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $metric_counters['view_item'] ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Vistas de producto</div>
 				</div>
-				<div class="bsc-admin-dashboard__card">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $add_to_cart_rate ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Add-to-cart rate</div>
 				</div>
-				<div class="bsc-admin-dashboard__card">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $checkout_conversion ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Conversion checkout</div>
 				</div>
-				<div class="bsc-admin-dashboard__card<?php echo (int) $metric_counters['search_no_results'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card<?php echo (int) $metric_counters['search_no_results'] > 0 ? ' bsc-admin-dashboard__card--warning' : ''; ?>">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $metric_counters['search_no_results'] ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Busquedas sin resultado</div>
 				</div>
-				<div class="bsc-admin-dashboard__card">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( bsc_dashboard_format_percent( $cart_recovery_rate ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Recuperacion carrito</div>
 				</div>
-				<div class="bsc-admin-dashboard__card">
+				<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 					<div class="bsc-admin-dashboard__value"><?php echo esc_html( number_format_i18n( (int) $abandoned_snapshot['active'] ) ); ?></div>
 					<div class="bsc-admin-dashboard__label">Carritos activos</div>
 				</div>
 			</div>
 
 			<div class="bsc-admin-dashboard__insight-panels">
-				<div>
+				<div class="bsc-admin-panel bsc-admin-dashboard__panel">
 					<h3 class="bsc-admin-dashboard__panel-title">Productos mas vistos</h3>
 					<table class="wp-list-table widefat striped">
 						<thead><tr><th>Producto</th><th>Vistas</th><th>Adds</th><th>Compras</th></tr></thead>
@@ -642,7 +687,7 @@ function bsc_render_dashboard(): void {
 					</table>
 				</div>
 
-				<div>
+				<div class="bsc-admin-panel bsc-admin-dashboard__panel">
 					<h3 class="bsc-admin-dashboard__panel-title">Busquedas sin resultado</h3>
 					<table class="wp-list-table widefat striped">
 						<thead><tr><th>Busqueda</th><th>Veces</th><th>Ultima vez</th></tr></thead>
@@ -668,7 +713,7 @@ function bsc_render_dashboard(): void {
 		<div class="bsc-admin-dashboard__panels">
 
 			<!-- Recent orders -->
-			<div>
+			<div class="bsc-admin-panel bsc-admin-dashboard__panel">
 				<h2 class="bsc-admin-dashboard__panel-title">Últimos 5 pedidos</h2>
 				<table class="wp-list-table widefat striped">
 					<thead><tr><th>#</th><th>Cliente</th>
@@ -697,7 +742,7 @@ function bsc_render_dashboard(): void {
 			</div>
 
 			<!-- Low stock alerts -->
-			<div>
+			<div class="bsc-admin-panel bsc-admin-dashboard__panel">
 				<h2 class="bsc-admin-dashboard__panel-title">Stock bodega bajo (< <?php echo esc_html( $kpis['low_threshold'] ); ?>)</h2>
 				<?php if ( ! empty( $kpis['low_stock_ids'] ) ) : ?>
 				<table class="wp-list-table widefat striped bsc-admin-dashboard__low-stock-table">
@@ -720,7 +765,7 @@ function bsc_render_dashboard(): void {
 				<?php endif; ?>
 			</div>
 
-			<div>
+			<div class="bsc-admin-panel bsc-admin-dashboard__panel">
 				<h2 class="bsc-admin-dashboard__panel-title">Accesos rapidos</h2>
 				<?php if ( ! empty( $kpis['quick_links'] ) ) : ?>
 					<div class="bsc-admin-dashboard__quick-links">

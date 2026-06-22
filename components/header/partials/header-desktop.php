@@ -26,12 +26,12 @@
 				</li>
 				<?php if (is_user_logged_in()) : ?>
 					<li class="menu__icon icon--profile">
-						<button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
+						<a id="profile-button" href="<?php echo esc_url( $my_account_url ); ?>" aria-label="Ir a mi perfil" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
 							<div class="image__icon-hoverable">
 								<img class="image__icon icon--normal" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
 								<img class="image__icon icon--hover" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
 							</div>
-						</button>
+						</a>
 						<div id="profile-dropdown" class="bsc__profile-dropdown">
 						<ul>
 							<li class="bsc__profile-dropdown-item--hidden"><a href="<?php echo esc_url( $my_account_url ); ?>">Mi perfil</a></li>
@@ -45,9 +45,9 @@
 					</li>
 					<?php else : ?>
 					<li class="menu__icon icon--profile">
-						<button id="profile-button" type="button" aria-label="Abrir menu de cuenta" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
+						<a id="profile-button" href="<?php echo esc_url( $login_url ); ?>" aria-label="Iniciar sesion" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
 						<i aria-hidden="true" class="dlicon users_single-03"></i>
-						</button>
+						</a>
 						<div id="profile-dropdown" class="bsc__profile-dropdown">
 						<ul>
 							<li><a href="<?php echo esc_url( $login_url ); ?>">Iniciar sesión</a></li>

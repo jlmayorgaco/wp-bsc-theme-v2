@@ -42,7 +42,7 @@ class BSC_Growth_Plugin {
 	}
 
 	public static function cart_url(): string {
-		return is_callable( 'wc_get_cart_url' ) ? (string) call_user_func( 'wc_get_cart_url' ) : home_url( '/cart/' );
+		return self::checkout_url();
 	}
 
 	public static function checkout_url(): string {

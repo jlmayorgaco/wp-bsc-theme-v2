@@ -101,14 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   profileBtn.addEventListener('focus', showDropdown);
-  profileBtn.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (dropdown.classList.contains('visible')) {
-      hideDropdown();
-    } else {
-      showDropdown();
-    }
-  });
 
   dropdown.addEventListener('focusout', () => {
     window.setTimeout(() => {

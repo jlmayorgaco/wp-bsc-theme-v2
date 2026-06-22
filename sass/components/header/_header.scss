@@ -101,7 +101,7 @@ $menu-title-font: 'Helvetica', sans-serif;
   width: var(--header-icons-w);
   height: var(--header-icons-w);
 
-  > button {
+  > :is(button, a) {
     cursor: pointer;
     position: relative;
     width: var(--header-icons-w);
@@ -116,7 +116,7 @@ $menu-title-font: 'Helvetica', sans-serif;
     transition: opacity .15s ease;
   }
 
-  &:hover > button {
+  &:hover > :is(button, a) {
     opacity: .6;
   }
 
@@ -139,8 +139,8 @@ $menu-title-font: 'Helvetica', sans-serif;
     .icon--hover { opacity: 0; }
   }
 
-  > button:hover .icon--hover   { opacity: 1; }
-  > button:hover .icon--normal  { opacity: 0; }
+  > :is(button, a):hover .icon--hover   { opacity: 1; }
+  > :is(button, a):hover .icon--normal  { opacity: 0; }
 }
 
 .menu__icon.menu__icon--hidden {

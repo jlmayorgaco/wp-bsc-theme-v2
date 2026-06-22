@@ -29,6 +29,20 @@ test.describe('BSC admin products smoke', () => {
   test('products list loads and stock history modal opens', async ({ page }, testInfo) => {
     await openAdminProductsPage(page, testInfo);
 
+    await expect(page.locator('.bsc-price-input[data-field="regular_price"]').first()).toBeVisible();
+    await expect(page.locator('.bsc-price-input[data-field="sale_price"]')).toHaveCount(0);
+
+    const discountToggle = page.locator('#bsc-discount-mode-toggle').first();
+    await expect(discountToggle).toBeVisible();
+    await discountToggle.click();
+    await expect(page.locator('#bsc-discount-controls').first()).toBeVisible();
+    await expect(page.locator('#bsc-discount-percent').first()).toBeEnabled();
+    const discountCheckbox = page.locator('.bsc-product-discount-checkbox').first();
+    await expect(discountCheckbox).toBeEnabled();
+    await discountCheckbox.check();
+    await page.locator('#bsc-discount-percent').fill('0');
+    await expect(page.locator('#bsc-apply-discount').first()).toBeEnabled();
+
     const historyButton = page.locator('.bsc-stock-history-btn').first();
     await expect(historyButton).toBeVisible();
     await historyButton.click({ force: true });
@@ -54,6 +68,13 @@ test.describe('BSC admin products smoke', () => {
         'Editar Producto'
       );
       await expect(currentPage.locator('#bsc-select-main-image').first()).toBeVisible();
+      await expect(currentPage.locator('input[name="_regular_price"]').first()).toBeVisible();
+      await expect(currentPage.locator('input[name="_discount_percent"]').first()).toBeVisible();
+      await expect(currentPage.locator('input[name="_sale_price"]')).toHaveCount(0);
+      await expect(currentPage.locator('select[name="post_status"]').first()).toBeVisible();
+      await expect(currentPage.locator('select[name="post_status"] option[value="hidden"]')).toHaveText('Oculto');
+      await expect(currentPage.locator('select[name="post_status"] option[value="archive"]')).toHaveText('Archivado');
+      await expect(currentPage.locator('select[name="post_status"] option[value="delete"]')).toHaveText('Borrar');
       await expect(currentPage.locator('#bsc-select-gallery').first()).toBeVisible();
       await expect(currentPage.locator('#bsc-root-tabs .button').first()).toBeVisible();
       await expect(currentPage.locator('#bsc-cat-branches').first()).not.toBeEmpty();

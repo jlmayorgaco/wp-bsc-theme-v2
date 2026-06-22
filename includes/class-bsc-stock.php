@@ -110,6 +110,22 @@ class BSC_Stock {
 				'compare' => '>',
 				'type'    => 'NUMERIC',
 			),
+			array(
+				'relation' => 'AND',
+				array(
+					'key'     => '_stock_bodega',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => '_stock_tienda',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => '_stock_status',
+					'value'   => 'instock',
+					'compare' => '=',
+				),
+			),
 		);
 	}
 
