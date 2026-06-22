@@ -21,7 +21,7 @@ class BSC_Products_Card {
 	private $image_loading       = 'lazy';
 	private $image_fetchpriority = '';
 
-	public function setProduct( WC_Product $product ): void {
+	public function setProduct( WC_Product $product, ?array $terms = null ): void {
 		$this->id            = $product->get_id();
 		$this->title         = get_the_title( $product->get_id() );
 		$this->price         = $product->get_price_html();
@@ -42,15 +42,27 @@ class BSC_Products_Card {
 		$this->is_purchasable = $product->is_purchasable();
 		$this->is_in_stock    = $product->is_in_stock();
 
-		$terms = get_the_terms( $product->get_id(), 'product_cat' );
-		if ( $terms && ! is_wp_error( $terms ) ) {
-			$this->categories = array_map(
-				static fn( $term ) => $term->name,
-				$terms
-			);
+		if ( null === $terms ) {
+			$terms = get_the_terms( $product->get_id(), 'product_cat' );
 		}
 
-		$this->brand = $this->getProductBrand( $terms ?: array() );
+		if ( is_wp_error( $terms ) || ! is_array( $terms ) ) {
+			$terms = array();
+		}
+
+		$this->setCategoryTerms( $terms );
+	}
+
+	private function setCategoryTerms( array $terms ): void {
+		$this->categories = array();
+
+		foreach ( $terms as $term ) {
+			if ( $term instanceof WP_Term ) {
+				$this->categories[] = $term->name;
+			}
+		}
+
+		$this->brand = $this->getProductBrand( $terms );
 	}
 
 	private function getProductBrand( array $terms ): string {
@@ -141,16 +153,8 @@ class BSC_Products_Card {
 		}
 
 		$formatted_price = wc_format_decimal( $this->raw_price, wc_get_price_decimals() );
-		$in_cart         = false;
-		$quantity        = 0;
-
-		foreach ( WC()->cart->get_cart() as $cart_item ) {
-			if ( (int) $cart_item['product_id'] === (int) $product_id ) {
-				$in_cart  = true;
-				$quantity = $cart_item['quantity'];
-				break;
-			}
-		}
+		$quantity = self::getCartQuantityForProduct( (int) $product_id );
+		$in_cart  = $quantity > 0;
 
 		if ( $in_cart ) {
 			echo '<button
@@ -195,6 +199,27 @@ class BSC_Products_Card {
             data-product_brand="' . esc_attr( $this->brand ) . '"
             aria-label="' . esc_attr( $label ) . '"
         ><span>' . esc_html( $label ) . '</span></button>';
+	}
+
+	private static function getCartQuantityForProduct( int $product_id ): int {
+		static $cart_quantities = null;
+
+		if ( null === $cart_quantities ) {
+			$cart_quantities = array();
+
+			if ( function_exists( 'WC' ) && WC()->cart ) {
+				foreach ( WC()->cart->get_cart() as $cart_item ) {
+					$cart_product_id = (int) ( $cart_item['product_id'] ?? 0 );
+					if ( $cart_product_id <= 0 ) {
+						continue;
+					}
+
+					$cart_quantities[ $cart_product_id ] = (int) ( $cart_quantities[ $cart_product_id ] ?? 0 ) + (int) ( $cart_item['quantity'] ?? 0 );
+				}
+			}
+		}
+
+		return (int) ( $cart_quantities[ $product_id ] ?? 0 );
 	}
 
 	public function render(): void {

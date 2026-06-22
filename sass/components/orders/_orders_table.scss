@@ -31,6 +31,13 @@
         text-decoration: underline;
       }
     }
+
+    .bsc__orders-row.status-cancelled:hover,
+    .bsc__orders-row.status-cancelled:focus-within {
+      transform: none;
+      background-color: transparent;
+      box-shadow: none;
+    }
   }
 
   &-cards {

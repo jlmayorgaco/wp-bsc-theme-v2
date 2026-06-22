@@ -17,8 +17,10 @@
 
     cursor: pointer;
 
-  &:hover {
-    transform: translateY(-8px);
+  &:hover,
+  &:focus-within {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(51, 51, 51, 0.04);
   }
 
   .card__images {
