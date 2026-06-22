@@ -200,6 +200,7 @@ function bsc_get_smtp_settings_debug(): array {
 	unset( $settings['password'] );
 
 	$settings['sources'] = array(
+		'provider' => bsc_get_bsc_smtp_value_source( 'bsc_smtp_provider', 'BSC_SMTP_PROVIDER' ),
 		'enabled'  => bsc_get_bsc_smtp_value_source( 'bsc_smtp_enabled' ),
 		'host'     => bsc_get_bsc_smtp_value_source( 'bsc_smtp_host', 'BSC_SMTP_HOST' ),
 		'port'     => bsc_get_bsc_smtp_value_source( 'bsc_smtp_port', 'BSC_SMTP_PORT' ),
@@ -415,11 +416,13 @@ function bsc_get_email_server_debug(): array {
 
 function bsc_get_email_diagnostic_warnings( array $smtp_settings ): array {
 	$warnings = array();
+	$provider = (string) ( $smtp_settings['provider'] ?? 'custom' );
 	$host     = strtolower( (string) ( $smtp_settings['host'] ?? '' ) );
 	$port     = (int) ( $smtp_settings['port'] ?? 0 );
 	$secure   = strtolower( (string) ( $smtp_settings['secure'] ?? '' ) );
 	$username = (string) ( $smtp_settings['username'] ?? '' );
 	$from     = function_exists( 'bsc_get_email_from_address' ) ? bsc_get_email_from_address() : '';
+	$is_zeptomail = 'zeptomail' === $provider || false !== strpos( $host, 'zeptomail' );
 
 	if ( empty( $smtp_settings['enabled'] ) ) {
 		$warnings[] = 'SMTP BSC esta desactivado. WordPress usara mail() o un plugin externo si existe.';
@@ -441,11 +444,19 @@ function bsc_get_email_diagnostic_warnings( array $smtp_settings ): array {
 		$warnings[] = 'Zoho normalmente usa 465/SSL o 587/TLS. Revisa puerto y cifrado.';
 	}
 
+	if ( $is_zeptomail && '587/tls' !== $port . '/' . $secure ) {
+		$warnings[] = 'ZeptoMail SMTP usa smtp.zeptomail.com con puerto 587 y TLS.';
+	}
+
+	if ( $is_zeptomail && strtolower( $username ) !== 'emailapikey' ) {
+		$warnings[] = 'ZeptoMail SMTP normalmente usa emailapikey como usuario SMTP.';
+	}
+
 	if ( $host !== '' && ( 'ssl' === $secure || 'tls' === $secure ) && ! extension_loaded( 'openssl' ) ) {
 		$warnings[] = 'PHP no tiene OpenSSL cargado; SMTP seguro puede fallar.';
 	}
 
-	if ( $username !== '' && $from !== '' && strtolower( $username ) !== strtolower( $from ) ) {
+	if ( ! $is_zeptomail && false !== strpos( $username, '@' ) && $from !== '' && strtolower( $username ) !== strtolower( $from ) ) {
 		$warnings[] = 'El remitente From no coincide con el usuario SMTP. Zoho puede rechazar remitentes no autorizados.';
 		$warnings[] = sprintf( 'FROM_SMTP_MISMATCH: from=%s smtp_user=%s', $from, $username );
 	}
@@ -496,6 +507,7 @@ function bsc_summarize_smtp_debug_lines( array $lines ): array {
 		'last_server_reply'  => '',
 		'server_errors'      => array(),
 	);
+	$awaiting_data_result = false;
 
 	foreach ( $lines as $line ) {
 		$line = (string) $line;
@@ -512,6 +524,10 @@ function bsc_summarize_smtp_debug_lines( array $lines ): array {
 			$summary['data_seen'] = true;
 		}
 
+		if ( preg_match( '/CLIENT -> SERVER:\s*\.\s*$/i', $line ) ) {
+			$awaiting_data_result = true;
+		}
+
 		if ( false === stripos( $line, 'SERVER -> CLIENT:' ) ) {
 			continue;
 		}
@@ -526,12 +542,17 @@ function bsc_summarize_smtp_debug_lines( array $lines ): array {
 			$summary['auth_accepted_235'] = true;
 		}
 
-		if ( preg_match( '/SERVER -> CLIENT:\s*250\b/i', $line ) ) {
+		if ( $awaiting_data_result && preg_match( '/SERVER -> CLIENT:\s*250\b/i', $line ) ) {
 			$summary['message_accepted'] = true;
+			$awaiting_data_result        = false;
 		}
 
 		if ( preg_match( '/SERVER -> CLIENT:\s*[45][0-9][0-9]\b/i', $line ) ) {
 			$summary['server_errors'][] = $line;
+			if ( $awaiting_data_result ) {
+				$summary['message_accepted'] = false;
+				$awaiting_data_result        = false;
+			}
 		}
 	}
 
@@ -788,16 +809,39 @@ function bsc_sanitize_smtp_secure_value( string $secure ): string {
 	return in_array( $secure, array( 'ssl', 'tls', '' ), true ) ? $secure : 'ssl';
 }
 
+function bsc_sanitize_smtp_provider_value( string $provider ): string {
+	$provider = strtolower( sanitize_key( $provider ) );
+	return in_array( $provider, array( 'custom', 'zeptomail' ), true ) ? $provider : 'custom';
+}
+
 function bsc_save_email_transport_settings_from_post(): void {
 	update_option( 'bsc_email_from_name', sanitize_text_field( (string) wp_unslash( $_POST['bsc_email_from_name'] ?? 'Bubble Skin Care' ) ) );
 	update_option( 'bsc_email_from_address', sanitize_email( (string) wp_unslash( $_POST['bsc_email_from_address'] ?? '' ) ) );
 
+	$provider = bsc_sanitize_smtp_provider_value( (string) wp_unslash( $_POST['bsc_smtp_provider'] ?? 'custom' ) );
+	$host     = sanitize_text_field( (string) wp_unslash( $_POST['bsc_smtp_host'] ?? '' ) );
+	$port     = absint( wp_unslash( $_POST['bsc_smtp_port'] ?? 0 ) );
+	$secure   = bsc_sanitize_smtp_secure_value( (string) wp_unslash( $_POST['bsc_smtp_secure'] ?? '' ) );
+	$username = sanitize_text_field( (string) wp_unslash( $_POST['bsc_smtp_username'] ?? '' ) );
+
+	if ( 'zeptomail' === $provider ) {
+		$host     = false !== strpos( strtolower( $host ), 'zeptomail' ) ? $host : 'smtp.zeptomail.com';
+		$port     = $port > 0 && 465 !== $port ? $port : 587;
+		$secure   = $secure !== '' && 'ssl' !== $secure ? $secure : 'tls';
+		$username = false === strpos( $username, '@' ) && $username !== '' ? $username : 'emailapikey';
+	}
+
+	if ( $port <= 0 ) {
+		$port = 'tls' === $secure ? 587 : 465;
+	}
+
+	update_option( 'bsc_smtp_provider', $provider, false );
 	update_option( 'bsc_smtp_enabled', isset( $_POST['bsc_smtp_enabled'] ) ? 1 : 0, false );
-	update_option( 'bsc_smtp_host', sanitize_text_field( (string) wp_unslash( $_POST['bsc_smtp_host'] ?? '' ) ), false );
-	update_option( 'bsc_smtp_port', max( 1, absint( wp_unslash( $_POST['bsc_smtp_port'] ?? 465 ) ) ), false );
-	update_option( 'bsc_smtp_secure', bsc_sanitize_smtp_secure_value( (string) wp_unslash( $_POST['bsc_smtp_secure'] ?? 'ssl' ) ), false );
+	update_option( 'bsc_smtp_host', $host, false );
+	update_option( 'bsc_smtp_port', max( 1, $port ), false );
+	update_option( 'bsc_smtp_secure', $secure, false );
 	update_option( 'bsc_smtp_auth', isset( $_POST['bsc_smtp_auth'] ) ? 1 : 0, false );
-	update_option( 'bsc_smtp_username', sanitize_text_field( (string) wp_unslash( $_POST['bsc_smtp_username'] ?? '' ) ), false );
+	update_option( 'bsc_smtp_username', $username, false );
 
 	if ( isset( $_POST['bsc_smtp_clear_password'] ) ) {
 		delete_option( 'bsc_smtp_password' );
@@ -884,6 +928,7 @@ function bsc_render_followup_emails_page(): void {
 		? bsc_get_recent_order_email_log_rows( 20 )
 		: array();
 	$smtp_settings       = bsc_get_smtp_settings();
+	$smtp_provider       = (string) ( $smtp_settings['provider'] ?? 'custom' );
 	$smtp_password_saved = bsc_smtp_password_is_configured();
 	$email_diagnostics   = bsc_get_email_transport_diagnostics();
 	$smtp_debug_settings = (array) ( $email_diagnostics['bsc_smtp_settings'] ?? array() );
@@ -916,6 +961,10 @@ function bsc_render_followup_emails_page(): void {
 				<div>
 					<strong>Transporte</strong>
 					<span><?php echo ! empty( $smtp_debug_settings['enabled'] ) ? 'SMTP BSC activo' : 'SMTP BSC desactivado'; ?></span>
+				</div>
+				<div>
+					<strong>Proveedor</strong>
+					<span><?php echo esc_html( 'zeptomail' === (string) ( $smtp_debug_settings['provider'] ?? '' ) ? 'ZeptoMail' : 'SMTP personalizado' ); ?></span>
 				</div>
 				<div>
 					<strong>Servidor</strong>
@@ -1138,9 +1187,19 @@ function bsc_render_followup_emails_page(): void {
 							name="bsc_email_from_address"
 							value="<?php echo esc_attr( bsc_get_email_from_address() ); ?>"
 							class="regular-text"
-							placeholder="info@bubblesskincare.com"
+							placeholder="noreply@bubblesskincare.com"
 						>
-						<p class="description">Debe coincidir con una cuenta autorizada por el proveedor SMTP.</p>
+						<p class="description">Debe ser un sender verificado/autorizado en ZeptoMail.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_smtp_provider">Proveedor transaccional</label></th>
+					<td>
+						<select id="bsc_smtp_provider" name="bsc_smtp_provider">
+							<option value="zeptomail" <?php selected( $smtp_provider, 'zeptomail' ); ?>>ZeptoMail</option>
+							<option value="custom" <?php selected( $smtp_provider, 'custom' ); ?>>SMTP personalizado</option>
+						</select>
+						<p class="description">Se guarda en wp_options y el theme lo usa en producción. Si eliges ZeptoMail, los defaults son smtp.zeptomail.com, 587, TLS y usuario emailapikey.</p>
 					</td>
 				</tr>
 				<tr>
@@ -1161,7 +1220,7 @@ function bsc_render_followup_emails_page(): void {
 							name="bsc_smtp_host"
 							value="<?php echo esc_attr( (string) $smtp_settings['host'] ); ?>"
 							class="regular-text"
-							placeholder="smtppro.zoho.com"
+							placeholder="smtp.zeptomail.com"
 						>
 					</td>
 				</tr>
@@ -1182,7 +1241,7 @@ function bsc_render_followup_emails_page(): void {
 							<option value="tls" <?php selected( (string) $smtp_settings['secure'], 'tls' ); ?>>TLS</option>
 							<option value="" <?php selected( (string) $smtp_settings['secure'], '' ); ?>>Sin cifrado</option>
 						</select>
-						<p class="description">Zoho: 465 con SSL o 587 con TLS.</p>
+						<p class="description">ZeptoMail: smtp.zeptomail.com con puerto 587 y TLS.</p>
 					</td>
 				</tr>
 				<tr>
@@ -1204,8 +1263,9 @@ function bsc_render_followup_emails_page(): void {
 							value="<?php echo esc_attr( (string) $smtp_settings['username'] ); ?>"
 							class="regular-text"
 							autocomplete="username"
-							placeholder="info@bubblesskincare.com"
+							placeholder="emailapikey"
 						>
+						<p class="description">Para ZeptoMail el usuario SMTP es emailapikey.</p>
 					</td>
 				</tr>
 				<tr>
@@ -1218,9 +1278,9 @@ function bsc_render_followup_emails_page(): void {
 							value=""
 							class="regular-text"
 							autocomplete="new-password"
-							placeholder="<?php echo esc_attr( $smtp_password_saved ? 'Clave guardada' : 'Password SMTP' ); ?>"
+							placeholder="<?php echo esc_attr( $smtp_password_saved ? 'API key guardada' : 'API key SMTP de ZeptoMail' ); ?>"
 						>
-						<p class="description">Dejalo vacio para conservar la clave guardada.</p>
+						<p class="description">Dejalo vacio para conservar la API key guardada.</p>
 						<?php if ( $smtp_password_saved ) : ?>
 							<label class="bsc-admin-followup__inline-setting">
 								<input type="checkbox" name="bsc_smtp_clear_password" value="1">

@@ -67,19 +67,40 @@ function bsc_smtp_password_is_configured(): bool {
 	return bsc_get_smtp_password() !== '';
 }
 
+function bsc_get_smtp_provider(): string {
+	$provider = sanitize_key( bsc_get_smtp_string_setting( 'bsc_smtp_provider', 'BSC_SMTP_PROVIDER', 'custom' ) );
+
+	return in_array( $provider, array( 'custom', 'zeptomail' ), true ) ? $provider : 'custom';
+}
+
 function bsc_get_smtp_settings(): array {
+	$provider = bsc_get_smtp_provider();
 	$host     = bsc_get_smtp_string_setting( 'bsc_smtp_host', 'BSC_SMTP_HOST', '' );
 	$username = bsc_get_smtp_string_setting( 'bsc_smtp_username', 'BSC_SMTP_USERNAME', '' );
 	$password = bsc_get_smtp_password();
-	$secure   = strtolower( bsc_get_smtp_string_setting( 'bsc_smtp_secure', 'BSC_SMTP_SECURE', 'ssl' ) );
+	$secure   = strtolower( bsc_get_smtp_string_setting( 'bsc_smtp_secure', 'BSC_SMTP_SECURE', '' ) );
+
+	if ( 'zeptomail' === $provider ) {
+		$host     = false !== strpos( strtolower( $host ), 'zeptomail' ) ? $host : 'smtp.zeptomail.com';
+		$username = false === strpos( $username, '@' ) && $username !== '' ? $username : 'emailapikey';
+		$secure   = $secure !== '' && 'ssl' !== $secure ? $secure : 'tls';
+	}
+
+	$host_lc  = strtolower( $host );
+
+	if ( '' === $secure ) {
+		$secure = false !== strpos( $host_lc, 'zeptomail' ) ? 'tls' : 'ssl';
+	}
 
 	if ( ! in_array( $secure, array( 'ssl', 'tls', '' ), true ) ) {
 		$secure = 'ssl';
 	}
 
 	$port = absint( bsc_get_smtp_string_setting( 'bsc_smtp_port', 'BSC_SMTP_PORT', '' ) );
-	if ( $port <= 0 ) {
-		$port = $secure === 'tls' ? 587 : 465;
+	if ( 'zeptomail' === $provider && ( $port <= 0 || 465 === $port ) ) {
+		$port = 587;
+	} elseif ( $port <= 0 ) {
+		$port = 'zeptomail' === $provider ? 587 : ( $secure === 'tls' ? 587 : 465 );
 	}
 
 	$auth_raw = get_option( 'bsc_smtp_auth', '__missing__' );
@@ -97,6 +118,7 @@ function bsc_get_smtp_settings(): array {
 	}
 
 	return array(
+		'provider' => $provider,
 		'enabled'  => $enabled,
 		'host'     => $host,
 		'port'     => $port,
@@ -144,11 +166,13 @@ add_action(
 		$phpmailer->Username   = $settings['username'];
 		$phpmailer->Password   = $settings['password'];
 		$phpmailer->CharSet    = 'UTF-8';
+		$phpmailer->Encoding   = 'base64';
 
 		$from_email = bsc_get_email_from_address();
 		if ( is_email( $from_email ) ) {
 			$phpmailer->From     = $from_email;
 			$phpmailer->FromName = bsc_get_email_from_name();
+			$phpmailer->Sender   = $from_email;
 		}
 	},
 	15

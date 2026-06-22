@@ -70,15 +70,35 @@ add_action(
 			return;
 		}
 
-		// Ruta actual sin parámetros (?foo=bar)
+		if ( ! function_exists( 'wc_get_account_endpoint_url' ) ) {
+			return;
+		}
+
+		// Ruta actual sin parametros (?foo=bar)
 		$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
-		$current_path = strtok( $request_uri, '?' );
+		$current_path = wp_parse_url( $request_uri, PHP_URL_PATH );
 
-		// Normalizamos quitando slash final: /mi-cuenta/ → /mi-cuenta
-		$current_path = rtrim( $current_path, '/' );
+		if ( ! is_string( $current_path ) ) {
+			return;
+		}
 
-		// Solo si la ruta es EXACTAMENTE /mi-cuenta
-		if ( $current_path === '/mi-cuenta' ) {
+		// Normalizamos quitando slash final: /mi-cuenta/ -> /mi-cuenta
+		$current_path = '/' . trim( $current_path, '/' );
+
+		$account_paths = array( '/mi-cuenta', '/my-account' );
+		if ( function_exists( 'wc_get_page_permalink' ) ) {
+			$account_permalink = wc_get_page_permalink( 'myaccount' );
+			$account_path      = wp_parse_url( $account_permalink, PHP_URL_PATH );
+
+			if ( is_string( $account_path ) && '' !== $account_path ) {
+				$account_paths[] = '/' . trim( $account_path, '/' );
+			}
+		}
+
+		$account_paths = array_values( array_unique( $account_paths ) );
+
+		// Solo si la ruta es EXACTAMENTE el dashboard de Mi Cuenta.
+		if ( in_array( $current_path, $account_paths, true ) ) {
 
 			// URL del endpoint "orders" dentro de Mi Cuenta
 			$orders_url = wc_get_account_endpoint_url( 'orders' );
