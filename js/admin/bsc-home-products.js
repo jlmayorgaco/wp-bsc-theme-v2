@@ -36,16 +36,47 @@
 		return chip;
 	}
 
+	function normalizeSearchText(value) {
+		return String(value || '')
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
+
+	function getRowSearchText(row) {
+		var checkbox = row.querySelector('input[type="checkbox"]');
+		var parts = [
+			row.getAttribute('data-search') || '',
+			checkbox ? checkbox.getAttribute('data-label') : '',
+			checkbox ? checkbox.getAttribute('data-sku') : '',
+			checkbox ? checkbox.value : ''
+		];
+
+		return normalizeSearchText(parts.join(' '));
+	}
+
 	function initSelector(selector) {
 		var input = selector.querySelector('[data-bsc-home-product-selected-input]');
 		var chips = selector.querySelector('[data-bsc-home-product-chips]');
 		var count = selector.querySelector('[data-bsc-home-product-count]');
 		var clearButton = selector.querySelector('[data-bsc-home-product-clear]');
 		var search = selector.querySelector('[data-bsc-home-product-search]');
+		var list = selector.querySelector('[data-bsc-home-product-list]');
 		var rows = Array.prototype.slice.call(selector.querySelectorAll('[data-bsc-home-product-row]'));
 		var checkboxes = rows.map(function (row) {
 			return row.querySelector('input[type="checkbox"]');
 		}).filter(Boolean);
+		var noResults = null;
+
+		if (list && rows.length) {
+			noResults = document.createElement('p');
+			noResults.className = 'bsc-home-product-selector__empty bsc-home-product-selector__empty--filter';
+			noResults.textContent = 'No hay productos que coincidan con la busqueda.';
+			noResults.hidden = true;
+			list.appendChild(noResults);
+		}
 
 		function selectedCheckboxes() {
 			return checkboxes.filter(function (checkbox) {
@@ -82,12 +113,32 @@
 		}
 
 		function filterRows() {
-			var query = search ? search.value.trim().toLowerCase() : '';
+			var query = normalizeSearchText(search ? search.value : '');
+			var terms = query === '' ? [] : query.split(' ');
+			var visibleCount = 0;
+
 			rows.forEach(function (row) {
-				var text = row.getAttribute('data-search') || '';
-				row.hidden = query !== '' && text.indexOf(query) === -1;
+				var text = row.__bscHomeProductSearchText || '';
+				var isVisible = !terms.length || terms.every(function (term) {
+					return text.indexOf(term) !== -1;
+				});
+
+				row.classList.toggle('is-hidden', !isVisible);
+				row.hidden = !isVisible;
+
+				if (isVisible) {
+					visibleCount += 1;
+				}
 			});
+
+			if (noResults) {
+				noResults.hidden = query === '' || visibleCount > 0;
+			}
 		}
+
+		rows.forEach(function (row) {
+			row.__bscHomeProductSearchText = getRowSearchText(row);
+		});
 
 		checkboxes.forEach(function (checkbox) {
 			setRowState(checkbox);
@@ -99,6 +150,9 @@
 
 		if (search) {
 			search.addEventListener('input', filterRows);
+			search.addEventListener('keyup', filterRows);
+			search.addEventListener('search', filterRows);
+			search.addEventListener('change', filterRows);
 		}
 
 		if (clearButton) {
@@ -116,7 +170,13 @@
 		filterRows();
 	}
 
-	document.addEventListener('DOMContentLoaded', function () {
+	function initSelectors() {
 		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-product-selector]')).forEach(initSelector);
-	});
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initSelectors);
+	} else {
+		initSelectors();
+	}
 }());
