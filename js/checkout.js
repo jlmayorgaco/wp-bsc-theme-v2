@@ -17,6 +17,7 @@ jQuery(function ($) {
   const requiredFieldLabelsIfShippingEnabled = {
     shipping_country: 'Selecciona un pais',
     shipping_state: 'Selecciona un departamento',
+    shipping_city: 'Selecciona una ciudad',
     shipping_postcode: 'Codigo postal',
     shipping_address_1: 'Direccion de entrega',
   };
@@ -33,8 +34,12 @@ jQuery(function ($) {
       : $input.closest('p');
 
     $wrapper.addClass('has-error');
+    $input.attr('aria-invalid', 'true');
     triggerWiggle($wrapper);
-    $input.one('input change', () => $wrapper.removeClass('has-error'));
+    $input.one('input change', () => {
+      $wrapper.removeClass('has-error');
+      $input.removeAttr('aria-invalid');
+    });
   }
 
   function scrollToFirstError($form) {

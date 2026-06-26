@@ -423,7 +423,7 @@ function bsc_render_dashboard(): void {
 	$range               = bsc_dashboard_get_range();
 	$can_view_financials = bsc_dashboard_user_can_view_financials();
 	$can_view_metrics    = current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
-	$cache_key           = 'bsc_dashboard_kpis_' . md5( $range['cache_key'] . '|' . ( $can_view_financials ? 'finance' : 'ops' ) . '|metrics_v1' );
+	$cache_key           = 'bsc_dashboard_kpis_' . md5( $range['cache_key'] . '|' . ( $can_view_financials ? 'finance' : 'ops' ) . '|metrics_v2_simple_orders' );
 
 	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '';
 
@@ -468,33 +468,23 @@ function bsc_render_dashboard(): void {
 			);
 		}
 
-		$pending_count   = bsc_dashboard_count_orders( array( 'pending', 'on-hold' ) );
-		$preparing_count = bsc_dashboard_count_orders( array( 'processing', 'preparing' ) );
-		$shipped_count   = bsc_dashboard_count_orders(
-			array(
-				'shipped',
-			),
-			array(
-				'meta_query' => array(
-					'relation' => 'OR',
-					array(
-						'key'     => '_bsc_archived_at',
-						'compare' => 'NOT EXISTS',
-					),
-					array(
-						'key'     => '_bsc_archived_at',
-						'value'   => '',
-						'compare' => '=',
-					),
-				),
-			)
+		$active_orders_meta_query = bsc_unarchived_orders_meta_query();
+		$received_count           = bsc_dashboard_count_orders(
+			array( 'pending', 'on-hold', 'processing', 'preparing' ),
+			array( 'meta_query' => $active_orders_meta_query )
 		);
+		$shipped_count            = bsc_dashboard_count_orders(
+			array( 'shipped', 'completed' ),
+			array( 'meta_query' => $active_orders_meta_query )
+		);
+		$archived_count           = bsc_count_archived_orders();
 
 		$recent_orders = wc_get_orders(
 			array(
-				'limit'   => 5,
-				'orderby' => 'date',
-				'order'   => 'DESC',
+				'limit'      => 5,
+				'orderby'    => 'date',
+				'order'      => 'DESC',
+				'meta_query' => $active_orders_meta_query,
 			)
 		);
 
@@ -504,16 +494,16 @@ function bsc_render_dashboard(): void {
 		$kpis = array(
 			'ventas_periodo'  => $range_revenue,
 			'pedidos_periodo' => $range_order_count,
-			'pendientes'      => $pending_count,
-			'preparando'      => $preparing_count,
+			'recibidos'       => $received_count,
 			'enviados'        => $shipped_count,
+			'archivados'      => $archived_count,
 			'recent_orders'   => array_map(
 				fn( $o ) => array(
 					'id'     => $o->get_id(),
 					'number' => $o->get_order_number(),
 					'name'   => $o->get_formatted_billing_full_name(),
 					'total'  => (float) $o->get_total(),
-					'status' => wc_get_order_status_name( $o->get_status() ),
+					'status' => bsc_simplified_order_status_label( $o ),
 					'url'    => $o->get_edit_order_url(),
 				),
 				$recent_orders
@@ -535,7 +525,7 @@ function bsc_render_dashboard(): void {
 	$checkout_conversion = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['purchase'], (float) $metric_counters['begin_checkout'] ) : 0.0;
 	$cart_recovery_rate  = function_exists( 'bsc_metrics_rate' ) ? bsc_metrics_rate( (float) $metric_counters['abandoned_cart_converted'], (float) $metric_counters['abandoned_cart_capture'] ) : 0.0;
 	$low_stock_count     = count( (array) ( $kpis['low_stock_ids'] ?? array() ) );
-	$attention_orders    = (int) $kpis['pendientes'] + (int) $kpis['preparando'];
+	$attention_orders    = (int) $kpis['recibidos'];
 	?>
 	<div class="wrap bsc-admin-dashboard">
 		<div class="bsc-admin-page-header">
@@ -559,10 +549,10 @@ function bsc_render_dashboard(): void {
 
 		<div class="bsc-admin-stat-grid bsc-admin-dashboard__priority-grid">
 			<?php if ( bsc_current_user_has_bsc_page_access( 'bsc-orders' ) ) : ?>
-				<a class="bsc-admin-stat-card bsc-admin-stat-card--interactive<?php echo esc_attr( $attention_orders > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders&order_status=wc-pending' ) ); ?>">
-					<span class="bsc-admin-stat-card__label">Pedidos por atender</span>
+				<a class="bsc-admin-stat-card bsc-admin-stat-card--interactive<?php echo esc_attr( $attention_orders > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders&order_status=wc-processing' ) ); ?>">
+					<span class="bsc-admin-stat-card__label">Pedidos recibidos</span>
 					<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( $attention_orders ) ); ?></span>
-					<span class="bsc-admin-stat-card__help">Pendientes o en preparacion.</span>
+					<span class="bsc-admin-stat-card__help">Listos para revisar, empacar o enviar.</span>
 				</a>
 			<?php endif; ?>
 			<?php if ( bsc_current_user_has_bsc_page_access( 'bsc-products' ) ) : ?>
@@ -618,17 +608,17 @@ function bsc_render_dashboard(): void {
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['pedidos_periodo'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">Pedidos <?php echo esc_html( $range['label'] ); ?></div>
 			</div>
-			<div class="bsc-admin-dashboard__card bsc-admin-stat-card<?php echo esc_attr( $kpis['pendientes'] > 0 ? ' bsc-admin-dashboard__card--warning' : '' ); ?>">
-				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['pendientes'] ); ?></div>
-				<div class="bsc-admin-dashboard__label">Pendientes</div>
-			</div>
-			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
-				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['preparando'] ); ?></div>
-				<div class="bsc-admin-dashboard__label">En preparación</div>
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card<?php echo esc_attr( $kpis['recibidos'] > 0 ? ' bsc-admin-dashboard__card--warning' : '' ); ?>">
+				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['recibidos'] ); ?></div>
+				<div class="bsc-admin-dashboard__label">Recibidos</div>
 			</div>
 			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
 				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['enviados'] ); ?></div>
 				<div class="bsc-admin-dashboard__label">Enviados</div>
+			</div>
+			<div class="bsc-admin-dashboard__card bsc-admin-stat-card">
+				<div class="bsc-admin-dashboard__value"><?php echo esc_html( $kpis['archivados'] ); ?></div>
+				<div class="bsc-admin-dashboard__label">Archivados</div>
 			</div>
 		</div>
 

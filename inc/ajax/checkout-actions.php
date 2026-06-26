@@ -43,10 +43,11 @@ function bsc_render_checkout_city_field( string $key, array $field, string $coun
 	$field_id      = $field['id'] ?? $key;
 	$classes       = array_filter(
 		array_merge(
-			array( 'form-row' ),
+			array( 'form-row', 'bsc__field' ),
 			(array) ( $field['class'] ?? array() )
 		)
 	);
+	$classes       = array_values( array_unique( $classes ) );
 	$input_classes = array_filter(
 		array_merge(
 			array( 'city_select' ),
@@ -69,7 +70,7 @@ function bsc_render_checkout_city_field( string $key, array $field, string $coun
 		<?php endif; ?>
 		</label>
 	<?php endif; ?>
-	<select name="<?php echo esc_attr( $key ); ?>" id="<?php echo esc_attr( $field_id ); ?>" class="<?php echo esc_attr( implode( ' ', $input_classes ) ); ?>" placeholder="<?php echo esc_attr( $placeholder ); ?>">
+	<select name="<?php echo esc_attr( $key ); ?>" id="<?php echo esc_attr( $field_id ); ?>" class="<?php echo esc_attr( implode( ' ', $input_classes ) ); ?>" placeholder="<?php echo esc_attr( $placeholder ); ?>" data-placeholder="<?php echo esc_attr( $placeholder ); ?>" <?php if ( $required ) : ?>required aria-required="true"<?php endif; ?>>
 		<option value=""><?php echo esc_html( $placeholder ); ?></option>
 		<?php foreach ( $cities as $city_code => $city_name ) : ?>
 		<option value="<?php echo esc_attr( $city_code ); ?>"><?php echo esc_html( $city_name ); ?></option>
