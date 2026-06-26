@@ -36,6 +36,7 @@ function bsc_get_product_edit_category_tree_data(): array {
 				'id'       => (int) $term->term_id,
 				'name'     => (string) $term->name,
 				'slug'     => (string) $term->slug,
+				'parent'   => (int) $term->parent,
 				'children' => $build_tree( $items, (int) $term->term_id ),
 			);
 		}
@@ -54,6 +55,181 @@ function bsc_get_product_edit_current_category_ids( int $product_id ): array {
 	}
 
 	return array_values( array_map( 'intval', $term_ids ) );
+}
+
+function bsc_product_edit_root_slugs(): array {
+	return array( 'group-skin-care', 'group-hair-care', 'group-make-up' );
+}
+
+function bsc_product_edit_user_can_manage_categories(): bool {
+	return current_user_can( 'manage_options' )
+		|| current_user_can( 'manage_woocommerce' )
+		|| current_user_can( 'manage_product_terms' )
+		|| current_user_can( 'edit_products' );
+}
+
+function bsc_product_edit_parent_is_descendant( int $term_id, int $parent_id ): bool {
+	if ( $term_id <= 0 || $parent_id <= 0 ) {
+		return false;
+	}
+
+	$ancestor_ids = get_ancestors( $parent_id, 'product_cat' );
+	$ancestor_ids = array_map( 'intval', is_array( $ancestor_ids ) ? $ancestor_ids : array() );
+
+	return in_array( $term_id, $ancestor_ids, true );
+}
+
+function bsc_product_edit_validate_category_parent( int $parent_id ) {
+	if ( $parent_id <= 0 ) {
+		return 0;
+	}
+
+	$parent = get_term( $parent_id, 'product_cat' );
+	if ( ! $parent instanceof WP_Term ) {
+		return new WP_Error( 'bsc_invalid_category_parent', 'El padre seleccionado no existe.' );
+	}
+
+	return $parent_id;
+}
+
+function bsc_product_edit_category_ajax_payload( int $term_id = 0 ): array {
+	$payload = array(
+		'tree' => bsc_get_product_edit_category_tree_data(),
+	);
+
+	if ( $term_id > 0 ) {
+		$term = get_term( $term_id, 'product_cat' );
+		if ( $term instanceof WP_Term ) {
+			$payload['term'] = array(
+				'id'     => (int) $term->term_id,
+				'name'   => (string) $term->name,
+				'slug'   => (string) $term->slug,
+				'parent' => (int) $term->parent,
+			);
+		}
+	}
+
+	return $payload;
+}
+
+function bsc_product_edit_ajax_guard(): void {
+	check_ajax_referer( 'bsc_product_edit_categories', 'nonce' );
+
+	if ( ! bsc_product_edit_user_can_manage_categories() ) {
+		wp_send_json_error( array( 'message' => 'Sin permisos para editar categorias.' ), 403 );
+	}
+}
+
+add_action( 'wp_ajax_bsc_product_category_create', 'bsc_ajax_product_category_create' );
+function bsc_ajax_product_category_create(): void {
+	bsc_product_edit_ajax_guard();
+
+	$name      = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+	$slug      = sanitize_title( wp_unslash( $_POST['slug'] ?? '' ) );
+	$parent_id = absint( wp_unslash( $_POST['parent'] ?? 0 ) );
+	$parent_id = bsc_product_edit_validate_category_parent( $parent_id );
+
+	if ( is_wp_error( $parent_id ) ) {
+		wp_send_json_error( array( 'message' => $parent_id->get_error_message() ), 400 );
+	}
+
+	if ( $name === '' ) {
+		wp_send_json_error( array( 'message' => 'Escribe el nombre de la categoria.' ), 400 );
+	}
+
+	$args = array(
+		'parent' => $parent_id,
+	);
+
+	if ( $slug !== '' ) {
+		$args['slug'] = $slug;
+	}
+
+	$result = wp_insert_term( $name, 'product_cat', $args );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	wp_send_json_success( bsc_product_edit_category_ajax_payload( (int) $result['term_id'] ) );
+}
+
+add_action( 'wp_ajax_bsc_product_category_update', 'bsc_ajax_product_category_update' );
+function bsc_ajax_product_category_update(): void {
+	bsc_product_edit_ajax_guard();
+
+	$term_id   = absint( wp_unslash( $_POST['term_id'] ?? 0 ) );
+	$name      = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+	$slug      = sanitize_title( wp_unslash( $_POST['slug'] ?? '' ) );
+	$parent_id = absint( wp_unslash( $_POST['parent'] ?? 0 ) );
+	$term      = get_term( $term_id, 'product_cat' );
+
+	if ( ! $term instanceof WP_Term ) {
+		wp_send_json_error( array( 'message' => 'Categoria no encontrada.' ), 404 );
+	}
+
+	if ( $name === '' ) {
+		wp_send_json_error( array( 'message' => 'Escribe el nombre de la categoria.' ), 400 );
+	}
+
+	$parent_id = bsc_product_edit_validate_category_parent( $parent_id );
+	if ( is_wp_error( $parent_id ) ) {
+		wp_send_json_error( array( 'message' => $parent_id->get_error_message() ), 400 );
+	}
+
+	if ( $parent_id === $term_id || bsc_product_edit_parent_is_descendant( $term_id, $parent_id ) ) {
+		wp_send_json_error( array( 'message' => 'La categoria no puede ser padre de si misma ni de sus hijas.' ), 400 );
+	}
+
+	$args = array(
+		'name'   => $name,
+		'parent' => $parent_id,
+	);
+
+	if ( $slug !== '' ) {
+		$args['slug'] = $slug;
+	}
+
+	$result = wp_update_term( $term_id, 'product_cat', $args );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	wp_send_json_success( bsc_product_edit_category_ajax_payload( $term_id ) );
+}
+
+add_action( 'wp_ajax_bsc_product_category_delete', 'bsc_ajax_product_category_delete' );
+function bsc_ajax_product_category_delete(): void {
+	bsc_product_edit_ajax_guard();
+
+	$term_id = absint( wp_unslash( $_POST['term_id'] ?? 0 ) );
+	$term    = get_term( $term_id, 'product_cat' );
+
+	if ( ! $term instanceof WP_Term ) {
+		wp_send_json_error( array( 'message' => 'Categoria no encontrada.' ), 404 );
+	}
+
+	if ( in_array( (string) $term->slug, bsc_product_edit_root_slugs(), true ) ) {
+		wp_send_json_error( array( 'message' => 'No se pueden eliminar las categorias raiz del menu BSC.' ), 400 );
+	}
+
+	$result = wp_delete_term( $term_id, 'product_cat' );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	if ( ! $result ) {
+		wp_send_json_error( array( 'message' => 'No se pudo eliminar la categoria.' ), 400 );
+	}
+
+	wp_send_json_success(
+		array(
+			'tree'          => bsc_get_product_edit_category_tree_data(),
+			'deletedTermId' => $term_id,
+		)
+	);
 }
 
 function bsc_get_product_edit_status_value( WP_Post $post, WC_Product $product ): string {
@@ -94,15 +270,18 @@ function bsc_apply_product_edit_status( int $product_id, WC_Product $product, st
 
 function bsc_get_product_edit_script_data( int $product_id ): array {
 	return array(
-		'catTree'     => bsc_get_product_edit_category_tree_data(),
-		'currentCats' => bsc_get_product_edit_current_category_ids( $product_id ),
-		'rootSlugs'   => array( 'group-skin-care', 'group-hair-care', 'group-make-up' ),
-		'rootLabels'  => array(
+		'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+		'categoryNonce'       => wp_create_nonce( 'bsc_product_edit_categories' ),
+		'canManageCategories' => bsc_product_edit_user_can_manage_categories(),
+		'catTree'             => bsc_get_product_edit_category_tree_data(),
+		'currentCats'         => bsc_get_product_edit_current_category_ids( $product_id ),
+		'rootSlugs'           => bsc_product_edit_root_slugs(),
+		'rootLabels'          => array(
 			'group-skin-care' => 'Skin Care',
 			'group-hair-care' => 'Hair Care',
 			'group-make-up'   => 'Make Up',
 		),
-		'strings'     => array(
+		'strings'             => array(
 			'mainImageTitle'    => 'Imagen principal',
 			'mainImageButton'   => 'Usar imagen',
 			'galleryTitle'      => 'Galeria del producto',
@@ -110,6 +289,8 @@ function bsc_get_product_edit_script_data( int $product_id ): array {
 			'searchPlaceholder' => 'Buscar...',
 			'noCategories'      => 'No hay categorias para este grupo.',
 			'noSubcategories'   => 'Sin subcategorias',
+			'categorySaved'     => 'Categoria guardada.',
+			'categoryDeleted'   => 'Categoria eliminada.',
 		),
 	);
 }
@@ -530,6 +711,36 @@ function bsc_render_product_edit_page(): void {
 
 			<div class="postbox bsc-admin-product-edit__card">
 				<h2 class="bsc-admin-product-edit__section-title">Categorias</h2>
+				<?php if ( bsc_product_edit_user_can_manage_categories() ) : ?>
+					<div class="bsc-admin-product-edit__category-manager" data-bsc-category-manager>
+						<div class="bsc-admin-product-edit__category-manager-header">
+							<strong data-bsc-cat-form-title>Agregar categoria</strong>
+							<span class="bsc-admin-product-edit__field-note">Crea o edita categorias sin salir del editor. El campo Padre controla donde aparece en el arbol.</span>
+						</div>
+						<div class="bsc-admin-product-edit__category-message is-hidden" data-bsc-cat-message></div>
+						<input type="hidden" id="bsc-cat-term-id" value="" data-bsc-cat-term-id>
+						<div class="bsc-admin-product-edit__category-form-grid">
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Nombre</span>
+								<input type="text" id="bsc-cat-name" class="regular-text" data-bsc-cat-name>
+							</label>
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Slug</span>
+								<input type="text" id="bsc-cat-slug" class="regular-text" data-bsc-cat-slug placeholder="Opcional">
+							</label>
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Padre</span>
+								<select id="bsc-cat-parent" data-bsc-cat-parent></select>
+							</label>
+						</div>
+						<div class="bsc-admin-product-edit__category-actions">
+							<button type="button" class="button button-primary" data-bsc-cat-create>Agregar categoria</button>
+							<button type="button" class="button button-primary is-hidden" data-bsc-cat-update>Guardar categoria</button>
+							<button type="button" class="button is-hidden" data-bsc-cat-cancel>Cancelar</button>
+							<button type="button" class="button bsc-admin-product-edit__category-delete is-hidden" data-bsc-cat-delete>Eliminar</button>
+						</div>
+					</div>
+				<?php endif; ?>
 				<div id="bsc-root-tabs" class="bsc-admin-product-edit__tabs"></div>
 				<div id="bsc-cat-branches"></div>
 				<div id="bsc-cat-hidden-inputs" class="bsc-admin-product-edit__hidden"></div>

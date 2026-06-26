@@ -158,5 +158,6 @@ function bsc_handle_payment_complete_order_email( int $order_id, string $transac
 }
 
 // Disable duplicate WooCommerce native emails for covered statuses.
+add_filter( 'woocommerce_email_enabled_new_order', '__return_false' );
 add_filter( 'woocommerce_email_enabled_customer_processing_order', '__return_false' );
 add_filter( 'woocommerce_email_enabled_customer_completed_order', '__return_false' );

@@ -239,8 +239,8 @@ function bsc_add_admin_menu(): void {
 	// 5. Home Favorites - admin only
 	add_submenu_page(
 		'bsc-dashboard',
-		__( 'Home Favorites', 'bsc-2-0' ),
-		__( 'Home Favorites', 'bsc-2-0' ),
+		__( 'Productos Home', 'bsc-2-0' ),
+		__( 'Productos Home', 'bsc-2-0' ),
 		'manage_options',
 		'bsc-home-favorites',
 		'bsc_home_favorites_settings_page'  // defined in scripts/script_custom_types.php
