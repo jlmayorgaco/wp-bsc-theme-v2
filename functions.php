@@ -58,6 +58,7 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 
 if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/woocommerce.php';
+	require_once get_template_directory() . '/inc/payments/wompi-compat.php';
 }
 
 if ( is_admin() ) {

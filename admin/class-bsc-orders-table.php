@@ -16,14 +16,10 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 	private array $query_args;
 
 	public const STATUS_OPTIONS = array(
-		'wc-pending'    => 'Pendiente',
-		'wc-on-hold'    => 'En espera',
 		'wc-processing' => 'Recibido',
-		'wc-preparing'  => 'En preparación',
 		'wc-shipped'    => 'Enviado',
-		'wc-completed'  => 'Terminado',
 		'wc-cancelled'  => 'Cancelado',
-		'wc-refunded'   => 'Reembolsado',
+		'bsc-archived' => 'Archivado',
 	);
 
 	public function __construct( array $query_args = array() ) {
@@ -175,9 +171,8 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
 	public function column_status( $item ): string {
 		/** @var WC_Order $item */
-		$raw_status = $item->get_status();
-		$current    = $this->normalize_status_select_value( $raw_status );
-		$html       = $this->status_badge( $raw_status );
+		$current = $this->normalize_status_select_value( $item );
+		$html    = $this->status_badge( $item );
 
 		$html .= '<div class="bsc-status-control" data-order-id="' . esc_attr( $item->get_id() ) . '">';
 		$html .= '<select class="bsc-status-select bsc-status-select--inline" data-order-id="' . esc_attr( $item->get_id() ) . '" data-original-status="' . esc_attr( $current ) . '">';
@@ -199,18 +194,15 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 		return $html;
 	}
 
-	private function normalize_status_select_value( string $status ): string {
-		$clean_status = preg_replace( '/^wc-/', '', $status );
-		$status_key   = 'wc-' . $clean_status;
-
-		if ( isset( self::STATUS_OPTIONS[ $status_key ] ) ) {
-			return $status_key;
-		}
-
-		return 'wc-processing';
+	private function normalize_status_select_value( WC_Order $order ): string {
+		return $this->simplified_status_for_order( $order )['key'];
 	}
 
 	private function order_age_badge( WC_Order $order ): string {
+		if ( $order->get_meta( '_bsc_archived_at', true ) ) {
+			return '';
+		}
+
 		$open_statuses = array( 'pending', 'on-hold', 'processing', 'preparing' );
 
 		if ( ! in_array( $order->get_status(), $open_statuses, true ) ) {
@@ -244,25 +236,47 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 		);
 	}
 
-	private function status_badge( string $status ): string {
-		$clean  = preg_replace( '/^wc-/', '', $status );
-		$labels = array(
-			'pending'    => 'Pendiente',
-			'on-hold'    => 'En espera',
-			'processing' => 'Recibido',
-			'preparing'  => 'En preparación',
-			'shipped'    => 'Enviado',
-			'completed'  => 'Terminado',
-			'cancelled'  => 'Cancelado',
-			'failed'     => 'Fallido',
-			'refunded'   => 'Reembolsado',
-		);
-		$label  = $labels[ $clean ] ?? ucfirst( $clean );
+	private function status_badge( WC_Order $order ): string {
+		$status = $this->simplified_status_for_order( $order );
 
 		return sprintf(
 			'<span class="bsc-order-badge bsc-order-badge--%s">%s</span>',
-			esc_attr( $clean ),
-			esc_html( $label )
+			esc_attr( $status['class'] ),
+			esc_html( $status['label'] )
+		);
+	}
+
+	private function simplified_status_for_order( WC_Order $order ): array {
+		if ( $order->get_meta( '_bsc_archived_at', true ) ) {
+			return array(
+				'key'   => 'bsc-archived',
+				'label' => 'Archivado',
+				'class' => 'bsc-archived',
+			);
+		}
+
+		$status = $order->get_status();
+
+		if ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
+			return array(
+				'key'   => 'wc-shipped',
+				'label' => 'Enviado',
+				'class' => 'shipped',
+			);
+		}
+
+		if ( in_array( $status, array( 'cancelled', 'failed', 'refunded' ), true ) ) {
+			return array(
+				'key'   => 'wc-cancelled',
+				'label' => 'Cancelado',
+				'class' => 'cancelled',
+			);
+		}
+
+		return array(
+			'key'   => 'wc-processing',
+			'label' => 'Recibido',
+			'class' => 'processing',
 		);
 	}
 

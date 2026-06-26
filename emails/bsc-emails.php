@@ -20,6 +20,16 @@ function bsc_get_email_template_map(): array {
 	);
 }
 
+function bsc_get_order_email_recipient( WC_Order $order ): string {
+	$to = sanitize_email( (string) $order->get_billing_email() );
+
+	if ( $to ) {
+		return $to;
+	}
+
+	return sanitize_email( (string) get_post_meta( $order->get_id(), '_billing_email', true ) );
+}
+
 /**
  * Build and send a BSC-branded order email.
  *
@@ -46,7 +56,7 @@ function bsc_send_order_email( int $order_id, string $status, array $extra = arr
 		return false;
 	}
 
-	$to = $order->get_billing_email();
+	$to = bsc_get_order_email_recipient( $order );
 	if ( empty( $to ) ) {
 		return false;
 	}
@@ -125,9 +135,28 @@ function bsc_handle_order_status_email( int $order_id, string $old_status, strin
 		return;
 	}
 
+	if ( 'completed' === $new_status && in_array( $old_status, array( 'pending', 'on-hold', 'failed' ), true ) ) {
+		bsc_send_order_email( $order_id, 'processing' );
+		return;
+	}
+
 	bsc_send_order_email( $order_id, $new_status );
 }
 
-// ── Disable duplicate WooCommerce native emails for covered statuses ───────
+// Payment-complete fallback for gateways that do not produce a status transition.
+add_action( 'woocommerce_payment_complete', 'bsc_handle_payment_complete_order_email', 20, 2 );
+add_action( 'woocommerce_payment_complete_order_status_processing', 'bsc_handle_payment_complete_order_email', 20, 2 );
+add_action( 'woocommerce_payment_complete_order_status_completed', 'bsc_handle_payment_complete_order_email', 20, 2 );
+
+function bsc_handle_payment_complete_order_email( int $order_id, string $transaction_id = '' ): void {
+	$order = wc_get_order( $order_id );
+	if ( ! $order || $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) ) {
+		return;
+	}
+
+	bsc_send_order_email( $order_id, 'processing' );
+}
+
+// Disable duplicate WooCommerce native emails for covered statuses.
 add_filter( 'woocommerce_email_enabled_customer_processing_order', '__return_false' );
 add_filter( 'woocommerce_email_enabled_customer_completed_order', '__return_false' );
