@@ -21,8 +21,15 @@
 		}
 
 		public function setSkus( array $skus ): void {
-			// Clean and normalize SKUs
-			$this->skus = array_filter( array_map( 'trim', $skus ) );
+			// Clean and normalize saved product tokens.
+			$this->skus = array_filter(
+				array_map(
+					function ( $token ) {
+						return trim( (string) $token );
+					},
+					$skus
+				)
+			);
 		}
 
 		public function setLabel( string $label ): void {
@@ -35,10 +42,10 @@
 
 		public function render(): void {
 
-			// Convert SKUs to eligible product IDs.
+			// Convert saved product tokens (legacy SKUs or product IDs) to eligible IDs.
 			$product_ids = array_values(
 				array_filter(
-					array_map( 'wc_get_product_id_by_sku', $this->skus ),
+					array_map( array( $this, 'resolveProductTokenToId' ), $this->skus ),
 					fn( $product_id ) => $this->isEligibleProductId( (int) $product_id )
 				)
 			);
@@ -188,6 +195,19 @@
 					fn( $product_id ) => $this->isEligibleProductId( (int) $product_id )
 				)
 			);
+		}
+
+		private function resolveProductTokenToId( string $token ): int {
+			$token = trim( $token );
+			if ($token === '') {
+				return 0;
+			}
+
+			if (ctype_digit( $token )) {
+				return absint( $token );
+			}
+
+			return (int) wc_get_product_id_by_sku( $token );
 		}
 
 		private function isEligibleProductId( int $product_id ): bool {

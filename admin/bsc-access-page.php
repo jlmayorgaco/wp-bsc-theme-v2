@@ -48,7 +48,7 @@ function bsc_access_managed_pages(): array {
 		'bsc-showroom'        => 'Venta presencial',
 		'bsc-coupons'         => 'Cupones',
 		'bsc-settings'        => 'Configuración',
-		'bsc-home-favorites'  => 'Home Favorites',
+		'bsc-home-favorites'  => 'Productos Home',
 		'bsc-bubble-points'   => 'Bubble Points',
 		'bsc-followup-emails' => 'Emails',
 		'bsc-monitoring'      => 'Monitoreo',

@@ -22898,14 +22898,6 @@ details[open] .bsc__product-detail-category > summary::after {
     box-shadow: 0 0 0 8px rgba(244, 166, 191, 0.14);
   }
 }
-@keyframes bsc-sheen {
-  from {
-    transform: translateX(-120%) skewX(-18deg);
-  }
-  to {
-    transform: translateX(120%) skewX(-18deg);
-  }
-}
 .bsc :where(.bsc__button, .button, button, input[type=submit]) {
   position: relative;
   transform: translateZ(0);
@@ -22923,19 +22915,6 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc :where(.bsc__button, .button, button, input[type=submit]):focus-visible {
   outline: 0;
   box-shadow: var(--shadow--focus), var(--shadow--interactive);
-}
-.bsc :where(.bsc__button, .button, .bsc__button-add-to-cart, .bsc-skin-quiz__bundle-button)::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
-  opacity: 0;
-  transform: translateX(-120%) skewX(-18deg);
-}
-.bsc :where(.bsc__button, .button, .bsc__button-add-to-cart, .bsc-skin-quiz__bundle-button):where(:hover, :focus-visible)::after {
-  animation: bsc-sheen 760ms var(--motion--ease-out);
-  opacity: 1;
 }
 .bsc :where(input, select, textarea) {
   transition: border-color var(--motion--base) var(--motion--ease), box-shadow var(--motion--base) var(--motion--ease), background-color var(--motion--base) var(--motion--ease), transform var(--motion--base) var(--motion--ease-out);
