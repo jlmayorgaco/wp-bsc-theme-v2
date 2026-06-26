@@ -116,6 +116,13 @@ function bsc_handle_bulk_export(): void {
 				continue;
 			}
 
+			if ( bsc_orders_is_archive_status( $status_slug ) ) {
+				bsc_archive_order_from_admin( $order, 'Archivado manualmente en lote desde BSC Admin.' );
+				++$updated;
+				continue;
+			}
+
+			bsc_unarchive_order_from_admin( $order );
 			$order->update_status( $status_slug, 'Estado actualizado en lote desde BSC Admin.' );
 
 			if ( 'shipped' === $status_slug ) {
@@ -145,35 +152,61 @@ function bsc_orders_status_tabs(): array {
 			'label'    => 'Todos',
 			'statuses' => array(),
 		),
-		'wc-pending'    => array(
-			'label'    => 'Pendiente',
-			'statuses' => array( 'pending', 'on-hold' ),
-		),
 		'wc-processing' => array(
 			'label'    => 'Recibido',
-			'statuses' => array( 'processing' ),
-		),
-		'wc-preparing'  => array(
-			'label'    => 'En preparación',
-			'statuses' => array( 'preparing' ),
+			'statuses' => array( 'pending', 'on-hold', 'processing', 'preparing' ),
 		),
 		'wc-shipped'    => array(
 			'label'    => 'Enviado',
-			'statuses' => array( 'shipped' ),
-		),
-		'wc-completed'  => array(
-			'label'    => 'Terminado',
-			'statuses' => array( 'completed' ),
+			'statuses' => array( 'shipped', 'completed' ),
 		),
 		'wc-cancelled'  => array(
 			'label'    => 'Cancelado',
 			'statuses' => array( 'cancelled', 'failed', 'refunded' ),
+		),
+		'bsc-archived' => array(
+			'label'    => 'Archivado',
+			'statuses' => array(),
+			'archived' => true,
 		),
 	);
 }
 
 function bsc_normalize_order_status_slug( string $status ): string {
 	return preg_replace( '/^wc-/', '', $status );
+}
+
+function bsc_orders_archive_status_key(): string {
+	return 'bsc-archived';
+}
+
+function bsc_orders_is_archive_status( string $status ): bool {
+	return bsc_orders_archive_status_key() === bsc_normalize_order_status_slug( $status );
+}
+
+function bsc_orders_tab_is_archived( array $tab_config ): bool {
+	return ! empty( $tab_config['archived'] );
+}
+
+function bsc_archive_order_from_admin( WC_Order $order, string $note = 'Archivado manualmente desde BSC Admin.' ): void {
+	if ( ! $order->get_meta( '_bsc_archived_at', true ) ) {
+		$order->update_meta_data( '_bsc_archived_at', current_time( 'mysql', true ) );
+	}
+
+	$order->update_meta_data( '_bsc_archive_bucket', 'manual' );
+	$order->save_meta_data();
+	$order->add_order_note( $note );
+}
+
+function bsc_unarchive_order_from_admin( WC_Order $order ): void {
+	if ( ! $order->get_meta( '_bsc_archived_at', true ) ) {
+		return;
+	}
+
+	$order->delete_meta_data( '_bsc_archived_at' );
+	$order->delete_meta_data( '_bsc_archive_bucket' );
+	$order->save_meta_data();
+	$order->add_order_note( 'Reactivado desde BSC Admin.' );
 }
 
 function bsc_normalize_order_statuses( array $statuses ): array {
@@ -195,6 +228,21 @@ function bsc_unarchived_orders_meta_query(): array {
 	);
 }
 
+function bsc_archived_orders_meta_query(): array {
+	return array(
+		'relation' => 'AND',
+		array(
+			'key'     => '_bsc_archived_at',
+			'compare' => 'EXISTS',
+		),
+		array(
+			'key'     => '_bsc_archived_at',
+			'value'   => '',
+			'compare' => '!=',
+		),
+	);
+}
+
 function bsc_count_orders_for_statuses( array $statuses ): int {
 	$query_args = array(
 		'limit'      => 1,
@@ -210,6 +258,37 @@ function bsc_count_orders_for_statuses( array $statuses ): int {
 	$result = wc_get_orders( $query_args );
 
 	return (int) ( $result->total ?? 0 );
+}
+
+function bsc_count_archived_orders(): int {
+	$result = wc_get_orders(
+		array(
+			'limit'      => 1,
+			'paginate'   => true,
+			'return'     => 'ids',
+			'meta_query' => bsc_archived_orders_meta_query(),
+		)
+	);
+
+	return (int) ( $result->total ?? 0 );
+}
+
+function bsc_simplified_order_status_label( WC_Order $order ): string {
+	if ( $order->get_meta( '_bsc_archived_at', true ) ) {
+		return 'Archivado';
+	}
+
+	$status = $order->get_status();
+
+	if ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
+		return 'Enviado';
+	}
+
+	if ( in_array( $status, array( 'cancelled', 'failed', 'refunded' ), true ) ) {
+		return 'Cancelado';
+	}
+
+	return 'Recibido';
 }
 
 // Page render
@@ -229,16 +308,28 @@ function bsc_render_orders_page(): void {
 	// Status tabs + counts
 	$status_tabs  = bsc_orders_status_tabs();
 	$tab_counts   = array();
-	$all_statuses = array_values(
-		array_unique(
-			array_merge(
-				array( 'processing', 'on-hold', 'preparing', 'shipped', 'completed', 'cancelled', 'pending', 'failed', 'refunded' ),
-				bsc_normalize_order_statuses( array_keys( BSC_Admin_Orders_Table::STATUS_OPTIONS ) )
-			)
-		)
-	);
+	if ( ! isset( $status_tabs[ $active_status ] ) ) {
+		$active_status = '';
+	}
+
+	$all_statuses = array();
+
+	foreach ( $status_tabs as $tab_config ) {
+		if ( bsc_orders_tab_is_archived( $tab_config ) ) {
+			continue;
+		}
+
+		$all_statuses = array_merge( $all_statuses, (array) ( $tab_config['statuses'] ?? array() ) );
+	}
+
+	$all_statuses = array_values( array_unique( bsc_normalize_order_statuses( $all_statuses ) ) );
 
 	foreach ( $status_tabs as $slug => $config ) {
+		if ( bsc_orders_tab_is_archived( $config ) ) {
+			$tab_counts[ $slug ] = bsc_count_archived_orders();
+			continue;
+		}
+
 		$statuses            = $slug === '' ? $all_statuses : (array) ( $config['statuses'] ?? array() );
 		$tab_counts[ $slug ] = bsc_count_orders_for_statuses( $statuses );
 	}
@@ -254,8 +345,13 @@ function bsc_render_orders_page(): void {
 	if ( $search ) {
 		$query_args['s'] = $search;
 	}
-	$query_args['meta_query'] = bsc_unarchived_orders_meta_query();
-	if ( $active_status && isset( $status_tabs[ $active_status ] ) ) {
+	$active_tab_config        = $status_tabs[ $active_status ] ?? $status_tabs[''];
+	$is_archived_view        = bsc_orders_tab_is_archived( $active_tab_config );
+	$query_args['meta_query'] = $is_archived_view ? bsc_archived_orders_meta_query() : bsc_unarchived_orders_meta_query();
+
+	if ( ! $is_archived_view && '' === $active_status ) {
+		$query_args['status'] = $all_statuses;
+	} elseif ( ! $is_archived_view && $active_status ) {
 		$query_args['status'] = bsc_normalize_order_statuses( (array) $status_tabs[ $active_status ]['statuses'] );
 	}
 
@@ -298,20 +394,20 @@ function bsc_render_orders_page(): void {
 				<span class="bsc-admin-stat-card__value"><?php echo esc_html( $current_tab_label ); ?></span>
 				<span class="bsc-admin-stat-card__help"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts[ $active_status ] ?? $tab_counts[''] ?? 0 ) ) ); ?> pedidos en esta vista.</span>
 			</div>
-			<div class="bsc-admin-stat-card<?php echo esc_attr( (int) ( $tab_counts['wc-pending'] ?? 0 ) > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>">
-				<span class="bsc-admin-stat-card__label">Pendientes</span>
-				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-pending'] ?? 0 ) ) ); ?></span>
-				<span class="bsc-admin-stat-card__help">Por revisar o confirmar.</span>
+			<div class="bsc-admin-stat-card<?php echo esc_attr( (int) ( $tab_counts['wc-processing'] ?? 0 ) > 0 ? ' bsc-admin-stat-card--warning' : '' ); ?>">
+				<span class="bsc-admin-stat-card__label">Recibidos</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-processing'] ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Por revisar, empacar o enviar.</span>
 			</div>
 			<div class="bsc-admin-stat-card">
-				<span class="bsc-admin-stat-card__label">En preparacion</span>
-				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-preparing'] ?? 0 ) ) ); ?></span>
-				<span class="bsc-admin-stat-card__help">Listos para empaque y guia.</span>
+				<span class="bsc-admin-stat-card__label">Enviados</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['wc-shipped'] ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Listos para archivar cuando cierre el seguimiento.</span>
 			</div>
 			<div class="bsc-admin-stat-card">
-				<span class="bsc-admin-stat-card__label">Filtros activos</span>
-				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( $active_filters_count ) ); ?></span>
-				<span class="bsc-admin-stat-card__help">Fecha o busqueda aplicada.</span>
+				<span class="bsc-admin-stat-card__label">Archivados</span>
+				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $tab_counts['bsc-archived'] ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__help">Guardados fuera de las listas activas.</span>
 			</div>
 		</div>
 
@@ -426,6 +522,19 @@ function bsc_ajax_update_order_status(): void {
 		wp_send_json_error( array( 'message' => 'Estado inválido' ) );
 	}
 
+	if ( bsc_orders_is_archive_status( $status ) ) {
+		bsc_archive_order_from_admin( $order );
+
+		wp_send_json_success(
+			array(
+				'message'    => 'Pedido archivado',
+				'status'     => bsc_orders_archive_status_key(),
+				'status_key' => bsc_orders_archive_status_key(),
+			)
+		);
+	}
+
+	bsc_unarchive_order_from_admin( $order );
 	$order->update_status( $status, 'Estado actualizado desde BSC Admin.' );
 
 	if ( 'shipped' === $status ) {
@@ -438,8 +547,9 @@ function bsc_ajax_update_order_status(): void {
 
 	wp_send_json_success(
 		array(
-			'message' => 'Estado actualizado',
-			'status'  => $status,
+			'message'    => 'Estado actualizado',
+			'status'     => $status,
+			'status_key' => 'wc-' . $status,
 		)
 	);
 }
@@ -461,6 +571,8 @@ function bsc_ajax_save_tracking(): void {
 		wp_send_json_error( array( 'message' => 'Pedido no encontrado' ) );
 	}
 
+	$tracking_link = bsc_resolve_tracking_link( $tracking_code, $tracking_link );
+
 	update_post_meta( $order_id, '_bsc_tracking_code', $tracking_code );
 	update_post_meta( $order_id, '_bsc_tracking_link', $tracking_link );
 
@@ -476,7 +588,12 @@ function bsc_ajax_save_tracking(): void {
 		}
 	}
 
-	wp_send_json_success( array( 'message' => 'Tracking guardado' ) );
+	wp_send_json_success(
+		array(
+			'message'       => 'Tracking guardado',
+			'tracking_link' => $tracking_link,
+		)
+	);
 }
 
 add_action( 'wp_ajax_bsc_pack_order_item_stock', 'bsc_ajax_pack_order_item_stock' );
@@ -528,6 +645,24 @@ function bsc_ajax_pack_order_item_stock(): void {
 	);
 }
 
+function bsc_default_tracking_link( string $tracking_code = '' ): string {
+	return (string) apply_filters(
+		'bsc_default_tracking_link',
+		'https://www.servientrega.com/wps/portal/rastreo-envio',
+		$tracking_code
+	);
+}
+
+function bsc_resolve_tracking_link( string $tracking_code, string $tracking_link = '' ): string {
+	$tracking_link = esc_url_raw( $tracking_link );
+
+	if ( $tracking_link || ! $tracking_code ) {
+		return $tracking_link;
+	}
+
+	return esc_url_raw( bsc_default_tracking_link( $tracking_code ) );
+}
+
 // BSC-033: Send shipping notification email
 function bsc_send_shipping_email( int $order_id ): string {
 	$order = wc_get_order( $order_id );
@@ -542,6 +677,7 @@ function bsc_send_shipping_email( int $order_id ): string {
 
 	$tracking_code = get_post_meta( $order_id, '_bsc_tracking_code', true );
 	$tracking_link = get_post_meta( $order_id, '_bsc_tracking_link', true );
+	$tracking_link = bsc_resolve_tracking_link( (string) $tracking_code, (string) $tracking_link );
 
 	if ( function_exists( 'bsc_send_order_email' ) ) {
 		$sent = bsc_send_order_email(
@@ -573,12 +709,31 @@ function bsc_send_shipping_email( int $order_id ): string {
 
 function bsc_maybe_send_shipping_email_for_order( WC_Order $order ): string {
 	$order_id = $order->get_id();
+	$tracking_code = (string) get_post_meta( $order_id, '_bsc_tracking_code', true );
 
-	if ( ! get_post_meta( $order_id, '_bsc_tracking_code', true ) ) {
+	if ( ! $tracking_code ) {
 		return '';
 	}
 
-	if ( get_post_meta( $order_id, '_bsc_shipping_email_sent_at', true ) ) {
+	$tracking_link = bsc_resolve_tracking_link(
+		$tracking_code,
+		(string) get_post_meta( $order_id, '_bsc_tracking_link', true )
+	);
+
+	if ( ! $tracking_link ) {
+		return '';
+	}
+
+	update_post_meta( $order_id, '_bsc_tracking_link', $tracking_link );
+
+	$last_email_tracking_code = (string) get_post_meta( $order_id, '_bsc_shipping_email_tracking_code', true );
+	$last_email_tracking_link = (string) get_post_meta( $order_id, '_bsc_shipping_email_tracking_link', true );
+
+	if (
+		get_post_meta( $order_id, '_bsc_shipping_email_sent_at', true )
+		&& $last_email_tracking_code === $tracking_code
+		&& $last_email_tracking_link === $tracking_link
+	) {
 		return '';
 	}
 
@@ -586,6 +741,8 @@ function bsc_maybe_send_shipping_email_for_order( WC_Order $order ): string {
 
 	if ( ! $email_error ) {
 		update_post_meta( $order_id, '_bsc_shipping_email_sent_at', current_time( 'mysql' ) );
+		update_post_meta( $order_id, '_bsc_shipping_email_tracking_code', $tracking_code );
+		update_post_meta( $order_id, '_bsc_shipping_email_tracking_link', $tracking_link );
 	}
 
 	return $email_error;
@@ -635,7 +792,7 @@ function bsc_export_orders_csv( array $order_ids ): void {
 					trim( $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2() ) ?: $order->get_billing_address_1(),
 					implode( ' | ', $items ),
 					$order->get_total(),
-					wc_get_order_status_name( $order->get_status() ),
+					bsc_simplified_order_status_label( $order ),
 				)
 			)
 		);
@@ -703,7 +860,7 @@ function bsc_render_packing_view( array $order_ids ): void {
 		<div class="bsc-packing-view__order-card">
 			<div class="bsc-packing-view__order-header">
 				<span class="bsc-packing-view__order-number">#<?php echo esc_html( $order->get_order_number() ); ?></span>
-				<span class="bsc-packing-view__order-status"><?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?></span>
+				<span class="bsc-packing-view__order-status"><?php echo esc_html( bsc_simplified_order_status_label( $order ) ); ?></span>
 			</div>
 			<div class="bsc-packing-view__details">
 				<div><strong>Cliente:</strong> <?php echo esc_html( $name ); ?></div>

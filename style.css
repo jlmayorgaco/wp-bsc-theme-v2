@@ -21127,7 +21127,8 @@ details[open] .bsc__product-detail-category > summary::after {
     transform: translate(0px, 0px) rotate(0deg);
   }
 }
-.bsc__field.wiggle-animation {
+.bsc__field.wiggle-animation,
+.form-row.wiggle-animation {
   animation: wiggle 1s ease-in-out;
 }
 
@@ -21136,7 +21137,13 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__field.has-error .select2-selection,
 .bsc__field.has-error #billing_state.state_select,
 .bsc__field.has-error #billing_city.city_select,
-.bsc__field.has-error .bsc__locked-country-select {
+.bsc__field.has-error .bsc__locked-country-select,
+.form-row.has-error input,
+.form-row.has-error select,
+.form-row.has-error .select2-selection,
+.form-row.has-error #billing_state.state_select,
+.form-row.has-error #billing_city.city_select,
+.form-row.has-error .bsc__locked-country-select {
   border: 1px solid red;
   color: red;
   border-bottom-right-radius: 0;
@@ -21148,7 +21155,13 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__field.has-error .select2-selection::placeholder,
 .bsc__field.has-error #billing_state.state_select::placeholder,
 .bsc__field.has-error #billing_city.city_select::placeholder,
-.bsc__field.has-error .bsc__locked-country-select::placeholder {
+.bsc__field.has-error .bsc__locked-country-select::placeholder,
+.form-row.has-error input::placeholder,
+.form-row.has-error select::placeholder,
+.form-row.has-error .select2-selection::placeholder,
+.form-row.has-error #billing_state.state_select::placeholder,
+.form-row.has-error #billing_city.city_select::placeholder,
+.form-row.has-error .bsc__locked-country-select::placeholder {
   color: red;
 }
 

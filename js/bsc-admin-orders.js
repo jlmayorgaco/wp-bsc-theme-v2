@@ -65,15 +65,16 @@
     var $badge = $row.find('.bsc-order-badge').first();
     var cleanStatus = String(status || '').replace(/^wc-/, '');
     var labelMap = {
-      pending: 'Pendiente',
-      'on-hold': 'En espera',
+      pending: 'Recibido',
+      'on-hold': 'Recibido',
       processing: 'Recibido',
-      preparing: 'En preparación',
+      preparing: 'Recibido',
       shipped: 'Enviado',
-      completed: 'Terminado',
+      completed: 'Enviado',
       cancelled: 'Cancelado',
-      failed: 'Fallido',
-      refunded: 'Reembolsado',
+      failed: 'Cancelado',
+      refunded: 'Cancelado',
+      'bsc-archived': 'Archivado',
     };
 
     if (!$badge.length || !labelMap[cleanStatus]) {
@@ -83,6 +84,7 @@
     $badge
       .removeClass(
         'bsc-order-badge--pending bsc-order-badge--on-hold bsc-order-badge--processing bsc-order-badge--preparing bsc-order-badge--shipped bsc-order-badge--completed bsc-order-badge--cancelled bsc-order-badge--failed bsc-order-badge--refunded'
+        + ' bsc-order-badge--bsc-archived'
       )
       .addClass('bsc-order-badge--' + cleanStatus)
       .text(labelMap[cleanStatus]);
@@ -108,6 +110,35 @@
 
     $('#bsc-orders-selection-count').text(label);
     $('.bsc-orders-bulk-actions').toggleClass('is-active', selectedCount > 0);
+  }
+
+  function getCurrentStatusView() {
+    return new window.URLSearchParams(window.location.search).get('order_status') || '';
+  }
+
+  function rowBelongsInCurrentView(statusKey) {
+    var currentView = getCurrentStatusView();
+
+    if (!currentView) {
+      return statusKey !== 'bsc-archived';
+    }
+
+    if (currentView === 'bsc-archived') {
+      return statusKey === 'bsc-archived';
+    }
+
+    return currentView === statusKey;
+  }
+
+  function removeRowIfOutsideCurrentView($row, statusKey) {
+    if (rowBelongsInCurrentView(statusKey)) {
+      return;
+    }
+
+    $row.fadeOut(180, function () {
+      $(this).remove();
+      updateSelectionSummary();
+    });
   }
 
   function withNewTabTarget($form, callback) {
@@ -150,9 +181,12 @@
           return;
         }
 
-        $select.attr('data-original-status', 'wc-' + response.data.status);
+        var newStatusKey = response.data.status_key || ('wc-' + response.data.status);
+
+        $select.attr('data-original-status', newStatusKey);
         updateStatusPendingState($select);
-        updateStatusBadge($select.closest('tr'), response.data.status);
+        updateStatusBadge($select.closest('tr'), newStatusKey);
+        removeRowIfOutsideCurrentView($select.closest('tr'), newStatusKey);
         showToast(strings.saved || 'Elemento guardado');
       })
       .fail(function () {
@@ -190,6 +224,10 @@
         if (!response.success) {
           alert((strings.trackingError || 'Error al guardar tracking') + ': ' + ((response.data && response.data.message) || 'desconocido'));
           return;
+        }
+
+        if (response.data && response.data.tracking_link) {
+          $cell.find('.bsc-tracking-link').val(response.data.tracking_link);
         }
 
         showSaved($indicator);

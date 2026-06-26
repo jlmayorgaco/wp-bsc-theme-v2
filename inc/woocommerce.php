@@ -1205,14 +1205,15 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 	}
 
 	function bsc_run_order_archiver(): void {
-		$days_shipped   = (int) apply_filters( 'bsc_auto_archive_days_shipped', 15 );
-		$days_cancelled = (int) apply_filters( 'bsc_auto_archive_days_cancelled', 30 );
+		$default_days   = max( 1, (int) apply_filters( 'bsc_auto_archive_days', 30 ) );
+		$days_shipped   = max( 1, (int) apply_filters( 'bsc_auto_archive_days_shipped', $default_days ) );
+		$days_cancelled = max( 1, (int) apply_filters( 'bsc_auto_archive_days_cancelled', $default_days ) );
 
 		$cutoff_shipped   = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_shipped} days" ) );
 		$cutoff_cancelled = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_cancelled} days" ) );
 
-		bsc_archive_orders_batch( array( 'shipped' ), $cutoff_shipped, 'shipped', $days_shipped );
-		bsc_archive_orders_batch( array( 'cancelled' ), $cutoff_cancelled, 'cancelled', $days_cancelled );
+		bsc_archive_orders_batch( array( 'shipped', 'completed' ), $cutoff_shipped, 'shipped', $days_shipped );
+		bsc_archive_orders_batch( array( 'cancelled', 'failed', 'refunded' ), $cutoff_cancelled, 'cancelled', $days_cancelled );
 	}
 
 	function bsc_archive_orders_batch( array $statuses, string $date_before, string $bucket, int $days ): void {
