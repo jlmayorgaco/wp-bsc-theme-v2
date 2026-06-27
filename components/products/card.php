@@ -139,13 +139,16 @@ class BSC_Products_Card {
 		echo wp_kses_post( $this->price );
 	}
 
-	public function render_button( string $label = '' ): void {
+	public function render_button( string $label = '', bool $force_direct_add = false ): void {
 		if ( $label === '' ) {
 			$label = html_entity_decode( '&#161;Lo quiero!', ENT_QUOTES, 'UTF-8' );
 		}
 
 		$product_id = $this->id;
-		if ( $this->type === 'variable' ) {
+		$has_bsc_options = function_exists( 'bsc_product_has_public_variant_options' )
+			&& bsc_product_has_public_variant_options( (int) $product_id );
+
+		if ( $this->type === 'variable' || ( $has_bsc_options && ! $force_direct_add ) ) {
 			echo '<a href="' . esc_url( $this->link ) . '" class="bsc__button bsc__button--product-card bsc__button-add-to-cart--variable" aria-label="Ver opciones del producto">';
 			echo '<span>Ver opciones</span>';
 			echo '</a>';
@@ -154,7 +157,7 @@ class BSC_Products_Card {
 
 		$formatted_price = wc_format_decimal( $this->raw_price, wc_get_price_decimals() );
 		$quantity = self::getCartQuantityForProduct( (int) $product_id );
-		$in_cart  = $quantity > 0;
+		$in_cart  = $quantity > 0 && ! $has_bsc_options;
 
 		if ( $in_cart ) {
 			echo '<button

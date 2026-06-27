@@ -95,6 +95,210 @@ function bsc_2_0_get_checkout_url(): string {
 	return function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );
 }
 
+function bsc_product_variants_normalize_hex( $raw_color ): string {
+	$hex = sanitize_hex_color( sanitize_text_field( (string) $raw_color ) );
+
+	return $hex ?: '';
+}
+
+function bsc_product_variants_normalize_price( $raw_price ): string {
+	if ( $raw_price === null || $raw_price === '' ) {
+		return '';
+	}
+
+	$price = wc_format_decimal( sanitize_text_field( (string) $raw_price ), wc_get_price_decimals() );
+	if ( $price === '' || ! is_numeric( $price ) || (float) $price < 0 ) {
+		return '';
+	}
+
+	return $price;
+}
+
+function bsc_get_product_color_variants( int $product_id ): array {
+	if ( $product_id <= 0 || get_post_meta( $product_id, '_bsc_color_variants_enabled', true ) !== '1' ) {
+		return array();
+	}
+
+	$raw_variants = get_post_meta( $product_id, '_bsc_color_variants', true );
+	if ( ! is_array( $raw_variants ) ) {
+		return array();
+	}
+
+	$variants = array();
+	foreach ( $raw_variants as $raw_variant ) {
+		if ( ! is_array( $raw_variant ) ) {
+			continue;
+		}
+
+		$name = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
+		$hex  = bsc_product_variants_normalize_hex( $raw_variant['hex'] ?? '' );
+
+		if ( $name === '' || $hex === '' ) {
+			continue;
+		}
+
+		$variants[] = array(
+			'name'  => $name,
+			'hex'   => $hex,
+			'price' => bsc_product_variants_normalize_price( $raw_variant['price'] ?? '' ),
+		);
+	}
+
+	return $variants;
+}
+
+function bsc_get_product_size_variants( int $product_id ): array {
+	if ( $product_id <= 0 || get_post_meta( $product_id, '_bsc_size_variants_enabled', true ) !== '1' ) {
+		return array();
+	}
+
+	$raw_variants = get_post_meta( $product_id, '_bsc_size_variants', true );
+	if ( ! is_array( $raw_variants ) ) {
+		return array();
+	}
+
+	$variants = array();
+	foreach ( $raw_variants as $raw_variant ) {
+		if ( ! is_array( $raw_variant ) ) {
+			continue;
+		}
+
+		$name = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
+		if ( $name === '' ) {
+			continue;
+		}
+
+		$variants[] = array(
+			'name'  => $name,
+			'price' => bsc_product_variants_normalize_price( $raw_variant['price'] ?? '' ),
+		);
+	}
+
+	return $variants;
+}
+
+function bsc_product_has_public_variant_options( int $product_id ): bool {
+	return ! empty( bsc_get_product_color_variants( $product_id ) ) || ! empty( bsc_get_product_size_variants( $product_id ) );
+}
+
+function bsc_get_selected_product_variant_options( int $product_id, array $data ): array {
+	$colors     = bsc_get_product_color_variants( $product_id );
+	$sizes      = bsc_get_product_size_variants( $product_id );
+	$color_name = isset( $data['bsc_color_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_color_variant_name'] ) ) : '';
+	$color_hex  = isset( $data['bsc_color_variant_hex'] ) ? bsc_product_variants_normalize_hex( wp_unslash( $data['bsc_color_variant_hex'] ) ) : '';
+	$size_name  = isset( $data['bsc_size_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_size_variant_name'] ) ) : '';
+
+	$selection = array(
+		'color' => null,
+		'size'  => null,
+		'price' => '',
+	);
+
+	foreach ( $colors as $variant ) {
+		$name_matches = $color_name === '' || $variant['name'] === $color_name;
+		$hex_matches  = $color_hex === '' || strtolower( $variant['hex'] ) === strtolower( $color_hex );
+		if ( $name_matches && $hex_matches ) {
+			$selection['color'] = $variant;
+			break;
+		}
+	}
+
+	foreach ( $sizes as $variant ) {
+		if ( $size_name === '' || $variant['name'] === $size_name ) {
+			$selection['size'] = $variant;
+			break;
+		}
+	}
+
+	if ( is_array( $selection['color'] ) && $selection['color']['price'] !== '' ) {
+		$selection['price'] = $selection['color']['price'];
+	}
+
+	if ( is_array( $selection['size'] ) && $selection['size']['price'] !== '' ) {
+		$selection['price'] = $selection['size']['price'];
+	}
+
+	return $selection;
+}
+
+function bsc_build_product_variant_cart_item_data( int $product_id, array $data ): array {
+	$selection = bsc_get_selected_product_variant_options( $product_id, $data );
+	if ( ! is_array( $selection['color'] ) && ! is_array( $selection['size'] ) ) {
+		return array();
+	}
+
+	$cart_item_data = array(
+		'bsc_product_options'     => $selection,
+		'bsc_product_options_key' => md5( wp_json_encode( $selection ) ),
+	);
+
+	if ( $selection['price'] !== '' ) {
+		$cart_item_data['bsc_product_variant_price'] = $selection['price'];
+	}
+
+	return $cart_item_data;
+}
+
+function bsc_apply_product_variant_price_to_cart( $cart ): void {
+	if ( is_admin() && ! wp_doing_ajax() ) {
+		return;
+	}
+
+	if ( ! $cart instanceof WC_Cart ) {
+		return;
+	}
+
+	foreach ( $cart->get_cart() as $cart_item ) {
+		$price = $cart_item['bsc_product_variant_price'] ?? ( $cart_item['bsc_product_options']['price'] ?? '' );
+		if ( $price === '' || ! isset( $cart_item['data'] ) || ! $cart_item['data'] instanceof WC_Product ) {
+			continue;
+		}
+
+		$cart_item['data']->set_price( (float) $price );
+	}
+}
+add_action( 'woocommerce_before_calculate_totals', 'bsc_apply_product_variant_price_to_cart', 20 );
+
+function bsc_add_product_variant_item_data( array $item_data, array $cart_item ): array {
+	$options = $cart_item['bsc_product_options'] ?? array();
+
+	if ( ! empty( $options['color']['name'] ) ) {
+		$item_data[] = array(
+			'key'   => 'Color',
+			'value' => wc_clean( $options['color']['name'] ),
+		);
+	}
+
+	if ( ! empty( $options['size']['name'] ) ) {
+		$item_data[] = array(
+			'key'   => 'Tamano',
+			'value' => wc_clean( $options['size']['name'] ),
+		);
+	}
+
+	return $item_data;
+}
+add_filter( 'woocommerce_get_item_data', 'bsc_add_product_variant_item_data', 20, 2 );
+
+function bsc_add_product_variant_meta_to_order_item( $item, $cart_item_key, $values, $order ): void {
+	unset( $cart_item_key, $order );
+
+	if ( ! $item instanceof WC_Order_Item_Product ) {
+		return;
+	}
+
+	$options = $values['bsc_product_options'] ?? array();
+
+	if ( ! empty( $options['color']['name'] ) ) {
+		$item->add_meta_data( 'Color', wc_clean( $options['color']['name'] ), true );
+	}
+
+	if ( ! empty( $options['size']['name'] ) ) {
+		$item->add_meta_data( 'Tamano', wc_clean( $options['size']['name'] ), true );
+	}
+}
+add_action( 'woocommerce_checkout_create_order_line_item', 'bsc_add_product_variant_meta_to_order_item', 20, 4 );
+
 /**
  * Prevent front-end cart links generated by WooCommerce from pointing to /cart/.
  *
@@ -190,6 +394,86 @@ function bsc_product_is_publicly_listable( ?WC_Product $product, string $context
 		&& in_array( $product->get_catalog_visibility(), $allowed_visibility, true )
 		&& '1' !== (string) get_post_meta( $product->get_id(), '_bsc_product_archived', true );
 }
+
+function bsc_get_product_brand_category_term( int $product_id ): ?WP_Term {
+	$terms = get_the_terms( $product_id, 'product_cat' );
+
+	if ( ! is_array( $terms ) || is_wp_error( $terms ) ) {
+		return null;
+	}
+
+	foreach ( $terms as $term ) {
+		if ( $term instanceof WP_Term && false !== strpos( $term->slug, '-marca' ) ) {
+			return $term;
+		}
+	}
+
+	return null;
+}
+
+function bsc_sync_product_brand_attribute_from_category( int $product_id ): void {
+	static $syncing = array();
+
+	if ( $product_id <= 0 || isset( $syncing[ $product_id ] ) || 'product' !== get_post_type( $product_id ) ) {
+		return;
+	}
+
+	$product = wc_get_product( $product_id );
+	if ( ! $product instanceof WC_Product ) {
+		return;
+	}
+
+	$syncing[ $product_id ] = true;
+
+	try {
+		$brand_term = bsc_get_product_brand_category_term( $product_id );
+		$brand_name = $brand_term instanceof WP_Term ? trim( wp_strip_all_tags( $brand_term->name ) ) : '';
+		$attributes = $product->get_attributes();
+
+		if ( '' === $brand_name ) {
+			if ( isset( $attributes['brand'] ) ) {
+				unset( $attributes['brand'] );
+				$product->set_attributes( $attributes );
+				$product->save();
+			}
+
+			return;
+		}
+
+		$current_brand = trim( wp_strip_all_tags( (string) $product->get_attribute( 'brand' ) ) );
+		if ( isset( $attributes['brand'] ) && $current_brand === $brand_name ) {
+			return;
+		}
+
+		$attribute = $attributes['brand'] ?? new WC_Product_Attribute();
+		if ( ! $attribute instanceof WC_Product_Attribute ) {
+			$attribute = new WC_Product_Attribute();
+		}
+
+		$attribute->set_id( 0 );
+		$attribute->set_name( 'brand' );
+		$attribute->set_options( array( $brand_name ) );
+		$attribute->set_visible( $attribute->get_visible() );
+		$attribute->set_variation( false );
+
+		$attributes['brand'] = $attribute;
+		$product->set_attributes( $attributes );
+		$product->save();
+	} finally {
+		unset( $syncing[ $product_id ] );
+	}
+}
+
+function bsc_sync_product_brand_attribute_after_category_terms_set( $object_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ): void {
+	unset( $terms, $tt_ids, $append, $old_tt_ids );
+
+	if ( 'product_cat' !== $taxonomy ) {
+		return;
+	}
+
+	bsc_sync_product_brand_attribute_from_category( (int) $object_id );
+}
+add_action( 'set_object_terms', 'bsc_sync_product_brand_attribute_after_category_terms_set', 20, 6 );
 
 /**
  * Related Products Args.

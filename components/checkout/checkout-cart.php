@@ -23,7 +23,9 @@ class BSC_Checkout_Cart {
 	}
 
 	protected function render_cart_item( string $key, array $item ): string {
-		$_product = wc_get_product( $item['product_id'] );
+		$_product = isset( $item['data'] ) && $item['data'] instanceof WC_Product
+			? $item['data']
+			: wc_get_product( $item['product_id'] );
 		if (!$_product) {
 			return '';
 		}
@@ -31,10 +33,12 @@ class BSC_Checkout_Cart {
 		$name     = $_product->get_name();
 		$quantity = $item['quantity'];
 		// I-7: use wc_get_price_to_display() to respect sale prices and tax settings
-		$unit_price  = (float) wc_get_price_to_display( $_product );
+		$variant_price = $item['bsc_product_variant_price'] ?? ( $item['bsc_product_options']['price'] ?? '' );
+		$unit_price    = $variant_price !== '' ? (float) $variant_price : (float) wc_get_price_to_display( $_product );
 		$price       = wc_price( $unit_price );
 		$price_total = wc_price( $quantity * $unit_price );
 		$image       = $_product->get_image( 'woocommerce_thumbnail' );
+		$item_data   = function_exists( 'wc_get_formatted_cart_item_data' ) ? wc_get_formatted_cart_item_data( $item ) : '';
 
 		$link = get_permalink( $_product->get_id() );
 
@@ -58,6 +62,11 @@ class BSC_Checkout_Cart {
 						<h5 class="item__brand">
 							<a href="<?php echo esc_url( $brand_link ); ?>"><?php echo esc_html( $brand_name ); ?></a>
 						</h5>
+						<?php if ( $item_data !== '' ) : ?>
+						<div class="item__variants">
+							<?php echo wp_kses_post( $item_data ); ?>
+						</div>
+						<?php endif; ?>
 					</div>
 					<div class="col_total">
 						<h5 class="item__total"><?php echo wp_kses_post( $price_total ); ?></h5>

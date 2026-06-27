@@ -56,6 +56,142 @@ jQuery(function ($) {
       .one('animationend webkitAnimationEnd', function () { $(this).removeClass('is-swinging'); });
   }
 
+  function isValidHexColor(color) {
+    return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color || '');
+  }
+
+  function applySwatchColor($swatch, color) {
+    if (!isValidHexColor(color)) return;
+
+    $swatch.css('background-color', color);
+  }
+
+  function getProductOptions($btn) {
+    return $btn.closest('.bsc__product--page').find('[data-bsc-product-options]').first();
+  }
+
+  function formatCopPrice(price) {
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice)) return '';
+
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(numericPrice);
+  }
+
+  function selectedVariantPrice($options) {
+    const sizePrice = $options.find('[data-bsc-size-option].is-selected').data('price');
+    const colorPrice = $options.find('[data-bsc-color-option].is-selected').data('price');
+
+    return sizePrice || colorPrice || '';
+  }
+
+  function updateProductPrice($options) {
+    const rawPrice = selectedVariantPrice($options);
+    const $price = $options.closest('.bsc__product-info').find('.bsc__product-price .price').first();
+    const $target = $price.length ? $price : $options.closest('.bsc__product-info').find('.bsc__product-price').first();
+
+    if (!$target.length) return;
+    if ($target.data('bscBaseHtml') === undefined) {
+      $target.data('bscBaseHtml', $target.html());
+    }
+
+    if (rawPrice) {
+      $target.html(formatCopPrice(rawPrice));
+      return;
+    }
+
+    $target.html($target.data('bscBaseHtml'));
+  }
+
+  function getProductOptionPayload($btn) {
+    const $options = getProductOptions($btn);
+    if (!$options.length) return {};
+
+    return {
+      bsc_color_variant_name: $options.find('[data-bsc-selected-color-name]').val() || '',
+      bsc_color_variant_hex: $options.find('[data-bsc-selected-color-hex]').val() || '',
+      bsc_size_variant_name: $options.find('[data-bsc-selected-size-name]').val() || '',
+    };
+  }
+
+  function closeColorPickers($except) {
+    $('[data-bsc-color-picker]').not($except || $()).each(function () {
+      const $picker = $(this);
+      $picker.removeClass('is-open');
+      $picker.find('[data-bsc-color-list]').prop('hidden', true);
+      $picker.find('[data-bsc-color-trigger]').attr('aria-expanded', 'false');
+    });
+  }
+
+  function initProductVariantOptions() {
+    $('[data-color-hex]').each(function () {
+      applySwatchColor($(this), $(this).data('colorHex'));
+    });
+
+    $('[data-bsc-product-options]').each(function () {
+      updateProductPrice($(this));
+    });
+  }
+
+  initProductVariantOptions();
+
+  $(document).on('click', '[data-bsc-color-trigger]', function (e) {
+    e.preventDefault();
+
+    const $trigger = $(this);
+    const $picker = $trigger.closest('[data-bsc-color-picker]');
+    const $list = $picker.find('[data-bsc-color-list]');
+    const shouldOpen = $list.prop('hidden');
+
+    closeColorPickers($picker);
+    $picker.toggleClass('is-open', shouldOpen);
+    $list.prop('hidden', !shouldOpen);
+    $trigger.attr('aria-expanded', shouldOpen ? 'true' : 'false');
+  });
+
+  $(document).on('click', '[data-bsc-color-option]', function (e) {
+    e.preventDefault();
+
+    const $option = $(this);
+    const $options = $option.closest('[data-bsc-product-options]');
+    const colorName = $option.data('name') || '';
+    const colorHex = $option.data('hex') || '';
+
+    $options.find('[data-bsc-color-option]').removeClass('is-selected').attr('aria-selected', 'false');
+    $option.addClass('is-selected').attr('aria-selected', 'true');
+
+    $options.find('[data-bsc-selected-color-name]').val(colorName);
+    $options.find('[data-bsc-selected-color-hex]').val(colorHex);
+    $options.find('[data-bsc-color-current-label]').text(colorName);
+    applySwatchColor($options.find('[data-bsc-color-current-swatch]'), colorHex);
+    updateProductPrice($options);
+    closeColorPickers();
+  });
+
+  $(document).on('click', '[data-bsc-size-option]', function (e) {
+    e.preventDefault();
+
+    const $option = $(this);
+    const $options = $option.closest('[data-bsc-product-options]');
+    const sizeName = $option.data('name') || '';
+
+    $options.find('[data-bsc-size-option]').removeClass('is-selected').attr('aria-selected', 'false');
+    $option.addClass('is-selected').attr('aria-selected', 'true');
+    $options.find('[data-bsc-selected-size-name]').val(sizeName);
+    $options.find('[data-bsc-size-current-label]').text(sizeName);
+    updateProductPrice($options);
+  });
+
+  $(document).on('click', function (e) {
+    if ($(e.target).closest('[data-bsc-color-picker]').length) return;
+
+    closeColorPickers();
+  });
+
   /**
    * Add to cart handler
    * BSC-005: listen to both pointerup (touch/mouse - no 300ms delay) and click
@@ -78,6 +214,7 @@ jQuery(function ($) {
       product_id: productId,
       quantity: quantity,
       nonce: bsc_ajax.nonce,
+      ...getProductOptionPayload($btn),
     }).done((response) => {
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => {
@@ -92,8 +229,31 @@ jQuery(function ($) {
    * After add to cart: Inject quantity controls and update cart UI
    */
   $(document.body).on('added_to_cart', function (e, fragments, hash, $btn) {
-    if ($btn.siblings(SELECTORS.quantityControls).length) return;
     const safeFragments = fragments || {};
+    const hasVariantOptions = getProductOptions($btn).length > 0;
+
+    if (hasVariantOptions) {
+      if (safeFragments['a.cart-contents']) {
+        $('a.cart-contents').replaceWith(safeFragments['a.cart-contents']);
+
+        const updatedCart = $(safeFragments['a.cart-contents']);
+        const rawCount = updatedCart.find('.count').text().match(/\d+/);
+        const count = rawCount ? parseInt(rawCount[0], 10) : 0;
+
+        syncCartCount(count);
+      } else {
+        refreshCartFragments();
+      }
+
+      triggerCartSwing();
+      navigator.vibrate?.(80);
+
+      if (typeof refreshReviewSummary === 'function') refreshReviewSummary();
+      if (typeof window.bscCaptureAbandonedCart === 'function') window.bscCaptureAbandonedCart();
+      return;
+    }
+
+    if ($btn.siblings(SELECTORS.quantityControls).length) return;
 
     const productId = $btn.data('product_id');
     const quantityControls = `

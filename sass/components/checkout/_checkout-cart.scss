@@ -111,7 +111,8 @@ $checkout-cart-btn-gap: 10px;
       &.col2 {
         flex: 1;
         min-width: 0;
-        height: var(--checkout--review--img-h);
+        min-height: var(--checkout--review--img-h);
+        height: auto;
         position: relative;
         border-bottom: 1px solid bsc.$border;
 
@@ -125,7 +126,7 @@ $checkout-cart-btn-gap: 10px;
           .col_name_brand {
             width: 100%;
             max-width: calc(100% - 5em);
-            height: 60px;
+            min-height: 60px;
             min-width: 0;
 
             .item__name {
@@ -149,6 +150,35 @@ $checkout-cart-btn-gap: 10px;
 
               a {
                 @include bsc.link-reset(bsc.$text, 900);
+              }
+            }
+
+            .item__variants {
+              margin-top: 0.35rem;
+              color: bsc.$text-muted;
+              font-size: 12px;
+              letter-spacing: 0;
+              line-height: 1.4;
+
+              dl,
+              dt,
+              dd,
+              p {
+                margin: 0;
+              }
+
+              dl {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.25rem 0.5rem;
+              }
+
+              dt {
+                font-weight: 700;
+              }
+
+              dd {
+                margin-right: 0.5rem;
               }
             }
           }
