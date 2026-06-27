@@ -45,6 +45,7 @@ test.describe('BSC admin products smoke', () => {
 
     const historyButton = page.locator('.bsc-stock-history-btn').first();
     await expect(historyButton).toBeVisible();
+    await expect(page.locator('.bsc-product-delete-btn').first()).toBeVisible();
     await historyButton.click({ force: true });
 
     const modal = page.locator('#bsc-stock-modal').first();

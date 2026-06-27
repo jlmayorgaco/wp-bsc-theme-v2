@@ -317,7 +317,12 @@
 				<strong>Productos</strong> Destacados
 				</h1>
 				<?php
-				$slider = new BSC_Products_Sliders();
+				$key     = 'productos_destacados';
+				$options = $home_options;
+				$skus    = ! empty( $options[ $key ] ) ? explode( ',', (string) $options[ $key ] ) : array();
+				$slider  = new BSC_Products_Sliders();
+				$slider->setSkus( $skus );
+				$slider->setSlug( $key );
 				$slider->render();
 				?>
 		</div>

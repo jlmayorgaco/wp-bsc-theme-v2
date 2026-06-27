@@ -154,6 +154,18 @@
   margin-bottom: 8px;
 }
 
+.button.bsc-admin-products__delete {
+  border-color: admin.$danger-border;
+  color: admin.$danger;
+
+  &:hover,
+  &:focus {
+    background: admin.$surface-danger;
+    border-color: admin.$danger-strong;
+    color: admin.$danger-strong;
+  }
+}
+
 .bsc-admin-products__save-controls {
   justify-content: flex-start;
 }

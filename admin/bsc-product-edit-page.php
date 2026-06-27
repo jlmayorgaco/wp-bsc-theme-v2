@@ -36,6 +36,7 @@ function bsc_get_product_edit_category_tree_data(): array {
 				'id'       => (int) $term->term_id,
 				'name'     => (string) $term->name,
 				'slug'     => (string) $term->slug,
+				'parent'   => (int) $term->parent,
 				'children' => $build_tree( $items, (int) $term->term_id ),
 			);
 		}
@@ -54,6 +55,181 @@ function bsc_get_product_edit_current_category_ids( int $product_id ): array {
 	}
 
 	return array_values( array_map( 'intval', $term_ids ) );
+}
+
+function bsc_product_edit_root_slugs(): array {
+	return array( 'group-skin-care', 'group-hair-care', 'group-make-up' );
+}
+
+function bsc_product_edit_user_can_manage_categories(): bool {
+	return current_user_can( 'manage_options' )
+		|| current_user_can( 'manage_woocommerce' )
+		|| current_user_can( 'manage_product_terms' )
+		|| current_user_can( 'edit_products' );
+}
+
+function bsc_product_edit_parent_is_descendant( int $term_id, int $parent_id ): bool {
+	if ( $term_id <= 0 || $parent_id <= 0 ) {
+		return false;
+	}
+
+	$ancestor_ids = get_ancestors( $parent_id, 'product_cat' );
+	$ancestor_ids = array_map( 'intval', is_array( $ancestor_ids ) ? $ancestor_ids : array() );
+
+	return in_array( $term_id, $ancestor_ids, true );
+}
+
+function bsc_product_edit_validate_category_parent( int $parent_id ) {
+	if ( $parent_id <= 0 ) {
+		return 0;
+	}
+
+	$parent = get_term( $parent_id, 'product_cat' );
+	if ( ! $parent instanceof WP_Term ) {
+		return new WP_Error( 'bsc_invalid_category_parent', 'El padre seleccionado no existe.' );
+	}
+
+	return $parent_id;
+}
+
+function bsc_product_edit_category_ajax_payload( int $term_id = 0 ): array {
+	$payload = array(
+		'tree' => bsc_get_product_edit_category_tree_data(),
+	);
+
+	if ( $term_id > 0 ) {
+		$term = get_term( $term_id, 'product_cat' );
+		if ( $term instanceof WP_Term ) {
+			$payload['term'] = array(
+				'id'     => (int) $term->term_id,
+				'name'   => (string) $term->name,
+				'slug'   => (string) $term->slug,
+				'parent' => (int) $term->parent,
+			);
+		}
+	}
+
+	return $payload;
+}
+
+function bsc_product_edit_ajax_guard(): void {
+	check_ajax_referer( 'bsc_product_edit_categories', 'nonce' );
+
+	if ( ! bsc_product_edit_user_can_manage_categories() ) {
+		wp_send_json_error( array( 'message' => 'Sin permisos para editar categorias.' ), 403 );
+	}
+}
+
+add_action( 'wp_ajax_bsc_product_category_create', 'bsc_ajax_product_category_create' );
+function bsc_ajax_product_category_create(): void {
+	bsc_product_edit_ajax_guard();
+
+	$name      = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+	$slug      = sanitize_title( wp_unslash( $_POST['slug'] ?? '' ) );
+	$parent_id = absint( wp_unslash( $_POST['parent'] ?? 0 ) );
+	$parent_id = bsc_product_edit_validate_category_parent( $parent_id );
+
+	if ( is_wp_error( $parent_id ) ) {
+		wp_send_json_error( array( 'message' => $parent_id->get_error_message() ), 400 );
+	}
+
+	if ( $name === '' ) {
+		wp_send_json_error( array( 'message' => 'Escribe el nombre de la categoria.' ), 400 );
+	}
+
+	$args = array(
+		'parent' => $parent_id,
+	);
+
+	if ( $slug !== '' ) {
+		$args['slug'] = $slug;
+	}
+
+	$result = wp_insert_term( $name, 'product_cat', $args );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	wp_send_json_success( bsc_product_edit_category_ajax_payload( (int) $result['term_id'] ) );
+}
+
+add_action( 'wp_ajax_bsc_product_category_update', 'bsc_ajax_product_category_update' );
+function bsc_ajax_product_category_update(): void {
+	bsc_product_edit_ajax_guard();
+
+	$term_id   = absint( wp_unslash( $_POST['term_id'] ?? 0 ) );
+	$name      = sanitize_text_field( wp_unslash( $_POST['name'] ?? '' ) );
+	$slug      = sanitize_title( wp_unslash( $_POST['slug'] ?? '' ) );
+	$parent_id = absint( wp_unslash( $_POST['parent'] ?? 0 ) );
+	$term      = get_term( $term_id, 'product_cat' );
+
+	if ( ! $term instanceof WP_Term ) {
+		wp_send_json_error( array( 'message' => 'Categoria no encontrada.' ), 404 );
+	}
+
+	if ( $name === '' ) {
+		wp_send_json_error( array( 'message' => 'Escribe el nombre de la categoria.' ), 400 );
+	}
+
+	$parent_id = bsc_product_edit_validate_category_parent( $parent_id );
+	if ( is_wp_error( $parent_id ) ) {
+		wp_send_json_error( array( 'message' => $parent_id->get_error_message() ), 400 );
+	}
+
+	if ( $parent_id === $term_id || bsc_product_edit_parent_is_descendant( $term_id, $parent_id ) ) {
+		wp_send_json_error( array( 'message' => 'La categoria no puede ser padre de si misma ni de sus hijas.' ), 400 );
+	}
+
+	$args = array(
+		'name'   => $name,
+		'parent' => $parent_id,
+	);
+
+	if ( $slug !== '' ) {
+		$args['slug'] = $slug;
+	}
+
+	$result = wp_update_term( $term_id, 'product_cat', $args );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	wp_send_json_success( bsc_product_edit_category_ajax_payload( $term_id ) );
+}
+
+add_action( 'wp_ajax_bsc_product_category_delete', 'bsc_ajax_product_category_delete' );
+function bsc_ajax_product_category_delete(): void {
+	bsc_product_edit_ajax_guard();
+
+	$term_id = absint( wp_unslash( $_POST['term_id'] ?? 0 ) );
+	$term    = get_term( $term_id, 'product_cat' );
+
+	if ( ! $term instanceof WP_Term ) {
+		wp_send_json_error( array( 'message' => 'Categoria no encontrada.' ), 404 );
+	}
+
+	if ( in_array( (string) $term->slug, bsc_product_edit_root_slugs(), true ) ) {
+		wp_send_json_error( array( 'message' => 'No se pueden eliminar las categorias raiz del menu BSC.' ), 400 );
+	}
+
+	$result = wp_delete_term( $term_id, 'product_cat' );
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+	}
+
+	if ( ! $result ) {
+		wp_send_json_error( array( 'message' => 'No se pudo eliminar la categoria.' ), 400 );
+	}
+
+	wp_send_json_success(
+		array(
+			'tree'          => bsc_get_product_edit_category_tree_data(),
+			'deletedTermId' => $term_id,
+		)
+	);
 }
 
 function bsc_get_product_edit_status_value( WP_Post $post, WC_Product $product ): string {
@@ -92,17 +268,186 @@ function bsc_apply_product_edit_status( int $product_id, WC_Product $product, st
 	$product->save();
 }
 
+function bsc_product_edit_normalize_color_hex( string $raw_color ): string {
+	$raw_color = trim( $raw_color );
+
+	if ($raw_color === '') {
+		return '';
+	}
+
+	if (!str_starts_with( $raw_color, '#' )) {
+		$raw_color = '#' . $raw_color;
+	}
+
+	$color = sanitize_hex_color( $raw_color );
+	if (!$color) {
+		return '';
+	}
+
+	if (strlen( $color ) === 4) {
+		$color = sprintf(
+			'#%1$s%1$s%2$s%2$s%3$s%3$s',
+			$color[1],
+			$color[2],
+			$color[3]
+		);
+	}
+
+	return strtoupper( $color );
+}
+
+function bsc_product_edit_sanitize_variant_price_value( $raw_value ): ?string {
+	$raw_value = trim( (string) sanitize_text_field( $raw_value ) );
+
+	if ($raw_value === '') {
+		return '';
+	}
+
+	$normalized_value = str_replace( ',', '.', $raw_value );
+
+	if (!is_numeric( $normalized_value ) || (float) $normalized_value < 0) {
+		return null;
+	}
+
+	return wc_format_decimal( $normalized_value, wc_get_price_decimals() );
+}
+
+function bsc_product_edit_sanitize_color_variants( $raw_variants, &$errors = null ): array {
+	if (!is_array( $raw_variants )) {
+		return array();
+	}
+
+	$variants       = array();
+	$seen           = array();
+	$collect_errors = is_array( $errors );
+
+	foreach ($raw_variants as $raw_variant) {
+		if (!is_array( $raw_variant )) {
+			continue;
+		}
+
+		$name  = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
+		$hex   = bsc_product_edit_normalize_color_hex( (string) ( $raw_variant['hex'] ?? '' ) );
+		$price = bsc_product_edit_sanitize_variant_price_value( $raw_variant['price'] ?? '' );
+
+		if ($name === '' || $hex === '') {
+			continue;
+		}
+
+		if ($price === null) {
+			if ($collect_errors) {
+				$errors[] = sprintf( 'Precio invalido para el color "%s".', $name );
+			}
+			continue;
+		}
+
+		$dedupe_key = strtolower( $name . '|' . $hex );
+		if (isset( $seen[ $dedupe_key ] )) {
+			continue;
+		}
+
+		$seen[ $dedupe_key ] = true;
+		$variants[]          = array(
+			'name'  => $name,
+			'hex'   => $hex,
+			'price' => $price,
+		);
+
+		if (count( $variants ) >= 50) {
+			break;
+		}
+	}
+
+	return $variants;
+}
+
+function bsc_product_edit_get_color_variants( int $product_id ): array {
+	$raw_variants = get_post_meta( $product_id, '_bsc_color_variants', true );
+
+	if (is_string( $raw_variants ) && $raw_variants !== '') {
+		$decoded = json_decode( $raw_variants, true );
+		if (is_array( $decoded )) {
+			$raw_variants = $decoded;
+		}
+	}
+
+	return bsc_product_edit_sanitize_color_variants( is_array( $raw_variants ) ? $raw_variants : array() );
+}
+
+function bsc_product_edit_sanitize_size_variants( $raw_variants, &$errors = null ): array {
+	if (!is_array( $raw_variants )) {
+		return array();
+	}
+
+	$variants       = array();
+	$seen           = array();
+	$collect_errors = is_array( $errors );
+
+	foreach ($raw_variants as $raw_variant) {
+		if (!is_array( $raw_variant )) {
+			continue;
+		}
+
+		$name  = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
+		$price = bsc_product_edit_sanitize_variant_price_value( $raw_variant['price'] ?? '' );
+
+		if ($name === '') {
+			continue;
+		}
+
+		if ($price === null) {
+			if ($collect_errors) {
+				$errors[] = sprintf( 'Precio invalido para el tamano "%s".', $name );
+			}
+			continue;
+		}
+
+		$dedupe_key = strtolower( $name );
+		if (isset( $seen[ $dedupe_key ] )) {
+			continue;
+		}
+
+		$seen[ $dedupe_key ] = true;
+		$variants[]          = array(
+			'name'  => $name,
+			'price' => $price,
+		);
+
+		if (count( $variants ) >= 50) {
+			break;
+		}
+	}
+
+	return $variants;
+}
+
+function bsc_product_edit_get_size_variants( int $product_id ): array {
+	$raw_variants = get_post_meta( $product_id, '_bsc_size_variants', true );
+
+	if (is_string( $raw_variants ) && $raw_variants !== '') {
+		$decoded = json_decode( $raw_variants, true );
+		if (is_array( $decoded )) {
+			$raw_variants = $decoded;
+		}
+	}
+
+	return bsc_product_edit_sanitize_size_variants( is_array( $raw_variants ) ? $raw_variants : array() );
+}
+
 function bsc_get_product_edit_script_data( int $product_id ): array {
 	return array(
-		'catTree'     => bsc_get_product_edit_category_tree_data(),
-		'currentCats' => bsc_get_product_edit_current_category_ids( $product_id ),
-		'rootSlugs'   => array( 'group-skin-care', 'group-hair-care', 'group-make-up' ),
-		'rootLabels'  => array(
+		'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+		'categoryNonce'       => wp_create_nonce( 'bsc_product_edit_categories' ),
+		'canManageCategories' => bsc_product_edit_user_can_manage_categories(),
+		'catTree'             => bsc_get_product_edit_category_tree_data(),
+		'currentCats'         => bsc_get_product_edit_current_category_ids( $product_id ),
+		'rootSlugs'           => bsc_product_edit_root_slugs(),
+		'rootLabels'          => array(
 			'group-skin-care' => 'Skin Care',
 			'group-hair-care' => 'Hair Care',
 			'group-make-up'   => 'Make Up',
 		),
-		'strings'     => array(
+		'strings'             => array(
 			'mainImageTitle'    => 'Imagen principal',
 			'mainImageButton'   => 'Usar imagen',
 			'galleryTitle'      => 'Galeria del producto',
@@ -110,6 +455,8 @@ function bsc_get_product_edit_script_data( int $product_id ): array {
 			'searchPlaceholder' => 'Buscar...',
 			'noCategories'      => 'No hay categorias para este grupo.',
 			'noSubcategories'   => 'Sin subcategorias',
+			'categorySaved'     => 'Categoria guardada.',
+			'categoryDeleted'   => 'Categoria eliminada.',
 		),
 	);
 }
@@ -259,6 +606,46 @@ function bsc_render_product_edit_page(): void {
 		$tags      = array_filter( array_map( 'trim', explode( ',', $tag_input ) ) );
 		wp_set_object_terms( $product_id, $tags, 'product_tag' );
 
+		$color_variants_enabled = isset( $_POST['_bsc_color_variants_enabled'] );
+		$color_variants_raw     = isset( $_POST['_bsc_color_variants'] )
+			? wp_unslash( (array) $_POST['_bsc_color_variants'] )
+			: array();
+		$variant_errors         = array();
+		$color_variants         = bsc_product_edit_sanitize_color_variants( $color_variants_raw, $variant_errors );
+		$size_variants_enabled  = isset( $_POST['_bsc_size_variants_enabled'] );
+		$size_variants_raw      = isset( $_POST['_bsc_size_variants'] )
+			? wp_unslash( (array) $_POST['_bsc_size_variants'] )
+			: array();
+		$size_variants          = bsc_product_edit_sanitize_size_variants( $size_variants_raw, $variant_errors );
+
+		if (!empty( $variant_errors )) {
+			wp_die( esc_html( implode( ' ', $variant_errors ) ) );
+		}
+
+		if ($color_variants_enabled) {
+			update_post_meta( $product_id, '_bsc_color_variants_enabled', '1' );
+		} else {
+			delete_post_meta( $product_id, '_bsc_color_variants_enabled' );
+		}
+
+		if (!empty( $color_variants )) {
+			update_post_meta( $product_id, '_bsc_color_variants', $color_variants );
+		} else {
+			delete_post_meta( $product_id, '_bsc_color_variants' );
+		}
+
+		if ($size_variants_enabled) {
+			update_post_meta( $product_id, '_bsc_size_variants_enabled', '1' );
+		} else {
+			delete_post_meta( $product_id, '_bsc_size_variants_enabled' );
+		}
+
+		if (!empty( $size_variants )) {
+			update_post_meta( $product_id, '_bsc_size_variants', $size_variants );
+		} else {
+			delete_post_meta( $product_id, '_bsc_size_variants' );
+		}
+
 		$comment_status = isset( $_POST['comment_status'] ) ? 'open' : 'closed';
 		wp_update_post(
 			array(
@@ -315,6 +702,27 @@ function bsc_render_product_edit_page(): void {
 	$thumbnail_id            = get_post_thumbnail_id( $product_id );
 	$thumbnail_src           = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'medium' ) : '';
 	$repurchase_days         = (string) get_post_meta( $product_id, '_bsc_repurchase_days', true );
+	$color_variants_enabled  = '1' === (string) get_post_meta( $product_id, '_bsc_color_variants_enabled', true );
+	$color_variants          = bsc_product_edit_get_color_variants( $product_id );
+	$size_variants_enabled   = '1' === (string) get_post_meta( $product_id, '_bsc_size_variants_enabled', true );
+	$size_variants           = bsc_product_edit_get_size_variants( $product_id );
+	$color_variant_rows      = !empty( $color_variants )
+		? $color_variants
+		: array(
+			array(
+				'name'  => '',
+				'hex'   => '#F7C0CD',
+				'price' => '',
+			),
+		);
+	$size_variant_rows       = !empty( $size_variants )
+		? $size_variants
+		: array(
+			array(
+				'name'  => '',
+				'price' => '',
+			),
+		);
 	$default_repurchase_days = function_exists( 'bsc_get_followup_email_setting' )
 		? (int) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' )
 		: 30;
@@ -334,11 +742,19 @@ function bsc_render_product_edit_page(): void {
 
 	?>
 	<div class="wrap bsc-admin-product-edit">
-		<h1>
-			Editar Producto
-			<span class="bsc-admin-product-edit__title-meta">#<?php echo esc_html( $product_id ); ?></span>
-		</h1>
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="page-title-action">&larr; Volver a Productos</a>
+		<div class="bsc-admin-product-edit__header">
+			<div>
+				<h1>
+					Editar Producto
+					<span class="bsc-admin-product-edit__title-meta">#<?php echo esc_html( $product_id ); ?></span>
+				</h1>
+				<p class="bsc-admin-product-edit__header-meta"><?php echo esc_html( $post->post_title ); ?></p>
+			</div>
+			<div class="bsc-admin-product-edit__header-actions">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="page-title-action">&larr; Volver a Productos</a>
+				<a href="<?php echo esc_url( get_permalink( $product_id ) ); ?>" class="button" target="_blank" rel="noopener noreferrer">Ver en tienda &#8599;</a>
+			</div>
+		</div>
 		<hr class="wp-header-end">
 
 		<?php if (isset( $_GET['saved'] )) : ?>
@@ -364,56 +780,58 @@ function bsc_render_product_edit_page(): void {
 							<textarea name="post_excerpt" rows="4" class="large-text"><?php echo esc_textarea( $post->post_excerpt ); ?></textarea>
 						</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">SKU</span>
-							<input type="text" name="_sku" value="<?php echo esc_attr( $sku ); ?>" class="regular-text">
-						</label>
+						<div class="bsc-admin-product-edit__field-grid">
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">SKU</span>
+								<input type="text" name="_sku" value="<?php echo esc_attr( $sku ); ?>" class="regular-text">
+							</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Precio regular (COP)</span>
-							<input
-								type="number"
-								min="0"
-								step="1"
-								inputmode="numeric"
-								name="_regular_price"
-								value="<?php echo esc_attr( $regular_price ); ?>"
-								class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
-							>
-						</label>
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Precio regular (COP)</span>
+								<input
+									type="number"
+									min="0"
+									step="1"
+									inputmode="numeric"
+									name="_regular_price"
+									value="<?php echo esc_attr( $regular_price ); ?>"
+									class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
+								>
+							</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Descuento (%)</span>
-							<input
-								type="number"
-								min="0"
-								max="99.99"
-								step="0.01"
-								inputmode="decimal"
-								name="_discount_percent"
-								value="<?php echo esc_attr( $discount_percent ); ?>"
-								placeholder="0"
-								class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
-							>
-							<span class="bsc-admin-product-edit__field-note">
-								Dejalo vacio o en 0 para quitar el descuento.
-								<?php if ($sale_price !== '') : ?>
-									Precio con descuento actual: <?php echo wp_kses_post( wc_price( (float) $sale_price ) ); ?>.
-								<?php endif; ?>
-							</span>
-						</label>
+							<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--wide">
+								<span class="bsc-admin-product-edit__field-label">Descuento (%)</span>
+								<input
+									type="number"
+									min="0"
+									max="99.99"
+									step="0.01"
+									inputmode="decimal"
+									name="_discount_percent"
+									value="<?php echo esc_attr( $discount_percent ); ?>"
+									placeholder="0"
+									class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
+								>
+								<span class="bsc-admin-product-edit__field-note">
+									Dejalo vacio o en 0 para quitar el descuento.
+									<?php if ($sale_price !== '') : ?>
+										Precio con descuento actual: <?php echo wp_kses_post( wc_price( (float) $sale_price ) ); ?>.
+									<?php endif; ?>
+								</span>
+							</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Estado</span>
-							<select name="post_status">
-								<option value="publish" <?php selected( $product_status, 'publish' ); ?>>Publicado</option>
-								<option value="draft" <?php selected( $product_status, 'draft' ); ?>>Borrador</option>
-								<option value="hidden" <?php selected( $product_status, 'hidden' ); ?>>Oculto</option>
-								<option value="archive" <?php selected( $product_status, 'archive' ); ?>>Archivado</option>
-								<option value="delete">Borrar</option>
-							</select>
-							<span class="bsc-admin-product-edit__field-note">Borrar envia el producto a la papelera.</span>
-						</label>
+							<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--wide">
+								<span class="bsc-admin-product-edit__field-label">Estado</span>
+								<select name="post_status">
+									<option value="publish" <?php selected( $product_status, 'publish' ); ?>>Publicado</option>
+									<option value="draft" <?php selected( $product_status, 'draft' ); ?>>Borrador</option>
+									<option value="hidden" <?php selected( $product_status, 'hidden' ); ?>>Oculto</option>
+									<option value="archive" <?php selected( $product_status, 'archive' ); ?>>Archivado</option>
+									<option value="delete">Borrar</option>
+								</select>
+								<span class="bsc-admin-product-edit__field-note">Borrar envia el producto a la papelera.</span>
+							</label>
+						</div>
 
 						<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--checkbox">
 							<input type="checkbox" name="comment_status" value="open" <?php checked( $post->comment_status, 'open' ); ?>>
@@ -427,6 +845,133 @@ function bsc_render_product_edit_page(): void {
 							<span class="bsc-admin-product-edit__field-help">Separados por coma</span>
 							<input type="text" name="product_tag" value="<?php echo esc_attr( implode( ', ', is_array( $all_tags ) ? $all_tags : array() ) ); ?>" class="large-text">
 						</label>
+					</div>
+
+					<div class="postbox bsc-admin-product-edit__card" data-bsc-color-variants>
+						<h2 class="bsc-admin-product-edit__section-title">Variantes de color</h2>
+
+						<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--checkbox bsc-admin-product-edit__color-toggle">
+							<input
+								type="checkbox"
+								name="_bsc_color_variants_enabled"
+								value="1"
+								data-bsc-color-variants-toggle
+								<?php checked( $color_variants_enabled ); ?>
+							>
+							Habilitar variantes de color
+						</label>
+						<span class="bsc-admin-product-edit__field-note">Agrega un nombre visible, el color que representa cada tono y un precio opcional si cambia frente al producto base.</span>
+
+						<div class="bsc-admin-product-edit__color-panel<?php echo esc_attr( $color_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-color-variants-panel>
+							<div class="bsc-admin-product-edit__color-list" data-bsc-color-variants-list>
+								<?php foreach ($color_variant_rows as $index => $variant) : ?>
+									<?php
+									$variant_hex   = bsc_product_edit_normalize_color_hex( (string) ( $variant['hex'] ?? '' ) );
+									$variant_hex   = $variant_hex !== '' ? $variant_hex : '#F7C0CD';
+									$variant_name  = (string) ( $variant['name'] ?? '' );
+									$variant_price = (string) ( $variant['price'] ?? '' );
+									?>
+									<div class="bsc-admin-product-edit__color-row" data-bsc-color-variant-row>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__color-field">
+											<span class="bsc-admin-product-edit__field-label">Color</span>
+											<span class="bsc-admin-product-edit__color-picker">
+												<input
+													type="color"
+													name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][hex]"
+													value="<?php echo esc_attr( $variant_hex ); ?>"
+													data-bsc-color-variant-hex
+												>
+												<span
+													class="bsc-admin-product-edit__color-preview"
+													data-bsc-color-variant-preview
+												></span>
+											</span>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__color-name">
+											<span class="bsc-admin-product-edit__field-label">Nombre del color</span>
+											<input
+												type="text"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][name]"
+												value="<?php echo esc_attr( $variant_name ); ?>"
+												class="regular-text"
+												placeholder="Ej: Rosado claro"
+												data-bsc-color-variant-name
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
+											<span class="bsc-admin-product-edit__field-label">Precio COP</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												inputmode="numeric"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][price]"
+												value="<?php echo esc_attr( $variant_price ); ?>"
+												placeholder="<?php echo esc_attr( $regular_price !== '' ? (string) $regular_price : 'Base' ); ?>"
+												data-bsc-color-variant-price
+											>
+										</label>
+										<button type="button" class="button bsc-admin-product-edit__color-remove" data-bsc-color-variant-remove>Quitar</button>
+									</div>
+								<?php endforeach; ?>
+							</div>
+							<button type="button" class="button" data-bsc-color-variant-add>Agregar color</button>
+						</div>
+					</div>
+
+					<div class="postbox bsc-admin-product-edit__card" data-bsc-size-variants>
+						<h2 class="bsc-admin-product-edit__section-title">Variantes de tamano</h2>
+
+						<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--checkbox bsc-admin-product-edit__size-toggle">
+							<input
+								type="checkbox"
+								name="_bsc_size_variants_enabled"
+								value="1"
+								data-bsc-size-variants-toggle
+								<?php checked( $size_variants_enabled ); ?>
+							>
+							Habilitar variantes de tamano
+						</label>
+						<span class="bsc-admin-product-edit__field-note">Crea opciones de texto como 50 ml, 150 ml, S, M o L. El precio es opcional.</span>
+
+						<div class="bsc-admin-product-edit__size-panel<?php echo esc_attr( $size_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-size-variants-panel>
+							<div class="bsc-admin-product-edit__size-list" data-bsc-size-variants-list>
+								<?php foreach ($size_variant_rows as $index => $variant) : ?>
+									<?php
+									$variant_name  = (string) ( $variant['name'] ?? '' );
+									$variant_price = (string) ( $variant['price'] ?? '' );
+									?>
+									<div class="bsc-admin-product-edit__size-row" data-bsc-size-variant-row>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__size-name">
+											<span class="bsc-admin-product-edit__field-label">Tamano</span>
+											<input
+												type="text"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][name]"
+												value="<?php echo esc_attr( $variant_name ); ?>"
+												class="regular-text"
+												placeholder="Ej: 50 ml"
+												data-bsc-size-variant-name
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
+											<span class="bsc-admin-product-edit__field-label">Precio COP</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												inputmode="numeric"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][price]"
+												value="<?php echo esc_attr( $variant_price ); ?>"
+												placeholder="<?php echo esc_attr( $regular_price !== '' ? (string) $regular_price : 'Base' ); ?>"
+												data-bsc-size-variant-price
+											>
+										</label>
+										<button type="button" class="button bsc-admin-product-edit__size-remove" data-bsc-size-variant-remove>Quitar</button>
+									</div>
+								<?php endforeach; ?>
+							</div>
+							<button type="button" class="button" data-bsc-size-variant-add>Agregar tamano</button>
+						</div>
 					</div>
 				</div>
 
@@ -461,24 +1006,26 @@ function bsc_render_product_edit_page(): void {
 					<div class="postbox bsc-admin-product-edit__card">
 						<h2 class="bsc-admin-product-edit__section-title">Stock Dual (BSC)</h2>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Stock Bodega (web)</span>
-							<input type="number" min="0" name="_stock_bodega" value="<?php echo esc_attr( $stock['bodega'] ); ?>" class="bsc-admin-product-edit__number-input">
-						</label>
+						<div class="bsc-admin-product-edit__field-grid bsc-admin-product-edit__field-grid--stock">
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Stock Bodega (web)</span>
+								<input type="number" min="0" name="_stock_bodega" value="<?php echo esc_attr( $stock['bodega'] ); ?>" class="bsc-admin-product-edit__number-input">
+							</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Stock Tienda (showroom)</span>
-							<input type="number" min="0" name="_stock_tienda" value="<?php echo esc_attr( $stock['tienda'] ); ?>" class="bsc-admin-product-edit__number-input">
-						</label>
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Stock Tienda (showroom)</span>
+								<input type="number" min="0" name="_stock_tienda" value="<?php echo esc_attr( $stock['tienda'] ); ?>" class="bsc-admin-product-edit__number-input">
+							</label>
 
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Tipo de envio</span>
-							<select name="_envio_tipo">
-								<option value="bodega" <?php selected( $stock['envio_tipo'], 'bodega' ); ?>>Bodega (web)</option>
-								<option value="tienda" <?php selected( $stock['envio_tipo'], 'tienda' ); ?>>Tienda (showroom)</option>
-								<option value="ambos" <?php selected( $stock['envio_tipo'], 'ambos' ); ?>>Ambos</option>
-							</select>
-						</label>
+							<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--wide">
+								<span class="bsc-admin-product-edit__field-label">Tipo de envio</span>
+								<select name="_envio_tipo">
+									<option value="bodega" <?php selected( $stock['envio_tipo'], 'bodega' ); ?>>Bodega (web)</option>
+									<option value="tienda" <?php selected( $stock['envio_tipo'], 'tienda' ); ?>>Tienda (showroom)</option>
+									<option value="ambos" <?php selected( $stock['envio_tipo'], 'ambos' ); ?>>Ambos</option>
+								</select>
+							</label>
+						</div>
 					</div>
 
 					<div class="postbox bsc-admin-product-edit__card">
@@ -503,42 +1050,87 @@ function bsc_render_product_edit_page(): void {
 
 					<div class="postbox bsc-admin-product-edit__card">
 						<h2 class="bsc-admin-product-edit__section-title">Covers de Producto</h2>
-						<?php foreach ($cover_fields as $key => $label) : ?>
-							<?php
-							$attachment_id = $cover_values[ $key ];
-							$image_src     = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) : '';
-							?>
-							<div class="bsc-cover-field bsc-admin-cover-field">
-								<p class="bsc-admin-cover-label"><strong><?php echo esc_html( $label ); ?></strong></p>
-								<div class="bsc-cover-preview bsc-admin-cover-preview">
-									<?php if ($image_src) : ?>
-										<img src="<?php echo esc_url( $image_src ); ?>" class="bsc-admin-cover-image" alt="">
-									<?php endif; ?>
+						<div class="bsc-admin-product-edit__cover-grid">
+							<?php foreach ($cover_fields as $key => $label) : ?>
+								<?php
+								$attachment_id = $cover_values[ $key ];
+								$image_src     = $attachment_id ? wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) : '';
+								?>
+								<div class="bsc-cover-field bsc-admin-cover-field">
+									<p class="bsc-admin-cover-label"><strong><?php echo esc_html( $label ); ?></strong></p>
+									<div class="bsc-cover-preview bsc-admin-cover-preview">
+										<?php if ($image_src) : ?>
+											<img src="<?php echo esc_url( $image_src ); ?>" class="bsc-admin-cover-image" alt="">
+										<?php endif; ?>
+									</div>
+									<div class="bsc-admin-cover-actions">
+										<input type="hidden" name="<?php echo esc_attr( $key ); ?>" id="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $attachment_id ?: '' ); ?>">
+										<button type="button" class="button bsc-cover-select" data-field="<?php echo esc_attr( $key ); ?>">
+											<?php echo esc_html( $attachment_id ? 'Cambiar' : 'Seleccionar' ); ?>
+										</button>
+										<?php if ($attachment_id) : ?>
+											<button type="button" class="button bsc-cover-remove bsc-admin-cover-remove" data-field="<?php echo esc_attr( $key ); ?>">Eliminar</button>
+										<?php endif; ?>
+									</div>
 								</div>
-								<input type="hidden" name="<?php echo esc_attr( $key ); ?>" id="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $attachment_id ?: '' ); ?>">
-								<button type="button" class="button bsc-cover-select" data-field="<?php echo esc_attr( $key ); ?>">
-									<?php echo esc_html( $attachment_id ? 'Cambiar imagen' : 'Seleccionar imagen' ); ?>
-								</button>
-								<?php if ($attachment_id) : ?>
-									<button type="button" class="button bsc-cover-remove bsc-admin-cover-remove" data-field="<?php echo esc_attr( $key ); ?>">Eliminar</button>
-								<?php endif; ?>
-							</div>
-						<?php endforeach; ?>
+							<?php endforeach; ?>
+						</div>
 					</div>
 				</div>
 			</div>
 
 			<div class="postbox bsc-admin-product-edit__card">
 				<h2 class="bsc-admin-product-edit__section-title">Categorias</h2>
-				<div id="bsc-root-tabs" class="bsc-admin-product-edit__tabs"></div>
-				<div id="bsc-cat-branches"></div>
-				<div id="bsc-cat-hidden-inputs" class="bsc-admin-product-edit__hidden"></div>
+				<div class="bsc-admin-product-edit__category-layout">
+					<?php if ( bsc_product_edit_user_can_manage_categories() ) : ?>
+						<div class="bsc-admin-product-edit__category-manager" data-bsc-category-manager>
+							<div class="bsc-admin-product-edit__category-manager-header">
+								<strong data-bsc-cat-form-title>Agregar categoria</strong>
+								<span class="bsc-admin-product-edit__field-note">Crea, edita o elimina categorias sin salir del producto.</span>
+							</div>
+							<div class="bsc-admin-product-edit__category-message is-hidden" data-bsc-cat-message></div>
+							<input type="hidden" id="bsc-cat-term-id" value="" data-bsc-cat-term-id>
+							<div class="bsc-admin-product-edit__category-form-grid">
+								<label class="bsc-admin-product-edit__field">
+									<span class="bsc-admin-product-edit__field-label">Nombre</span>
+									<input type="text" id="bsc-cat-name" class="regular-text" data-bsc-cat-name>
+								</label>
+								<label class="bsc-admin-product-edit__field">
+									<span class="bsc-admin-product-edit__field-label">Slug</span>
+									<input type="text" id="bsc-cat-slug" class="regular-text" data-bsc-cat-slug placeholder="Opcional">
+								</label>
+								<label class="bsc-admin-product-edit__field">
+									<span class="bsc-admin-product-edit__field-label">Padre</span>
+									<select id="bsc-cat-parent" data-bsc-cat-parent></select>
+								</label>
+							</div>
+							<div class="bsc-admin-product-edit__category-actions">
+								<button type="button" class="button button-primary" data-bsc-cat-create>Agregar categoria</button>
+								<button type="button" class="button button-primary is-hidden" data-bsc-cat-update>Guardar categoria</button>
+								<button type="button" class="button is-hidden" data-bsc-cat-cancel>Cancelar</button>
+								<button type="button" class="button bsc-admin-product-edit__category-delete is-hidden" data-bsc-cat-delete>Eliminar</button>
+							</div>
+						</div>
+					<?php endif; ?>
+					<div class="bsc-admin-product-edit__category-selector">
+						<div class="bsc-admin-product-edit__category-selector-header">
+							<div>
+								<strong>Seleccionar categorias</strong>
+								<span class="bsc-admin-product-edit__field-note">Usa las pestanas y buscadores por grupo para encontrar opciones rapido.</span>
+							</div>
+							<div class="bsc-admin-product-edit__selected-count" data-bsc-cat-selected-count>0 seleccionadas</div>
+						</div>
+						<div class="bsc-admin-product-edit__selected-cats" data-bsc-cat-selected-summary></div>
+						<div id="bsc-root-tabs" class="bsc-admin-product-edit__tabs"></div>
+						<div id="bsc-cat-branches"></div>
+						<div id="bsc-cat-hidden-inputs" class="bsc-admin-product-edit__hidden"></div>
+					</div>
+				</div>
 			</div>
 
 			<div class="bsc-admin-product-edit__actions">
 				<button type="submit" class="button button-primary button-large">Guardar cambios</button>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="button button-large bsc-admin-product-edit__action-link">Cancelar</a>
-				<a href="<?php echo esc_url( get_permalink( $product_id ) ); ?>" class="button bsc-admin-product-edit__action-link" target="_blank" rel="noopener noreferrer">Ver en tienda &#8599;</a>
 			</div>
 		</form>
 	</div>
