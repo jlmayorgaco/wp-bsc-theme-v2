@@ -191,6 +191,9 @@ function bsc_home_favorites_categories(): array {
 }
 
 function bsc_home_favorites_settings_page() {
+	$categories    = bsc_home_favorites_categories();
+	$featured_keys = array( 'productos_destacados', 'ultimos_lanzamientos' );
+	$tab_keys      = array( 'piel_seca', 'piel_normal', 'piel_mixta', 'piel_grasa', 'hair_care', 'maquillaje' );
 	?>
 	<div class="wrap bsc-home-products-admin">
 		<div class="bsc-admin-page-header">
@@ -203,10 +206,104 @@ function bsc_home_favorites_settings_page() {
 		<form method="post" action="options.php" class="bsc-home-products-admin__form">
 			<?php
 			settings_fields( 'bsc_home_favorites_group' );
-			do_settings_sections( 'bsc-home-favorites' );
-			submit_button( 'Guardar productos del home' );
 			?>
+			<section class="bsc-home-products-admin__section" aria-labelledby="bsc-home-products-main-title">
+				<div class="bsc-home-products-admin__section-header">
+					<div>
+						<span class="bsc-home-products-admin__section-kicker">Vistas principales</span>
+						<h2 id="bsc-home-products-main-title">Productos destacados y ultimos lanzamientos</h2>
+					</div>
+					<p>Estos dos bloques quedan visibles al mismo tiempo para comparar rapido.</p>
+				</div>
+				<div class="bsc-home-products-admin__priority-grid">
+					<?php foreach ( $featured_keys as $key ) : ?>
+						<?php
+						if ( empty( $categories[ $key ] ) ) {
+							continue;
+						}
+						bsc_home_favorites_render_selector_card( $key, $categories[ $key ], 'principal' );
+						?>
+					<?php endforeach; ?>
+				</div>
+			</section>
+
+			<section class="bsc-home-products-admin__section bsc-home-products-admin__section--tabs" aria-labelledby="bsc-home-products-tabs-title" data-bsc-home-product-tabs>
+				<div class="bsc-home-products-admin__section-header">
+					<div>
+						<span class="bsc-home-products-admin__section-kicker">Favoritos por categoria</span>
+						<h2 id="bsc-home-products-tabs-title">Selecciona una pestana y marca sus productos</h2>
+					</div>
+					<p>Primero escoge el tipo de piel o categoria, luego busca y selecciona los productos que van en ese slider.</p>
+				</div>
+				<div class="bsc-home-products-admin__tabs" role="tablist" aria-label="Favoritos del home">
+					<?php foreach ( $tab_keys as $index => $key ) : ?>
+						<?php
+						if ( empty( $categories[ $key ] ) ) {
+							continue;
+						}
+						$tab_id   = 'bsc-home-products-tab-' . sanitize_html_class( $key );
+						$panel_id = 'bsc-home-products-panel-' . sanitize_html_class( $key );
+						?>
+						<button
+							type="button"
+							id="<?php echo esc_attr( $tab_id ); ?>"
+							class="bsc-home-products-admin__tab<?php echo $index === 0 ? ' is-active' : ''; ?>"
+							role="tab"
+							aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
+							aria-controls="<?php echo esc_attr( $panel_id ); ?>"
+							data-bsc-home-product-tab="<?php echo esc_attr( $key ); ?>"
+						>
+							<?php echo esc_html( $categories[ $key ]['label'] ); ?>
+						</button>
+					<?php endforeach; ?>
+				</div>
+				<div class="bsc-home-products-admin__tab-panels">
+					<?php foreach ( $tab_keys as $index => $key ) : ?>
+						<?php
+						if ( empty( $categories[ $key ] ) ) {
+							continue;
+						}
+						$tab_id   = 'bsc-home-products-tab-' . sanitize_html_class( $key );
+						$panel_id = 'bsc-home-products-panel-' . sanitize_html_class( $key );
+						?>
+						<div
+							id="<?php echo esc_attr( $panel_id ); ?>"
+							class="bsc-home-products-admin__tab-panel<?php echo $index === 0 ? ' is-active' : ''; ?>"
+							role="tabpanel"
+							aria-labelledby="<?php echo esc_attr( $tab_id ); ?>"
+							<?php echo $index === 0 ? '' : 'hidden'; ?>
+							data-bsc-home-product-panel="<?php echo esc_attr( $key ); ?>"
+						>
+							<?php bsc_home_favorites_render_selector_card( $key, $categories[ $key ], 'pestana' ); ?>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</section>
+			<?php submit_button( 'Guardar productos del home' ); ?>
 		</form>
+	</div>
+	<?php
+}
+
+function bsc_home_favorites_render_selector_card( string $key, array $config, string $context = '' ): void {
+	$label   = isset( $config['label'] ) ? (string) $config['label'] : $key;
+	$help    = isset( $config['help'] ) ? (string) $config['help'] : '';
+	$context = $context !== '' ? $context : 'selector';
+	?>
+	<div class="bsc-home-products-admin__selector-card" data-bsc-home-product-card="<?php echo esc_attr( $key ); ?>">
+		<div class="bsc-home-products-admin__selector-heading">
+			<span><?php echo esc_html( ucfirst( $context ) ); ?></span>
+			<h3><?php echo esc_html( $label ); ?></h3>
+		</div>
+		<?php
+		bsc_home_favorites_render_product_selector(
+			array(
+				'key'   => $key,
+				'label' => $label,
+				'help'  => $help,
+			)
+		);
+		?>
 	</div>
 	<?php
 }
@@ -329,7 +426,10 @@ function bsc_home_favorites_render_product_selector( array $args ): void {
 			<p class="bsc-home-product-selector__help"><?php echo esc_html( $args['help'] ); ?></p>
 		<?php endif; ?>
 		<div class="bsc-home-product-selector__summary">
-			<strong data-bsc-home-product-count>0 seleccionados</strong>
+			<div class="bsc-home-product-selector__status">
+				<strong data-bsc-home-product-count>0 seleccionados</strong>
+				<span data-bsc-home-product-visible-count></span>
+			</div>
 			<button type="button" class="button button-small" data-bsc-home-product-clear>Limpiar</button>
 		</div>
 		<div class="bsc-home-product-selector__chips" data-bsc-home-product-chips></div>

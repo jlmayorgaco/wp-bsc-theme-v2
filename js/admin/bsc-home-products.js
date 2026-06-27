@@ -41,6 +41,7 @@
 			.toLowerCase()
 			.normalize('NFD')
 			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/[^\w-]+/g, ' ')
 			.replace(/\s+/g, ' ')
 			.trim();
 	}
@@ -61,6 +62,7 @@
 		var input = selector.querySelector('[data-bsc-home-product-selected-input]');
 		var chips = selector.querySelector('[data-bsc-home-product-chips]');
 		var count = selector.querySelector('[data-bsc-home-product-count]');
+		var visibleCount = selector.querySelector('[data-bsc-home-product-visible-count]');
 		var clearButton = selector.querySelector('[data-bsc-home-product-clear]');
 		var search = selector.querySelector('[data-bsc-home-product-search]');
 		var list = selector.querySelector('[data-bsc-home-product-list]');
@@ -115,7 +117,7 @@
 		function filterRows() {
 			var query = normalizeSearchText(search ? search.value : '');
 			var terms = query === '' ? [] : query.split(' ');
-			var visibleCount = 0;
+			var matchedRows = 0;
 
 			rows.forEach(function (row) {
 				var text = row.__bscHomeProductSearchText || '';
@@ -127,12 +129,20 @@
 				row.hidden = !isVisible;
 
 				if (isVisible) {
-					visibleCount += 1;
+					matchedRows += 1;
 				}
 			});
 
 			if (noResults) {
-				noResults.hidden = query === '' || visibleCount > 0;
+				noResults.hidden = query === '' || matchedRows > 0;
+			}
+
+			if (visibleCount) {
+				if (query === '') {
+					visibleCount.textContent = rows.length + (rows.length === 1 ? ' producto disponible' : ' productos disponibles');
+				} else {
+					visibleCount.textContent = matchedRows + ' de ' + rows.length + (matchedRows === 1 ? ' coincidencia' : ' coincidencias');
+				}
 			}
 		}
 
@@ -149,10 +159,22 @@
 		});
 
 		if (search) {
+			search.setAttribute('autocomplete', 'off');
 			search.addEventListener('input', filterRows);
 			search.addEventListener('keyup', filterRows);
 			search.addEventListener('search', filterRows);
 			search.addEventListener('change', filterRows);
+			search.addEventListener('keydown', function (event) {
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					filterRows();
+				}
+
+				if (event.key === 'Escape') {
+					search.value = '';
+					filterRows();
+				}
+			});
 		}
 
 		if (clearButton) {
@@ -170,8 +192,68 @@
 		filterRows();
 	}
 
+	function initTabGroup(tabGroup) {
+		var tabs = Array.prototype.slice.call(tabGroup.querySelectorAll('[data-bsc-home-product-tab]'));
+		var panels = Array.prototype.slice.call(tabGroup.querySelectorAll('[data-bsc-home-product-panel]'));
+
+		if (!tabs.length || !panels.length) {
+			return;
+		}
+
+		function activateTab(tab, shouldFocus) {
+			var key = tab.getAttribute('data-bsc-home-product-tab');
+
+			tabs.forEach(function (item) {
+				var isActive = item === tab;
+				item.classList.toggle('is-active', isActive);
+				item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+				item.setAttribute('tabindex', isActive ? '0' : '-1');
+			});
+
+			panels.forEach(function (panel) {
+				var isActive = panel.getAttribute('data-bsc-home-product-panel') === key;
+				panel.classList.toggle('is-active', isActive);
+				panel.hidden = !isActive;
+			});
+
+			if (shouldFocus) {
+				tab.focus();
+			}
+		}
+
+		tabs.forEach(function (tab, index) {
+			tab.addEventListener('click', function () {
+				activateTab(tab, false);
+			});
+
+			tab.addEventListener('keydown', function (event) {
+				var nextIndex = index;
+
+				if (event.key === 'ArrowRight') {
+					nextIndex = (index + 1) % tabs.length;
+				} else if (event.key === 'ArrowLeft') {
+					nextIndex = (index - 1 + tabs.length) % tabs.length;
+				} else if (event.key === 'Home') {
+					nextIndex = 0;
+				} else if (event.key === 'End') {
+					nextIndex = tabs.length - 1;
+				} else {
+					return;
+				}
+
+				event.preventDefault();
+				activateTab(tabs[nextIndex], true);
+			});
+		});
+
+		activateTab(tabs.find(function (tab) {
+			return tab.classList.contains('is-active');
+		}) || tabs[0], false);
+	}
+
 	function initSelectors() {
 		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-product-selector]')).forEach(initSelector);
+		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-product-tabs]')).forEach(initTabGroup);
 	}
 
 	if (document.readyState === 'loading') {

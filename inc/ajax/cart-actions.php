@@ -21,7 +21,11 @@ function bsc_ajax_add_to_cart_handler() {
 		wp_send_json_error( array( 'error' => 'Producto o cantidad inválida.' ), 400 );
 	}
 
-	$added = WC()->cart->add_to_cart( $product_id, $quantity );
+	$cart_item_data = function_exists( 'bsc_build_product_variant_cart_item_data' )
+		? bsc_build_product_variant_cart_item_data( (int) $product_id, $_POST )
+		: array();
+
+	$added = WC()->cart->add_to_cart( $product_id, $quantity, 0, array(), $cart_item_data );
 
 	if ($added) {
 		WC_AJAX::get_refreshed_fragments();

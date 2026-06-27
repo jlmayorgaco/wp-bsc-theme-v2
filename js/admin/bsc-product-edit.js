@@ -83,6 +83,234 @@
     galleryFrame.open();
   });
 
+  function initColorVariants() {
+    var $root = $('[data-bsc-color-variants]');
+
+    if (!$root.length) {
+      return;
+    }
+
+    var defaultColor = '#F7C0CD';
+    var $toggle = $root.find('[data-bsc-color-variants-toggle]');
+    var $panel = $root.find('[data-bsc-color-variants-panel]');
+    var $list = $root.find('[data-bsc-color-variants-list]');
+
+    function normalizeHex(value) {
+      var color = String(value || '').trim();
+
+      if (!/^#[0-9a-f]{6}$/i.test(color)) {
+        return defaultColor;
+      }
+
+      return color.toUpperCase();
+    }
+
+    function syncPreview($row) {
+      var color = normalizeHex($row.find('[data-bsc-color-variant-hex]').val());
+
+      $row.find('[data-bsc-color-variant-preview]').css('background-color', color);
+    }
+
+    function reindexRows() {
+      $list.find('[data-bsc-color-variant-row]').each(function (index) {
+        $(this).find('[data-bsc-color-variant-hex]').attr('name', '_bsc_color_variants[' + index + '][hex]');
+        $(this).find('[data-bsc-color-variant-name]').attr('name', '_bsc_color_variants[' + index + '][name]');
+        $(this).find('[data-bsc-color-variant-price]').attr('name', '_bsc_color_variants[' + index + '][price]');
+        syncPreview($(this));
+      });
+    }
+
+    function createRow() {
+      var $row = $('<div>', {
+        class: 'bsc-admin-product-edit__color-row',
+        'data-bsc-color-variant-row': '1',
+      });
+      var $colorLabel = $('<label>', {
+        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__color-field',
+      });
+      var $picker = $('<span>', {
+        class: 'bsc-admin-product-edit__color-picker',
+      });
+      var $colorInput = $('<input>', {
+        type: 'color',
+        value: defaultColor,
+        'data-bsc-color-variant-hex': '1',
+      });
+      var $preview = $('<span>', {
+        class: 'bsc-admin-product-edit__color-preview',
+        'data-bsc-color-variant-preview': '1',
+      }).css('background-color', defaultColor);
+      var $nameLabel = $('<label>', {
+        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__color-name',
+      });
+      var $nameInput = $('<input>', {
+        type: 'text',
+        class: 'regular-text',
+        placeholder: 'Ej: Rosado claro',
+        'data-bsc-color-variant-name': '1',
+      });
+      var $priceLabel = $('<label>', {
+        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-price',
+      });
+      var $priceInput = $('<input>', {
+        type: 'number',
+        min: '0',
+        step: '1',
+        inputmode: 'numeric',
+        placeholder: 'Precio base',
+        'data-bsc-color-variant-price': '1',
+      });
+      var $removeButton = $('<button>', {
+        type: 'button',
+        class: 'button bsc-admin-product-edit__color-remove',
+        text: 'Quitar',
+        'data-bsc-color-variant-remove': '1',
+      });
+
+      $picker.append($colorInput, $preview);
+      $colorLabel.append(
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Color' }),
+        $picker
+      );
+      $nameLabel.append(
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Nombre del color' }),
+        $nameInput
+      );
+      $priceLabel.append(
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Precio COP' }),
+        $priceInput
+      );
+      $row.append($colorLabel, $nameLabel, $priceLabel, $removeButton);
+
+      return $row;
+    }
+
+    function addRow() {
+      var $row = createRow();
+
+      $list.append($row);
+      reindexRows();
+      $row.find('[data-bsc-color-variant-name]').trigger('focus');
+    }
+
+    function syncPanelState() {
+      var enabled = $toggle.is(':checked');
+
+      $panel.toggleClass('is-hidden', !enabled);
+
+      if (enabled && !$list.find('[data-bsc-color-variant-row]').length) {
+        addRow();
+      }
+    }
+
+    $root
+      .on('change', '[data-bsc-color-variants-toggle]', syncPanelState)
+      .on('click', '[data-bsc-color-variant-add]', addRow)
+      .on('click', '[data-bsc-color-variant-remove]', function () {
+        $(this).closest('[data-bsc-color-variant-row]').remove();
+        reindexRows();
+      })
+      .on('input change', '[data-bsc-color-variant-hex]', function () {
+        syncPreview($(this).closest('[data-bsc-color-variant-row]'));
+      });
+
+    reindexRows();
+    syncPanelState();
+  }
+
+  function initSizeVariants() {
+    var $root = $('[data-bsc-size-variants]');
+
+    if (!$root.length) {
+      return;
+    }
+
+    var $toggle = $root.find('[data-bsc-size-variants-toggle]');
+    var $panel = $root.find('[data-bsc-size-variants-panel]');
+    var $list = $root.find('[data-bsc-size-variants-list]');
+
+    function reindexRows() {
+      $list.find('[data-bsc-size-variant-row]').each(function (index) {
+        $(this).find('[data-bsc-size-variant-name]').attr('name', '_bsc_size_variants[' + index + '][name]');
+        $(this).find('[data-bsc-size-variant-price]').attr('name', '_bsc_size_variants[' + index + '][price]');
+      });
+    }
+
+    function createRow() {
+      var $row = $('<div>', {
+        class: 'bsc-admin-product-edit__size-row',
+        'data-bsc-size-variant-row': '1',
+      });
+      var $nameLabel = $('<label>', {
+        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__size-name',
+      });
+      var $nameInput = $('<input>', {
+        type: 'text',
+        class: 'regular-text',
+        placeholder: 'Ej: 50 ml',
+        'data-bsc-size-variant-name': '1',
+      });
+      var $priceLabel = $('<label>', {
+        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-price',
+      });
+      var $priceInput = $('<input>', {
+        type: 'number',
+        min: '0',
+        step: '1',
+        inputmode: 'numeric',
+        placeholder: 'Precio base',
+        'data-bsc-size-variant-price': '1',
+      });
+      var $removeButton = $('<button>', {
+        type: 'button',
+        class: 'button bsc-admin-product-edit__size-remove',
+        text: 'Quitar',
+        'data-bsc-size-variant-remove': '1',
+      });
+
+      $nameLabel.append(
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Tamano' }),
+        $nameInput
+      );
+      $priceLabel.append(
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Precio COP' }),
+        $priceInput
+      );
+      $row.append($nameLabel, $priceLabel, $removeButton);
+
+      return $row;
+    }
+
+    function addRow() {
+      var $row = createRow();
+
+      $list.append($row);
+      reindexRows();
+      $row.find('[data-bsc-size-variant-name]').trigger('focus');
+    }
+
+    function syncPanelState() {
+      var enabled = $toggle.is(':checked');
+
+      $panel.toggleClass('is-hidden', !enabled);
+
+      if (enabled && !$list.find('[data-bsc-size-variant-row]').length) {
+        addRow();
+      }
+    }
+
+    $root
+      .on('change', '[data-bsc-size-variants-toggle]', syncPanelState)
+      .on('click', '[data-bsc-size-variant-add]', addRow)
+      .on('click', '[data-bsc-size-variant-remove]', function () {
+        $(this).closest('[data-bsc-size-variant-row]').remove();
+        reindexRows();
+      });
+
+    reindexRows();
+    syncPanelState();
+  }
+
   function initCategoryTree() {
     if (!$('#bsc-root-tabs').length || !$('#bsc-cat-branches').length) {
       return;
@@ -104,6 +332,8 @@
     var $updateButton = $('[data-bsc-cat-update]');
     var $cancelButton = $('[data-bsc-cat-cancel]');
     var $deleteButton = $('[data-bsc-cat-delete]');
+    var $selectedSummary = $('[data-bsc-cat-selected-summary]');
+    var $selectedCount = $('[data-bsc-cat-selected-count]');
 
     function esc(value) {
       return String(value)
@@ -111,6 +341,15 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    function normalizeSearchText(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
     function indexTree(nodes, parentId) {
@@ -325,16 +564,20 @@
         return '';
       }
 
-      return '<span class="bsc-admin-product-edit__term-actions">'
-        + '<button type="button" class="button-link" data-bsc-cat-edit-term="' + node.id + '">Editar</button>'
-        + '<button type="button" class="button-link" data-bsc-cat-add-child="' + node.id + '">Agregar hija</button>'
-        + '<button type="button" class="button-link-delete" data-bsc-cat-delete-term="' + node.id + '">Eliminar</button>'
-        + '</span>';
+      return '<details class="bsc-admin-product-edit__term-menu">'
+        + '<summary aria-label="Acciones para ' + esc(node.name) + '">...</summary>'
+        + '<span class="bsc-admin-product-edit__term-actions">'
+        + '<button type="button" class="button-link bsc-admin-product-edit__term-action" data-bsc-cat-edit-term="' + node.id + '" aria-label="Editar ' + esc(node.name) + '">Editar</button>'
+        + '<button type="button" class="button-link bsc-admin-product-edit__term-action" data-bsc-cat-add-child="' + node.id + '" aria-label="Agregar hija a ' + esc(node.name) + '">+ hija</button>'
+        + '<button type="button" class="button-link-delete bsc-admin-product-edit__term-action bsc-admin-product-edit__term-action--delete" data-bsc-cat-delete-term="' + node.id + '" aria-label="Eliminar ' + esc(node.name) + '">Eliminar</button>'
+        + '</span>'
+        + '</details>';
     }
 
     function leafHtml(node) {
       var checked = currentCats.indexOf(node.id) !== -1 ? ' checked' : '';
-      return '<div class="bsc-admin-product-edit__term-row" data-term-id="' + node.id + '">'
+      var selectedClass = checked ? ' is-selected' : '';
+      return '<div class="bsc-admin-product-edit__term-row' + selectedClass + '" data-term-id="' + node.id + '" data-search="' + esc(normalizeSearchText(node.name + ' ' + node.slug + ' ' + node.id)) + '">'
         + '<label class="bsc-admin-product-edit__leaf">'
         + '<input type="checkbox" class="bsc-cat-check" value="' + node.id + '"' + checked + '> '
         + '<span>' + esc(node.name) + '</span>'
@@ -414,6 +657,31 @@
           value: termId,
         }).appendTo($container);
       });
+
+      renderSelectedSummary();
+    }
+
+    function renderSelectedSummary() {
+      var selectedNodes = currentCats
+        .map(function (termId) { return byId[termId]; })
+        .filter(Boolean);
+
+      if ($selectedCount.length) {
+        $selectedCount.text(selectedNodes.length + (selectedNodes.length === 1 ? ' seleccionada' : ' seleccionadas'));
+      }
+
+      if (!$selectedSummary.length) {
+        return;
+      }
+
+      if (!selectedNodes.length) {
+        $selectedSummary.html('<span class="bsc-admin-product-edit__selected-empty">Sin categorias seleccionadas</span>');
+        return;
+      }
+
+      $selectedSummary.html(selectedNodes.map(function (node) {
+        return '<span class="bsc-admin-product-edit__selected-chip">' + esc(node.name) + '</span>';
+      }).join(''));
     }
 
     function updateCurrentCategorySelection(checkbox) {
@@ -432,12 +700,18 @@
         });
       }
 
+      $(checkbox).closest('.bsc-admin-product-edit__term-row').toggleClass('is-selected', checkbox.checked);
       syncHiddenInputs();
     }
 
     function filterBranch($section, query) {
+      var terms = normalizeSearchText(query).split(' ').filter(Boolean);
+
       $section.find('.bsc-branch-items .bsc-admin-product-edit__term-row').each(function () {
-        var matches = !query || $(this).text().toLowerCase().indexOf(query) !== -1;
+        var text = $(this).attr('data-search') || normalizeSearchText($(this).text());
+        var matches = !terms.length || terms.every(function (term) {
+          return text.indexOf(term) !== -1;
+        });
         $(this).toggleClass('is-hidden', !matches);
       });
 
@@ -509,7 +783,7 @@
         updateCurrentCategorySelection(this);
       })
       .on('input', '.bsc-branch-search', function () {
-        filterBranch($(this).closest('.bsc-branch-section'), $(this).val().toLowerCase().trim());
+        filterBranch($(this).closest('.bsc-branch-section'), $(this).val());
       })
       .on('click', '[data-bsc-cat-add-child]', function () {
         resetCategoryForm(parseInt($(this).attr('data-bsc-cat-add-child'), 10) || selectedParentDefault());
@@ -539,5 +813,9 @@
     renderBranches();
   }
 
-  $(initCategoryTree);
+  $(function () {
+    initColorVariants();
+    initSizeVariants();
+    initCategoryTree();
+  });
 }(jQuery));
