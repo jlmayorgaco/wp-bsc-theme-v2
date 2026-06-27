@@ -150,6 +150,16 @@
   margin-bottom: 8px;
 }
 
+.button.bsc-admin-products__delete {
+  border-color: #e53e3e;
+  color: #c53030;
+}
+.button.bsc-admin-products__delete:hover, .button.bsc-admin-products__delete:focus {
+  background: #fff5f5;
+  border-color: #b30000;
+  color: #b30000;
+}
+
 .bsc-admin-products__save-controls {
   justify-content: flex-start;
 }

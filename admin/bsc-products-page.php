@@ -249,6 +249,33 @@ function bsc_ajax_apply_product_discount(): void {
 	);
 }
 
+add_action( 'wp_ajax_bsc_trash_product', 'bsc_ajax_trash_product' );
+function bsc_ajax_trash_product(): void {
+	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
+	if (!current_user_can( 'manage_options' ) && !current_user_can( 'edit_products' )) {
+		wp_send_json_error( array( 'message' => 'Sin permisos' ), 403 );
+	}
+
+	$product_id = absint( wp_unslash( $_POST['product_id'] ?? 0 ) );
+	if (!$product_id || get_post_type( $product_id ) !== 'product') {
+		wp_send_json_error( array( 'message' => 'Producto invalido' ), 400 );
+	}
+
+	$result = wp_trash_post( $product_id );
+	if (!$result) {
+		wp_send_json_error( array( 'message' => 'No se pudo borrar el producto.' ), 400 );
+	}
+
+	wc_delete_product_transients( $product_id );
+
+	wp_send_json_success(
+		array(
+			'product_id' => $product_id,
+			'message'    => 'Producto enviado a la papelera.',
+		)
+	);
+}
+
 add_action( 'wp_ajax_bsc_adjust_stock', 'bsc_ajax_adjust_stock' );
 function bsc_ajax_adjust_stock(): void {
 	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
@@ -342,7 +369,11 @@ function bsc_enqueue_products_page_assets( string $hook ): void {
 				'discountNoSelection'    => 'Selecciona al menos un producto.',
 				'discountInvalidPercent' => 'Ingresa un descuento entre 0% y 99%.',
 				'discountApplied'        => 'Descuento actualizado.',
-				'connectionError'    => 'Error de conexión. Intenta de nuevo.',
+				'deleteConfirm'          => 'Borrar "%s"? El producto se enviara a la papelera.',
+				'deleting'               => 'Borrando...',
+				'deleted'                => 'Producto enviado a la papelera.',
+				'deleteError'            => 'No se pudo borrar el producto.',
+				'connectionError'        => 'Error de conexión. Intenta de nuevo.',
 			),
 		)
 	);
@@ -600,6 +631,13 @@ function bsc_render_products_page(): void {
 									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
 									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
 								>Historial</button>
+								<button
+									type="button"
+									class="button button-small bsc-admin-products__delete bsc-product-delete-btn"
+									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
+									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
+									aria-label="<?php echo esc_attr( sprintf( 'Borrar %s', $post->post_title ) ); ?>"
+								>Borrar</button>
 							</div>
 							<div class="bsc-admin-inline-editor bsc-admin-products__save-controls">
 								<span class="bsc-admin-inline-editor__pending" data-role="pending">Guardar cambios</span>

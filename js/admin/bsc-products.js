@@ -350,6 +350,80 @@
     });
   }
 
+  function getDeleteConfirmMessage(productName) {
+    var message = strings.deleteConfirm || 'Borrar "%s"? El producto se enviara a la papelera.';
+
+    if (message.indexOf('%s') !== -1) {
+      return message.replace('%s', productName || 'este producto');
+    }
+
+    return message;
+  }
+
+  function removeProductRow($row) {
+    var $tbody = $row.closest('tbody');
+
+    $row.fadeOut(150, function () {
+      $row.remove();
+
+      if (!$tbody.find('.bsc-admin-products__row').length) {
+        $tbody.append('<tr><td colspan="8" class="bsc-admin-products__empty">No hay productos.</td></tr>');
+      }
+
+      updateDiscountState();
+    });
+  }
+
+  function trashProduct($button) {
+    var $row = getRow($button);
+    var productId = $button.data('product-id') || $row.data('product-id');
+    var productName = String($button.data('product-name') || '').trim();
+    var originalLabel = $button.text();
+    var removed = false;
+
+    if (!productId) {
+      showToast(strings.deleteError || 'No se pudo borrar el producto.', 'error');
+      return;
+    }
+
+    if (!window.confirm(getDeleteConfirmMessage(productName))) {
+      return;
+    }
+
+    $button.prop('disabled', true).text(strings.deleting || 'Borrando...');
+
+    $.post(ajaxUrl, {
+      action: 'bsc_trash_product',
+      nonce: nonce,
+      product_id: productId
+    }).done(function (response) {
+      if (!response || !response.success) {
+        showToast(
+          (response && response.data && response.data.message) || strings.deleteError || 'No se pudo borrar el producto.',
+          'error'
+        );
+        return;
+      }
+
+      removed = true;
+      removeProductRow($row);
+      showToast(
+        (response.data && response.data.message) || strings.deleted || 'Producto enviado a la papelera.',
+        'success'
+      );
+    }).fail(function (xhr) {
+      var message = xhr.responseJSON && xhr.responseJSON.data
+        ? xhr.responseJSON.data.message
+        : '';
+
+      showToast(message || strings.connectionError || strings.deleteError || 'No se pudo borrar el producto.', 'error');
+    }).always(function () {
+      if (!removed) {
+        $button.prop('disabled', false).text(originalLabel);
+      }
+    });
+  }
+
   $(document).on('input change', '.bsc-product-inline-input', function () {
     syncRowState(getRow($(this)));
   });
@@ -375,6 +449,10 @@
   $(document).on('input change', '#bsc-discount-percent', updateDiscountState);
 
   $(document).on('click', '#bsc-apply-discount', applyDiscountToSelection);
+
+  $(document).on('click', '.bsc-product-delete-btn', function () {
+    trashProduct($(this));
+  });
 
   $(document).on('click', '.bsc-stock-history-btn', function () {
     var productId = $(this).data('product-id');
