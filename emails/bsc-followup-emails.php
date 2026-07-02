@@ -6,14 +6,15 @@ defined( 'ABSPATH' ) || exit;
 
 function bsc_get_followup_email_defaults(): array {
 	return array(
-		'bsc_followup_emails_enabled'      => 1,
-		'bsc_welcome_email_enabled'        => 1,
-		'bsc_password_reset_email_enabled' => 1,
-		'bsc_birthday_email_enabled'       => 1,
-		'bsc_inactive_email_enabled'       => 1,
-		'bsc_inactive_email_days'          => 60,
-		'bsc_repurchase_email_enabled'     => 1,
-		'bsc_default_repurchase_days'      => 30,
+		'bsc_followup_emails_enabled'        => 1,
+		'bsc_welcome_email_enabled'          => 1,
+		'bsc_password_reset_email_enabled'   => 1,
+		'bsc_password_changed_email_enabled' => 1,
+		'bsc_birthday_email_enabled'         => 1,
+		'bsc_inactive_email_enabled'         => 1,
+		'bsc_inactive_email_days'            => 60,
+		'bsc_repurchase_email_enabled'       => 1,
+		'bsc_default_repurchase_days'        => 30,
 	);
 }
 
@@ -270,6 +271,42 @@ function bsc_password_reset_message_fallback( string $message, string $key, stri
 	return "Hola {$name},\n\nUsa este enlace para cambiar tu contraseña:\n{$reset_url}\n\nSi no solicitaste este cambio, ignora este correo.\n";
 }
 add_filter( 'retrieve_password_message', 'bsc_password_reset_message_fallback', 10, 4 );
+
+function bsc_customize_password_changed_email( array $pass_change_email, array $user, array $userdata ): array {
+	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_password_changed_email_enabled' ) ) {
+		return $pass_change_email;
+	}
+
+	$user_id = (int) ( $user['ID'] ?? $userdata['ID'] ?? 0 );
+	if ( $user_id <= 0 ) {
+		return $pass_change_email;
+	}
+
+	$wp_user = get_user_by( 'id', $user_id );
+	if ( ! ( $wp_user instanceof WP_User ) ) {
+		return $pass_change_email;
+	}
+
+	$message = bsc_render_email_template(
+		'bsc-password-changed-email.php',
+		array(
+			'user'        => $wp_user,
+			'account_url' => bsc_get_email_account_url(),
+			'reset_url'   => wp_lostpassword_url(),
+		)
+	);
+
+	if ( '' === $message ) {
+		return $pass_change_email;
+	}
+
+	$pass_change_email['subject'] = 'Tu contraseña fue actualizada — Bubble Skin Care';
+	$pass_change_email['message'] = $message;
+	$pass_change_email['headers'] = bsc_get_email_headers();
+
+	return $pass_change_email;
+}
+add_filter( 'password_change_email', 'bsc_customize_password_changed_email', 10, 3 );
 
 function bsc_process_birthday_followup_emails(): int {
 	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_birthday_email_enabled' ) ) {

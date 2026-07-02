@@ -749,6 +749,64 @@ function bsc_add_product_variant_item_data( array $item_data, array $cart_item )
 }
 add_filter( 'woocommerce_get_item_data', 'bsc_add_product_variant_item_data', 20, 2 );
 
+/**
+ * Get BSC variant metadata persisted on an order line item.
+ *
+ * @param WC_Order_Item_Product $item Order line item.
+ * @return array{color_name:string,size_name:string,variant_key:string,parts:array<int,string>}
+ */
+function bsc_get_order_item_product_variant_data( WC_Order_Item_Product $item ): array {
+	$color_name  = trim( (string) $item->get_meta( 'Color', true ) );
+	$size_name   = trim( (string) $item->get_meta( 'Tamano', true ) );
+	$variant_key = sanitize_key( (string) $item->get_meta( '_bsc_product_variant_key', true ) );
+
+	if ( '' === $size_name ) {
+		$size_name = trim( (string) $item->get_meta( 'Tamaño', true ) );
+	}
+
+	$parts = array_values(
+		array_filter(
+			array(
+				$color_name,
+				$size_name,
+			),
+			static fn( $value ): bool => '' !== $value
+		)
+	);
+
+	return array(
+		'color_name'  => $color_name,
+		'size_name'   => $size_name,
+		'variant_key' => $variant_key,
+		'parts'       => $parts,
+	);
+}
+
+/**
+ * Format the selected BSC variant as a short label.
+ *
+ * @param WC_Order_Item_Product $item Order line item.
+ * @return string
+ */
+function bsc_format_order_item_variant_label( WC_Order_Item_Product $item ): string {
+	$variant_data = bsc_get_order_item_product_variant_data( $item );
+
+	return implode( ' / ', $variant_data['parts'] );
+}
+
+/**
+ * Format an order item product name with its selected BSC variant.
+ *
+ * @param WC_Order_Item_Product $item Order line item.
+ * @return string
+ */
+function bsc_format_order_item_name_with_variant( WC_Order_Item_Product $item ): string {
+	$name          = $item->get_name();
+	$variant_label = bsc_format_order_item_variant_label( $item );
+
+	return '' !== $variant_label ? $name . ' - ' . $variant_label : $name;
+}
+
 function bsc_add_product_variant_meta_to_order_item( $item, $cart_item_key, $values, $order ): void {
 	unset( $cart_item_key, $order );
 

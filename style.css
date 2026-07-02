@@ -19489,6 +19489,9 @@ body.admin-bar .bsc__header--desktop {
 .bsc__filters-group[open] summary::after {
   transform: translateY(-50%) rotate(180deg);
 }
+.bsc__filters-group:has(input[name=marca]) {
+  display: none;
+}
 .bsc__filters-options {
   display: flex;
   flex-direction: column;
@@ -20440,27 +20443,25 @@ body.admin-bar .bsc__header--desktop {
 }
 
 .bsc__shipping-address {
-  --bsc-account-address-text: #333;
-  --bsc-account-address-border: #333;
+  --bsc-account-address-text: var(--bsc-color-text, #333);
+  --bsc-account-address-border: var(--bsc-color-input-border, #d1d1d6);
   --bsc-account-address-error: red;
+  --bsc-account-address-placeholder: var(--bsc-color-placeholder, #aaa);
   display: block;
-  width: min(740px, 100%);
-  max-width: 740px;
+  width: min(920px, 100%);
+  max-width: 920px;
   margin: 0 auto;
+  padding: var(--bsc-spacing-xl) var(--bsc-spacing-sm) var(--bsc-spacing-lg);
 }
 .bsc__shipping-address h2 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 0.15rem;
-  padding-bottom: 22px;
-  color: #333;
-  letter-spacing: 1px;
-  text-align: center;
   width: 100%;
-  margin: 0 auto;
-}
-.bsc__shipping-address .input-text {
-  color: #333;
+  margin: 0 auto var(--bsc-spacing-md);
+  padding-bottom: 0;
+  color: var(--bsc-account-address-text);
+  font-size: var(--bsc-font-size);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
 }
 .bsc__shipping-address .woocommerce-address-fields,
 .bsc__shipping-address .woocommerce-address-fields__field-wrapper,
@@ -20469,34 +20470,57 @@ body.admin-bar .bsc__header--desktop {
 }
 .bsc__shipping-address .woocommerce-address-fields__field-wrapper {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 18px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--bsc-spacing-md);
 }
 .bsc__shipping-address .form-row {
   float: none;
+  grid-column: span 6;
   width: 100%;
-  margin: 0 0 var(--bsc-spacing-md);
+  min-width: 0;
+  margin: 0;
   padding: 0;
 }
 .bsc__shipping-address .form-row-first,
 .bsc__shipping-address .form-row-last {
   float: none;
-  width: 100%;
+  grid-column: span 3;
+}
+.bsc__shipping-address #billing_phone_field,
+.bsc__shipping-address #billing_email_field,
+.bsc__shipping-address #shipping_phone_field,
+.bsc__shipping-address #shipping_email_field {
+  grid-column: span 3;
+}
+.bsc__shipping-address #billing_state_field,
+.bsc__shipping-address #billing_city_field,
+.bsc__shipping-address #billing_postcode_field,
+.bsc__shipping-address #shipping_state_field,
+.bsc__shipping-address #shipping_city_field,
+.bsc__shipping-address #shipping_postcode_field {
+  grid-column: span 2;
 }
 .bsc__shipping-address .form-row-wide,
 .bsc__shipping-address #billing_company_field,
 .bsc__shipping-address #billing_address_1_field,
 .bsc__shipping-address #billing_address_2_field,
-.bsc__shipping-address #billing_email_field,
 .bsc__shipping-address #shipping_company_field,
 .bsc__shipping-address #shipping_address_1_field,
 .bsc__shipping-address #shipping_address_2_field {
   grid-column: 1/-1;
 }
+.bsc__shipping-address .form-row label {
+  display: none;
+}
+.bsc__shipping-address .woocommerce-input-wrapper {
+  display: block;
+}
 .bsc__shipping-address .input-text,
 .bsc__shipping-address input[type=text],
 .bsc__shipping-address input[type=email],
 .bsc__shipping-address input[type=tel],
+.bsc__shipping-address input[type=number],
+.bsc__shipping-address input[type=password],
 .bsc__shipping-address select,
 .bsc__shipping-address textarea {
   width: 100%;
@@ -20514,6 +20538,8 @@ body.admin-bar .bsc__header--desktop {
 .bsc__shipping-address input[type=text]::placeholder,
 .bsc__shipping-address input[type=email]::placeholder,
 .bsc__shipping-address input[type=tel]::placeholder,
+.bsc__shipping-address input[type=number]::placeholder,
+.bsc__shipping-address input[type=password]::placeholder,
 .bsc__shipping-address select::placeholder,
 .bsc__shipping-address textarea::placeholder {
   color: var(--bsc-color-placeholder);
@@ -20522,16 +20548,31 @@ body.admin-bar .bsc__header--desktop {
 .bsc__shipping-address input[type=text],
 .bsc__shipping-address input[type=email],
 .bsc__shipping-address input[type=tel],
+.bsc__shipping-address input[type=number],
+.bsc__shipping-address input[type=password],
 .bsc__shipping-address select,
 .bsc__shipping-address textarea {
   box-sizing: border-box;
-  height: var(--bsc-input-height);
+  min-height: var(--bsc-input-height);
   border-color: var(--bsc-account-address-border) !important;
   border-radius: var(--bsc-radius-md);
   background-color: #fff;
   color: var(--bsc-account-address-text);
   font-family: inherit;
+  font-size: var(--bsc-font-size);
+  letter-spacing: 1px;
   box-shadow: none;
+}
+.bsc__shipping-address .input-text::placeholder,
+.bsc__shipping-address input[type=text]::placeholder,
+.bsc__shipping-address input[type=email]::placeholder,
+.bsc__shipping-address input[type=tel]::placeholder,
+.bsc__shipping-address input[type=number]::placeholder,
+.bsc__shipping-address input[type=password]::placeholder,
+.bsc__shipping-address select::placeholder,
+.bsc__shipping-address textarea::placeholder {
+  color: var(--bsc-account-address-placeholder);
+  opacity: 1;
 }
 .bsc__shipping-address textarea {
   height: auto;
@@ -20539,6 +20580,7 @@ body.admin-bar .bsc__header--desktop {
   resize: vertical;
 }
 .bsc__shipping-address select:not(.select2-hidden-accessible) {
+  height: var(--bsc-input-height);
   padding-right: 40px;
   line-height: 1.2;
   background-image: linear-gradient(45deg, transparent 50%, var(--bsc-account-address-text) 50%), linear-gradient(135deg, var(--bsc-account-address-text) 50%, transparent 50%);
@@ -20556,9 +20598,11 @@ body.admin-bar .bsc__header--desktop {
   display: flex;
   align-items: center;
   height: var(--bsc-input-height);
+  min-height: var(--bsc-input-height);
   border: 1px solid var(--bsc-account-address-border);
-  border-radius: var(--bsc-radius-md);
+  border-radius: var(--bsc-radius-sm);
   background-color: #fff;
+  cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .bsc__shipping-address .select2-selection__rendered {
@@ -20569,13 +20613,18 @@ body.admin-bar .bsc__header--desktop {
   letter-spacing: 0;
 }
 .bsc__shipping-address .select2-selection__arrow {
-  height: 100% !important;
-  right: 8px !important;
+  position: absolute;
+  top: 8px !important;
+  right: 5px !important;
+  width: 20px;
+  height: 26px !important;
 }
 .bsc__shipping-address .input-text:hover,
 .bsc__shipping-address input[type=text]:hover,
 .bsc__shipping-address input[type=email]:hover,
 .bsc__shipping-address input[type=tel]:hover,
+.bsc__shipping-address input[type=number]:hover,
+.bsc__shipping-address input[type=password]:hover,
 .bsc__shipping-address select:hover,
 .bsc__shipping-address textarea:hover,
 .bsc__shipping-address .select2-selection--single:hover {
@@ -20585,6 +20634,8 @@ body.admin-bar .bsc__header--desktop {
 .bsc__shipping-address input[type=text]:focus,
 .bsc__shipping-address input[type=email]:focus,
 .bsc__shipping-address input[type=tel]:focus,
+.bsc__shipping-address input[type=number]:focus,
+.bsc__shipping-address input[type=password]:focus,
 .bsc__shipping-address select:focus,
 .bsc__shipping-address textarea:focus,
 .bsc__shipping-address .select2-container--focus .select2-selection--single,
@@ -20650,11 +20701,12 @@ body.admin-bar .bsc__header--desktop {
   flex-direction: row;
   align-items: flex-end;
   justify-content: flex-end;
-  padding-top: 20px;
+  margin: 0;
+  padding-top: var(--bsc-spacing-md);
 }
 .bsc__shipping-address .button--save-profile button {
   min-height: var(--bsc-input-height);
-  margin: 10px 0;
+  margin: 0;
   border: 1px solid var(--bsc-account-address-border);
   color: #fff;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
@@ -20719,7 +20771,22 @@ body.admin-bar .bsc__header--desktop {
   }
   .bsc__shipping-address .woocommerce-address-fields__field-wrapper {
     grid-template-columns: 1fr;
-    column-gap: 0;
+    gap: var(--bsc-spacing-md);
+  }
+  .bsc__shipping-address .form-row,
+  .bsc__shipping-address .form-row-first,
+  .bsc__shipping-address .form-row-last,
+  .bsc__shipping-address #billing_phone_field,
+  .bsc__shipping-address #billing_email_field,
+  .bsc__shipping-address #shipping_phone_field,
+  .bsc__shipping-address #shipping_email_field,
+  .bsc__shipping-address #billing_state_field,
+  .bsc__shipping-address #billing_city_field,
+  .bsc__shipping-address #billing_postcode_field,
+  .bsc__shipping-address #shipping_state_field,
+  .bsc__shipping-address #shipping_city_field,
+  .bsc__shipping-address #shipping_postcode_field {
+    grid-column: 1/-1;
   }
   .bsc__shipping-address .button--save-profile {
     width: 100%;
