@@ -251,9 +251,112 @@
 		}) || tabs[0], false);
 	}
 
+	function setHomeBrandPreview(card, url) {
+		var preview = card.querySelector('[data-bsc-home-brand-preview]');
+		var image;
+
+		if (!preview) {
+			return;
+		}
+
+		preview.innerHTML = '';
+
+		if (!url) {
+			return;
+		}
+
+		image = new Image();
+		image.alt = '';
+		image.src = url;
+		preview.appendChild(image);
+	}
+
+	function initHomeBrandCard(card) {
+		var select = card.querySelector('[data-bsc-home-brand-term]');
+		var slugInput = card.querySelector('[data-bsc-home-brand-slug]');
+		var current = card.querySelector('[data-bsc-home-brand-current]');
+		var imageInput = card.querySelector('[data-bsc-home-brand-image-id]');
+		var status = card.querySelector('[data-bsc-home-brand-status]');
+		var selectButton = card.querySelector('[data-bsc-home-brand-select]');
+		var resetButton = card.querySelector('[data-bsc-home-brand-reset]');
+
+		if (select) {
+			select.addEventListener('change', function () {
+				var option = select.options[select.selectedIndex];
+				var name = option ? option.getAttribute('data-name') || option.textContent.trim() : '';
+				var slug = option ? option.getAttribute('data-slug') || '' : '';
+
+				if (slugInput) {
+					slugInput.value = slug;
+				}
+
+				if (current) {
+					current.textContent = name || 'Marca sin seleccionar';
+				}
+			});
+		}
+
+		if (selectButton) {
+			selectButton.addEventListener('click', function () {
+				var frame;
+
+				if (!window.wp || !window.wp.media) {
+					return;
+				}
+
+				frame = window.wp.media({
+					title: 'Seleccionar imagen de marca',
+					button: { text: 'Usar esta imagen' },
+					multiple: false
+				});
+
+				frame.on('select', function () {
+					var attachment = frame.state().get('selection').first().toJSON();
+					var previewUrl = attachment.sizes && attachment.sizes.medium
+						? attachment.sizes.medium.url
+						: attachment.url;
+
+					if (imageInput) {
+						imageInput.value = attachment.id;
+					}
+
+					if (status) {
+						status.textContent = 'Imagen personalizada';
+					}
+
+					if (resetButton) {
+						resetButton.disabled = false;
+					}
+
+					setHomeBrandPreview(card, previewUrl);
+				});
+
+				frame.open();
+			});
+		}
+
+		if (resetButton) {
+			resetButton.addEventListener('click', function () {
+				var defaultImageUrl = card.getAttribute('data-default-image-url') || '';
+
+				if (imageInput) {
+					imageInput.value = '';
+				}
+
+				if (status) {
+					status.textContent = 'Imagen por defecto';
+				}
+
+				resetButton.disabled = true;
+				setHomeBrandPreview(card, defaultImageUrl);
+			});
+		}
+	}
+
 	function initSelectors() {
 		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-product-selector]')).forEach(initSelector);
 		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-product-tabs]')).forEach(initTabGroup);
+		Array.prototype.slice.call(document.querySelectorAll('[data-bsc-home-brand-card]')).forEach(initHomeBrandCard);
 	}
 
 	if (document.readyState === 'loading') {

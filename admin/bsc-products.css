@@ -100,6 +100,18 @@
   font-size: 11px;
 }
 
+.bsc-admin-products__variant-count {
+  background: #f6f7f7;
+  border: 1px solid #eee;
+  border-radius: 30px;
+  color: #646970;
+  display: inline-flex;
+  font-size: 11px;
+  line-height: 1.2;
+  margin-top: 5px;
+  padding: 4px 7px;
+}
+
 .bsc-admin-products__sale-price {
   color: #888;
   display: block;
@@ -144,6 +156,19 @@
 .bsc-admin-products__stock-input.is-low {
   background: #fff5f5;
   border-color: #e53e3e;
+}
+
+.bsc-admin-products__stock-input.is-readonly {
+  background: #f6f7f7;
+  color: #646970;
+}
+
+.bsc-admin-products__stock-note {
+  color: #888;
+  display: block;
+  font-size: 10px;
+  line-height: 1.2;
+  margin-top: 4px;
 }
 
 .bsc-admin-products__row-actions {
@@ -232,6 +257,62 @@
 
 .bsc-admin-products__history-table {
   margin-top: 0;
+}
+
+.bsc-admin-products__variant-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.bsc-admin-products__variant-table-wrap {
+  overflow-x: auto;
+}
+
+.bsc-admin-products__variant-table {
+  min-width: 760px;
+}
+
+.bsc-admin-products__variant-table th,
+.bsc-admin-products__variant-table td {
+  vertical-align: middle;
+}
+
+.bsc-admin-products__variant-table input[type=number] {
+  min-width: 82px;
+  width: 100%;
+}
+
+.bsc-admin-products__variant-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 170px;
+}
+
+.bsc-admin-products__variant-swatch {
+  background: #f7c0cd;
+  border: 1px solid #dcdcde;
+  border-radius: 30px;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+.bsc-admin-products__variant-enabled {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.bsc-admin-products__variant-row.is-disabled {
+  opacity: 0.62;
+}
+
+.bsc-admin-products__variant-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .bsc-admin-products__delta {

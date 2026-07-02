@@ -100,6 +100,11 @@ $container-width: bsc.$container-wide;
     }
   }
 
+  .shop__products-region {
+    width: 100%;
+    min-width: 0;
+  }
+
   .shop__products {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

@@ -71,6 +71,9 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		$field_name      = (string) $filter['name'];
 		$selected_values = $context->get_selected_values( $field_name );
 		$is_multiple     = !empty( $filter['multiple'] );
+		if (!$is_multiple) {
+			$selected_values = array_slice( $selected_values, 0, 1 );
+		}
 		$input_type      = $is_multiple ? 'checkbox' : 'radio';
 		$input_name      = $is_multiple ? "{$field_name}[]" : $field_name;
 		$modifier        = $is_multiple ? 'checkbox' : 'radio';

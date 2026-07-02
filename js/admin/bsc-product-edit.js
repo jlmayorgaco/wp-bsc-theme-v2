@@ -10,6 +10,14 @@
   var rootLabels = config.rootLabels || {};
   var strings = config.strings || {};
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function mainPreviewHtml(url) {
     return '<img src="' + url + '" class="bsc-admin-product-edit__preview-image" alt="">';
   }
@@ -83,6 +91,69 @@
     galleryFrame.open();
   });
 
+  function baseRegularPrice() {
+    return $('[name="_regular_price"]').val() || '';
+  }
+
+  function variantNumberField(label, dataAttr, value) {
+    var $label = $('<label>', {
+      class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-price',
+    });
+    var $input = $('<input>', {
+      type: 'number',
+      min: '0',
+      step: '1',
+      value: value || '',
+      class: 'bsc-admin-product-edit__number-input',
+    }).attr(dataAttr, '1');
+
+    if (/precio|oferta/i.test(label)) {
+      $input.attr('inputmode', 'numeric');
+    }
+
+    $label.append(
+      $('<span>', { class: 'bsc-admin-product-edit__field-label', text: label }),
+      $input
+    );
+
+    return $label;
+  }
+
+  function variantEnabledField(dataAttr, hiddenAttr, checked) {
+    var $label = $('<label>', {
+      class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-inline-enabled',
+    });
+    var $hidden = $('<input>', {
+      type: 'hidden',
+      value: '0',
+    }).attr(hiddenAttr, '1');
+    var $checkbox = $('<input>', {
+      type: 'checkbox',
+      value: '1',
+      checked: checked !== false,
+    }).attr(dataAttr, '1');
+
+    $label.append(
+      $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Activa' }),
+      $hidden,
+      $checkbox
+    );
+
+    return $label;
+  }
+
+  function disableVariantMode(mode) {
+    var selector = mode === 'color' ? '[data-bsc-color-variants]' : '[data-bsc-size-variants]';
+    var $root = $(selector);
+
+    if (!$root.length) {
+      return;
+    }
+
+    $root.find('[data-bsc-color-variants-toggle], [data-bsc-size-variants-toggle]').prop('checked', false);
+    $root.find('[data-bsc-color-variants-panel], [data-bsc-size-variants-panel]').addClass('is-hidden');
+  }
+
   function initColorVariants() {
     var $root = $('[data-bsc-color-variants]');
 
@@ -113,10 +184,19 @@
 
     function reindexRows() {
       $list.find('[data-bsc-color-variant-row]').each(function (index) {
-        $(this).find('[data-bsc-color-variant-hex]').attr('name', '_bsc_color_variants[' + index + '][hex]');
-        $(this).find('[data-bsc-color-variant-name]').attr('name', '_bsc_color_variants[' + index + '][name]');
-        $(this).find('[data-bsc-color-variant-price]').attr('name', '_bsc_color_variants[' + index + '][price]');
-        syncPreview($(this));
+        var prefix = '_bsc_color_variants[' + index + ']';
+        var $row = $(this);
+
+        $row.find('[data-bsc-color-variant-hex]').attr('name', prefix + '[hex]');
+        $row.find('[data-bsc-color-variant-name]').attr('name', prefix + '[name]');
+        $row.find('[data-bsc-color-variant-regular-price]').attr('name', prefix + '[regular_price]');
+        $row.find('[data-bsc-color-variant-sale-price]').attr('name', prefix + '[sale_price]');
+        $row.find('[data-bsc-color-variant-stock-bodega]').attr('name', prefix + '[stock_bodega]');
+        $row.find('[data-bsc-color-variant-stock-tienda]').attr('name', prefix + '[stock_tienda]');
+        $row.find('[data-bsc-color-variant-enabled-hidden]').attr('name', prefix + '[enabled]');
+        $row.find('[data-bsc-color-variant-enabled]').attr('name', prefix + '[enabled]');
+        $row.toggleClass('is-disabled', !$row.find('[data-bsc-color-variant-enabled]').is(':checked'));
+        syncPreview($row);
       });
     }
 
@@ -149,17 +229,6 @@
         placeholder: 'Ej: Rosado claro',
         'data-bsc-color-variant-name': '1',
       });
-      var $priceLabel = $('<label>', {
-        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-price',
-      });
-      var $priceInput = $('<input>', {
-        type: 'number',
-        min: '0',
-        step: '1',
-        inputmode: 'numeric',
-        placeholder: 'Precio base',
-        'data-bsc-color-variant-price': '1',
-      });
       var $removeButton = $('<button>', {
         type: 'button',
         class: 'button bsc-admin-product-edit__color-remove',
@@ -176,11 +245,16 @@
         $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Nombre del color' }),
         $nameInput
       );
-      $priceLabel.append(
-        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Precio COP' }),
-        $priceInput
+      $row.append(
+        $colorLabel,
+        $nameLabel,
+        variantNumberField('Precio regular', 'data-bsc-color-variant-regular-price', baseRegularPrice()),
+        variantNumberField('Oferta', 'data-bsc-color-variant-sale-price', ''),
+        variantNumberField('Stock Bodega', 'data-bsc-color-variant-stock-bodega', '0'),
+        variantNumberField('Stock Tienda', 'data-bsc-color-variant-stock-tienda', '0'),
+        variantEnabledField('data-bsc-color-variant-enabled', 'data-bsc-color-variant-enabled-hidden', true),
+        $removeButton
       );
-      $row.append($colorLabel, $nameLabel, $priceLabel, $removeButton);
 
       return $row;
     }
@@ -195,6 +269,10 @@
 
     function syncPanelState() {
       var enabled = $toggle.is(':checked');
+
+      if (enabled) {
+        disableVariantMode('size');
+      }
 
       $panel.toggleClass('is-hidden', !enabled);
 
@@ -212,6 +290,9 @@
       })
       .on('input change', '[data-bsc-color-variant-hex]', function () {
         syncPreview($(this).closest('[data-bsc-color-variant-row]'));
+      })
+      .on('change', '[data-bsc-color-variant-enabled]', function () {
+        $(this).closest('[data-bsc-color-variant-row]').toggleClass('is-disabled', !$(this).is(':checked'));
       });
 
     reindexRows();
@@ -231,8 +312,17 @@
 
     function reindexRows() {
       $list.find('[data-bsc-size-variant-row]').each(function (index) {
-        $(this).find('[data-bsc-size-variant-name]').attr('name', '_bsc_size_variants[' + index + '][name]');
-        $(this).find('[data-bsc-size-variant-price]').attr('name', '_bsc_size_variants[' + index + '][price]');
+        var prefix = '_bsc_size_variants[' + index + ']';
+        var $row = $(this);
+
+        $row.find('[data-bsc-size-variant-name]').attr('name', prefix + '[name]');
+        $row.find('[data-bsc-size-variant-regular-price]').attr('name', prefix + '[regular_price]');
+        $row.find('[data-bsc-size-variant-sale-price]').attr('name', prefix + '[sale_price]');
+        $row.find('[data-bsc-size-variant-stock-bodega]').attr('name', prefix + '[stock_bodega]');
+        $row.find('[data-bsc-size-variant-stock-tienda]').attr('name', prefix + '[stock_tienda]');
+        $row.find('[data-bsc-size-variant-enabled-hidden]').attr('name', prefix + '[enabled]');
+        $row.find('[data-bsc-size-variant-enabled]').attr('name', prefix + '[enabled]');
+        $row.toggleClass('is-disabled', !$row.find('[data-bsc-size-variant-enabled]').is(':checked'));
       });
     }
 
@@ -250,17 +340,6 @@
         placeholder: 'Ej: 50 ml',
         'data-bsc-size-variant-name': '1',
       });
-      var $priceLabel = $('<label>', {
-        class: 'bsc-admin-product-edit__field bsc-admin-product-edit__variant-price',
-      });
-      var $priceInput = $('<input>', {
-        type: 'number',
-        min: '0',
-        step: '1',
-        inputmode: 'numeric',
-        placeholder: 'Precio base',
-        'data-bsc-size-variant-price': '1',
-      });
       var $removeButton = $('<button>', {
         type: 'button',
         class: 'button bsc-admin-product-edit__size-remove',
@@ -272,11 +351,15 @@
         $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Tamano' }),
         $nameInput
       );
-      $priceLabel.append(
-        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Precio COP' }),
-        $priceInput
+      $row.append(
+        $nameLabel,
+        variantNumberField('Precio regular', 'data-bsc-size-variant-regular-price', baseRegularPrice()),
+        variantNumberField('Oferta', 'data-bsc-size-variant-sale-price', ''),
+        variantNumberField('Stock Bodega', 'data-bsc-size-variant-stock-bodega', '0'),
+        variantNumberField('Stock Tienda', 'data-bsc-size-variant-stock-tienda', '0'),
+        variantEnabledField('data-bsc-size-variant-enabled', 'data-bsc-size-variant-enabled-hidden', true),
+        $removeButton
       );
-      $row.append($nameLabel, $priceLabel, $removeButton);
 
       return $row;
     }
@@ -292,6 +375,10 @@
     function syncPanelState() {
       var enabled = $toggle.is(':checked');
 
+      if (enabled) {
+        disableVariantMode('color');
+      }
+
       $panel.toggleClass('is-hidden', !enabled);
 
       if (enabled && !$list.find('[data-bsc-size-variant-row]').length) {
@@ -305,6 +392,9 @@
       .on('click', '[data-bsc-size-variant-remove]', function () {
         $(this).closest('[data-bsc-size-variant-row]').remove();
         reindexRows();
+      })
+      .on('change', '[data-bsc-size-variant-enabled]', function () {
+        $(this).closest('[data-bsc-size-variant-row]').toggleClass('is-disabled', !$(this).is(':checked'));
       });
 
     reindexRows();
@@ -334,6 +424,7 @@
     var $deleteButton = $('[data-bsc-cat-delete]');
     var $selectedSummary = $('[data-bsc-cat-selected-summary]');
     var $selectedCount = $('[data-bsc-cat-selected-count]');
+    var $parentCombo = $();
 
     function esc(value) {
       return String(value)
@@ -350,6 +441,207 @@
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, ' ')
         .trim();
+    }
+
+    function getParentOptionData(option) {
+      var $option = $(option);
+      var label = String($option.text() || '');
+      var depth = 0;
+
+      while (label.indexOf('-- ') === 0) {
+        depth += 1;
+        label = label.substring(3);
+      }
+
+      return {
+        value: String($option.val()),
+        label: label,
+        rawLabel: String($option.text() || ''),
+        depth: Math.min(depth, 4),
+        disabled: $option.prop('disabled'),
+        selected: $option.is(':selected'),
+      };
+    }
+
+    function parentSelectedLabel() {
+      var selectedOption = $parent.find('option:selected')[0];
+
+      if (!selectedOption) {
+        return 'Sin padre';
+      }
+
+      return getParentOptionData(selectedOption).label || 'Sin padre';
+    }
+
+    function renderParentOptions(query) {
+      if (!$parentCombo.length) {
+        return;
+      }
+
+      var terms = normalizeSearchText(query).split(' ').filter(Boolean);
+      var selectedValue = String($parent.val() || '0');
+      var html = '';
+      var matches = 0;
+
+      $parent.find('option').each(function () {
+        var optionData = getParentOptionData(this);
+        var searchText = normalizeSearchText(optionData.rawLabel + ' ' + optionData.label + ' ' + optionData.value);
+        var isMatch = !terms.length || terms.every(function (term) {
+          return searchText.indexOf(term) !== -1;
+        });
+
+        if (!isMatch) {
+          return;
+        }
+
+        matches += 1;
+        html += '<button type="button" role="option" class="bsc-admin-product-edit__parent-option'
+          + (optionData.value === selectedValue ? ' is-selected' : '')
+          + (optionData.disabled ? ' is-disabled' : '')
+          + '" data-bsc-parent-option data-value="' + esc(optionData.value) + '"'
+          + ' data-depth="' + optionData.depth + '"'
+          + ' aria-selected="' + (optionData.value === selectedValue ? 'true' : 'false') + '"'
+          + (optionData.disabled ? ' disabled aria-disabled="true"' : '')
+          + '><span>' + esc(optionData.label) + '</span></button>';
+      });
+
+      if (!matches) {
+        html = '<div class="bsc-admin-product-edit__parent-empty">No hay coincidencias.</div>';
+      }
+
+      $parentCombo.find('[data-bsc-parent-options]').html(html);
+    }
+
+    function closeParentCombo() {
+      if (!$parentCombo.length) {
+        return;
+      }
+
+      $parentCombo.removeClass('is-open');
+      $parentCombo.find('[data-bsc-parent-toggle]').attr('aria-expanded', 'false');
+      $parentCombo.find('[data-bsc-parent-panel]').attr('hidden', 'hidden');
+    }
+
+    function openParentCombo() {
+      if (!$parentCombo.length) {
+        return;
+      }
+
+      renderParentOptions('');
+      $parentCombo.addClass('is-open');
+      $parentCombo.find('[data-bsc-parent-toggle]').attr('aria-expanded', 'true');
+      $parentCombo.find('[data-bsc-parent-panel]').removeAttr('hidden');
+      $parentCombo.find('[data-bsc-parent-search]').val('').trigger('focus');
+    }
+
+    function ensureParentCombo() {
+      if (!$parent.length || $parentCombo.length) {
+        return;
+      }
+
+      var comboId = 'bsc-cat-parent-combo';
+      var listboxId = comboId + '-listbox';
+
+      $parent.addClass('bsc-admin-product-edit__parent-native');
+      $parentCombo = $('<div>', {
+        class: 'bsc-admin-product-edit__parent-combo',
+        id: comboId,
+        'data-bsc-parent-combo': '1',
+      });
+
+      $parentCombo.append(
+        $('<button>', {
+          type: 'button',
+          class: 'bsc-admin-product-edit__parent-toggle',
+          'aria-haspopup': 'listbox',
+          'aria-expanded': 'false',
+          'aria-controls': listboxId,
+          'data-bsc-parent-toggle': '1',
+        }).append(
+          $('<span>', {
+            class: 'bsc-admin-product-edit__parent-value',
+            text: parentSelectedLabel(),
+            'data-bsc-parent-value': '1',
+          }),
+          $('<span>', {
+            class: 'bsc-admin-product-edit__parent-caret',
+            'aria-hidden': 'true',
+          })
+        ),
+        $('<div>', {
+          class: 'bsc-admin-product-edit__parent-panel',
+          hidden: 'hidden',
+          'data-bsc-parent-panel': '1',
+        }).append(
+          $('<input>', {
+            type: 'text',
+            class: 'bsc-admin-product-edit__parent-search',
+            placeholder: 'Buscar padre...',
+            autocomplete: 'off',
+            'aria-label': 'Buscar padre',
+            'data-bsc-parent-search': '1',
+          }),
+          $('<div>', {
+            class: 'bsc-admin-product-edit__parent-options',
+            id: listboxId,
+            role: 'listbox',
+            'data-bsc-parent-options': '1',
+          })
+        )
+      );
+
+      $parent.after($parentCombo);
+
+      $parentCombo
+        .on('click', '[data-bsc-parent-toggle]', function (event) {
+          event.preventDefault();
+
+          if ($parentCombo.hasClass('is-open')) {
+            closeParentCombo();
+          } else {
+            openParentCombo();
+          }
+        })
+        .on('input', '[data-bsc-parent-search]', function () {
+          renderParentOptions($(this).val());
+        })
+        .on('keydown', '[data-bsc-parent-search]', function (event) {
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            closeParentCombo();
+            $parentCombo.find('[data-bsc-parent-toggle]').trigger('focus');
+          }
+        })
+        .on('click', '[data-bsc-parent-option]', function (event) {
+          event.preventDefault();
+
+          if ($(this).prop('disabled')) {
+            return;
+          }
+
+          $parent.val($(this).attr('data-value')).trigger('change');
+          closeParentCombo();
+          $parentCombo.find('[data-bsc-parent-toggle]').trigger('focus');
+        });
+
+      $(document).on('mousedown.bscParentCombo', function (event) {
+        if ($parentCombo.length && !$parentCombo[0].contains(event.target)) {
+          closeParentCombo();
+        }
+      });
+
+      $parent.on('change.bscParentCombo', syncParentCombo);
+    }
+
+    function syncParentCombo() {
+      ensureParentCombo();
+
+      if (!$parentCombo.length) {
+        return;
+      }
+
+      $parentCombo.find('[data-bsc-parent-value]').text(parentSelectedLabel());
+      renderParentOptions($parentCombo.find('[data-bsc-parent-search]').val() || '');
     }
 
     function indexTree(nodes, parentId) {
@@ -422,6 +714,7 @@
 
       $parent.html(html);
       $parent.val(String(selectedParentId || 0));
+      syncParentCombo();
     }
 
     function getRootSlug(termId) {

@@ -47,6 +47,14 @@
     }, 2200);
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function buildHistoryTable(rows) {
     var bodyRows = rows.map(function (entry) {
       var delta = entry.delta > 0 ? '+' + entry.delta : entry.delta;
@@ -68,6 +76,86 @@
       + '<thead><tr>'
       + '<th>Fecha</th><th>Tipo</th><th>Δ</th><th>Antes → Después</th><th>Usuario</th><th>Razón</th>'
       + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
+  }
+
+  function variantLabel(variant) {
+    var parts = [];
+
+    if (variant.color_name) {
+      parts.push(variant.color_name);
+    }
+    if (variant.size_name) {
+      parts.push(variant.size_name);
+    }
+
+    return parts.join(' / ') || 'Variante';
+  }
+
+  function buildVariantMatrixForm(variants, productId) {
+    if (!variants.length) {
+      return '<p>' + escapeHtml(strings.variantsEmpty || 'Este producto no tiene variantes configuradas.') + '</p>';
+    }
+
+    var rows = variants.map(function (variant, index) {
+      var checked = variant.enabled ? ' checked' : '';
+      var disabledClass = variant.enabled ? '' : ' is-disabled';
+      var swatch = variant.color_hex
+        ? '<span class="bsc-admin-products__variant-swatch" data-color-hex="' + escapeHtml(variant.color_hex) + '"></span>'
+        : '';
+
+      return '<tr class="bsc-admin-products__variant-row' + disabledClass + '" data-bsc-products-variant-row>'
+        + '<td>'
+        + '<input type="hidden" data-field="color_name" value="' + escapeHtml(variant.color_name || '') + '">'
+        + '<input type="hidden" data-field="color_hex" value="' + escapeHtml(variant.color_hex || '') + '">'
+        + '<input type="hidden" data-field="size_name" value="' + escapeHtml(variant.size_name || '') + '">'
+        + '<span class="bsc-admin-products__variant-name">' + swatch + '<span>' + escapeHtml(variantLabel(variant)) + '</span></span>'
+        + '</td>'
+        + '<td><input type="number" min="0" step="1" inputmode="numeric" data-field="regular_price" value="' + escapeHtml(variant.regular_price || '') + '"></td>'
+        + '<td><input type="number" min="0" step="1" inputmode="numeric" data-field="sale_price" value="' + escapeHtml(variant.sale_price || '') + '"></td>'
+        + '<td><input type="number" min="0" step="1" data-field="stock_bodega" value="' + escapeHtml(variant.stock_bodega || 0) + '"></td>'
+        + '<td><input type="number" min="0" step="1" data-field="stock_tienda" value="' + escapeHtml(variant.stock_tienda || 0) + '"></td>'
+        + '<td><label class="bsc-admin-products__variant-enabled"><input type="checkbox" data-field="enabled" value="1"' + checked + '> Activa</label></td>'
+        + '</tr>';
+    }).join('');
+
+    return '<div class="bsc-admin-products__variant-editor" data-bsc-products-variant-editor data-product-id="' + escapeHtml(productId) + '">'
+      + '<div class="bsc-admin-products__variant-table-wrap">'
+      + '<table class="wp-list-table widefat striped bsc-admin-products__variant-table">'
+      + '<thead><tr>'
+      + '<th>Variante</th><th>Regular</th><th>Oferta</th><th>Bodega</th><th>Tienda</th><th>Estado</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '</div>'
+      + '<div class="bsc-admin-products__variant-actions">'
+      + '<button type="button" class="button button-primary" data-bsc-products-variant-save>Guardar variantes</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function applyVariantSwatches($scope) {
+    $scope.find('[data-color-hex]').each(function () {
+      var color = String($(this).attr('data-color-hex') || '').trim();
+
+      if (/^#[0-9a-f]{6}$/i.test(color)) {
+        $(this).css('background-color', color);
+      }
+    });
+  }
+
+  function collectVariantMatrix($editor) {
+    return $editor.find('[data-bsc-products-variant-row]').map(function () {
+      var $row = $(this);
+
+      return {
+        color_name: $row.find('[data-field="color_name"]').val() || '',
+        color_hex: $row.find('[data-field="color_hex"]').val() || '',
+        size_name: $row.find('[data-field="size_name"]').val() || '',
+        regular_price: $row.find('[data-field="regular_price"]').val() || '',
+        sale_price: $row.find('[data-field="sale_price"]').val() || '',
+        stock_bodega: $row.find('[data-field="stock_bodega"]').val() || '0',
+        stock_tienda: $row.find('[data-field="stock_tienda"]').val() || '0',
+        enabled: $row.find('[data-field="enabled"]').is(':checked') ? '1' : '0',
+      };
+    }).get();
   }
 
   function getRow($target) {
@@ -424,6 +512,89 @@
     });
   }
 
+  function openVariantMatrix($button) {
+    var productId = $button.data('product-id');
+    var productName = $button.data('product-name') || '';
+
+    if (!productId) {
+      showToast(strings.variantsSaveError || 'No se pudieron cargar las variantes.', 'error');
+      return;
+    }
+
+    $('#bsc-stock-modal-title').text((strings.variantsTitlePrefix || 'Variantes: ') + productName);
+    modalBody().html('<p>' + (strings.loading || 'Cargando...') + '</p>');
+    openModal();
+
+    $.get(ajaxUrl, {
+      action: 'bsc_get_product_variant_matrix',
+      nonce: nonce,
+      product_id: productId,
+    }).done(function (response) {
+      if (!response || !response.success || !response.data) {
+        modalBody().html('<p>' + escapeHtml((response && response.data && response.data.message) || strings.loadError || 'No se pudo cargar el historial.') + '</p>');
+        return;
+      }
+
+      modalBody().html(buildVariantMatrixForm(response.data.variants || [], productId));
+      applyVariantSwatches(modalBody());
+    }).fail(function (xhr) {
+      var message = xhr.responseJSON && xhr.responseJSON.data
+        ? xhr.responseJSON.data.message
+        : '';
+
+      modalBody().html('<p>' + escapeHtml(message || strings.loadError || 'No se pudo cargar el historial.') + '</p>');
+    });
+  }
+
+  function saveVariantMatrix($button) {
+    var $editor = $button.closest('[data-bsc-products-variant-editor]');
+    var productId = $editor.data('product-id');
+    var variants = collectVariantMatrix($editor);
+
+    if (!productId || !variants.length) {
+      showToast(strings.variantsSaveError || 'No se pudieron guardar las variantes.', 'error');
+      return;
+    }
+
+    $button.prop('disabled', true).text('Guardando...');
+    $editor.find('input').prop('disabled', true);
+
+    $.post(ajaxUrl, {
+      action: 'bsc_save_product_variant_matrix',
+      nonce: nonce,
+      product_id: productId,
+      variants: variants,
+    }).done(function (response) {
+      var $row;
+
+      if (!response || !response.success || !response.data) {
+        showToast(
+          (response && response.data && response.data.message) || strings.variantsSaveError || 'No se pudieron guardar las variantes.',
+          'error'
+        );
+        return;
+      }
+
+      $row = $('.bsc-admin-products__row[data-product-id="' + productId + '"]');
+      $row.find('[data-type="bodega"]').val(response.data.bodega).data('original', response.data.bodega);
+      $row.find('[data-type="tienda"]').val(response.data.tienda).data('original', response.data.tienda);
+      syncRowState($row);
+
+      modalBody().html(buildVariantMatrixForm(response.data.variants || [], productId));
+      applyVariantSwatches(modalBody());
+      showToast(strings.variantsSaved || 'Variantes guardadas.', 'success');
+    }).fail(function (xhr) {
+      var message = xhr.responseJSON && xhr.responseJSON.data
+        ? xhr.responseJSON.data.message
+        : '';
+
+      showToast(message || strings.variantsSaveError || 'No se pudieron guardar las variantes.', 'error');
+    }).always(function () {
+      $button.prop('disabled', false).text('Guardar variantes');
+      $editor.find('input').prop('disabled', false);
+    });
+  }
+
   $(document).on('input change', '.bsc-product-inline-input', function () {
     syncRowState(getRow($(this)));
   });
@@ -452,6 +623,18 @@
 
   $(document).on('click', '.bsc-product-delete-btn', function () {
     trashProduct($(this));
+  });
+
+  $(document).on('click', '.bsc-product-variants-btn', function () {
+    openVariantMatrix($(this));
+  });
+
+  $(document).on('click', '[data-bsc-products-variant-save]', function () {
+    saveVariantMatrix($(this));
+  });
+
+  $(document).on('change', '[data-field="enabled"]', function () {
+    $(this).closest('[data-bsc-products-variant-row]').toggleClass('is-disabled', !$(this).is(':checked'));
   });
 
   $(document).on('click', '.bsc-stock-history-btn', function () {

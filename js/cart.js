@@ -82,7 +82,197 @@ jQuery(function ($) {
     }).format(numericPrice);
   }
 
+  function getVariantMatrix($options) {
+    if (!$options.length) return [];
+
+    if ($options.data('bscVariantMatrix') === undefined) {
+      let rows = [];
+      const raw = $options.find('[data-bsc-product-variant-matrix]').first().html();
+
+      if (raw) {
+        try {
+          rows = JSON.parse(raw);
+        } catch (e) {
+          rows = [];
+        }
+      }
+
+      $options.data('bscVariantMatrix', Array.isArray(rows) ? rows : []);
+    }
+
+    return $options.data('bscVariantMatrix') || [];
+  }
+
+  function variantHasColors(matrix) {
+    return matrix.some((variant) => variant.color_name);
+  }
+
+  function variantHasSizes(matrix) {
+    return matrix.some((variant) => variant.size_name);
+  }
+
+  function variantAvailable(variant) {
+    return variant && variant.enabled !== false && Number(variant.stock_total || 0) > 0;
+  }
+
+  function variantSelectionComplete(hasColors, hasSizes, colorName, sizeName) {
+    return (!hasColors || Boolean(colorName)) && (!hasSizes || Boolean(sizeName));
+  }
+
+  function variantSelectionMessage(hasColors, hasSizes, colorName, sizeName) {
+    if (hasColors && hasSizes) {
+      if (!colorName && !sizeName) return 'Selecciona color y tamano para continuar.';
+      if (!colorName) return 'Selecciona un color disponible.';
+      if (!sizeName) return 'Selecciona un tamano disponible.';
+    }
+
+    if (hasColors && !colorName) return 'Selecciona un color disponible.';
+    if (hasSizes && !sizeName) return 'Selecciona un tamano disponible.';
+
+    return 'Selecciona una variante disponible.';
+  }
+
+  function selectedColorName($options) {
+    return $options.find('[data-bsc-selected-color-name]').val() || '';
+  }
+
+  function selectedColorHex($options) {
+    return $options.find('[data-bsc-selected-color-hex]').val() || '';
+  }
+
+  function selectedSizeName($options) {
+    return $options.find('[data-bsc-selected-size-name]').val() || '';
+  }
+
+  function variantMatchesSelection(variant, colorName, colorHex, sizeName, hasColors, hasSizes) {
+    const colorMatches = !hasColors
+      || (variant.color_name === colorName && (!colorHex || String(variant.color_hex).toLowerCase() === String(colorHex).toLowerCase()));
+    const sizeMatches = !hasSizes || variant.size_name === sizeName;
+
+    return colorMatches && sizeMatches;
+  }
+
+  function findSelectedVariant($options, allowUnavailable = true) {
+    const matrix = getVariantMatrix($options);
+    const hasColors = variantHasColors(matrix);
+    const hasSizes = variantHasSizes(matrix);
+    const colorName = selectedColorName($options);
+    const colorHex = selectedColorHex($options);
+    const sizeName = selectedSizeName($options);
+
+    return matrix.find((variant) => {
+      if (!allowUnavailable && !variantAvailable(variant)) return false;
+
+      return variantMatchesSelection(variant, colorName, colorHex, sizeName, hasColors, hasSizes);
+    }) || null;
+  }
+
+  function updateAddToCartAvailability($options, variant, message = '') {
+    const $button = $options.closest('.bsc__product-info').find(SELECTORS.addToCart).first();
+    const $status = $options.find('[data-bsc-variant-stock-status]').first();
+    const available = variantAvailable(variant);
+
+    if (!$button.length) return;
+
+    if ($button.data('bscOriginalHtml') === undefined) {
+      $button.data('bscOriginalHtml', $button.html());
+      $button.data('bscOriginalAria', $button.attr('aria-label') || '');
+    }
+
+    $button.prop('disabled', !available).attr('aria-disabled', available ? 'false' : 'true');
+
+    if (available) {
+      $button.html($button.data('bscOriginalHtml'));
+      if ($button.data('bscOriginalAria')) {
+        $button.attr('aria-label', $button.data('bscOriginalAria'));
+      } else {
+        $button.removeAttr('aria-label');
+      }
+      $status.text(Number(variant.stock_total || 0) <= 3 ? 'Pocas unidades disponibles.' : '');
+      return;
+    }
+
+    if (message) {
+      $button.html('<span>Selecciona opciones</span>').attr('aria-label', message);
+      $status.text(message);
+      return;
+    }
+
+    $button.html('<span>Agotado</span>').attr('aria-label', 'Variante agotada');
+    $status.text('Sin stock para esta combinacion.');
+  }
+
+  function syncVariantOptions($options) {
+    const matrix = getVariantMatrix($options);
+    if (!matrix.length) return;
+
+    const hasColors = variantHasColors(matrix);
+    const hasSizes = variantHasSizes(matrix);
+    let colorName = selectedColorName($options);
+    let colorHex = selectedColorHex($options);
+    let sizeName = selectedSizeName($options);
+    const hasAnyStock = matrix.some(variantAvailable);
+
+    $options.find('[data-bsc-color-option]').each(function () {
+      const $option = $(this);
+      const optionName = $option.data('name') || '';
+      const optionHex = $option.data('hex') || '';
+      const available = matrix.some((row) => {
+        if (!variantAvailable(row) || row.color_name !== optionName) return false;
+        if (String(row.color_hex).toLowerCase() !== String(optionHex).toLowerCase()) return false;
+        return !hasSizes || !sizeName || row.size_name === sizeName;
+      });
+
+      $option.prop('disabled', !available).toggleClass('is-unavailable', !available);
+    });
+
+    $options.find('[data-bsc-size-option]').each(function () {
+      const $option = $(this);
+      const optionName = $option.data('name') || '';
+      const available = matrix.some((row) => {
+        if (!variantAvailable(row) || row.size_name !== optionName) return false;
+        return !hasColors || !colorName || (row.color_name === colorName && (!colorHex || String(row.color_hex).toLowerCase() === String(colorHex).toLowerCase()));
+      });
+
+      $option.prop('disabled', !available).toggleClass('is-unavailable', !available);
+    });
+
+    if (!hasAnyStock) {
+      $options.find('[data-bsc-selected-variant-key]').val('');
+      updateAddToCartAvailability($options, null);
+      return;
+    }
+
+    if (!variantSelectionComplete(hasColors, hasSizes, colorName, sizeName)) {
+      $options.find('[data-bsc-selected-variant-key]').val('');
+      updateAddToCartAvailability(
+        $options,
+        null,
+        variantSelectionMessage(hasColors, hasSizes, colorName, sizeName)
+      );
+      return;
+    }
+
+    const variant = findSelectedVariant($options, true);
+    $options.find('[data-bsc-selected-variant-key]').val(variantAvailable(variant) ? variant.key || '' : '');
+    updateAddToCartAvailability($options, variant);
+  }
+
   function selectedVariantPrice($options) {
+    const matrix = getVariantMatrix($options);
+
+    if (matrix.length) {
+      const hasColors = variantHasColors(matrix);
+      const hasSizes = variantHasSizes(matrix);
+      if (!variantSelectionComplete(hasColors, hasSizes, selectedColorName($options), selectedSizeName($options))) {
+        return '';
+      }
+
+      const variant = findSelectedVariant($options, true);
+
+      return variantAvailable(variant) ? variant.price || '' : '';
+    }
+
     const sizePrice = $options.find('[data-bsc-size-option].is-selected').data('price');
     const colorPrice = $options.find('[data-bsc-color-option].is-selected').data('price');
 
@@ -115,6 +305,7 @@ jQuery(function ($) {
       bsc_color_variant_name: $options.find('[data-bsc-selected-color-name]').val() || '',
       bsc_color_variant_hex: $options.find('[data-bsc-selected-color-hex]').val() || '',
       bsc_size_variant_name: $options.find('[data-bsc-selected-size-name]').val() || '',
+      bsc_product_variant_key: $options.find('[data-bsc-selected-variant-key]').val() || '',
     };
   }
 
@@ -133,6 +324,7 @@ jQuery(function ($) {
     });
 
     $('[data-bsc-product-options]').each(function () {
+      syncVariantOptions($(this));
       updateProductPrice($(this));
     });
   }
@@ -157,6 +349,8 @@ jQuery(function ($) {
     e.preventDefault();
 
     const $option = $(this);
+    if ($option.prop('disabled')) return;
+
     const $options = $option.closest('[data-bsc-product-options]');
     const colorName = $option.data('name') || '';
     const colorHex = $option.data('hex') || '';
@@ -167,7 +361,10 @@ jQuery(function ($) {
     $options.find('[data-bsc-selected-color-name]').val(colorName);
     $options.find('[data-bsc-selected-color-hex]').val(colorHex);
     $options.find('[data-bsc-color-current-label]').text(colorName);
-    applySwatchColor($options.find('[data-bsc-color-current-swatch]'), colorHex);
+    const $swatch = $options.find('[data-bsc-color-current-swatch]');
+    $swatch.removeClass('is-empty');
+    applySwatchColor($swatch, colorHex);
+    syncVariantOptions($options);
     updateProductPrice($options);
     closeColorPickers();
   });
@@ -176,6 +373,8 @@ jQuery(function ($) {
     e.preventDefault();
 
     const $option = $(this);
+    if ($option.prop('disabled')) return;
+
     const $options = $option.closest('[data-bsc-product-options]');
     const sizeName = $option.data('name') || '';
 
@@ -183,6 +382,7 @@ jQuery(function ($) {
     $option.addClass('is-selected').attr('aria-selected', 'true');
     $options.find('[data-bsc-selected-size-name]').val(sizeName);
     $options.find('[data-bsc-size-current-label]').text(sizeName);
+    syncVariantOptions($options);
     updateProductPrice($options);
   });
 
@@ -202,6 +402,7 @@ jQuery(function ($) {
     e.preventDefault();
 
     const $btn = $(this);
+    if ($btn.prop('disabled')) return;
     if ($btn.data('processing')) return;
     $btn.data('processing', true);
     $btn.addClass('bsc-loading'); // BSC-019: show spinner while adding

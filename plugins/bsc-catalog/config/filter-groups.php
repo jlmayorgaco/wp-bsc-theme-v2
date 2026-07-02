@@ -12,7 +12,7 @@ return array(
 			array(
 				'title'    => 'Tipo de Piel',
 				'slug'     => 'sk-tipo-piel',
-				'multiple' => true,
+				'multiple' => false,
 				'name'     => 'piel',
 			),
 			array(
@@ -24,7 +24,7 @@ return array(
 			array(
 				'title'    => 'Ingredientes',
 				'slug'     => 'sk-ingredientes',
-				'multiple' => true,
+				'multiple' => false,
 				'name'     => 'ingredientes',
 			),
 			array(

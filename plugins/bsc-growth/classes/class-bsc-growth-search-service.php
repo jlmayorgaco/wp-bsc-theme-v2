@@ -103,7 +103,7 @@ class BSC_Growth_Search_Service {
 			$suggestions[] = array(
 				'type'  => $is_brand ? 'brand' : 'category',
 				'label' => $term->name,
-				'meta'  => $is_brand ? 'Marca' : 'Categoria',
+				'meta'  => $is_brand ? 'Marca' : '',
 				'url'   => esc_url_raw( $link ),
 			);
 		}
@@ -129,7 +129,7 @@ class BSC_Growth_Search_Service {
 					$suggestions[] = array(
 						'type'  => str_contains( $term->slug, '-marca' ) ? 'brand' : 'category',
 						'label' => $term->name,
-						'meta'  => str_contains( $term->slug, '-marca' ) ? 'Marca' : 'Categoria',
+						'meta'  => str_contains( $term->slug, '-marca' ) ? 'Marca' : '',
 						'url'   => esc_url_raw( $link ),
 					);
 				}
@@ -146,9 +146,14 @@ class BSC_Growth_Search_Service {
 			array_filter(
 				$suggestions,
 				static function ( array $suggestion ) use ( &$seen ): bool {
-					$key = sanitize_key( (string) ( $suggestion['type'] ?? '' ) . '-' . (string) ( $suggestion['label'] ?? '' ) . '-' . (string) ( $suggestion['url'] ?? '' ) );
+					$type  = (string) ( $suggestion['type'] ?? '' );
+					$label = (string) ( $suggestion['label'] ?? '' );
+					$url   = (string) ( $suggestion['url'] ?? '' );
+					$key   = in_array( $type, array( 'brand', 'category' ), true )
+						? sanitize_key( $type . '-' . self::normalize( $label ) )
+						: sanitize_key( $type . '-' . $label . '-' . $url );
 
-					if ( isset( $seen[ $key ] ) || empty( $suggestion['label'] ) || empty( $suggestion['url'] ) ) {
+					if ( isset( $seen[ $key ] ) || empty( $label ) || empty( $url ) ) {
 						return false;
 					}
 

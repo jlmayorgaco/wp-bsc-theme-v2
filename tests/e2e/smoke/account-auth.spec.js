@@ -39,11 +39,41 @@ test.describe('BSC smoke - auth and account', () => {
     await gotoAndStabilize(page, routes.accountEdit);
 
     const fullName = page.locator('#account_full_name').first();
+    const originalFullName = await fullName.inputValue();
     await fullName.fill('Maria Luisa Perez');
 
     await expect(page.locator('#account_first_name')).toHaveValue('Maria');
     await expect(page.locator('#account_last_name')).toHaveValue('Luisa Perez');
     await expect(page.locator('#account_display_name')).toHaveValue('Maria Luisa Perez');
+    await expect(page.locator('#account_password')).toHaveCount(0);
+    await expect(page.locator('#account_email')).toHaveJSProperty('readOnly', true);
+    await expect(page.locator('#bsc_account_password')).toBeEditable();
+    await expect(page.locator('#bsc_account_password_confirm')).toBeEditable();
+    await expect(page.locator('#account_skin_type option')).toHaveCount(5);
+
+    const skinValues = await page
+      .locator('#account_skin_type option')
+      .evaluateAll((options) => options.map((option) => option.value));
+    expect(skinValues).toEqual(['', 'Grasa', 'Mixta', 'Seca', 'Normal']);
+
+    await fullName.fill(originalFullName || 'Maria Luisa Perez');
+    await page.locator('.bsc__account-submit button').click();
+
+    const successNotice = page.locator('.bsc__account-notice--success').first();
+    await expect(successNotice).toContainText('Tus datos se guardaron correctamente');
+    await expect(page.locator('.woocommerce-message')).toHaveCount(0);
+
+    const noticeBeforeButton = await page.evaluate(() => {
+      const notice = document.querySelector('.bsc__account-notices');
+      const button = document.querySelector('.bsc__account-submit button');
+
+      if (!notice || !button) {
+        return false;
+      }
+
+      return Boolean(notice.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(noticeBeforeButton).toBe(true);
 
     for (const selector of ['#account_skin_type', '#account_sensitivity']) {
       const select = page.locator(selector).first();
