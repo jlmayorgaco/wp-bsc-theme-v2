@@ -25,7 +25,7 @@ do_action( 'woocommerce_before_edit_account_address_form' ); ?>
 	<?php wc_get_template( 'myaccount/my-address.php' ); ?>
 <?php else : ?>
 
-	<form class="bsc__shipping-address bsc__checkout-form" method="post" novalidate>
+	<form class="bsc__shipping-address bsc__shipping-address--<?php echo esc_attr( $load_address ); ?> bsc__checkout-form" method="post" novalidate>
 
 		<h2>
 			<?php echo ( 'billing' === $load_address ) ? esc_html__( 'Datos de Facturación', 'bsc-2-0' ) : esc_html__( 'Datos de Envío', 'bsc-2-0' ); ?>
@@ -39,7 +39,34 @@ do_action( 'woocommerce_before_edit_account_address_form' ); ?>
 			<div class="woocommerce-address-fields__field-wrapper">
 
 				<?php
+				$bsc_address_placeholders = array(
+					'first_name'              => 'Nombres',
+					'last_name'               => 'Apellidos',
+					'country'                 => html_entity_decode( 'Selecciona un pa&iacute;s', ENT_QUOTES, 'UTF-8' ),
+					'address_1'               => html_entity_decode( 'Direcci&oacute;n de entrega', ENT_QUOTES, 'UTF-8' ),
+					'address_2'               => html_entity_decode( 'Complemento de direcci&oacute;n', ENT_QUOTES, 'UTF-8' ),
+					'state'                   => 'Selecciona un departamento',
+					'city'                    => 'Selecciona una ciudad',
+					'postcode'                => html_entity_decode( 'C&oacute;digo postal', ENT_QUOTES, 'UTF-8' ),
+					'phone'                   => html_entity_decode( 'N&uacute;mero de tel&eacute;fono', ENT_QUOTES, 'UTF-8' ),
+					'email'                   => html_entity_decode( 'Correo electr&oacute;nico', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_first_name' => 'Nombres',
+					$load_address . '_last_name'  => 'Apellidos',
+					$load_address . '_country'    => html_entity_decode( 'Selecciona un pa&iacute;s', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_address_1'  => html_entity_decode( 'Direcci&oacute;n de entrega', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_address_2'  => html_entity_decode( 'Complemento de direcci&oacute;n', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_state'      => 'Selecciona un departamento',
+					$load_address . '_city'       => 'Selecciona una ciudad',
+					$load_address . '_postcode'   => html_entity_decode( 'C&oacute;digo postal', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_phone'      => html_entity_decode( 'N&uacute;mero de tel&eacute;fono', ENT_QUOTES, 'UTF-8' ),
+					$load_address . '_email'      => html_entity_decode( 'Correo electr&oacute;nico', ENT_QUOTES, 'UTF-8' ),
+				);
+
 				foreach ( $address as $key => $field ) {
+					if ( isset( $bsc_address_placeholders[ $key ] ) ) {
+						$field['placeholder'] = $bsc_address_placeholders[ $key ];
+					}
+
 					woocommerce_form_field( $key, $field, wc_get_post_data_by_key( $key, $field['value'] ) );
 				}
 				?>

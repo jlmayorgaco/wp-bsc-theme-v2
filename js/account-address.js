@@ -9,6 +9,76 @@
     return row.querySelector('input:not([type="hidden"]), select, textarea');
   }
 
+  var fieldPlaceholders = {
+    billing_first_name: 'Nombres',
+    billing_last_name: 'Apellidos',
+    billing_country: 'Selecciona un pais',
+    billing_address_1: 'Direccion de entrega',
+    billing_address_2: 'Complemento de direccion',
+    billing_state: 'Selecciona un departamento',
+    billing_city: 'Selecciona una ciudad',
+    billing_postcode: 'Codigo postal',
+    billing_phone: 'Numero de telefono',
+    billing_email: 'Correo electronico',
+    shipping_first_name: 'Nombres',
+    shipping_last_name: 'Apellidos',
+    shipping_country: 'Selecciona un pais',
+    shipping_address_1: 'Direccion de entrega',
+    shipping_address_2: 'Complemento de direccion',
+    shipping_state: 'Selecciona un departamento',
+    shipping_city: 'Selecciona una ciudad',
+    shipping_postcode: 'Codigo postal',
+    shipping_phone: 'Numero de telefono',
+    shipping_email: 'Correo electronico'
+  };
+
+  function updateRenderedSelectText(form, control, placeholder) {
+    var rendered = form.querySelector('#select2-' + control.id + '-container');
+
+    if (!rendered || control.value) {
+      return;
+    }
+
+    rendered.textContent = placeholder;
+    rendered.setAttribute('title', placeholder);
+  }
+
+  function applyFieldPlaceholders(form) {
+    Object.keys(fieldPlaceholders).forEach(function (id) {
+      var control = form.querySelector('#' + id);
+      var placeholder = fieldPlaceholders[id];
+
+      if (!control) {
+        return;
+      }
+
+      control.setAttribute('placeholder', placeholder);
+      control.setAttribute('data-placeholder', placeholder);
+
+      if (control.tagName === 'SELECT' && control.options.length) {
+        var firstOption = control.options[0];
+
+        if (!firstOption.value) {
+          firstOption.textContent = placeholder;
+        }
+
+        updateRenderedSelectText(form, control, placeholder);
+      }
+    });
+  }
+
+  function scheduleFieldPlaceholderRefresh(form) {
+    applyFieldPlaceholders(form);
+    window.setTimeout(function () { applyFieldPlaceholders(form); }, 100);
+    window.setTimeout(function () { applyFieldPlaceholders(form); }, 500);
+
+    if (window.jQuery) {
+      window.jQuery(document.body).on('country_to_state_changed updated_checkout', function () {
+        window.setTimeout(function () { applyFieldPlaceholders(form); }, 0);
+      });
+    }
+  }
+
   function isEmpty(control) {
     if (!control || control.disabled) {
       return false;
@@ -123,6 +193,8 @@
     if (!form) {
       return;
     }
+
+    scheduleFieldPlaceholderRefresh(form);
 
     toArray(form.querySelectorAll('.form-row')).forEach(function (row) {
       bindField(row, form);
