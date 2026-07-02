@@ -5,7 +5,7 @@ Theme URI: https://bubbleskincare.co
 Author: Bubble Skin Care
 Author URI: https://bubbleskincare.co
 Description: Custom WordPress and WooCommerce theme for Bubble Skin Care.
-Version: 2.1.1
+Version: 2.1.2
 Tested up to: 6.9
 Requires PHP: 8.2
 License: GNU General Public License v2 or later
@@ -20509,24 +20509,24 @@ body.admin-bar .bsc__header--desktop {
 .bsc__shipping-address #shipping_address_2_field {
   grid-column: 1/-1;
 }
-.bsc__shipping-address--billing {
+.bsc__shipping-address.bsc__account-address-v2--billing {
   width: min(620px, 100%);
   max-width: 620px;
 }
-.bsc__shipping-address--billing .woocommerce-address-fields__field-wrapper {
+.bsc__shipping-address.bsc__account-address-v2--billing .woocommerce-address-fields__field-wrapper {
   grid-template-columns: 1fr;
 }
-.bsc__shipping-address--billing .form-row,
-.bsc__shipping-address--billing .form-row-first,
-.bsc__shipping-address--billing .form-row-last,
-.bsc__shipping-address--billing #billing_phone_field,
-.bsc__shipping-address--billing #billing_email_field,
-.bsc__shipping-address--billing #billing_state_field,
-.bsc__shipping-address--billing #billing_city_field,
-.bsc__shipping-address--billing #billing_postcode_field,
-.bsc__shipping-address--billing #billing_company_field,
-.bsc__shipping-address--billing #billing_address_1_field,
-.bsc__shipping-address--billing #billing_address_2_field {
+.bsc__shipping-address.bsc__account-address-v2--billing .form-row,
+.bsc__shipping-address.bsc__account-address-v2--billing .form-row-first,
+.bsc__shipping-address.bsc__account-address-v2--billing .form-row-last,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_phone_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_email_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_state_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_city_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_postcode_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_company_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_address_1_field,
+.bsc__shipping-address.bsc__account-address-v2--billing #billing_address_2_field {
   grid-column: 1/-1;
 }
 .bsc__shipping-address .form-row label {

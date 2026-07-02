@@ -25,7 +25,7 @@ do_action( 'woocommerce_before_edit_account_address_form' ); ?>
 	<?php wc_get_template( 'myaccount/my-address.php' ); ?>
 <?php else : ?>
 
-	<form class="bsc__shipping-address bsc__shipping-address--<?php echo esc_attr( $load_address ); ?> bsc__checkout-form" method="post" novalidate>
+	<form class="bsc__shipping-address bsc__account-address-v2 bsc__account-address-v2--<?php echo esc_attr( $load_address ); ?> bsc__checkout-form" method="post" novalidate>
 
 		<h2>
 			<?php echo ( 'billing' === $load_address ) ? esc_html__( 'Datos de Facturación 2', 'bsc-2-0' ) : esc_html__( 'Datos de Envío', 'bsc-2-0' ); ?>

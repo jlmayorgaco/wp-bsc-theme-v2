@@ -18,7 +18,7 @@ if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 		'BSC_THEME_VERSION',
 		( defined( 'WP_DEBUG' ) && WP_DEBUG )
 			? (string) filemtime( get_template_directory() . '/style.css' )
-			: '2.1.1'
+			: '2.1.2'
 	);
 }
 
