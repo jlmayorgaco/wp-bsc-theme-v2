@@ -37,14 +37,15 @@ $card->setProduct( $product );
 $meta_renderer = new BSC_Product_Category_Meta( $product );
 
 $product_id = get_the_ID();
+$variant_matrix = function_exists( 'bsc_get_product_variant_matrix_public_data' )
+	? bsc_get_product_variant_matrix_public_data( (int) $product_id )
+	: array();
 $color_variants = function_exists( 'bsc_get_product_color_variants' )
 	? bsc_get_product_color_variants( (int) $product_id )
 	: array();
 $size_variants = function_exists( 'bsc_get_product_size_variants' )
 	? bsc_get_product_size_variants( (int) $product_id )
 	: array();
-$default_color      = $color_variants[0] ?? null;
-$default_size       = $size_variants[0] ?? null;
 $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc_get_price_decimals() );
 ?>
 
@@ -105,41 +106,40 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 
 		<?php if ( ! empty( $color_variants ) || ! empty( $size_variants ) ) : ?>
 		<div class="bsc-product-options" data-bsc-product-options data-base-price="<?php echo esc_attr( $base_display_price ); ?>">
-			<input type="hidden" data-bsc-selected-color-name value="<?php echo esc_attr( is_array( $default_color ) ? $default_color['name'] : '' ); ?>" />
-			<input type="hidden" data-bsc-selected-color-hex value="<?php echo esc_attr( is_array( $default_color ) ? $default_color['hex'] : '' ); ?>" />
-			<input type="hidden" data-bsc-selected-size-name value="<?php echo esc_attr( is_array( $default_size ) ? $default_size['name'] : '' ); ?>" />
+			<input type="hidden" data-bsc-selected-color-name value="" />
+			<input type="hidden" data-bsc-selected-color-hex value="" />
+			<input type="hidden" data-bsc-selected-size-name value="" />
+			<input type="hidden" data-bsc-selected-variant-key value="" />
+			<script type="application/json" data-bsc-product-variant-matrix><?php echo wp_json_encode( $variant_matrix ); ?></script>
 
 			<?php if ( ! empty( $color_variants ) ) : ?>
 			<section class="bsc-product-options__group bsc-product-options__group--color" aria-label="Color">
 				<div class="bsc-product-options__header">
 					<span class="bsc-product-options__label">Color</span>
-					<span class="bsc-product-options__selected" data-bsc-color-current-label><?php echo esc_html( $default_color['name'] ); ?></span>
+					<span class="bsc-product-options__selected" data-bsc-color-current-label>Escoge un color</span>
 				</div>
-				<div class="bsc-product-options__color-picker" data-bsc-color-picker>
-					<button type="button" class="bsc-product-options__color-trigger" data-bsc-color-trigger aria-haspopup="listbox" aria-expanded="false">
-						<span class="bsc-product-options__swatch" data-bsc-color-current-swatch data-color-hex="<?php echo esc_attr( $default_color['hex'] ); ?>"></span>
-						<span class="screen-reader-text">Seleccionar color</span>
+				<div class="bsc-product-options__color-list" data-bsc-color-list role="listbox" aria-label="Color">
+					<?php foreach ( $color_variants as $index => $variant ) : ?>
+					<?php
+					$is_selected_color = false;
+					$color_label       = sprintf( 'Color %s', (string) $variant['name'] );
+					?>
+					<button
+						type="button"
+						class="bsc-product-options__color-option<?php echo $is_selected_color ? ' is-selected' : ''; ?>"
+						data-bsc-color-option
+						data-name="<?php echo esc_attr( $variant['name'] ); ?>"
+						data-hex="<?php echo esc_attr( $variant['hex'] ); ?>"
+						data-price="<?php echo esc_attr( $variant['price'] ); ?>"
+						role="option"
+						aria-selected="<?php echo $is_selected_color ? 'true' : 'false'; ?>"
+						aria-label="<?php echo esc_attr( $color_label ); ?>"
+						title="<?php echo esc_attr( (string) $variant['name'] ); ?>"
+					>
+						<span class="bsc-product-options__option-swatch" data-bsc-option-swatch data-color-hex="<?php echo esc_attr( $variant['hex'] ); ?>" aria-hidden="true"></span>
+						<span class="screen-reader-text"><?php echo esc_html( (string) $variant['name'] ); ?></span>
 					</button>
-					<div class="bsc-product-options__color-list" data-bsc-color-list role="listbox" hidden>
-						<?php foreach ( $color_variants as $index => $variant ) : ?>
-						<button
-							type="button"
-							class="bsc-product-options__color-option<?php echo $index === 0 ? ' is-selected' : ''; ?>"
-							data-bsc-color-option
-							data-name="<?php echo esc_attr( $variant['name'] ); ?>"
-							data-hex="<?php echo esc_attr( $variant['hex'] ); ?>"
-							data-price="<?php echo esc_attr( $variant['price'] ); ?>"
-							role="option"
-							aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
-						>
-							<span class="bsc-product-options__option-swatch" data-bsc-option-swatch data-color-hex="<?php echo esc_attr( $variant['hex'] ); ?>"></span>
-							<span class="bsc-product-options__option-name"><?php echo esc_html( $variant['name'] ); ?></span>
-							<?php if ( $variant['price'] !== '' ) : ?>
-							<span class="bsc-product-options__option-price"><?php echo wp_kses_post( wc_price( (float) $variant['price'] ) ); ?></span>
-							<?php endif; ?>
-						</button>
-						<?php endforeach; ?>
-					</div>
+					<?php endforeach; ?>
 				</div>
 			</section>
 			<?php endif; ?>
@@ -148,18 +148,21 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 			<section class="bsc-product-options__group bsc-product-options__group--size" aria-label="Tamano">
 				<div class="bsc-product-options__header">
 					<span class="bsc-product-options__label">Tama&ntilde;o</span>
-					<span class="bsc-product-options__selected" data-bsc-size-current-label><?php echo esc_html( $default_size['name'] ); ?></span>
+					<span class="bsc-product-options__selected" data-bsc-size-current-label>Escoge un tama&ntilde;o</span>
 				</div>
 				<div class="bsc-product-options__size-list" role="listbox">
 					<?php foreach ( $size_variants as $index => $variant ) : ?>
+					<?php
+					$is_selected_size = false;
+					?>
 					<button
 						type="button"
-						class="bsc-product-options__size-option<?php echo $index === 0 ? ' is-selected' : ''; ?>"
+						class="bsc-product-options__size-option<?php echo $is_selected_size ? ' is-selected' : ''; ?>"
 						data-bsc-size-option
 						data-name="<?php echo esc_attr( $variant['name'] ); ?>"
 						data-price="<?php echo esc_attr( $variant['price'] ); ?>"
 						role="option"
-						aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
+						aria-selected="<?php echo $is_selected_size ? 'true' : 'false'; ?>"
 					>
 						<span class="bsc-product-options__option-name"><?php echo esc_html( $variant['name'] ); ?></span>
 						<?php if ( $variant['price'] !== '' ) : ?>
@@ -170,6 +173,7 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 				</div>
 			</section>
 			<?php endif; ?>
+			<p class="bsc-product-options__stock" data-bsc-variant-stock-status aria-live="polite"></p>
 		</div>
 		<?php endif; ?>
 

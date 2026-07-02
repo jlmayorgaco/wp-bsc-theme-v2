@@ -25,6 +25,10 @@ function bsc_ajax_add_to_cart_handler() {
 		? bsc_build_product_variant_cart_item_data( (int) $product_id, $_POST )
 		: array();
 
+	if ( is_wp_error( $cart_item_data ) ) {
+		wp_send_json_error( array( 'error' => $cart_item_data->get_error_message() ), 400 );
+	}
+
 	$added = WC()->cart->add_to_cart( $product_id, $quantity, 0, array(), $cart_item_data );
 
 	if ($added) {
@@ -79,6 +83,18 @@ function bsc_update_cart_quantity() {
 						'product_id'    => (int) $cart_item['product_id'],
 					)
 				);
+			}
+
+			$variant_key = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
+			if ($delta > 0 && $variant_key !== '' && function_exists( 'bsc_find_product_variant_matrix_row' )) {
+				$variant = bsc_find_product_variant_matrix_row( (int) $cart_item['product_id'], $variant_key, '', '', '', false );
+				$stock_total = is_array( $variant )
+					? max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) )
+					: 0;
+
+				if ($new_qty > $stock_total) {
+					wp_send_json_error( array( 'message' => 'No hay stock suficiente para esa variante.' ), 409 );
+				}
 			}
 
 			$updated = WC()->cart->set_quantity( $cart_item_key, $new_qty, true );

@@ -244,58 +244,13 @@
 		<img class="brands__title" alt="" src="<?php echo esc_url( $theme_uri . '/images/home_brands/bsc_home_brands_text.png' ); ?>">
 			<ul class="brands__items">
 		<?php
-		$brands = array(
-			array(
-				'name' => 'COSRX',
-				'slug' => 'sk-marca-cosrx',
-			),
-			array(
-				'name' => 'SOME BY MI',
-				'slug' => 'sk-marca-some-by-mi',
-			),
-			array(
-				'name' => 'Heimish',
-				'slug' => 'sk-marca-heimish',
-			),
-			array(
-				'name' => 'Pyunkang Yul',
-				'slug' => 'sk-marca-pyunkang-yul',
-			),
-			array(
-				'name' => 'Im From',
-				'slug' => 'sk-marca-im-from',
-			),
-			array(
-				'name' => 'Beauty of Joseon',
-				'slug' => 'sk-marca-beauty-of-joseon',
-			),
-			array(
-				'name' => 'TOCOBO',
-				'slug' => 'sk-marca-tocobo',
-			),
-			array(
-				'name' => 'BANILA CO',
-				'slug' => 'sk-marca-banila-co',
-			),
-			array(
-				'name' => 'Benton',
-				'slug' => 'sk-marca-benton',
-			),
-		);
+		$brands = bsc_get_home_brand_items();
 
-		foreach ($brands as $i => $brand) {
-			$raw_slug    = $brand['slug'];
-			$name        = (string) $brand['name'];
-			$slug        = (string) $raw_slug;
-			$image_index = $i + 1;
-			$image_url   = $theme_uri . "/images/home_brands/brand_0{$image_index}.png";
-
-			// BSC-006: usar get_term_link() para generar la URL jerárquica correcta.
-			// El URL plano /product-category/{slug} tenía depth=1 y caía en renderLevel2(),
-			// que solo maneja grupos (group-*). Las marcas necesitan depth>=2 -> renderLevel3().
-			$term      = get_term_by( 'slug', $raw_slug, 'product_cat' );
-			$term_link = ( $term && !is_wp_error( $term ) ) ? get_term_link( $term ) : null;
-			$brand_url = ( $term_link && !is_wp_error( $term_link ) ) ? esc_url( $term_link ) : '#';
+		foreach ( $brands as $brand ) {
+			$name      = (string) ( $brand['name'] ?? '' );
+			$slug      = (string) ( $brand['slug'] ?? '' );
+			$image_url = bsc_home_brand_get_image_url( $brand, 'medium' );
+			$brand_url = bsc_home_brand_get_link( $brand );
 
 			?>
 			<li class="brands__item" data-brand-name="<?php echo esc_attr( $name ); ?>" data-brand-slug="<?php echo esc_attr( $slug ); ?>">

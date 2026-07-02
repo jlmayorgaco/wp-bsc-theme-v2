@@ -126,7 +126,7 @@ class BSC_Order_View {
 			<div class="bsc__order-overview__content">
 				<?php
 				$bar = new BSC_Order_Progress_Bar();
-				$bar->setStatus( bsc_map_order_status_to_bar( $this->order->get_status() ) );
+				$bar->setStatus( bsc_map_order_to_bar( $this->order ) );
 				$bar->render();
 				?>
 			</div>

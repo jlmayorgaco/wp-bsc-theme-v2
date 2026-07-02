@@ -3,7 +3,7 @@ defined( 'ABSPATH' ) || exit;
 
 if (!function_exists( 'bsc_get_header_menu_configs' )) {
 	function bsc_get_header_menu_configs(): array {
-		return array(
+		$configs = array(
 			array(
 				'enabled' => true,
 				'name'    => 'SKIN CARE',
@@ -503,6 +503,10 @@ if (!function_exists( 'bsc_get_header_menu_configs' )) {
 				'menus'   => array(),
 			),
 		);
+
+		return function_exists( 'bsc_apply_header_menu_cover_overrides' )
+			? bsc_apply_header_menu_cover_overrides( $configs )
+			: $configs;
 	}
 }
 

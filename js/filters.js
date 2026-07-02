@@ -59,6 +59,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('bscFiltersForm');
+  const activeFilters = document.querySelector('[data-bsc-active-filters]');
+
+  if (!form || !activeFilters) {
+    return;
+  }
+
+  const getInputLabel = (input) => {
+    const label = input.closest('.bsc__filters-option');
+    const text = label ? label.textContent.trim() : '';
+
+    return text || input.value;
+  };
+
+  const getSelectedFilterInputs = () => Array.from(
+    form.querySelectorAll('.bsc__filters-input[type="checkbox"]:checked, .bsc__filters-input[type="radio"]:checked')
+  );
+
+  const updateActiveFilters = () => {
+    const selectedInputs = getSelectedFilterInputs();
+    const fragment = document.createDocumentFragment();
+
+    selectedInputs.forEach((input) => {
+      const label = getInputLabel(input);
+      const badge = document.createElement('button');
+      const badgeLabel = document.createElement('span');
+      const closeIcon = document.createElement('span');
+
+      badge.type = 'button';
+      badge.className = 'bsc__active-filter-badge';
+      badge.dataset.filterName = input.name;
+      badge.dataset.filterValue = input.value;
+      badge.setAttribute('aria-label', `Quitar filtro ${label}`);
+
+      badgeLabel.className = 'bsc__active-filter-badge-label';
+      badgeLabel.textContent = label;
+
+      closeIcon.className = 'bsc__active-filter-badge-close';
+      closeIcon.setAttribute('aria-hidden', 'true');
+      closeIcon.textContent = 'x';
+
+      badge.append(badgeLabel, closeIcon);
+      fragment.appendChild(badge);
+    });
+
+    activeFilters.replaceChildren(fragment);
+    activeFilters.hidden = selectedInputs.length === 0;
+  };
+
+  form.addEventListener('change', (event) => {
+    if (event.target.matches('.bsc__filters-input')) {
+      updateActiveFilters();
+    }
+  });
+
+  activeFilters.addEventListener('click', (event) => {
+    const badge = event.target.closest('.bsc__active-filter-badge');
+
+    if (!badge) {
+      return;
+    }
+
+    const input = Array.from(form.querySelectorAll('.bsc__filters-input')).find((candidate) => (
+      candidate.name === badge.dataset.filterName && candidate.value === badge.dataset.filterValue
+    ));
+
+    if (!input) {
+      return;
+    }
+
+    input.checked = false;
+    updateActiveFilters();
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  updateActiveFilters();
+});
+
+
 jQuery(document).ready(function($) {
     $('#bscFiltersForm').on('change', 'input, select', function(e) {
         const form = $('#bscFiltersForm');

@@ -233,6 +233,10 @@ class BSCShopPage {
 		return $terms_by_product_id;
 	}
 
+	private function renderActiveFiltersBar(): void {
+		echo '<div class="bsc__active-filters" data-bsc-active-filters hidden aria-live="polite"></div>';
+	}
+
 	private function productIdHasCatalogStock( int $product_id ): bool {
 		if ( $product_id <= 0 ) {
 			return false;
@@ -668,6 +672,8 @@ class BSCShopPage {
 			echo '</aside>';
 		}
 
+		echo "<div class='shop__products-region'>";
+		$this->renderActiveFiltersBar();
 		echo "<div id='bscProductsContainer' class='shop__products'>";
 
 		if ($products_query->have_posts()) {
@@ -727,6 +733,7 @@ class BSCShopPage {
 		}
 
 		echo '</div>'; // #bscProductsContainer
+		echo '</div>'; // .shop__products-region
 		echo '</div>'; // .shop__catalog-layout
 		if ( function_exists( 'bsc_seo_render_product_category_content' ) ) {
 			bsc_seo_render_product_category_content( $cat );
@@ -761,7 +768,9 @@ class BSCShopPage {
 			echo '</aside>';
 		}
 
-		echo "<section class='shop__content'><div id='bscProductsContainer' class='shop__products'>";
+		echo "<section class='shop__content'>";
+		$this->renderActiveFiltersBar();
+		echo "<div id='bscProductsContainer' class='shop__products'>";
 		$products_query = $this->renderProducts( $cat );
 		echo '</div>';
 

@@ -205,7 +205,7 @@
   border-radius: admin.$radius-md;
   display: grid;
   gap: 10px;
-  grid-template-columns: 108px minmax(0, 1fr) minmax(116px, 0.45fr) auto;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
   padding: 10px;
 }
 
@@ -216,13 +216,33 @@
   border-radius: admin.$radius-md;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) minmax(116px, 0.45fr) auto;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
   padding: 10px;
 }
 
 .bsc-admin-product-edit__color-row .bsc-admin-product-edit__field,
 .bsc-admin-product-edit__size-row .bsc-admin-product-edit__field {
   margin-bottom: 0;
+}
+
+.bsc-admin-product-edit__color-name,
+.bsc-admin-product-edit__size-name {
+  grid-column: span 2;
+}
+
+.bsc-admin-product-edit__variant-inline-enabled {
+  align-self: center;
+  justify-self: center;
+  text-align: center;
+}
+
+.bsc-admin-product-edit__variant-inline-enabled input[type="checkbox"] {
+  margin: 0;
+}
+
+.bsc-admin-product-edit__color-row.is-disabled,
+.bsc-admin-product-edit__size-row.is-disabled {
+  opacity: 0.62;
 }
 
 .bsc-admin-product-edit__color-picker {
@@ -254,8 +274,64 @@
   min-width: 0;
 }
 
+.bsc-admin-product-edit__variant-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.bsc-admin-product-edit__variant-table-wrap {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.bsc-admin-product-edit__variant-table {
+  min-width: 760px;
+}
+
+.bsc-admin-product-edit__variant-table th,
+.bsc-admin-product-edit__variant-table td {
+  vertical-align: middle;
+}
+
+.bsc-admin-product-edit__variant-table input[type="number"] {
+  min-width: 88px;
+}
+
+.bsc-admin-product-edit__variant-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.bsc-admin-product-edit__variant-swatch {
+  background: #f7c0cd;
+  border: 1px solid admin.$border-strong;
+  border-radius: admin.$radius-pill;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+.bsc-admin-product-edit__variant-enabled {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.bsc-admin-product-edit__variant-row.is-disabled {
+  opacity: 0.62;
+}
+
 .bsc-admin-product-edit__color-remove,
 .bsc-admin-product-edit__size-remove {
+  align-self: center;
   min-height: 32px;
 }
 
@@ -298,6 +374,175 @@
   box-sizing: border-box;
   min-height: 34px;
   width: 100%;
+}
+
+.bsc-admin-product-edit__category-form-grid select.bsc-admin-product-edit__parent-native {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.bsc-admin-product-edit__parent-combo {
+  position: relative;
+  width: 100%;
+}
+
+.bsc-admin-product-edit__parent-toggle {
+  align-items: center;
+  background: admin.$surface;
+  border: 1px solid admin.$border-subtle;
+  border-radius: admin.$radius-sm;
+  box-sizing: border-box;
+  color: admin.$text-admin;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 8px;
+  justify-content: space-between;
+  line-height: 1.35;
+  min-height: 34px;
+  padding: 6px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.bsc-admin-product-edit__parent-toggle:hover,
+.bsc-admin-product-edit__parent-toggle:focus-visible,
+.bsc-admin-product-edit__parent-combo.is-open .bsc-admin-product-edit__parent-toggle {
+  border-color: admin.$wp-blue;
+  box-shadow: 0 0 0 1px admin.$wp-blue;
+  outline: none;
+}
+
+.bsc-admin-product-edit__parent-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bsc-admin-product-edit__parent-caret {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid admin.$text-subtle;
+  flex: 0 0 auto;
+  height: 0;
+  width: 0;
+}
+
+.bsc-admin-product-edit__parent-panel {
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+  border-radius: admin.$radius-md;
+  box-shadow: 0 12px 30px rgba(30, 41, 59, 0.16);
+  box-sizing: border-box;
+  display: grid;
+  gap: 6px;
+  left: 0;
+  padding: 8px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 80;
+}
+
+.bsc-admin-product-edit__parent-panel[hidden] {
+  display: none;
+}
+
+.bsc-admin-product-edit__parent-search {
+  border: 1px solid admin.$border-subtle;
+  border-radius: admin.$radius-sm;
+  box-sizing: border-box;
+  font-size: 13px;
+  min-height: 34px;
+  padding: 5px 8px;
+  width: 100%;
+}
+
+.bsc-admin-product-edit__parent-search:focus {
+  border-color: admin.$wp-blue;
+  box-shadow: 0 0 0 1px admin.$wp-blue;
+  outline: none;
+}
+
+.bsc-admin-product-edit__parent-options {
+  display: grid;
+  gap: 2px;
+  max-height: 228px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.bsc-admin-product-edit__parent-option {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: admin.$radius-sm;
+  box-sizing: border-box;
+  color: admin.$text-admin;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.3;
+  min-height: 30px;
+  padding: 5px 7px;
+  text-align: left;
+  width: 100%;
+}
+
+.bsc-admin-product-edit__parent-option:hover,
+.bsc-admin-product-edit__parent-option:focus-visible {
+  background: admin.$surface-muted;
+  border-color: admin.$border-muted;
+  outline: none;
+}
+
+.bsc-admin-product-edit__parent-option.is-selected {
+  background: #fff7fb;
+  border-color: admin.$brand-pink;
+  color: admin.$text-strong;
+  font-weight: 650;
+}
+
+.bsc-admin-product-edit__parent-option.is-disabled {
+  color: admin.$text-muted;
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.bsc-admin-product-edit__parent-option span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.bsc-admin-product-edit__parent-option[data-depth="1"] span {
+  padding-left: 12px;
+}
+
+.bsc-admin-product-edit__parent-option[data-depth="2"] span {
+  padding-left: 24px;
+}
+
+.bsc-admin-product-edit__parent-option[data-depth="3"] span {
+  padding-left: 36px;
+}
+
+.bsc-admin-product-edit__parent-option[data-depth="4"] span {
+  padding-left: 48px;
+}
+
+.bsc-admin-product-edit__parent-empty {
+  color: admin.$text-muted;
+  font-size: 12px;
+  font-style: italic;
+  padding: 8px;
 }
 
 .bsc-admin-product-edit__category-actions {

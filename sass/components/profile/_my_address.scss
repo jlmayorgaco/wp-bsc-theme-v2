@@ -1,3 +1,8 @@
+@use "../../pages/page-checkout" as checkout;
+
+$account-address-border-color: #333;
+$account-address-error-color: red;
+
 .bsc__address-wrapper {
   padding: 4rem 2rem;
   background: #fff;
@@ -86,8 +91,13 @@
 }
 
 .bsc__shipping-address {
+  --bsc-account-address-text: #{$account-address-border-color};
+  --bsc-account-address-border: #{$account-address-border-color};
+  --bsc-account-address-error: #{$account-address-error-color};
+
   display: block;
-  width: 740px;
+  width: min(740px, 100%);
+  max-width: 740px;
   margin: 0 auto;
 
   h2 {
@@ -106,6 +116,176 @@
     color: #333;
   }
 
+  .woocommerce-address-fields,
+  .woocommerce-address-fields__field-wrapper,
+  .woocommerce-input-wrapper {
+    width: 100%;
+  }
+
+  .woocommerce-address-fields__field-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 18px;
+  }
+
+  .form-row {
+    float: none;
+    width: 100%;
+    margin: 0 0 var(--bsc-spacing-md);
+    padding: 0;
+  }
+
+  .form-row-first,
+  .form-row-last {
+    float: none;
+    width: 100%;
+  }
+
+  .form-row-wide,
+  #billing_company_field,
+  #billing_address_1_field,
+  #billing_address_2_field,
+  #billing_email_field,
+  #shipping_company_field,
+  #shipping_address_1_field,
+  #shipping_address_2_field {
+    grid-column: 1 / -1;
+  }
+
+  .input-text,
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  select,
+  textarea {
+    @include checkout.bsc__form-control;
+
+    & {
+      box-sizing: border-box;
+      height: var(--bsc-input-height);
+      border-color: var(--bsc-account-address-border) !important;
+      border-radius: var(--bsc-radius-md);
+      background-color: #fff;
+      color: var(--bsc-account-address-text);
+      font-family: inherit;
+      box-shadow: none;
+    }
+  }
+
+  textarea {
+    height: auto;
+    min-height: 96px;
+    resize: vertical;
+  }
+
+  select:not(.select2-hidden-accessible) {
+    padding-right: 40px;
+    line-height: 1.2;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--bsc-account-address-text) 50%),
+      linear-gradient(135deg, var(--bsc-account-address-text) 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 13px) 50%;
+    background-repeat: no-repeat;
+    background-size: 5px 5px, 5px 5px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .woocommerce-input-wrapper .select2-container {
+    width: 100% !important;
+  }
+
+  .woocommerce-input-wrapper .select2-container .select2-selection--single {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    height: var(--bsc-input-height);
+    border: 1px solid var(--bsc-account-address-border);
+    border-radius: var(--bsc-radius-md);
+    background-color: #fff;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .select2-selection__rendered {
+    width: 100%;
+    padding: 0 var(--bsc-spacing-sm);
+    color: var(--bsc-account-address-text);
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .select2-selection__arrow {
+    height: 100% !important;
+    right: 8px !important;
+  }
+
+  .input-text:hover,
+  input[type="text"]:hover,
+  input[type="email"]:hover,
+  input[type="tel"]:hover,
+  select:hover,
+  textarea:hover,
+  .select2-selection--single:hover {
+    border-color: #000 !important;
+  }
+
+  .input-text:focus,
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  select:focus,
+  textarea:focus,
+  .select2-container--focus .select2-selection--single,
+  .select2-container--open .select2-selection--single {
+    border-color: #000 !important;
+    box-shadow: 0 0 0 1px #000;
+  }
+
+  .form-row.has-error,
+  .form-row.woocommerce-invalid,
+  .form-row.woocommerce-invalid-required-field {
+    .input-text,
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea,
+    .select2-selection--single {
+      border-color: var(--bsc-account-address-error) !important;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+      color: var(--bsc-account-address-error);
+      animation: wiggle 0.4s ease-in-out;
+    }
+
+    .select2-selection__rendered,
+    .select2-selection__placeholder {
+      color: var(--bsc-account-address-error) !important;
+    }
+
+    ::placeholder {
+      color: var(--bsc-account-address-error);
+    }
+  }
+
+  .bsc__address-form-notice {
+    display: none;
+    margin: 0 0 var(--bsc-spacing-md);
+    padding: var(--bsc-spacing-sm);
+    border: 1px solid var(--bsc-account-address-error);
+    color: var(--bsc-account-address-error);
+    font-size: var(--bsc-font-size);
+    letter-spacing: 1px;
+  }
+
+  .bsc__address-form-notice.is-visible {
+    display: block;
+  }
+
   .button--save-profile {
     width: 100%;
     display: flex;
@@ -115,7 +295,21 @@
     padding-top: 20px;
 
     button {
+      min-height: var(--bsc-input-height);
       margin: 10px 0;
+      border: 1px solid var(--bsc-account-address-border);
+      color: #fff;
+      transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: var(--bsc-account-address-border);
+      background-color: #fff;
+      color: var(--bsc-account-address-text);
     }
   }
 }
@@ -179,15 +373,24 @@
     width: 100%;
     padding-top: 30px;
     margin: 0 auto;
+
+    .woocommerce-address-fields__field-wrapper {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+    }
   }
 
-  .button--save-profile {
+  .bsc__shipping-address .button--save-profile {
     width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center !important;
     justify-content: center !important;
     padding-top: 0 !important;
+
+    button {
+      width: 100%;
+    }
   }
 
   .bsc__account-container {

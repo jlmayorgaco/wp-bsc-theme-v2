@@ -312,32 +312,76 @@ function bsc_product_edit_sanitize_variant_price_value( $raw_value ): ?string {
 	return wc_format_decimal( $normalized_value, wc_get_price_decimals() );
 }
 
+function bsc_product_edit_variant_enabled( $raw_value ): bool {
+	if ($raw_value === null || $raw_value === '') {
+		return true;
+	}
+
+	return in_array( strtolower( (string) $raw_value ), array( '1', 'true', 'yes', 'on', 'enabled' ), true );
+}
+
+function bsc_product_edit_sanitize_variant_row_values( array $raw_variant, string $label, &$errors = null ): ?array {
+	$collect_errors = is_array( $errors );
+	$regular_price  = bsc_product_edit_sanitize_variant_price_value(
+		$raw_variant['regular_price'] ?? ( $raw_variant['price'] ?? '' )
+	);
+	$sale_price     = bsc_product_edit_sanitize_variant_price_value( $raw_variant['sale_price'] ?? '' );
+
+	if ($regular_price === null) {
+		if ($collect_errors) {
+			$errors[] = sprintf( 'Precio regular invalido para la variante "%s".', $label );
+		}
+		return null;
+	}
+
+	if ($sale_price === null) {
+		if ($collect_errors) {
+			$errors[] = sprintf( 'Precio de oferta invalido para la variante "%s".', $label );
+		}
+		return null;
+	}
+
+	if ($sale_price !== '' && $regular_price === '') {
+		if ($collect_errors) {
+			$errors[] = sprintf( 'La variante "%s" necesita precio regular para usar oferta.', $label );
+		}
+		return null;
+	}
+
+	if ($sale_price !== '' && $regular_price !== '' && (float) $sale_price > (float) $regular_price) {
+		if ($collect_errors) {
+			$errors[] = sprintf( 'La oferta supera el precio regular en la variante "%s".', $label );
+		}
+		return null;
+	}
+
+	return array(
+		'regular_price' => $regular_price,
+		'sale_price'    => $sale_price,
+		'price'         => $sale_price !== '' ? $sale_price : $regular_price,
+		'stock_bodega'  => max( 0, intval( $raw_variant['stock_bodega'] ?? 0 ) ),
+		'stock_tienda'  => max( 0, intval( $raw_variant['stock_tienda'] ?? 0 ) ),
+		'enabled'       => bsc_product_edit_variant_enabled( $raw_variant['enabled'] ?? true ),
+	);
+}
+
 function bsc_product_edit_sanitize_color_variants( $raw_variants, &$errors = null ): array {
 	if (!is_array( $raw_variants )) {
 		return array();
 	}
 
-	$variants       = array();
-	$seen           = array();
-	$collect_errors = is_array( $errors );
+	$variants = array();
+	$seen     = array();
 
 	foreach ($raw_variants as $raw_variant) {
 		if (!is_array( $raw_variant )) {
 			continue;
 		}
 
-		$name  = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
-		$hex   = bsc_product_edit_normalize_color_hex( (string) ( $raw_variant['hex'] ?? '' ) );
-		$price = bsc_product_edit_sanitize_variant_price_value( $raw_variant['price'] ?? '' );
+		$name = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
+		$hex  = bsc_product_edit_normalize_color_hex( (string) ( $raw_variant['hex'] ?? '' ) );
 
 		if ($name === '' || $hex === '') {
-			continue;
-		}
-
-		if ($price === null) {
-			if ($collect_errors) {
-				$errors[] = sprintf( 'Precio invalido para el color "%s".', $name );
-			}
 			continue;
 		}
 
@@ -346,11 +390,18 @@ function bsc_product_edit_sanitize_color_variants( $raw_variants, &$errors = nul
 			continue;
 		}
 
+		$row_values = bsc_product_edit_sanitize_variant_row_values( $raw_variant, $name, $errors );
+		if ($row_values === null) {
+			continue;
+		}
+
 		$seen[ $dedupe_key ] = true;
-		$variants[]          = array(
-			'name'  => $name,
-			'hex'   => $hex,
-			'price' => $price,
+		$variants[]          = array_merge(
+			array(
+				'name' => $name,
+				'hex'  => $hex,
+			),
+			$row_values
 		);
 
 		if (count( $variants ) >= 50) {
@@ -379,26 +430,17 @@ function bsc_product_edit_sanitize_size_variants( $raw_variants, &$errors = null
 		return array();
 	}
 
-	$variants       = array();
-	$seen           = array();
-	$collect_errors = is_array( $errors );
+	$variants = array();
+	$seen     = array();
 
 	foreach ($raw_variants as $raw_variant) {
 		if (!is_array( $raw_variant )) {
 			continue;
 		}
 
-		$name  = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
-		$price = bsc_product_edit_sanitize_variant_price_value( $raw_variant['price'] ?? '' );
+		$name = sanitize_text_field( (string) ( $raw_variant['name'] ?? '' ) );
 
 		if ($name === '') {
-			continue;
-		}
-
-		if ($price === null) {
-			if ($collect_errors) {
-				$errors[] = sprintf( 'Precio invalido para el tamano "%s".', $name );
-			}
 			continue;
 		}
 
@@ -407,10 +449,17 @@ function bsc_product_edit_sanitize_size_variants( $raw_variants, &$errors = null
 			continue;
 		}
 
+		$row_values = bsc_product_edit_sanitize_variant_row_values( $raw_variant, $name, $errors );
+		if ($row_values === null) {
+			continue;
+		}
+
 		$seen[ $dedupe_key ] = true;
-		$variants[]          = array(
-			'name'  => $name,
-			'price' => $price,
+		$variants[]          = array_merge(
+			array(
+				'name' => $name,
+			),
+			$row_values
 		);
 
 		if (count( $variants ) >= 50) {
@@ -432,6 +481,72 @@ function bsc_product_edit_get_size_variants( int $product_id ): array {
 	}
 
 	return bsc_product_edit_sanitize_size_variants( is_array( $raw_variants ) ? $raw_variants : array() );
+}
+
+function bsc_product_edit_build_variant_matrix_from_rows( array $variants, string $mode, ?array &$errors = null ): array {
+	if (!function_exists( 'bsc_sanitize_product_variant_matrix' )) {
+		return array();
+	}
+
+	$raw_matrix = array();
+
+	foreach ($variants as $variant) {
+		$raw_matrix[] = array(
+			'color_name'    => 'color' === $mode ? (string) ( $variant['name'] ?? '' ) : '',
+			'color_hex'     => 'color' === $mode ? (string) ( $variant['hex'] ?? '' ) : '',
+			'size_name'     => 'size' === $mode ? (string) ( $variant['name'] ?? '' ) : '',
+			'regular_price' => (string) ( $variant['regular_price'] ?? '' ),
+			'sale_price'    => (string) ( $variant['sale_price'] ?? '' ),
+			'stock_bodega'  => max( 0, intval( $variant['stock_bodega'] ?? 0 ) ),
+			'stock_tienda'  => max( 0, intval( $variant['stock_tienda'] ?? 0 ) ),
+			'enabled'       => !empty( $variant['enabled'] ) ? '1' : '0',
+		);
+	}
+
+	return bsc_sanitize_product_variant_matrix( $raw_matrix, $errors );
+}
+
+function bsc_product_edit_variant_rows_from_matrix( array $matrix, string $mode ): array {
+	$rows = array();
+	$seen = array();
+
+	foreach ($matrix as $variant) {
+		$name = 'color' === $mode
+			? (string) ( $variant['color_name'] ?? '' )
+			: (string) ( $variant['size_name'] ?? '' );
+
+		if ($name === '') {
+			continue;
+		}
+
+		$hex = 'color' === $mode ? bsc_product_edit_normalize_color_hex( (string) ( $variant['color_hex'] ?? '' ) ) : '';
+		$key = strtolower( $name . '|' . $hex );
+
+		if (isset( $seen[ $key ] )) {
+			$rows[ $seen[ $key ] ]['stock_bodega'] += max( 0, intval( $variant['stock_bodega'] ?? 0 ) );
+			$rows[ $seen[ $key ] ]['stock_tienda'] += max( 0, intval( $variant['stock_tienda'] ?? 0 ) );
+			continue;
+		}
+
+		$seen[ $key ] = count( $rows );
+		$row          = array(
+			'name'          => $name,
+			'regular_price' => (string) ( $variant['regular_price'] ?? '' ),
+			'sale_price'    => (string) ( $variant['sale_price'] ?? '' ),
+			'price'         => (string) ( $variant['price'] ?? '' ),
+			'stock_bodega'  => max( 0, intval( $variant['stock_bodega'] ?? 0 ) ),
+			'stock_tienda'  => max( 0, intval( $variant['stock_tienda'] ?? 0 ) ),
+			'enabled'       => !empty( $variant['enabled'] ),
+		);
+
+		if ('color' === $mode) {
+			$row['hex'] = $hex !== '' ? $hex : '#F7C0CD';
+		}
+
+		$rows[] = $row;
+	}
+
+	return $rows;
 }
 
 function bsc_get_product_edit_script_data( int $product_id ): array {
@@ -618,32 +733,49 @@ function bsc_render_product_edit_page(): void {
 			: array();
 		$size_variants          = bsc_product_edit_sanitize_size_variants( $size_variants_raw, $variant_errors );
 
+		if ($color_variants_enabled && $size_variants_enabled) {
+			wp_die( esc_html__( 'Elige variantes por color o por tamano, no ambas.', 'bsc-2-0' ) );
+		}
+
+		if (!$color_variants_enabled) {
+			$color_variants = array();
+		}
+
+		if (!$size_variants_enabled) {
+			$size_variants = array();
+		}
+
+		$variant_matrix = $color_variants_enabled
+			? bsc_product_edit_build_variant_matrix_from_rows( $color_variants, 'color', $variant_errors )
+			: bsc_product_edit_build_variant_matrix_from_rows( $size_variants, 'size', $variant_errors );
+
 		if (!empty( $variant_errors )) {
 			wp_die( esc_html( implode( ' ', $variant_errors ) ) );
 		}
 
-		if ($color_variants_enabled) {
+		if ($color_variants_enabled && !empty( $color_variants )) {
 			update_post_meta( $product_id, '_bsc_color_variants_enabled', '1' );
-		} else {
-			delete_post_meta( $product_id, '_bsc_color_variants_enabled' );
-		}
-
-		if (!empty( $color_variants )) {
 			update_post_meta( $product_id, '_bsc_color_variants', $color_variants );
 		} else {
+			delete_post_meta( $product_id, '_bsc_color_variants_enabled' );
 			delete_post_meta( $product_id, '_bsc_color_variants' );
 		}
 
-		if ($size_variants_enabled) {
+		if ($size_variants_enabled && !empty( $size_variants )) {
 			update_post_meta( $product_id, '_bsc_size_variants_enabled', '1' );
-		} else {
-			delete_post_meta( $product_id, '_bsc_size_variants_enabled' );
-		}
-
-		if (!empty( $size_variants )) {
 			update_post_meta( $product_id, '_bsc_size_variants', $size_variants );
 		} else {
+			delete_post_meta( $product_id, '_bsc_size_variants_enabled' );
 			delete_post_meta( $product_id, '_bsc_size_variants' );
+		}
+
+		if (!empty( $variant_matrix )) {
+			update_post_meta( $product_id, '_bsc_variant_matrix', $variant_matrix );
+			if (function_exists( 'bsc_sync_product_variant_parent_stock' )) {
+				bsc_sync_product_variant_parent_stock( $product_id, $variant_matrix );
+			}
+		} else {
+			delete_post_meta( $product_id, '_bsc_variant_matrix' );
 		}
 
 		$comment_status = isset( $_POST['comment_status'] ) ? 'open' : 'closed';
@@ -661,13 +793,15 @@ function bsc_render_product_edit_page(): void {
 			? $envio_tipo_raw
 			: 'bodega';
 
-		$current_stock = BSC_Stock::get_stock( $product_id );
-		if ( (int) $current_stock['bodega'] !== $stock_bodega) {
-			BSC_Stock::adjust( $product_id, 'bodega', $stock_bodega - (int) $current_stock['bodega'], 'Edicion BSC Product Edit' );
-		}
+		if (empty( $variant_matrix )) {
+			$current_stock = BSC_Stock::get_stock( $product_id );
+			if ( (int) $current_stock['bodega'] !== $stock_bodega) {
+				BSC_Stock::adjust( $product_id, 'bodega', $stock_bodega - (int) $current_stock['bodega'], 'Edicion BSC Product Edit' );
+			}
 
-		if ( (int) $current_stock['tienda'] !== $stock_tienda) {
-			BSC_Stock::adjust( $product_id, 'tienda', $stock_tienda - (int) $current_stock['tienda'], 'Edicion BSC Product Edit' );
+			if ( (int) $current_stock['tienda'] !== $stock_tienda) {
+				BSC_Stock::adjust( $product_id, 'tienda', $stock_tienda - (int) $current_stock['tienda'], 'Edicion BSC Product Edit' );
+			}
 		}
 
 		update_post_meta( $product_id, '_envio_tipo', $envio_tipo );
@@ -706,23 +840,54 @@ function bsc_render_product_edit_page(): void {
 	$color_variants          = bsc_product_edit_get_color_variants( $product_id );
 	$size_variants_enabled   = '1' === (string) get_post_meta( $product_id, '_bsc_size_variants_enabled', true );
 	$size_variants           = bsc_product_edit_get_size_variants( $product_id );
-	$color_variant_rows      = !empty( $color_variants )
+	$variant_matrix_rows     = function_exists( 'bsc_get_product_variant_matrix' )
+		? bsc_get_product_variant_matrix( $product_id, true )
+		: array();
+	$matrix_color_rows       = bsc_product_edit_variant_rows_from_matrix( $variant_matrix_rows, 'color' );
+	$matrix_size_rows        = bsc_product_edit_variant_rows_from_matrix( $variant_matrix_rows, 'size' );
+
+	if ($color_variants_enabled && $size_variants_enabled) {
+		$size_variants_enabled = false;
+	} elseif (!$color_variants_enabled && !$size_variants_enabled) {
+		if (!empty( $matrix_color_rows ) && empty( $matrix_size_rows )) {
+			$color_variants_enabled = true;
+		} elseif (!empty( $matrix_size_rows ) && empty( $matrix_color_rows )) {
+			$size_variants_enabled = true;
+		}
+	}
+
+	$has_variant_matrix      = !empty( $variant_matrix_rows ) && ( $color_variants_enabled || $size_variants_enabled );
+	$color_variant_rows      = $color_variants_enabled && !empty( $matrix_color_rows )
+		? $matrix_color_rows
+		: ( !empty( $color_variants )
 		? $color_variants
 		: array(
 			array(
-				'name'  => '',
-				'hex'   => '#F7C0CD',
-				'price' => '',
+				'name'          => '',
+				'hex'           => '#F7C0CD',
+				'regular_price' => $regular_price,
+				'sale_price'    => $sale_price,
+				'price'         => $sale_price !== '' ? $sale_price : $regular_price,
+				'stock_bodega'  => 0,
+				'stock_tienda'  => 0,
+				'enabled'       => true,
 			),
-		);
-	$size_variant_rows       = !empty( $size_variants )
+		) );
+	$size_variant_rows       = $size_variants_enabled && !empty( $matrix_size_rows )
+		? $matrix_size_rows
+		: ( !empty( $size_variants )
 		? $size_variants
 		: array(
 			array(
-				'name'  => '',
-				'price' => '',
+				'name'          => '',
+				'regular_price' => $regular_price,
+				'sale_price'    => $sale_price,
+				'price'         => $sale_price !== '' ? $sale_price : $regular_price,
+				'stock_bodega'  => 0,
+				'stock_tienda'  => 0,
+				'enabled'       => true,
 			),
-		);
+		) );
 	$default_repurchase_days = function_exists( 'bsc_get_followup_email_setting' )
 		? (int) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' )
 		: 30;
@@ -860,16 +1025,20 @@ function bsc_render_product_edit_page(): void {
 							>
 							Habilitar variantes de color
 						</label>
-						<span class="bsc-admin-product-edit__field-note">Agrega un nombre visible, el color que representa cada tono y un precio opcional si cambia frente al producto base.</span>
+						<span class="bsc-admin-product-edit__field-note">Agrega cada tono con su precio y stock. Solo puedes usar variantes por color o por tamano.</span>
 
 						<div class="bsc-admin-product-edit__color-panel<?php echo esc_attr( $color_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-color-variants-panel>
 							<div class="bsc-admin-product-edit__color-list" data-bsc-color-variants-list>
 								<?php foreach ($color_variant_rows as $index => $variant) : ?>
 									<?php
-									$variant_hex   = bsc_product_edit_normalize_color_hex( (string) ( $variant['hex'] ?? '' ) );
-									$variant_hex   = $variant_hex !== '' ? $variant_hex : '#F7C0CD';
-									$variant_name  = (string) ( $variant['name'] ?? '' );
-									$variant_price = (string) ( $variant['price'] ?? '' );
+									$variant_hex           = bsc_product_edit_normalize_color_hex( (string) ( $variant['hex'] ?? '' ) );
+									$variant_hex           = $variant_hex !== '' ? $variant_hex : '#F7C0CD';
+									$variant_name          = (string) ( $variant['name'] ?? '' );
+									$variant_regular_price = (string) ( $variant['regular_price'] ?? ( $variant['price'] ?? '' ) );
+									$variant_sale_price    = (string) ( $variant['sale_price'] ?? '' );
+									$variant_stock_bodega  = (string) ( $variant['stock_bodega'] ?? 0 );
+									$variant_stock_tienda  = (string) ( $variant['stock_tienda'] ?? 0 );
+									$variant_enabled       = !array_key_exists( 'enabled', $variant ) || !empty( $variant['enabled'] );
 									?>
 									<div class="bsc-admin-product-edit__color-row" data-bsc-color-variant-row>
 										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__color-field">
@@ -899,16 +1068,64 @@ function bsc_render_product_edit_page(): void {
 											>
 										</label>
 										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
-											<span class="bsc-admin-product-edit__field-label">Precio COP</span>
+											<span class="bsc-admin-product-edit__field-label">Precio regular</span>
 											<input
 												type="number"
 												min="0"
 												step="1"
 												inputmode="numeric"
-												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][price]"
-												value="<?php echo esc_attr( $variant_price ); ?>"
-												placeholder="<?php echo esc_attr( $regular_price !== '' ? (string) $regular_price : 'Base' ); ?>"
-												data-bsc-color-variant-price
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][regular_price]"
+												value="<?php echo esc_attr( $variant_regular_price ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-color-variant-regular-price
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
+											<span class="bsc-admin-product-edit__field-label">Oferta</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												inputmode="numeric"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][sale_price]"
+												value="<?php echo esc_attr( $variant_sale_price ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-color-variant-sale-price
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field">
+											<span class="bsc-admin-product-edit__field-label">Stock Bodega</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][stock_bodega]"
+												value="<?php echo esc_attr( $variant_stock_bodega ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-color-variant-stock-bodega
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field">
+											<span class="bsc-admin-product-edit__field-label">Stock Tienda</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][stock_tienda]"
+												value="<?php echo esc_attr( $variant_stock_tienda ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-color-variant-stock-tienda
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-inline-enabled">
+											<span class="bsc-admin-product-edit__field-label">Activa</span>
+											<input type="hidden" name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][enabled]" value="0" data-bsc-color-variant-enabled-hidden>
+											<input
+												type="checkbox"
+												name="_bsc_color_variants[<?php echo esc_attr( (string) $index ); ?>][enabled]"
+												value="1"
+												data-bsc-color-variant-enabled
+												<?php checked( $variant_enabled ); ?>
 											>
 										</label>
 										<button type="button" class="button bsc-admin-product-edit__color-remove" data-bsc-color-variant-remove>Quitar</button>
@@ -932,14 +1149,18 @@ function bsc_render_product_edit_page(): void {
 							>
 							Habilitar variantes de tamano
 						</label>
-						<span class="bsc-admin-product-edit__field-note">Crea opciones de texto como 50 ml, 150 ml, S, M o L. El precio es opcional.</span>
+						<span class="bsc-admin-product-edit__field-note">Crea opciones como 50 ml, 150 ml, S, M o L. Cada tamano tiene su propio precio y stock.</span>
 
 						<div class="bsc-admin-product-edit__size-panel<?php echo esc_attr( $size_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-size-variants-panel>
 							<div class="bsc-admin-product-edit__size-list" data-bsc-size-variants-list>
 								<?php foreach ($size_variant_rows as $index => $variant) : ?>
 									<?php
-									$variant_name  = (string) ( $variant['name'] ?? '' );
-									$variant_price = (string) ( $variant['price'] ?? '' );
+									$variant_name          = (string) ( $variant['name'] ?? '' );
+									$variant_regular_price = (string) ( $variant['regular_price'] ?? ( $variant['price'] ?? '' ) );
+									$variant_sale_price    = (string) ( $variant['sale_price'] ?? '' );
+									$variant_stock_bodega  = (string) ( $variant['stock_bodega'] ?? 0 );
+									$variant_stock_tienda  = (string) ( $variant['stock_tienda'] ?? 0 );
+									$variant_enabled       = !array_key_exists( 'enabled', $variant ) || !empty( $variant['enabled'] );
 									?>
 									<div class="bsc-admin-product-edit__size-row" data-bsc-size-variant-row>
 										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__size-name">
@@ -954,16 +1175,64 @@ function bsc_render_product_edit_page(): void {
 											>
 										</label>
 										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
-											<span class="bsc-admin-product-edit__field-label">Precio COP</span>
+											<span class="bsc-admin-product-edit__field-label">Precio regular</span>
 											<input
 												type="number"
 												min="0"
 												step="1"
 												inputmode="numeric"
-												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][price]"
-												value="<?php echo esc_attr( $variant_price ); ?>"
-												placeholder="<?php echo esc_attr( $regular_price !== '' ? (string) $regular_price : 'Base' ); ?>"
-												data-bsc-size-variant-price
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][regular_price]"
+												value="<?php echo esc_attr( $variant_regular_price ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-size-variant-regular-price
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-price">
+											<span class="bsc-admin-product-edit__field-label">Oferta</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												inputmode="numeric"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][sale_price]"
+												value="<?php echo esc_attr( $variant_sale_price ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-size-variant-sale-price
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field">
+											<span class="bsc-admin-product-edit__field-label">Stock Bodega</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][stock_bodega]"
+												value="<?php echo esc_attr( $variant_stock_bodega ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-size-variant-stock-bodega
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field">
+											<span class="bsc-admin-product-edit__field-label">Stock Tienda</span>
+											<input
+												type="number"
+												min="0"
+												step="1"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][stock_tienda]"
+												value="<?php echo esc_attr( $variant_stock_tienda ); ?>"
+												class="bsc-admin-product-edit__number-input"
+												data-bsc-size-variant-stock-tienda
+											>
+										</label>
+										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__variant-inline-enabled">
+											<span class="bsc-admin-product-edit__field-label">Activa</span>
+											<input type="hidden" name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][enabled]" value="0" data-bsc-size-variant-enabled-hidden>
+											<input
+												type="checkbox"
+												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][enabled]"
+												value="1"
+												data-bsc-size-variant-enabled
+												<?php checked( $variant_enabled ); ?>
 											>
 										</label>
 										<button type="button" class="button bsc-admin-product-edit__size-remove" data-bsc-size-variant-remove>Quitar</button>
@@ -973,6 +1242,7 @@ function bsc_render_product_edit_page(): void {
 							<button type="button" class="button" data-bsc-size-variant-add>Agregar tamano</button>
 						</div>
 					</div>
+
 				</div>
 
 				<div>
@@ -1005,16 +1275,19 @@ function bsc_render_product_edit_page(): void {
 
 					<div class="postbox bsc-admin-product-edit__card">
 						<h2 class="bsc-admin-product-edit__section-title">Stock Dual (BSC)</h2>
+						<?php if ($has_variant_matrix) : ?>
+							<span class="bsc-admin-product-edit__field-note">Este total se calcula automaticamente desde las variantes activas.</span>
+						<?php endif; ?>
 
 						<div class="bsc-admin-product-edit__field-grid bsc-admin-product-edit__field-grid--stock">
 							<label class="bsc-admin-product-edit__field">
 								<span class="bsc-admin-product-edit__field-label">Stock Bodega (web)</span>
-								<input type="number" min="0" name="_stock_bodega" value="<?php echo esc_attr( $stock['bodega'] ); ?>" class="bsc-admin-product-edit__number-input">
+								<input type="number" min="0" name="_stock_bodega" value="<?php echo esc_attr( $stock['bodega'] ); ?>" class="bsc-admin-product-edit__number-input" <?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>>
 							</label>
 
 							<label class="bsc-admin-product-edit__field">
 								<span class="bsc-admin-product-edit__field-label">Stock Tienda (showroom)</span>
-								<input type="number" min="0" name="_stock_tienda" value="<?php echo esc_attr( $stock['tienda'] ); ?>" class="bsc-admin-product-edit__number-input">
+								<input type="number" min="0" name="_stock_tienda" value="<?php echo esc_attr( $stock['tienda'] ); ?>" class="bsc-admin-product-edit__number-input" <?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>>
 							</label>
 
 							<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--wide">

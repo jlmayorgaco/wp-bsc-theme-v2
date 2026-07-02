@@ -26,7 +26,7 @@ $needs = array(
 	'bsc_needs4' => get_user_meta( $user_id, 'bsc_needs4', true ),
 );
 
-$skin_types    = array( 'Grasa', 'Mixta', 'Seca', 'Normal', 'Normal a seca', 'Normal a grasa' );
+$skin_types    = array( 'Grasa', 'Mixta', 'Seca', 'Normal' );
 $sensitivities = array( 'Sensible normal', 'Muy sensible', 'No sensible' );
 
 $default_display_name = $current_user->display_name ? $current_user->display_name : trim( $current_user->first_name . ' ' . $current_user->last_name );
@@ -53,12 +53,17 @@ $default_last_name    = $current_user->last_name ? $current_user->last_name : ''
 
 		<div class="bsc__field">
 		<label for="account_email">Correo electr&oacute;nico:</label>
-		<input type="email" name="account_email" id="account_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" autocomplete="email" />
+		<input type="email" name="account_email" id="account_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" autocomplete="email" readonly aria-readonly="true" />
 		</div>
 
 		<div class="bsc__field">
-		<label for="account_password">Contrase&ntilde;a:</label>
-		<input type="password" name="account_password" id="account_password" value="XXXXXXXXXX" disabled />
+		<label for="bsc_account_password">Nueva contrase&ntilde;a:</label>
+		<input type="password" name="bsc_account_password" id="bsc_account_password" autocomplete="new-password" />
+		</div>
+
+		<div class="bsc__field">
+		<label for="bsc_account_password_confirm">Confirmar contrase&ntilde;a:</label>
+		<input type="password" name="bsc_account_password_confirm" id="bsc_account_password_confirm" autocomplete="new-password" />
 		</div>
 
 		<input type="hidden" name="account_first_name" id="account_first_name" value="<?php echo esc_attr( $default_first_name ); ?>" />
@@ -128,6 +133,12 @@ $default_last_name    = $current_user->last_name ? $current_user->last_name : ''
 	</div>
 
 	</div>
+
+	<?php
+	if ( function_exists( 'bsc_print_account_edit_notices' ) ) {
+		bsc_print_account_edit_notices();
+	}
+	?>
 
 	<div class="bsc__account-submit">
 	<?php do_action( 'woocommerce_edit_account_form_fields' ); ?>

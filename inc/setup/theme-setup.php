@@ -273,6 +273,121 @@ function bsc_clear_category_cache( int $term_id, int $tt_id, string $taxonomy ):
 }
 
 add_action(
+	'woocommerce_save_account_details_errors',
+	function ( WP_Error $errors, stdClass $user ): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- WooCommerce validates the save-account-details nonce before this hook runs.
+		$current_user = wp_get_current_user();
+
+		if ( $current_user instanceof WP_User && $current_user->ID > 0 ) {
+			$user->user_email = $current_user->user_email;
+
+			if ( isset( $_POST['account_email'] ) ) {
+				$posted_email = sanitize_email( wp_unslash( $_POST['account_email'] ) );
+
+				if ( $posted_email !== $current_user->user_email ) {
+					$errors->add( 'bsc_account_email_locked', 'El correo electrónico no se puede cambiar desde Mis datos.' );
+				}
+			}
+		}
+
+		$password = isset( $_POST['bsc_account_password'] ) ? (string) wp_unslash( $_POST['bsc_account_password'] ) : '';
+		$confirm  = isset( $_POST['bsc_account_password_confirm'] ) ? (string) wp_unslash( $_POST['bsc_account_password_confirm'] ) : '';
+
+		if ( $password === '' && $confirm === '' ) {
+			return;
+		}
+
+		if ( $password === '' || $confirm === '' ) {
+			$errors->add( 'bsc_account_password_incomplete', 'Completa los dos campos de contraseña para cambiarla.' );
+			return;
+		}
+
+		if ( $password !== $confirm ) {
+			$errors->add( 'bsc_account_password_mismatch', 'Las contraseñas no coinciden.' );
+			return;
+		}
+
+		$user->user_pass = $password;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	},
+	10,
+	2
+);
+
+if ( ! function_exists( 'bsc_disable_default_account_edit_notices' ) ) {
+	function bsc_disable_default_account_edit_notices(): void {
+		if (
+			function_exists( 'is_account_page' )
+			&& function_exists( 'is_wc_endpoint_url' )
+			&& is_account_page()
+			&& is_wc_endpoint_url( 'edit-account' )
+		) {
+			remove_action( 'woocommerce_account_content', 'woocommerce_output_all_notices', 5 );
+		}
+	}
+	add_action( 'wp', 'bsc_disable_default_account_edit_notices', 20 );
+}
+
+if ( ! function_exists( 'bsc_account_edit_notice_message' ) ) {
+	function bsc_account_edit_notice_message( $notice ): string {
+		$message = is_array( $notice ) && isset( $notice['notice'] ) ? (string) $notice['notice'] : (string) $notice;
+
+		if ( wp_strip_all_tags( $message ) === 'Account details changed successfully.' ) {
+			return '¡Tus datos se guardaron correctamente!';
+		}
+
+		return $message;
+	}
+}
+
+if ( ! function_exists( 'bsc_print_account_edit_notices' ) ) {
+	function bsc_print_account_edit_notices(): void {
+		if ( ! function_exists( 'wc_get_notices' ) || ! function_exists( 'wc_clear_notices' ) ) {
+			return;
+		}
+
+		$notice_types = array( 'error', 'success', 'notice' );
+		$notices      = array();
+
+		foreach ( $notice_types as $notice_type ) {
+			$type_notices = wc_get_notices( $notice_type );
+
+			if ( ! empty( $type_notices ) ) {
+				$notices[ $notice_type ] = $type_notices;
+			}
+		}
+
+		if ( empty( $notices ) ) {
+			return;
+		}
+		?>
+		<div class="bsc__account-notices" aria-live="polite">
+			<?php foreach ( $notices as $notice_type => $type_notices ) : ?>
+				<?php foreach ( $type_notices as $notice ) : ?>
+					<?php
+					$message = bsc_account_edit_notice_message( $notice );
+
+					if ( $message === '' ) {
+						continue;
+					}
+
+					$allowed_message = function_exists( 'wc_kses_notice' ) ? wc_kses_notice( $message ) : wp_kses_post( $message );
+					?>
+					<div
+						class="bsc__account-notice bsc__account-notice--<?php echo esc_attr( sanitize_html_class( $notice_type ) ); ?>"
+						role="<?php echo esc_attr( $notice_type === 'error' ? 'alert' : 'status' ); ?>"
+					>
+						<?php echo $allowed_message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</div>
+				<?php endforeach; ?>
+			<?php endforeach; ?>
+		</div>
+		<?php
+		wc_clear_notices();
+	}
+}
+
+add_action(
 	'woocommerce_save_account_details',
 	function ( int $user_id ): void {
     // phpcs:disable WordPress.Security.NonceVerification.Missing -- WooCommerce validates the save-account-details nonce before this hook runs.
@@ -292,7 +407,7 @@ add_action(
 		}
 
 		// BSC-057: skin_type — whitelist
-		$allowed_skin_types = array( 'Grasa', 'Mixta', 'Seca', 'Normal', 'Normal a seca', 'Normal a grasa' );
+		$allowed_skin_types = array( 'Grasa', 'Mixta', 'Seca', 'Normal' );
 		if ( isset( $_POST['account_skin_type'] ) ) {
 			$val = sanitize_text_field( wp_unslash( $_POST['account_skin_type'] ) );
 			if ( $val === '' || in_array( $val, $allowed_skin_types, true ) ) {
