@@ -20443,6 +20443,19 @@ body.admin-bar .bsc__header--desktop {
 }
 
 .bsc__shipping-address {
+  --bsc-color-text: var(--color--text, #333333);
+  --bsc-color-input-border: #d1d1d6;
+  --bsc-color-placeholder: #aaa;
+  --bsc-spacing-xs: 0.5rem;
+  --bsc-spacing-sm: 0.75rem;
+  --bsc-spacing-md: 1.5rem;
+  --bsc-spacing-lg: 1.5rem;
+  --bsc-spacing-xl: 2.5rem;
+  --bsc-radius-sm: 6px;
+  --bsc-radius-md: 8px;
+  --bsc-radius-lg: 16px;
+  --bsc-font-size: 14px;
+  --bsc-input-height: 42px;
   --bsc-account-address-text: var(--bsc-color-text, #333);
   --bsc-account-address-border: var(--bsc-color-input-border, #d1d1d6);
   --bsc-account-address-error: red;

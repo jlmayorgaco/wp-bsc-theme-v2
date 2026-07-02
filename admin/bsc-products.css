@@ -172,7 +172,52 @@
 }
 
 .bsc-admin-products__row-actions {
+  align-items: flex-start;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
   margin-bottom: 8px;
+  min-width: 128px;
+}
+
+.bsc-admin-products__primary-action,
+.bsc-admin-products__more-summary {
+  min-width: 72px;
+  text-align: center;
+}
+
+.bsc-admin-products__more-actions {
+  position: relative;
+}
+
+.bsc-admin-products__more-summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.bsc-admin-products__more-summary::-webkit-details-marker {
+  display: none;
+}
+
+.bsc-admin-products__more-menu {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  display: grid;
+  gap: 6px;
+  left: 0;
+  min-width: 132px;
+  padding: 8px;
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 30;
+}
+
+.bsc-admin-products__more-menu .button {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
 }
 
 .button.bsc-admin-products__delete {

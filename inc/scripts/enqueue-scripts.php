@@ -12,7 +12,7 @@ add_action(
 );
 
 function bsc_2_0_scripts() {
-	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), BSC_THEME_VERSION );
+	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), _S_VERSION );
 	wp_style_add_data( 'bsc-2-0-style', 'rtl', 'replace' );
 
 	$checkout_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );

@@ -1,41 +1,40 @@
-.bsc-admin-newsletter__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .bsc-admin-newsletter__filters {
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.bsc-admin-newsletter__filters label {
-  font-weight: 600;
+  margin-top: 10px;
 }
 
 .bsc-admin-newsletter__filters input[type=search] {
-  min-width: 220px;
+  min-width: 240px;
 }
 
 .bsc-admin-newsletter__table {
-  margin-top: 8px;
+  min-width: 1080px;
 }
 
 .bsc-admin-newsletter__status-form {
-  display: grid;
-  grid-template-columns: minmax(120px, 150px) minmax(180px, 1fr) auto;
-  gap: 6px;
   align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+}
+
+.bsc-admin-newsletter__status-form select {
+  width: 100%;
 }
 
 .bsc-admin-newsletter__status-form textarea {
-  width: 100%;
   min-height: 48px;
   resize: vertical;
+  width: 100%;
+}
+
+.bsc-admin-newsletter__delete-form {
+  margin: 0;
+}
+
+@media (max-width: 782px) {
+  .bsc-admin-newsletter__status-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 /*# sourceMappingURL=bsc-newsletter.css.map */

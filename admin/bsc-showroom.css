@@ -4,26 +4,24 @@
 }
 
 .bsc-showroom__layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
   align-items: start;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   margin-top: 20px;
 }
 
 .bsc-showroom__card,
 .bsc-showroom__recent-sales {
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+  min-width: 0;
 }
 
 .bsc-showroom__card {
-  padding: 24px;
+  padding: 18px;
 }
 
 .bsc-showroom__recent-sales {
-  padding: 20px;
+  padding: 16px;
 }
 
 .bsc-showroom__section-title,
@@ -53,6 +51,7 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   box-sizing: border-box;
+  min-height: 36px;
 }
 
 .bsc-showroom__text-input {
@@ -289,7 +288,11 @@
 
 @media (max-width: 1280px) {
   .bsc-showroom__layout {
-    grid-template-columns: 1fr;
+    align-items: start;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    margin-top: 20px;
   }
 }
 @media (max-width: 782px) {

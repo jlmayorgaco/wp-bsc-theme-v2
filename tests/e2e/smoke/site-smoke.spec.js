@@ -29,6 +29,23 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
+  test('parking mode allows WordPress and custom auth routes', async ({ page }) => {
+    test.skip(expectsStorefront(), 'Coming-soon mode is required for parking auth smoke');
+
+    const authRoutes = [
+      { path: routes.login, selector: '#loginform' },
+      { path: routes.register, selector: '#registerform' },
+      { path: '/wp-login.php', selector: '#loginform' },
+      { path: '/wp-login.php?action=register', selector: '#login' },
+    ];
+
+    for (const { path, selector } of authRoutes) {
+      await gotoAndStabilize(page, path, { primePage: false });
+      await expect(page.locator('.coming-soon-container')).toHaveCount(0);
+      await expect(page.locator(selector).first()).toBeVisible();
+    }
+  });
+
   test('header shell renders for the active viewport', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for header smoke');
 

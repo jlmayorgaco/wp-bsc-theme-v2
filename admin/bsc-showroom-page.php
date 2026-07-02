@@ -73,12 +73,21 @@ function bsc_render_showroom_page(): void {
 	);
 	?>
 	<div class="wrap bsc-showroom">
-		<h1>Venta Presencial</h1>
-		<p class="bsc-showroom__intro">Registra una venta del showroom. Descuenta <strong>stock en tienda</strong>.</p>
+		<div class="bsc-admin-page-header bsc-admin-page-header--compact">
+			<div>
+				<span class="bsc-admin-page-header__eyebrow">Showroom</span>
+				<h1>Venta Presencial</h1>
+				<p class="bsc-admin-page-header__description">Registra ventas presenciales, descuenta stock de tienda y consulta los pedidos recientes.</p>
+			</div>
+			<div class="bsc-admin-page-header__actions">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-orders' ) ); ?>" class="button">Pedidos</a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="button button-primary">Stock</a>
+			</div>
+		</div>
 
 		<div class="bsc-showroom__layout">
 			<div>
-				<div class="bsc-card bsc-showroom__card">
+				<div class="bsc-card bsc-showroom__card bsc-admin-panel">
 					<h3 class="bsc-showroom__section-title">Productos</h3>
 					<div class="bsc-showroom__search-bar">
 						<input type="text" id="bsc-product-search" placeholder="Buscar por nombre o SKU..." class="bsc-showroom__text-input bsc-showroom__product-search">
@@ -153,7 +162,7 @@ function bsc_render_showroom_page(): void {
 			</div>
 
 			<div>
-				<div class="bsc-showroom__recent-sales">
+				<div class="bsc-showroom__recent-sales bsc-admin-panel">
 					<h3 class="bsc-showroom__recent-title">Últimas ventas presenciales</h3>
 					<?php if ($recent_orders) : ?>
 					<table class="bsc-showroom__recent-table">
