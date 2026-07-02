@@ -362,6 +362,90 @@
   transform: translateY(0);
 }
 
+.bsc-admin-page-header--compact {
+  margin-bottom: 14px;
+}
+
+.bsc-admin-table-wrap--flush {
+  margin-top: 0;
+}
+
+.bsc-admin-table-wrap--spacious .wp-list-table th,
+.bsc-admin-table-wrap--spacious .wp-list-table td {
+  padding: 12px 10px;
+  vertical-align: top;
+}
+
+.bsc-admin-empty-state {
+  color: #50575e;
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.bsc-admin-row-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 260px;
+}
+
+.bsc-admin-row-actions__form {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(118px, 150px) minmax(190px, 1fr);
+}
+
+.bsc-admin-row-actions__form textarea {
+  min-height: 48px;
+  resize: vertical;
+  width: 100%;
+}
+
+.bsc-admin-row-actions__buttons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.button.bsc-admin-button-danger {
+  border-color: #e53e3e;
+  color: #c53030;
+}
+
+.button.bsc-admin-button-danger:hover,
+.button.bsc-admin-button-danger:focus-visible {
+  background: #fff5f5;
+  border-color: #b30000;
+  color: #b30000;
+}
+
+.bsc-admin-screen-tabs {
+  margin: 10px 0 0;
+}
+
+.bsc-admin-screen-tabs + .bsc-admin-panel,
+.bsc-admin-screen-tabs + .bsc-admin-reports__tab-content {
+  margin-top: 0;
+}
+
+.bsc-admin-sticky-submit {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  bottom: 0;
+  box-shadow: 0 -8px 22px rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding: 12px;
+  position: sticky;
+  z-index: 20;
+}
+
 @media (max-width: 782px) {
   .bsc-admin-page-header {
     display: grid;
@@ -375,6 +459,19 @@
   .bsc-admin-page-header__actions .button,
   .bsc-admin-filter-panel__actions .button {
     min-height: 40px;
+  }
+  .bsc-admin-filter-panel,
+  .bsc-admin-toolbar {
+    display: grid;
+  }
+  .bsc-admin-field,
+  .bsc-admin-field input,
+  .bsc-admin-field select,
+  .bsc-admin-row-actions__form {
+    width: 100%;
+  }
+  .bsc-admin-row-actions__form {
+    grid-template-columns: 1fr;
   }
 }
 

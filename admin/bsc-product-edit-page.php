@@ -582,11 +582,13 @@ function bsc_enqueue_product_edit_page_assets( string $hook ): void {
 		return;
 	}
 
+	bsc_enqueue_admin_ui_assets();
+
 	$css_path = get_template_directory() . '/admin/bsc-product-edit.css';
 	wp_enqueue_style(
 		'bsc-product-edit-admin',
 		get_template_directory_uri() . '/admin/bsc-product-edit.css',
-		array(),
+		array( 'bsc-admin-ui' ),
 		file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1'
 	);
 
@@ -907,21 +909,20 @@ function bsc_render_product_edit_page(): void {
 
 	?>
 	<div class="wrap bsc-admin-product-edit">
-		<div class="bsc-admin-product-edit__header">
+		<div class="bsc-admin-page-header bsc-admin-page-header--compact bsc-admin-product-edit__header">
 			<div>
+				<span class="bsc-admin-page-header__eyebrow">Catalogo</span>
 				<h1>
 					Editar Producto
 					<span class="bsc-admin-product-edit__title-meta">#<?php echo esc_html( $product_id ); ?></span>
 				</h1>
-				<p class="bsc-admin-product-edit__header-meta"><?php echo esc_html( $post->post_title ); ?></p>
+				<p class="bsc-admin-page-header__description bsc-admin-product-edit__header-meta"><?php echo esc_html( $post->post_title ); ?></p>
 			</div>
-			<div class="bsc-admin-product-edit__header-actions">
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="page-title-action">&larr; Volver a Productos</a>
+			<div class="bsc-admin-page-header__actions bsc-admin-product-edit__header-actions">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="button">&larr; Productos</a>
 				<a href="<?php echo esc_url( get_permalink( $product_id ) ); ?>" class="button" target="_blank" rel="noopener noreferrer">Ver en tienda &#8599;</a>
 			</div>
 		</div>
-		<hr class="wp-header-end">
-
 		<?php if (isset( $_GET['saved'] )) : ?>
 			<div class="notice notice-success is-dismissible"><p>&#10003; Producto actualizado correctamente.</p></div>
 		<?php endif; ?>
@@ -1401,7 +1402,7 @@ function bsc_render_product_edit_page(): void {
 				</div>
 			</div>
 
-			<div class="bsc-admin-product-edit__actions">
+			<div class="bsc-admin-product-edit__actions bsc-admin-panel">
 				<button type="submit" class="button button-primary button-large">Guardar cambios</button>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-products' ) ); ?>" class="button button-large bsc-admin-product-edit__action-link">Cancelar</a>
 			</div>

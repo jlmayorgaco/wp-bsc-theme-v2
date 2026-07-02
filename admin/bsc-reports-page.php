@@ -203,10 +203,13 @@ function bsc_render_reports_page(): void {
 	}
 
 	echo '<div class="wrap bsc-admin-reports">';
-	echo '<h1>Informes BSC</h1>';
+	echo '<div class="bsc-admin-page-header bsc-admin-page-header--compact">';
+	echo '<div><span class="bsc-admin-page-header__eyebrow">Analitica</span><h1>Informes BSC</h1><p class="bsc-admin-page-header__description">Revisa ventas, stock y senales operativas con filtros accionables.</p></div>';
+	echo '<div class="bsc-admin-page-header__actions"><a class="button" href="' . esc_url( admin_url( 'admin.php?page=bsc-dashboard' ) ) . '">Dashboard</a></div>';
+	echo '</div>';
 
 	// WP-native nav tabs
-	echo '<nav class="nav-tab-wrapper bsc-admin-reports__tabs">';
+	echo '<nav class="nav-tab-wrapper bsc-admin-reports__tabs bsc-admin-screen-tabs">';
 	foreach ( $tabs as $slug => $tab ) {
 		$url   = add_query_arg(
 			array(
@@ -220,7 +223,7 @@ function bsc_render_reports_page(): void {
 	}
 	echo '</nav>';
 
-	echo '<div class="bsc-tab-content bsc-admin-reports__tab-content">';
+	echo '<div class="bsc-tab-content bsc-admin-reports__tab-content bsc-admin-panel">';
 
 	if ( is_callable( $tabs[ $active_tab ]['callback'] ) ) {
 		call_user_func( $tabs[ $active_tab ]['callback'] );
@@ -379,7 +382,7 @@ function bsc_reports_tab_ventas(): void {
 	?>
 
 	<!-- Filters -->
-	<form method="get" class="bsc-admin-reports__sales-filters">
+	<form method="get" class="bsc-admin-reports__sales-filters bsc-admin-filter-panel">
 		<input type="hidden" name="page"  value="bsc-reports">
 		<input type="hidden" name="tab"   value="ventas">
 		<div class="bsc-admin-reports__filter-row">
@@ -460,7 +463,7 @@ function bsc_reports_tab_ventas(): void {
 		<div class="bsc-admin-reports__panel">
 			<h2 class="bsc-admin-reports__section-title">Top 10 productos vendidos</h2>
 			<?php if ($top_products) : ?>
-			<table class="wp-list-table widefat fixed striped">
+			<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush"><table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>#</th><th>Producto</th><th>Uds.</th><th>Total</th></tr></thead>
 				<tbody>
 				<?php $rank =1; foreach ($top_products as $pid => $p) : ?>
@@ -472,7 +475,7 @@ function bsc_reports_tab_ventas(): void {
 				</tr>
 				<?php endforeach; ?>
 				</tbody>
-			</table>
+			</table></div>
 				<?php
 			else :
 				?>
@@ -481,7 +484,7 @@ function bsc_reports_tab_ventas(): void {
 		<div class="bsc-admin-reports__panel">
 			<h2 class="bsc-admin-reports__section-title">Desglose por categoria</h2>
 			<?php if ($category_sales) : ?>
-			<table class="wp-list-table widefat fixed striped">
+			<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush"><table class="wp-list-table widefat fixed striped">
 				<thead><tr><th>Categoria</th><th>Pedidos</th><th>Total</th></tr></thead>
 				<tbody>
 				<?php foreach (array_slice( $category_sales, 0, 10, true ) as $tid => $cat) : ?>
@@ -492,7 +495,7 @@ function bsc_reports_tab_ventas(): void {
 				</tr>
 				<?php endforeach; ?>
 				</tbody>
-			</table>
+			</table></div>
 				<?php
 			else :
 				?>
@@ -796,7 +799,7 @@ function bsc_reports_tab_stock(): void {
 	<?php if (empty( $products )) : ?>
 	<p class="bsc-admin-reports__empty-state bsc-admin-reports__empty-state--stock">No hay productos que coincidan con el filtro.</p>
 	<?php else : ?>
-	<table id="bsc-stock-table" class="wp-list-table widefat fixed striped bsc-admin-reports__stock-table">
+	<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush"><table id="bsc-stock-table" class="wp-list-table widefat fixed striped bsc-admin-reports__stock-table">
 		<thead>
 			<tr>
 				<th class="bsc-admin-reports__stock-col-product">
@@ -847,7 +850,7 @@ function bsc_reports_tab_stock(): void {
 			</tr>
 		<?php endforeach; ?>
 		</tbody>
-	</table>
+	</table></div>
 	<div class="bsc-admin-reports__pagination">
 		<p class="bsc-admin-reports__footnote">
 			<?php

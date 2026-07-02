@@ -262,16 +262,22 @@ function bsc_render_monitoring_page(): void {
 	$monitoring_saved = isset( $_GET['bsc_notice'] ) && 'saved' === sanitize_key( wp_unslash( $_GET['bsc_notice'] ) );
 	?>
 	<div class="wrap bsc-admin-monitoring">
-		<h1>Monitoreo post-launch</h1>
-		<p class="bsc-admin-monitoring__intro">
-			Checklist operativo para revisar senales basicas despues de deploy y durante los primeros dias de operacion.
-		</p>
+		<div class="bsc-admin-page-header bsc-admin-page-header--compact">
+			<div>
+				<span class="bsc-admin-page-header__eyebrow">Operacion</span>
+				<h1>Monitoreo post-launch</h1>
+				<p class="bsc-admin-page-header__description">Checklist operativo para revisar senales basicas despues de deploy y durante los primeros dias de operacion.</p>
+			</div>
+			<div class="bsc-admin-page-header__actions">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-dashboard' ) ); ?>" class="button">Dashboard</a>
+			</div>
+		</div>
 
 		<?php if ( $monitoring_saved ) : ?>
 			<div class="bsc-admin-note bsc-admin-note--success">Configuracion de monitoreo guardada.</div>
 		<?php endif; ?>
 
-		<section class="bsc-admin-monitoring__owner">
+		<section class="bsc-admin-monitoring__owner bsc-admin-panel">
 			<div>
 				<h2>Owner de incidentes</h2>
 				<p>
@@ -340,7 +346,7 @@ function bsc_render_monitoring_page(): void {
 
 		<section class="bsc-admin-monitoring__section">
 			<h2>Procedimiento de incidente</h2>
-			<table class="widefat striped bsc-admin-monitoring__table">
+			<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush bsc-admin-monitoring__table-wrap"><table class="widefat striped bsc-admin-monitoring__table">
 				<thead>
 					<tr>
 						<th>Severidad</th>
@@ -365,13 +371,13 @@ function bsc_render_monitoring_page(): void {
 						<td>Continuar monitoreo diario y guardar evidencia en git/roadmap cuando se cierre un ajuste.</td>
 					</tr>
 				</tbody>
-			</table>
+			</table></div>
 		</section>
 
 		<section class="bsc-admin-monitoring__section">
 			<h2>Rate limits recientes</h2>
 			<?php if ( ! empty( $rate_limit_rows ) ) : ?>
-				<table class="widefat striped bsc-admin-monitoring__table">
+				<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush bsc-admin-monitoring__table-wrap"><table class="widefat striped bsc-admin-monitoring__table">
 					<thead>
 						<tr>
 							<th>Fecha</th>
@@ -390,7 +396,7 @@ function bsc_render_monitoring_page(): void {
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
-				</table>
+				</table></div>
 			<?php else : ?>
 				<p>No hay bloqueos recientes registrados.</p>
 			<?php endif; ?>

@@ -43,6 +43,10 @@ test.describe('BSC admin products smoke', () => {
     await page.locator('#bsc-discount-percent').fill('0');
     await expect(page.locator('#bsc-apply-discount').first()).toBeEnabled();
 
+    const firstMoreActions = page.locator('.bsc-admin-products__more-actions').first();
+    await expect(firstMoreActions.locator('summary')).toBeVisible();
+    await firstMoreActions.locator('summary').click();
+
     const historyButton = page.locator('.bsc-stock-history-btn').first();
     await expect(historyButton).toBeVisible();
     await expect(page.locator('.bsc-product-delete-btn').first()).toBeVisible();

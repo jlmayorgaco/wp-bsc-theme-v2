@@ -1,4 +1,5 @@
 @use "../../pages/page-checkout" as checkout;
+@use "../../tokens/public" as tokens;
 
 $account-address-border-color: #333;
 $account-address-error-color: red;
@@ -91,6 +92,19 @@ $account-address-error-color: red;
 }
 
 .bsc__shipping-address {
+  --bsc-color-text: #{tokens.$text};
+  --bsc-color-input-border: #{tokens.$border-soft};
+  --bsc-color-placeholder: #aaa;
+  --bsc-spacing-xs: #{tokens.$space-xs};
+  --bsc-spacing-sm: #{tokens.$space-sm};
+  --bsc-spacing-md: 1.5rem;
+  --bsc-spacing-lg: #{tokens.$space-lg};
+  --bsc-spacing-xl: 2.5rem;
+  --bsc-radius-sm: #{tokens.$radius-sm};
+  --bsc-radius-md: #{tokens.$radius-md};
+  --bsc-radius-lg: #{tokens.$radius-lg};
+  --bsc-font-size: 14px;
+  --bsc-input-height: #{tokens.$input-height};
   --bsc-account-address-text: var(--bsc-color-text, #333);
   --bsc-account-address-border: var(--bsc-color-input-border, #d1d1d6);
   --bsc-account-address-error: #{$account-address-error-color};

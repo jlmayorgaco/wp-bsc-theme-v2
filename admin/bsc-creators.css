@@ -1,24 +1,9 @@
-.bsc-admin-creators__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .bsc-admin-creators__filters {
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.bsc-admin-creators__filters label {
-  font-weight: 600;
+  margin-top: 10px;
 }
 
 .bsc-admin-creators__table {
-  margin-top: 8px;
+  min-width: 1220px;
 }
 
 .bsc-admin-creators__link-empty {
@@ -26,20 +11,30 @@
 }
 
 .bsc-admin-creators__status-form {
-  display: grid;
-  grid-template-columns: minmax(120px, 150px) minmax(180px, 1fr) auto;
   align-items: start;
-  gap: 6px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
 }
 
 .bsc-admin-creators__status-form select {
-  max-width: 130px;
+  width: 100%;
 }
 
 .bsc-admin-creators__status-form textarea {
-  width: 100%;
   min-height: 48px;
   resize: vertical;
+  width: 100%;
+}
+
+.bsc-admin-creators__delete-form {
+  margin: 0;
+}
+
+@media (max-width: 782px) {
+  .bsc-admin-creators__status-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 /*# sourceMappingURL=bsc-creators.css.map */
