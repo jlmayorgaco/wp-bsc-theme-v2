@@ -164,7 +164,7 @@ class BSC_Orders_Table {
 
 	protected function render_progress_bar( $order ) {
 		$progress = new BSC_Order_Progress_Bar(
-			bsc_map_order_status_to_bar( $order->get_status() )
+			bsc_map_order_to_bar( $order )
 		);
 		$progress->setDisplayMode( BSC_Order_Progress_Bar::DISPLAY_COMPACT );
 		$progress->render();

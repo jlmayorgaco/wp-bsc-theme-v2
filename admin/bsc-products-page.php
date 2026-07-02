@@ -325,6 +325,109 @@ function bsc_ajax_get_stock_log(): void {
 	wp_send_json_success( array( 'log' => $enriched ) );
 }
 
+function bsc_products_format_variant_matrix_response( int $product_id, bool $include_disabled = true ): array {
+	$variants = function_exists( 'bsc_get_product_variant_matrix' )
+		? bsc_get_product_variant_matrix( $product_id, $include_disabled )
+		: array();
+
+	return array_values(
+		array_map(
+			static function ( array $variant ): array {
+				$stock_bodega = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) );
+				$stock_tienda = max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+
+				return array(
+					'key'           => (string) ( $variant['key'] ?? '' ),
+					'color_name'    => (string) ( $variant['color_name'] ?? '' ),
+					'color_hex'     => (string) ( $variant['color_hex'] ?? '' ),
+					'size_name'     => (string) ( $variant['size_name'] ?? '' ),
+					'regular_price' => (string) ( $variant['regular_price'] ?? '' ),
+					'sale_price'    => (string) ( $variant['sale_price'] ?? '' ),
+					'stock_bodega'  => $stock_bodega,
+					'stock_tienda'  => $stock_tienda,
+					'stock_total'   => $stock_bodega + $stock_tienda,
+					'enabled'       => ! empty( $variant['enabled'] ),
+				);
+			},
+			$variants
+		)
+	);
+}
+
+add_action( 'wp_ajax_bsc_get_product_variant_matrix', 'bsc_ajax_get_product_variant_matrix' );
+function bsc_ajax_get_product_variant_matrix(): void {
+	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
+	if (!current_user_can( 'manage_options' ) && !current_user_can( 'edit_products' )) {
+		wp_send_json_error( array( 'message' => 'Sin permisos' ), 403 );
+	}
+
+	$product_id = absint( wp_unslash( $_GET['product_id'] ?? 0 ) );
+	if (!$product_id || get_post_type( $product_id ) !== 'product') {
+		wp_send_json_error( array( 'message' => 'Producto invalido' ), 400 );
+	}
+
+	$product = wc_get_product( $product_id );
+	if (!$product instanceof WC_Product) {
+		wp_send_json_error( array( 'message' => 'Producto invalido' ), 400 );
+	}
+
+	wp_send_json_success(
+		array(
+			'product_id' => $product_id,
+			'name'       => $product->get_name(),
+			'variants'   => bsc_products_format_variant_matrix_response( $product_id, true ),
+			'saved'      => function_exists( 'bsc_product_has_saved_variant_matrix' ) && bsc_product_has_saved_variant_matrix( $product_id ),
+		)
+	);
+}
+
+add_action( 'wp_ajax_bsc_save_product_variant_matrix', 'bsc_ajax_save_product_variant_matrix' );
+function bsc_ajax_save_product_variant_matrix(): void {
+	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
+	if (!current_user_can( 'manage_options' ) && !current_user_can( 'edit_products' )) {
+		wp_send_json_error( array( 'message' => 'Sin permisos' ), 403 );
+	}
+
+	$product_id = absint( wp_unslash( $_POST['product_id'] ?? 0 ) );
+	if (!$product_id || get_post_type( $product_id ) !== 'product') {
+		wp_send_json_error( array( 'message' => 'Producto invalido' ), 400 );
+	}
+
+	$variants_raw = isset( $_POST['variants'] ) ? wp_unslash( (array) $_POST['variants'] ) : array();
+	$errors       = array();
+	$variants     = function_exists( 'bsc_sanitize_product_variant_matrix' )
+		? bsc_sanitize_product_variant_matrix( $variants_raw, $errors )
+		: array();
+
+	if (!empty( $errors )) {
+		wp_send_json_error( array( 'message' => implode( ' ', $errors ) ), 400 );
+	}
+
+	if (empty( $variants )) {
+		wp_send_json_error( array( 'message' => 'No hay variantes para guardar.' ), 400 );
+	}
+
+	update_post_meta( $product_id, '_bsc_variant_matrix', $variants );
+	if (function_exists( 'bsc_sync_product_variant_parent_stock' )) {
+		bsc_sync_product_variant_parent_stock( $product_id, $variants );
+	}
+
+	$stock = class_exists( 'BSC_Stock' )
+		? BSC_Stock::get_stock( $product_id )
+		: array(
+			'bodega' => 0,
+			'tienda' => 0,
+		);
+
+	wp_send_json_success(
+		array(
+			'variants' => bsc_products_format_variant_matrix_response( $product_id, true ),
+			'bodega'   => (int) ( $stock['bodega'] ?? 0 ),
+			'tienda'   => (int) ( $stock['tienda'] ?? 0 ),
+		)
+	);
+}
+
 add_action( 'admin_enqueue_scripts', 'bsc_enqueue_products_page_assets' );
 function bsc_enqueue_products_page_assets( string $hook ): void {
 	if (strpos( $hook, 'bsc-products' ) === false) {
@@ -373,6 +476,10 @@ function bsc_enqueue_products_page_assets( string $hook ): void {
 				'deleting'               => 'Borrando...',
 				'deleted'                => 'Producto enviado a la papelera.',
 				'deleteError'            => 'No se pudo borrar el producto.',
+				'variantsTitlePrefix'    => 'Variantes: ',
+				'variantsEmpty'          => 'Este producto no tiene colores o tamanos configurados.',
+				'variantsSaved'          => 'Variantes guardadas.',
+				'variantsSaveError'      => 'No se pudieron guardar las variantes.',
 				'connectionError'        => 'Error de conexión. Intenta de nuevo.',
 			),
 		)
@@ -529,6 +636,14 @@ function bsc_render_products_page(): void {
 					$price                = $product->get_regular_price();
 					$sale_price           = $product->get_sale_price();
 					$stock                = BSC_Stock::get_stock( $post->ID );
+					$saved_variant_matrix = function_exists( 'bsc_get_product_saved_variant_matrix' )
+						? bsc_get_product_saved_variant_matrix( $post->ID, true )
+						: array();
+					$variant_matrix       = function_exists( 'bsc_get_product_variant_matrix' )
+						? bsc_get_product_variant_matrix( $post->ID, true )
+						: array();
+					$has_variant_matrix   = !empty( $saved_variant_matrix );
+					$variant_count        = count( $variant_matrix );
 					$image_id             = $product->get_image_id();
 					$image_src            = $image_id
 						? ( wp_get_attachment_image_url( $image_id, array( 60, 60 ) ) ?: wc_placeholder_img_src() )
@@ -549,6 +664,11 @@ function bsc_render_products_page(): void {
 					if ( (int) $stock['tienda'] < $low_threshold) {
 						$tienda_input_classes .= ' is-low';
 					}
+
+					if ($has_variant_matrix) {
+						$bodega_input_classes .= ' is-readonly';
+						$tienda_input_classes .= ' is-readonly';
+					}
 					?>
 					<tr class="bsc-admin-products__row" data-product-id="<?php echo esc_attr( $post->ID ); ?>">
 						<td class="bsc-admin-products__discount-cell">
@@ -567,6 +687,9 @@ function bsc_render_products_page(): void {
 							<strong><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( $post->post_title ); ?></a></strong>
 							<?php if ($sku) : ?>
 								<br><code class="bsc-admin-products__sku"><?php echo esc_html( $sku ); ?></code>
+							<?php endif; ?>
+							<?php if ($variant_count > 0) : ?>
+								<br><span class="bsc-admin-products__variant-count"><?php echo esc_html( sprintf( '%d variantes', $variant_count ) ); ?></span>
 							<?php endif; ?>
 						</td>
 						<td>
@@ -598,7 +721,11 @@ function bsc_render_products_page(): void {
 								data-type="bodega"
 								data-original="<?php echo esc_attr( $stock['bodega'] ); ?>"
 								value="<?php echo esc_attr( $stock['bodega'] ); ?>"
+								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>
 							>
+							<?php if ($has_variant_matrix) : ?>
+								<span class="bsc-admin-products__stock-note">Total variantes</span>
+							<?php endif; ?>
 						</td>
 						<td>
 							<input
@@ -608,7 +735,11 @@ function bsc_render_products_page(): void {
 								data-type="tienda"
 								data-original="<?php echo esc_attr( $stock['tienda'] ); ?>"
 								value="<?php echo esc_attr( $stock['tienda'] ); ?>"
+								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>
 							>
+							<?php if ($has_variant_matrix) : ?>
+								<span class="bsc-admin-products__stock-note">Total variantes</span>
+							<?php endif; ?>
 						</td>
 						<td>
 							<?php if ($is_archived) : ?>
@@ -631,6 +762,12 @@ function bsc_render_products_page(): void {
 									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
 									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
 								>Historial</button>
+								<button
+									type="button"
+									class="button button-small bsc-product-variants-btn"
+									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
+									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
+								>Variantes</button>
 								<button
 									type="button"
 									class="button button-small bsc-admin-products__delete bsc-product-delete-btn"

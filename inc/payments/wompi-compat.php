@@ -9,6 +9,73 @@ defined( 'ABSPATH' ) || exit;
 
 add_action( 'woocommerce_receipt_wompi', 'bsc_render_wompi_receipt', 0 );
 add_action( 'template_redirect', 'bsc_maybe_complete_wompi_return', 5 );
+add_filter( 'woocommerce_gateway_title', 'bsc_filter_wompi_gateway_title', 20, 2 );
+add_filter( 'woocommerce_gateway_icon', 'bsc_filter_wompi_gateway_icon', 20, 2 );
+add_filter( 'woocommerce_gateway_description', 'bsc_filter_wompi_gateway_description', 20, 2 );
+
+/**
+ * Check whether a gateway ID belongs to Wompi.
+ *
+ * @param mixed $gateway_id Gateway ID.
+ * @return bool
+ */
+function bsc_is_wompi_gateway_id( $gateway_id ): bool {
+	return in_array( (string) $gateway_id, array( 'wompi', 'wompi_wwp' ), true );
+}
+
+/**
+ * Keep Wompi branding out of customer-facing payment method labels.
+ *
+ * @return bool
+ */
+function bsc_should_hide_wompi_gateway_branding(): bool {
+	return ! is_admin() || wp_doing_ajax();
+}
+
+/**
+ * Replace the Wompi checkout label with a generic customer-facing label.
+ *
+ * @param string $title      Gateway title.
+ * @param string $gateway_id Gateway ID.
+ * @return string
+ */
+function bsc_filter_wompi_gateway_title( $title, $gateway_id ): string {
+	if ( bsc_should_hide_wompi_gateway_branding() && bsc_is_wompi_gateway_id( $gateway_id ) ) {
+		return __( 'Pago en linea', 'bsc-2-0' );
+	}
+
+	return (string) $title;
+}
+
+/**
+ * Remove the Wompi logo from customer-facing gateway output.
+ *
+ * @param string $icon       Gateway icon HTML.
+ * @param string $gateway_id Gateway ID.
+ * @return string
+ */
+function bsc_filter_wompi_gateway_icon( $icon, $gateway_id ): string {
+	if ( bsc_should_hide_wompi_gateway_branding() && bsc_is_wompi_gateway_id( $gateway_id ) ) {
+		return '';
+	}
+
+	return (string) $icon;
+}
+
+/**
+ * Remove the default "Pay via Wompi gateway" checkout description.
+ *
+ * @param string $description Gateway description.
+ * @param string $gateway_id  Gateway ID.
+ * @return string
+ */
+function bsc_filter_wompi_gateway_description( $description, $gateway_id ): string {
+	if ( bsc_should_hide_wompi_gateway_branding() && bsc_is_wompi_gateway_id( $gateway_id ) ) {
+		return '';
+	}
+
+	return (string) $description;
+}
 
 /**
  * Render Wompi checkout using one WidgetCheckout instance.
@@ -31,7 +98,7 @@ function bsc_render_wompi_receipt( int $order_id ): void {
 
 	$gateway = bsc_get_wompi_gateway();
 	if ( ! $gateway ) {
-		wc_print_notice( __( 'Wompi no esta disponible en este momento.', 'bsc-2-0' ), 'error' );
+		wc_print_notice( __( 'El pago en linea no esta disponible en este momento.', 'bsc-2-0' ), 'error' );
 		return;
 	}
 
@@ -41,7 +108,7 @@ function bsc_render_wompi_receipt( int $order_id ): void {
 	$integrity_key = bsc_get_wompi_gateway_integrity_key( $gateway );
 
 	if ( '' === $public_key || '' === $integrity_key ) {
-		wc_print_notice( __( 'Wompi no esta configurado completamente.', 'bsc-2-0' ), 'error' );
+		wc_print_notice( __( 'No pudimos iniciar el pago en linea en este momento.', 'bsc-2-0' ), 'error' );
 		return;
 	}
 
@@ -67,7 +134,7 @@ function bsc_render_wompi_receipt( int $order_id ): void {
 	?>
 	<div id="wompi-button" class="wompi-button-holder bsc-wompi-receipt">
 		<button type="button" class="button alt bsc-wompi-receipt__button" data-bsc-wompi-open>
-			<?php esc_html_e( 'Paga con Wompi', 'bsc-2-0' ); ?>
+			<?php esc_html_e( 'Pagar ahora', 'bsc-2-0' ); ?>
 		</button>
 	</div>
 	<?php

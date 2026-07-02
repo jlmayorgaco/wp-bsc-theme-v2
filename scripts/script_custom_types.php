@@ -279,7 +279,8 @@ function bsc_home_favorites_settings_page() {
 					<?php endforeach; ?>
 				</div>
 			</section>
-			<?php submit_button( 'Guardar productos del home' ); ?>
+			<?php bsc_home_brands_render_admin_section(); ?>
+			<?php submit_button( 'Guardar productos y marcas del home' ); ?>
 		</form>
 	</div>
 	<?php
@@ -308,12 +309,119 @@ function bsc_home_favorites_render_selector_card( string $key, array $config, st
 	<?php
 }
 
+function bsc_home_brands_render_admin_section(): void {
+	$brands = bsc_get_home_brand_items();
+	$terms  = bsc_home_brands_get_available_terms();
+	?>
+	<section class="bsc-home-products-admin__section bsc-home-products-admin__section--brands" aria-labelledby="bsc-home-brands-title">
+		<div class="bsc-home-products-admin__section-header">
+			<div>
+				<span class="bsc-home-products-admin__section-kicker">Marcas</span>
+				<h2 id="bsc-home-brands-title">Marcas destacadas del home</h2>
+			</div>
+			<p>Cambia la marca/categoria destino y la imagen de cada item del bloque de marcas.</p>
+		</div>
+		<?php if ( empty( $terms ) ) : ?>
+			<p class="bsc-home-brands-admin__empty">No hay categorias de producto disponibles para seleccionar marcas.</p>
+		<?php endif; ?>
+		<div class="bsc-home-brands-admin__grid">
+			<?php foreach ( $brands as $index => $brand ) : ?>
+				<?php bsc_home_brands_render_admin_card( (int) $index, $brand, $terms ); ?>
+			<?php endforeach; ?>
+		</div>
+	</section>
+	<?php
+}
+
+function bsc_home_brands_render_admin_card( int $index, array $brand, array $terms ): void {
+	$slot_number       = $index + 1;
+	$term_id           = absint( $brand['term_id'] ?? 0 );
+	$name              = (string) ( $brand['name'] ?? '' );
+	$slug              = (string) ( $brand['slug'] ?? '' );
+	$image_id          = absint( $brand['image_id'] ?? 0 );
+	$preview_url       = bsc_home_brand_get_image_url( $brand, 'medium' );
+	$default_image_url = bsc_home_brand_get_default_image_url( $brand );
+	$field_id          = 'bsc-home-brand-' . $index;
+	$field_name        = 'bsc_home_brands[' . $index . ']';
+	?>
+	<article
+		class="bsc-home-brand-card"
+		data-bsc-home-brand-card
+		data-default-image-url="<?php echo esc_url( $default_image_url ); ?>"
+	>
+		<div class="bsc-home-brand-card__header">
+			<div>
+				<span class="bsc-home-brand-card__slot">Slot <?php echo esc_html( (string) $slot_number ); ?></span>
+				<h3 data-bsc-home-brand-current><?php echo esc_html( '' !== $name ? $name : 'Marca sin seleccionar' ); ?></h3>
+			</div>
+			<span class="bsc-home-brand-card__status" data-bsc-home-brand-status>
+				<?php echo 0 < $image_id ? esc_html__( 'Imagen personalizada', 'bsc-2-0' ) : esc_html__( 'Imagen por defecto', 'bsc-2-0' ); ?>
+			</span>
+		</div>
+
+		<div class="bsc-home-brand-card__preview" data-bsc-home-brand-preview>
+			<?php if ( '' !== $preview_url ) : ?>
+				<img src="<?php echo esc_url( $preview_url ); ?>" alt="">
+			<?php endif; ?>
+		</div>
+
+		<input
+			type="hidden"
+			name="<?php echo esc_attr( $field_name ); ?>[image_id]"
+			value="<?php echo esc_attr( (string) $image_id ); ?>"
+			data-bsc-home-brand-image-id
+		>
+		<input
+			type="hidden"
+			name="<?php echo esc_attr( $field_name ); ?>[slug]"
+			value="<?php echo esc_attr( $slug ); ?>"
+			data-bsc-home-brand-slug
+		>
+
+		<label class="bsc-home-brand-card__field" for="<?php echo esc_attr( $field_id ); ?>-term">
+			<span>Marca / categoria destino</span>
+			<select
+				id="<?php echo esc_attr( $field_id ); ?>-term"
+				name="<?php echo esc_attr( $field_name ); ?>[term_id]"
+				data-bsc-home-brand-term
+				<?php disabled( empty( $terms ) ); ?>
+			>
+				<option value="">Selecciona una marca</option>
+				<?php foreach ( $terms as $term ) : ?>
+					<option
+						value="<?php echo esc_attr( (string) $term->term_id ); ?>"
+						data-slug="<?php echo esc_attr( (string) $term->slug ); ?>"
+						data-name="<?php echo esc_attr( (string) $term->name ); ?>"
+						<?php selected( $term_id, (int) $term->term_id ); ?>
+					>
+						<?php echo esc_html( bsc_home_brands_get_term_label( $term ) . ' (' . $term->slug . ')' ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+		</label>
+
+		<div class="bsc-home-brand-card__actions">
+			<button type="button" class="button" data-bsc-home-brand-select>Seleccionar imagen</button>
+			<button type="button" class="button" data-bsc-home-brand-reset <?php disabled( $image_id <= 0 ); ?>>Usar imagen por defecto</button>
+		</div>
+	</article>
+	<?php
+}
+
 function bsc_home_favorites_settings_init() {
 	register_setting(
 		'bsc_home_favorites_group',
 		'bsc_home_favorites',
 		array(
 			'sanitize_callback' => 'bsc_home_favorites_sanitize_options',
+		)
+	);
+
+	register_setting(
+		'bsc_home_favorites_group',
+		BSC_HOME_BRANDS_OPTION,
+		array(
+			'sanitize_callback' => 'bsc_sanitize_home_brand_items',
 		)
 	);
 
@@ -348,6 +456,8 @@ function bsc_home_favorites_admin_assets() {
 	if ( $page !== 'bsc-home-favorites' ) {
 		return;
 	}
+
+	wp_enqueue_media();
 
 	$css_path = get_template_directory() . '/admin/bsc-home-products.css';
 	$js_path  = get_template_directory() . '/js/admin/bsc-home-products.js';

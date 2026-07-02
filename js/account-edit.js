@@ -6,6 +6,8 @@
     var firstEl = document.getElementById('account_first_name');
     var lastEl = document.getElementById('account_last_name');
     var displayEl = document.getElementById('account_display_name');
+    var passwordEl = document.getElementById('bsc_account_password');
+    var passwordConfirmEl = document.getElementById('bsc_account_password_confirm');
 
     if (!fullNameEl || !firstEl || !lastEl || !displayEl) {
       return;
@@ -27,12 +29,52 @@
       displayEl.value = full;
     }
 
+    function validatePasswords() {
+      if (!passwordEl || !passwordConfirmEl) {
+        return true;
+      }
+
+      var password = passwordEl.value || '';
+      var confirmation = passwordConfirmEl.value || '';
+
+      passwordEl.setCustomValidity('');
+      passwordConfirmEl.setCustomValidity('');
+
+      if (!password && !confirmation) {
+        return true;
+      }
+
+      if (!password || !confirmation) {
+        passwordConfirmEl.setCustomValidity('Completa los dos campos de contraseña para cambiarla.');
+        return false;
+      }
+
+      if (password !== confirmation) {
+        passwordConfirmEl.setCustomValidity('Las contraseñas no coinciden.');
+        return false;
+      }
+
+      return true;
+    }
+
     syncHidden();
     fullNameEl.addEventListener('input', syncHidden);
 
+    if (passwordEl && passwordConfirmEl) {
+      passwordEl.addEventListener('input', validatePasswords);
+      passwordConfirmEl.addEventListener('input', validatePasswords);
+    }
+
     var form = fullNameEl.closest('form');
     if (form) {
-      form.addEventListener('submit', syncHidden);
+      form.addEventListener('submit', function (event) {
+        syncHidden();
+
+        if (!validatePasswords()) {
+          event.preventDefault();
+          passwordConfirmEl.reportValidity();
+        }
+      });
     }
   });
 })();

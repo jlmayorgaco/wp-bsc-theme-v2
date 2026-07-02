@@ -51,7 +51,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-search',
 		get_template_directory_uri() . '/js/search.js',
 		array(),
-		BSC_THEME_VERSION,
+		(string) filemtime( get_template_directory() . '/js/search.js' ),
 		true
 	);
 
@@ -228,6 +228,16 @@ function bsc_2_0_scripts() {
 			get_template_directory_uri() . '/js/account-page.js',
 			array(),
 			BSC_THEME_VERSION,
+			true
+		);
+	}
+
+	if ( is_account_page() && is_wc_endpoint_url( 'edit-address' ) ) {
+		wp_enqueue_script(
+			'bsc-2-0-account-address',
+			get_template_directory_uri() . '/js/account-address.js',
+			array(),
+			(string) filemtime( get_template_directory() . '/js/account-address.js' ),
 			true
 		);
 	}

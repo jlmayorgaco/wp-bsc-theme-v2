@@ -129,6 +129,108 @@
 	background: #ffffff;
 }
 
+.bsc-home-brands-admin__grid {
+	display: grid;
+	gap: 14px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bsc-home-brands-admin__empty {
+	color: #646970;
+	margin: 0 0 12px;
+}
+
+.bsc-home-brand-card {
+	background: #fbfbfc;
+	border: 1px solid #e4e4e7;
+	border-radius: 8px;
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+	padding: 12px;
+}
+
+.bsc-home-brand-card__header {
+	align-items: flex-start;
+	display: flex;
+	gap: 10px;
+	justify-content: space-between;
+	min-width: 0;
+}
+
+.bsc-home-brand-card__header h3 {
+	color: #1d2327;
+	font-size: 15px;
+	line-height: 1.25;
+	margin: 2px 0 0;
+	overflow-wrap: anywhere;
+}
+
+.bsc-home-brand-card__slot {
+	color: #8a4b68;
+	display: block;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-transform: uppercase;
+}
+
+.bsc-home-brand-card__status {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 999px;
+	color: #50575e;
+	display: inline-flex;
+	flex: 0 0 auto;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.2;
+	padding: 5px 9px;
+}
+
+.bsc-home-brand-card__preview {
+	aspect-ratio: 1 / 1;
+	background: #ffffff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	display: grid;
+	overflow: hidden;
+	place-items: center;
+	width: 100%;
+}
+
+.bsc-home-brand-card__preview img {
+	box-sizing: border-box;
+	display: block;
+	height: 100%;
+	object-fit: contain;
+	padding: 10px;
+	width: 100%;
+}
+
+.bsc-home-brand-card__field {
+	display: grid;
+	gap: 6px;
+}
+
+.bsc-home-brand-card__field span {
+	color: #50575e;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.bsc-home-brand-card__field select {
+	max-width: 100%;
+	width: 100%;
+}
+
+.bsc-home-brand-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
 .bsc-home-product-selector {
 	display: grid;
 	gap: 8px;
@@ -281,6 +383,10 @@
 	.bsc-home-products-admin__priority-grid {
 		grid-template-columns: 1fr;
 	}
+
+	.bsc-home-brands-admin__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 @media (max-width: 782px) {
@@ -312,5 +418,13 @@
 
 	.bsc-home-product-selector__summary {
 		align-items: flex-start;
+	}
+
+	.bsc-home-brands-admin__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.bsc-home-brand-card__header {
+		display: grid;
 	}
 }

@@ -6,6 +6,7 @@ class BSC_Order_Progress_Bar {
 	public const DONE             = 'done';
 	public const CANCELLED        = 'cancelled';
 	public const REFUNDED         = 'refunded';
+	public const ARCHIVED         = 'archived';
 	public const DISPLAY_STANDARD = 'standard';
 	public const DISPLAY_COMPACT  = 'compact';
 
@@ -18,7 +19,13 @@ class BSC_Order_Progress_Bar {
 	}
 
 	public function setStatus( string $status ): void {
-		$valid        = array( self::RECEIVED, self::SHIPPED, self::DONE, self::CANCELLED, self::REFUNDED );
+		$status = match ($status) {
+			self::DONE     => self::SHIPPED,
+			self::REFUNDED => self::CANCELLED,
+			default        => $status,
+		};
+
+		$valid        = array( self::RECEIVED, self::SHIPPED, self::CANCELLED, self::ARCHIVED );
 		$this->status = in_array( $status, $valid, true ) ? $status : self::CANCELLED;
 	}
 
@@ -28,11 +35,12 @@ class BSC_Order_Progress_Bar {
 	}
 
 	public function render(): void {
-		if ($this->status === self::CANCELLED || $this->status === self::REFUNDED) {
-			$single_label = $this->status === self::REFUNDED ? 'Reembolsado' : 'Cancelado';
+		if ($this->status === self::CANCELLED || $this->status === self::ARCHIVED) {
+			$single_label = $this->status === self::ARCHIVED ? 'Archivado' : 'Cancelado';
+			$aria_label   = 'Estado del pedido: ' . $single_label;
 			$width_class  = 'level--100%';
 			?>
-			<div class="bsc__progress-bar bsc__progress-bar--single">
+			<div class="bsc__progress-bar bsc__progress-bar--single" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 				<div class="progress-bar">
 					<div class="progress-bar__background"></div>
 					<div class="progress-bar__level level--gray <?php echo esc_attr( $width_class ); ?>"></div>
@@ -49,15 +57,16 @@ class BSC_Order_Progress_Bar {
 		}
 
 		$config = $this->build_progress_config();
+		$aria_label = 'Estado del pedido: ' . $config['current_label'];
 		?>
-		<div class="bsc__progress-bar">
+		<div class="bsc__progress-bar" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 			<div class="progress-bar">
 				<div class="progress-bar__background"></div>
 				<div class="progress-bar__level <?php echo esc_attr( trim( $config['bar_color_class'] . ' ' . $config['progress_width_class'] ) ); ?>"></div>
 			</div>
 			<div class="labels">
 				<?php foreach ($config['labels'] as $label) : ?>
-		<div class="label <?php echo esc_attr( $label['is_active'] ? 'label--focus' : 'label--non-focus' ); ?>">
+					<div class="label <?php echo esc_attr( $label['is_active'] ? 'label--focus' : 'label--non-focus' ); ?>">
 						<span class="label__line">|</span>
 						<span class="label__text"><?php echo esc_html( $label['text'] ); ?></span>
 					</div>
@@ -68,56 +77,23 @@ class BSC_Order_Progress_Bar {
 	}
 
 	private function build_progress_config(): array {
-		if ($this->display_mode === self::DISPLAY_COMPACT) {
-			$is_done = $this->status === self::DONE;
-
-			return array(
-				'progress_width_class' => $is_done ? 'level--100%' : 'level--50%',
-				'bar_color_class'      => $is_done ? 'level--blue' : 'level--pink',
-				'labels'               => array(
-					array(
-						'text'      => 'Recibido',
-						'is_active' => true,
-					),
-					array(
-						'text'      => 'Entregado',
-						'is_active' => $is_done,
-					),
-				),
-			);
-		}
-
-		$step_order = array(
-			self::RECEIVED => 1,
-			self::SHIPPED  => 2,
-			self::DONE     => 3,
-		);
-
-		$progress_width_class = match ($this->status) {
-			self::RECEIVED => 'level--33%',
-			self::SHIPPED  => 'level--66%',
-			self::DONE     => 'level--100%',
-			default        => '',
-		};
-
-		$bar_color_class = ( $this->status === self::DONE ) ? 'level--blue' : 'level--pink';
-		$active_index    = $step_order[ $this->status ] ?? 0;
+		$is_shipped           = $this->status === self::SHIPPED;
+		$current_label        = $is_shipped ? 'Enviado' : 'Recibido';
+		$progress_width_class = $is_shipped ? 'level--100%' : 'level--50%';
+		$bar_color_class      = $is_shipped ? 'level--blue' : 'level--pink';
 
 		return array(
 			'progress_width_class' => $progress_width_class,
 			'bar_color_class'      => $bar_color_class,
+			'current_label'        => $current_label,
 			'labels'               => array(
 				array(
 					'text'      => 'Recibido',
-					'is_active' => $active_index >= 1,
+					'is_active' => ! $is_shipped,
 				),
 				array(
 					'text'      => 'Enviado',
-					'is_active' => $active_index >= 2,
-				),
-				array(
-					'text'      => 'Entregado',
-					'is_active' => $active_index >= 3,
+					'is_active' => $is_shipped,
 				),
 			),
 		);

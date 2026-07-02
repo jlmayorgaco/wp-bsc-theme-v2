@@ -49,7 +49,8 @@
     @include bsc.field-control($border-style: dashed);
   }
 
-  input[disabled] {
+  input[disabled],
+  input[readonly] {
     cursor: not-allowed;
     background-color: bsc.$border-muted;
     color: bsc.$text-muted;
@@ -104,6 +105,41 @@
   button {
     margin: 0;
   }
+}
+
+.bsc__account-notices {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 1.5rem 0 0;
+}
+
+.bsc__account-notice {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.85rem 1rem;
+  border: 1px dashed bsc.$border;
+  border-radius: bsc.$radius-md;
+  background-color: bsc.$surface-soft;
+  color: bsc.$text;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.bsc__account-notice--success {
+  border-color: bsc.$success;
+  background-color: color-mix(in srgb, bsc.$success 12%, bsc.$surface);
+}
+
+.bsc__account-notice--error {
+  border-color: bsc.$danger;
+  background-color: color-mix(in srgb, bsc.$danger 10%, bsc.$surface);
+}
+
+.bsc__account-notice--notice {
+  border-color: bsc.$brand-yellow;
+  background-color: color-mix(in srgb, bsc.$brand-yellow 35%, bsc.$surface);
 }
 
 .bsc__field--need {

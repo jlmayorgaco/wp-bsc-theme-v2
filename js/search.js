@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchCache[query]) {
       renderResults(
         searchCache[query].products || [],
+        searchCache[query].suggestions || [],
         resultsList
       );
       return;
@@ -43,8 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       const products = data.success && Array.isArray(data.data.products) ? data.data.products : [];
+      const suggestions = data.success && Array.isArray(data.data.suggestions) ? data.data.suggestions : [];
 
-      if (!data.success || products.length === 0) {
+      if (!data.success || (products.length === 0 && suggestions.length === 0)) {
         setSingleResultMessage(resultsList, 'search-empty', 'No se encontraron productos.');
         return;
       }
@@ -53,9 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cacheKeys.length >= SEARCH_CACHE_MAX) {
         delete searchCache[cacheKeys[0]];
       }
-      searchCache[query] = { products };
+      searchCache[query] = { products, suggestions };
 
-      renderResults(products, resultsList);
+      renderResults(products, suggestions, resultsList);
     } catch (err) {
       if (err.name === 'AbortError') {
         return;
@@ -65,13 +67,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function renderResults(products, resultsList) {
+  function renderResults(products, suggestions, resultsList) {
     resultsList.innerHTML = '';
+    const cleanSuggestions = dedupeSuggestions(suggestions || []);
 
     const placeholderImg =
       window.bsc_search && window.bsc_search.placeholder_img
         ? window.bsc_search.placeholder_img
         : '';
+
+    cleanSuggestions.forEach((suggestion) => {
+      const li = document.createElement('li');
+      li.classList.add('search-result-item', 'search-result-item--suggestion');
+      li.tabIndex = 0;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', 'false');
+
+      const info = document.createElement('div');
+      info.classList.add('search-result-info');
+
+      const name = document.createElement('strong');
+      name.classList.add('search-result-name');
+      name.textContent = suggestion.label || '';
+      info.appendChild(name);
+
+      if (suggestion.meta && suggestion.type !== 'category') {
+        const meta = document.createElement('span');
+        meta.classList.add('search-result-meta');
+        meta.textContent = suggestion.meta;
+        info.appendChild(meta);
+      }
+
+      li.appendChild(info);
+
+      const goToSuggestion = () => {
+        if (suggestion.url) {
+          window.location.href = suggestion.url;
+        }
+      };
+
+      li.addEventListener('click', goToSuggestion);
+      li.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          goToSuggestion();
+        }
+      });
+
+      resultsList.appendChild(li);
+    });
 
     products.forEach((product) => {
       const li = document.createElement('li');
@@ -162,6 +206,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       resultsList.appendChild(viewAll);
     }
+  }
+
+  function dedupeSuggestions(suggestions) {
+    const seen = new Set();
+
+    return suggestions.filter((suggestion) => {
+      if (!suggestion || !suggestion.label || !suggestion.url) {
+        return false;
+      }
+
+      const type = suggestion.type || 'suggestion';
+      const label = normalizeSuggestionKey(suggestion.label);
+      const key = type === 'category' || type === 'brand'
+        ? `${type}:${label}`
+        : `${type}:${label}:${suggestion.url}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
   }
 
   function initSearchInstance({
@@ -388,6 +455,15 @@ function decodeHtmlEntities(str) {
   const txt = document.createElement('textarea');
   txt.innerHTML = str;
   return txt.value;
+}
+
+function normalizeSuggestionKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function setSingleResultMessage(resultsList, className, message) {

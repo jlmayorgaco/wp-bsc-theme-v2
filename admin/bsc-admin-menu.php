@@ -256,7 +256,17 @@ function bsc_add_admin_menu(): void {
 		''
 	);
 
-	// 7. Bubble Points - callbacks defined in plugins/bubble-points/admin/admin-menu.php
+	// 7. Header Menus - admin only
+	add_submenu_page(
+		'bsc-dashboard',
+		__( 'Header Menus', 'bsc-2-0' ),
+		__( 'Header Menus', 'bsc-2-0' ),
+		'manage_options',
+		'bsc-header-menus',
+		'bsc_render_header_menus_page'
+	);
+
+	// 8. Bubble Points - callbacks defined in plugins/bubble-points/admin/admin-menu.php
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Bubble Points', 'bsc-2-0' ),
@@ -407,6 +417,7 @@ require_once get_template_directory() . '/admin/bsc-showroom-page.php';
 require_once get_template_directory() . '/admin/bsc-products-page.php';      // BSC-062
 require_once get_template_directory() . '/admin/bsc-product-edit-page.php';  // BSC-065
 require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // BSC-066
+require_once get_template_directory() . '/admin/bsc-header-menus-page.php';
 require_once get_template_directory() . '/admin/bsc-creators-page.php';
 require_once get_template_directory() . '/admin/bsc-newsletter-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082

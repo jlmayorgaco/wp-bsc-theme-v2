@@ -96,25 +96,80 @@ function bsc_2_0_get_checkout_url(): string {
 }
 
 function bsc_product_variants_normalize_hex( $raw_color ): string {
-	$hex = sanitize_hex_color( sanitize_text_field( (string) $raw_color ) );
+	$raw_color = trim( sanitize_text_field( (string) $raw_color ) );
+	if ( $raw_color === '' ) {
+		return '';
+	}
 
-	return $hex ?: '';
+	if ( ! str_starts_with( $raw_color, '#' ) ) {
+		$raw_color = '#' . $raw_color;
+	}
+
+	$hex = sanitize_hex_color( $raw_color );
+	if ( ! $hex ) {
+		return '';
+	}
+
+	if ( strlen( $hex ) === 4 ) {
+		$hex = sprintf( '#%1$s%1$s%2$s%2$s%3$s%3$s', $hex[1], $hex[2], $hex[3] );
+	}
+
+	return strtoupper( $hex );
+}
+
+function bsc_product_variants_sanitize_price_value( $raw_price ): ?string {
+	$raw_price = trim( (string) sanitize_text_field( $raw_price ) );
+
+	if ( $raw_price === '' ) {
+		return '';
+	}
+
+	$normalized = str_replace( ',', '.', $raw_price );
+	if ( ! is_numeric( $normalized ) || (float) $normalized < 0 ) {
+		return null;
+	}
+
+	return wc_format_decimal( $normalized, wc_get_price_decimals() );
 }
 
 function bsc_product_variants_normalize_price( $raw_price ): string {
-	if ( $raw_price === null || $raw_price === '' ) {
-		return '';
-	}
+	$price = bsc_product_variants_sanitize_price_value( $raw_price );
 
-	$price = wc_format_decimal( sanitize_text_field( (string) $raw_price ), wc_get_price_decimals() );
-	if ( $price === '' || ! is_numeric( $price ) || (float) $price < 0 ) {
-		return '';
-	}
-
-	return $price;
+	return $price === null ? '' : $price;
 }
 
-function bsc_get_product_color_variants( int $product_id ): array {
+function bsc_product_variant_matrix_key( string $color_name, string $size_name ): string {
+	$color_key = sanitize_title( remove_accents( $color_name ) );
+	$size_key  = sanitize_title( remove_accents( $size_name ) );
+	$source    = strtolower( $color_key . '|' . $size_key );
+
+	if ( $source === '|' ) {
+		return '';
+	}
+
+	return substr( md5( $source ), 0, 16 );
+}
+
+function bsc_product_variant_bool( $raw_value, bool $default = true ): bool {
+	if ( $raw_value === null || $raw_value === '' ) {
+		return $default;
+	}
+
+	if ( is_bool( $raw_value ) ) {
+		return $raw_value;
+	}
+
+	return in_array( strtolower( (string) $raw_value ), array( '1', 'true', 'yes', 'on', 'enabled' ), true );
+}
+
+function bsc_product_variant_effective_price( array $variant ): string {
+	$sale_price    = (string) ( $variant['sale_price'] ?? '' );
+	$regular_price = (string) ( $variant['regular_price'] ?? '' );
+
+	return $sale_price !== '' ? $sale_price : $regular_price;
+}
+
+function bsc_get_legacy_product_color_variants( int $product_id ): array {
 	if ( $product_id <= 0 || get_post_meta( $product_id, '_bsc_color_variants_enabled', true ) !== '1' ) {
 		return array();
 	}
@@ -147,7 +202,7 @@ function bsc_get_product_color_variants( int $product_id ): array {
 	return $variants;
 }
 
-function bsc_get_product_size_variants( int $product_id ): array {
+function bsc_get_legacy_product_size_variants( int $product_id ): array {
 	if ( $product_id <= 0 || get_post_meta( $product_id, '_bsc_size_variants_enabled', true ) !== '1' ) {
 		return array();
 	}
@@ -177,60 +232,474 @@ function bsc_get_product_size_variants( int $product_id ): array {
 	return $variants;
 }
 
+function bsc_sanitize_product_variant_matrix( $raw_matrix, ?array &$errors = null ): array {
+	if ( ! is_array( $raw_matrix ) ) {
+		return array();
+	}
+
+	$matrix         = array();
+	$seen           = array();
+	$collect_errors = is_array( $errors );
+
+	foreach ( $raw_matrix as $raw_variant ) {
+		if ( ! is_array( $raw_variant ) ) {
+			continue;
+		}
+
+		$color_name = sanitize_text_field( (string) ( $raw_variant['color_name'] ?? '' ) );
+		$color_hex  = bsc_product_variants_normalize_hex( $raw_variant['color_hex'] ?? '' );
+		$size_name  = sanitize_text_field( (string) ( $raw_variant['size_name'] ?? '' ) );
+
+		if ( $color_name === '' && $size_name === '' ) {
+			continue;
+		}
+
+		if ( $color_name !== '' && $color_hex === '' ) {
+			$color_hex = '#F7C0CD';
+		}
+
+		$regular_price = bsc_product_variants_sanitize_price_value(
+			$raw_variant['regular_price'] ?? ( $raw_variant['price'] ?? '' )
+		);
+		$sale_price    = bsc_product_variants_sanitize_price_value( $raw_variant['sale_price'] ?? '' );
+
+		if ( $regular_price === null ) {
+			if ( $collect_errors ) {
+				$errors[] = sprintf( 'Precio regular invalido para la variante "%s".', trim( $color_name . ' ' . $size_name ) );
+			}
+			continue;
+		}
+
+		if ( $sale_price === null ) {
+			if ( $collect_errors ) {
+				$errors[] = sprintf( 'Precio de oferta invalido para la variante "%s".', trim( $color_name . ' ' . $size_name ) );
+			}
+			continue;
+		}
+
+		if ( $sale_price !== '' && $regular_price === '' ) {
+			if ( $collect_errors ) {
+				$errors[] = sprintf( 'La variante "%s" necesita precio regular para usar oferta.', trim( $color_name . ' ' . $size_name ) );
+			}
+			continue;
+		}
+
+		if ( $sale_price !== '' && $regular_price !== '' && (float) $sale_price > (float) $regular_price ) {
+			if ( $collect_errors ) {
+				$errors[] = sprintf( 'La oferta supera el precio regular en la variante "%s".', trim( $color_name . ' ' . $size_name ) );
+			}
+			continue;
+		}
+
+		$key = bsc_product_variant_matrix_key( $color_name, $size_name );
+		if ( $key === '' || isset( $seen[ $key ] ) ) {
+			continue;
+		}
+
+		$seen[ $key ] = true;
+		$row          = array(
+			'key'           => $key,
+			'color_name'    => $color_name,
+			'color_hex'     => $color_name !== '' ? $color_hex : '',
+			'size_name'     => $size_name,
+			'regular_price' => $regular_price,
+			'sale_price'    => $sale_price,
+			'stock_bodega'  => max( 0, intval( $raw_variant['stock_bodega'] ?? 0 ) ),
+			'stock_tienda'  => max( 0, intval( $raw_variant['stock_tienda'] ?? 0 ) ),
+			'enabled'       => bsc_product_variant_bool( $raw_variant['enabled'] ?? true, true ),
+		);
+		$row['price'] = bsc_product_variant_effective_price( $row );
+
+		$matrix[] = $row;
+
+		if ( count( $matrix ) >= 500 ) {
+			break;
+		}
+	}
+
+	return $matrix;
+}
+
+function bsc_get_product_saved_variant_matrix( int $product_id, bool $include_disabled = false ): array {
+	if ( $product_id <= 0 ) {
+		return array();
+	}
+
+	$raw_matrix = get_post_meta( $product_id, '_bsc_variant_matrix', true );
+	if ( is_string( $raw_matrix ) && $raw_matrix !== '' ) {
+		$decoded = json_decode( $raw_matrix, true );
+		if ( is_array( $decoded ) ) {
+			$raw_matrix = $decoded;
+		}
+	}
+
+	$matrix = bsc_sanitize_product_variant_matrix( is_array( $raw_matrix ) ? $raw_matrix : array() );
+	if ( $include_disabled ) {
+		return $matrix;
+	}
+
+	return array_values(
+		array_filter(
+			$matrix,
+			static function ( array $variant ): bool {
+				return ! empty( $variant['enabled'] );
+			}
+		)
+	);
+}
+
+function bsc_product_has_saved_variant_matrix( int $product_id ): bool {
+	return ! empty( bsc_get_product_saved_variant_matrix( $product_id, true ) );
+}
+
+function bsc_build_legacy_product_variant_matrix( int $product_id ): array {
+	$colors = bsc_get_legacy_product_color_variants( $product_id );
+	$sizes  = bsc_get_legacy_product_size_variants( $product_id );
+
+	if ( empty( $colors ) && empty( $sizes ) ) {
+		return array();
+	}
+
+	$product       = wc_get_product( $product_id );
+	$base_regular  = $product instanceof WC_Product ? (string) $product->get_regular_price() : '';
+	$base_sale     = $product instanceof WC_Product ? (string) $product->get_sale_price() : '';
+	$stock         = class_exists( 'BSC_Stock' )
+		? BSC_Stock::get_stock( $product_id )
+		: array(
+			'bodega' => (int) get_post_meta( $product_id, '_stock_bodega', true ),
+			'tienda' => (int) get_post_meta( $product_id, '_stock_tienda', true ),
+		);
+	$color_options = ! empty( $colors ) ? $colors : array( null );
+	$size_options  = ! empty( $sizes ) ? $sizes : array( null );
+	$total_rows    = max( 1, count( $color_options ) * count( $size_options ) );
+	$bodega_total  = max( 0, (int) ( $stock['bodega'] ?? 0 ) );
+	$tienda_total  = max( 0, (int) ( $stock['tienda'] ?? 0 ) );
+	$matrix        = array();
+	$row_index     = 0;
+
+	foreach ( $color_options as $color ) {
+		foreach ( $size_options as $size ) {
+			$variant_price = '';
+			if ( is_array( $color ) && (string) ( $color['price'] ?? '' ) !== '' ) {
+				$variant_price = (string) $color['price'];
+			}
+			if ( is_array( $size ) && (string) ( $size['price'] ?? '' ) !== '' ) {
+				$variant_price = (string) $size['price'];
+			}
+
+			$stock_bodega = intdiv( $bodega_total, $total_rows ) + ( $row_index < ( $bodega_total % $total_rows ) ? 1 : 0 );
+			$stock_tienda = intdiv( $tienda_total, $total_rows ) + ( $row_index < ( $tienda_total % $total_rows ) ? 1 : 0 );
+			$row = array(
+				'color_name'    => is_array( $color ) ? (string) $color['name'] : '',
+				'color_hex'     => is_array( $color ) ? (string) $color['hex'] : '',
+				'size_name'     => is_array( $size ) ? (string) $size['name'] : '',
+				'regular_price' => $variant_price !== '' ? $variant_price : $base_regular,
+				'sale_price'    => $variant_price !== '' ? '' : $base_sale,
+				'stock_bodega'  => $stock_bodega,
+				'stock_tienda'  => $stock_tienda,
+				'enabled'       => true,
+			);
+			$row['key']   = bsc_product_variant_matrix_key( $row['color_name'], $row['size_name'] );
+			$row['price'] = bsc_product_variant_effective_price( $row );
+
+			if ( $row['key'] !== '' ) {
+				$matrix[] = $row;
+			}
+			$row_index++;
+		}
+	}
+
+	return $matrix;
+}
+
+function bsc_get_product_variant_matrix( int $product_id, bool $include_disabled = false ): array {
+	$saved_matrix = bsc_get_product_saved_variant_matrix( $product_id, $include_disabled );
+	if ( ! empty( $saved_matrix ) ) {
+		return $saved_matrix;
+	}
+
+	$legacy_matrix = bsc_build_legacy_product_variant_matrix( $product_id );
+	if ( $include_disabled ) {
+		return $legacy_matrix;
+	}
+
+	return array_values(
+		array_filter(
+			$legacy_matrix,
+			static function ( array $variant ): bool {
+				return ! empty( $variant['enabled'] );
+			}
+		)
+	);
+}
+
+function bsc_get_product_variant_matrix_public_data( int $product_id ): array {
+	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+
+	return array_values(
+		array_map(
+			static function ( array $variant ): array {
+				$stock_bodega = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) );
+				$stock_tienda = max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+
+				return array(
+					'key'           => (string) ( $variant['key'] ?? '' ),
+					'color_name'    => (string) ( $variant['color_name'] ?? '' ),
+					'color_hex'     => (string) ( $variant['color_hex'] ?? '' ),
+					'size_name'     => (string) ( $variant['size_name'] ?? '' ),
+					'regular_price' => (string) ( $variant['regular_price'] ?? '' ),
+					'sale_price'    => (string) ( $variant['sale_price'] ?? '' ),
+					'price'         => bsc_product_variant_effective_price( $variant ),
+					'stock_bodega'  => $stock_bodega,
+					'stock_tienda'  => $stock_tienda,
+					'stock_total'   => $stock_bodega + $stock_tienda,
+					'enabled'       => ! empty( $variant['enabled'] ),
+				);
+			},
+			$matrix
+		)
+	);
+}
+
+function bsc_sync_product_variant_parent_stock( int $product_id, ?array $matrix = null ): void {
+	if ( $product_id <= 0 ) {
+		return;
+	}
+
+	$matrix = $matrix ?? bsc_get_product_saved_variant_matrix( $product_id, false );
+	if ( empty( $matrix ) ) {
+		return;
+	}
+
+	$bodega = 0;
+	$tienda = 0;
+	foreach ( $matrix as $variant ) {
+		if ( empty( $variant['enabled'] ) ) {
+			continue;
+		}
+		$bodega += max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) );
+		$tienda += max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+	}
+
+	update_post_meta( $product_id, '_stock_bodega', $bodega );
+	update_post_meta( $product_id, '_stock_tienda', $tienda );
+	update_post_meta( $product_id, '_stock_status', ( $bodega + $tienda ) > 0 ? 'instock' : 'outofstock' );
+	wc_delete_product_transients( $product_id );
+}
+
+function bsc_get_product_color_variants( int $product_id ): array {
+	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+	if ( empty( $matrix ) ) {
+		return array();
+	}
+
+	$has_sizes = false;
+	foreach ( $matrix as $variant ) {
+		if ( (string) ( $variant['size_name'] ?? '' ) !== '' ) {
+			$has_sizes = true;
+			break;
+		}
+	}
+
+	$variants = array();
+	$seen     = array();
+	foreach ( $matrix as $variant ) {
+		$name = (string) ( $variant['color_name'] ?? '' );
+		$hex  = (string) ( $variant['color_hex'] ?? '' );
+		if ( $name === '' || $hex === '' ) {
+			continue;
+		}
+
+		$key = strtolower( $name . '|' . $hex );
+		if ( isset( $seen[ $key ] ) ) {
+			continue;
+		}
+
+		$seen[ $key ] = true;
+		$variants[]   = array(
+			'name'  => $name,
+			'hex'   => $hex,
+			'price' => $has_sizes ? '' : bsc_product_variant_effective_price( $variant ),
+		);
+	}
+
+	return $variants;
+}
+
+function bsc_get_product_size_variants( int $product_id ): array {
+	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+	if ( empty( $matrix ) ) {
+		return array();
+	}
+
+	$has_colors = false;
+	foreach ( $matrix as $variant ) {
+		if ( (string) ( $variant['color_name'] ?? '' ) !== '' ) {
+			$has_colors = true;
+			break;
+		}
+	}
+
+	$variants = array();
+	$seen     = array();
+	foreach ( $matrix as $variant ) {
+		$name = (string) ( $variant['size_name'] ?? '' );
+		if ( $name === '' || isset( $seen[ strtolower( $name ) ] ) ) {
+			continue;
+		}
+
+		$seen[ strtolower( $name ) ] = true;
+		$variants[]                  = array(
+			'name'  => $name,
+			'price' => $has_colors ? '' : bsc_product_variant_effective_price( $variant ),
+		);
+	}
+
+	return $variants;
+}
+
 function bsc_product_has_public_variant_options( int $product_id ): bool {
-	return ! empty( bsc_get_product_color_variants( $product_id ) ) || ! empty( bsc_get_product_size_variants( $product_id ) );
+	return ! empty( bsc_get_product_variant_matrix( $product_id, false ) );
+}
+
+function bsc_find_product_variant_matrix_row(
+	int $product_id,
+	string $variant_key = '',
+	string $color_name = '',
+	string $color_hex = '',
+	string $size_name = '',
+	bool $include_disabled = false
+): ?array {
+	$matrix     = bsc_get_product_variant_matrix( $product_id, true );
+	$color_name = sanitize_text_field( $color_name );
+	$color_hex  = bsc_product_variants_normalize_hex( $color_hex );
+	$size_name  = sanitize_text_field( $size_name );
+
+	foreach ( $matrix as $variant ) {
+		if ( ! $include_disabled && empty( $variant['enabled'] ) ) {
+			continue;
+		}
+
+		if ( $variant_key !== '' && hash_equals( (string) ( $variant['key'] ?? '' ), $variant_key ) ) {
+			return $variant;
+		}
+	}
+
+	foreach ( $matrix as $variant ) {
+		if ( ! $include_disabled && empty( $variant['enabled'] ) ) {
+			continue;
+		}
+
+		$row_color_name = (string) ( $variant['color_name'] ?? '' );
+		$row_color_hex  = (string) ( $variant['color_hex'] ?? '' );
+		$row_size_name  = (string) ( $variant['size_name'] ?? '' );
+		$color_matches  = $color_name === ''
+			? $row_color_name === ''
+			: strcasecmp( $row_color_name, $color_name ) === 0 && ( $color_hex === '' || strcasecmp( $row_color_hex, $color_hex ) === 0 );
+		$size_matches   = $size_name === ''
+			? $row_size_name === ''
+			: strcasecmp( $row_size_name, $size_name ) === 0;
+
+		if ( $color_matches && $size_matches ) {
+			return $variant;
+		}
+	}
+
+	return null;
 }
 
 function bsc_get_selected_product_variant_options( int $product_id, array $data ): array {
-	$colors     = bsc_get_product_color_variants( $product_id );
-	$sizes      = bsc_get_product_size_variants( $product_id );
-	$color_name = isset( $data['bsc_color_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_color_variant_name'] ) ) : '';
-	$color_hex  = isset( $data['bsc_color_variant_hex'] ) ? bsc_product_variants_normalize_hex( wp_unslash( $data['bsc_color_variant_hex'] ) ) : '';
-	$size_name  = isset( $data['bsc_size_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_size_variant_name'] ) ) : '';
+	$variant_key = isset( $data['bsc_product_variant_key'] ) ? sanitize_key( wp_unslash( $data['bsc_product_variant_key'] ) ) : '';
+	$color_name  = isset( $data['bsc_color_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_color_variant_name'] ) ) : '';
+	$color_hex   = isset( $data['bsc_color_variant_hex'] ) ? bsc_product_variants_normalize_hex( wp_unslash( $data['bsc_color_variant_hex'] ) ) : '';
+	$size_name   = isset( $data['bsc_size_variant_name'] ) ? sanitize_text_field( wp_unslash( $data['bsc_size_variant_name'] ) ) : '';
+	$matrix      = bsc_get_product_variant_matrix( $product_id, true );
 
 	$selection = array(
-		'color' => null,
-		'size'  => null,
-		'price' => '',
+		'color'       => null,
+		'size'        => null,
+		'price'       => '',
+		'variant'     => null,
+		'variant_key' => '',
+		'stock_total' => 0,
+		'invalid'     => false,
 	);
 
-	foreach ( $colors as $variant ) {
-		$name_matches = $color_name === '' || $variant['name'] === $color_name;
-		$hex_matches  = $color_hex === '' || strtolower( $variant['hex'] ) === strtolower( $color_hex );
-		if ( $name_matches && $hex_matches ) {
-			$selection['color'] = $variant;
-			break;
-		}
+	if ( empty( $matrix ) ) {
+		return $selection;
 	}
 
-	foreach ( $sizes as $variant ) {
-		if ( $size_name === '' || $variant['name'] === $size_name ) {
-			$selection['size'] = $variant;
-			break;
-		}
+	$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, $color_name, $color_hex, $size_name, true );
+	if ( ! is_array( $variant ) || empty( $variant['enabled'] ) ) {
+		$selection['invalid'] = true;
+		return $selection;
 	}
 
-	if ( is_array( $selection['color'] ) && $selection['color']['price'] !== '' ) {
-		$selection['price'] = $selection['color']['price'];
+	if ( (string) ( $variant['color_name'] ?? '' ) !== '' ) {
+		$selection['color'] = array(
+			'name' => (string) $variant['color_name'],
+			'hex'  => (string) ( $variant['color_hex'] ?? '' ),
+		);
 	}
 
-	if ( is_array( $selection['size'] ) && $selection['size']['price'] !== '' ) {
-		$selection['price'] = $selection['size']['price'];
+	if ( (string) ( $variant['size_name'] ?? '' ) !== '' ) {
+		$selection['size'] = array(
+			'name' => (string) $variant['size_name'],
+		);
 	}
+
+	$selection['price']       = bsc_product_variant_effective_price( $variant );
+	$selection['variant']     = $variant;
+	$selection['variant_key'] = (string) ( $variant['key'] ?? '' );
+	$selection['stock_total'] = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
 
 	return $selection;
 }
 
-function bsc_build_product_variant_cart_item_data( int $product_id, array $data ): array {
+function bsc_build_product_variant_cart_item_data( int $product_id, array $data ) {
 	$selection = bsc_get_selected_product_variant_options( $product_id, $data );
-	if ( ! is_array( $selection['color'] ) && ! is_array( $selection['size'] ) ) {
+
+	if ( ! empty( $selection['invalid'] ) ) {
+		return new WP_Error( 'bsc_invalid_product_variant', 'Selecciona una variante disponible.' );
+	}
+
+	if ( ! is_array( $selection['color'] ) && ! is_array( $selection['size'] ) && empty( $selection['variant_key'] ) ) {
 		return array();
+	}
+
+	$quantity  = empty( $data['quantity'] ) ? 1 : max( 1, (int) wc_stock_amount( sanitize_text_field( wp_unslash( $data['quantity'] ) ) ) );
+	$requested = $quantity;
+	if ( $selection['variant_key'] !== '' && function_exists( 'WC' ) && WC()->cart ) {
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$cart_product_id = (int) ( $cart_item['product_id'] ?? 0 );
+			$cart_variant_key = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
+			if ( $cart_product_id === $product_id && hash_equals( $selection['variant_key'], $cart_variant_key ) ) {
+				$requested += (int) ( $cart_item['quantity'] ?? 0 );
+			}
+		}
+	}
+
+	if ( $selection['stock_total'] < $requested ) {
+		return new WP_Error( 'bsc_product_variant_out_of_stock', 'No hay stock suficiente para esa variante.' );
 	}
 
 	$cart_item_data = array(
 		'bsc_product_options'     => $selection,
-		'bsc_product_options_key' => md5( wp_json_encode( $selection ) ),
+		'bsc_product_options_key' => md5(
+			implode(
+				'|',
+				array(
+					$selection['variant_key'],
+					is_array( $selection['color'] ) ? (string) ( $selection['color']['name'] ?? '' ) : '',
+					is_array( $selection['size'] ) ? (string) ( $selection['size']['name'] ?? '' ) : '',
+				)
+			)
+		),
 	);
+
+	if ( $selection['variant_key'] !== '' ) {
+		$cart_item_data['bsc_product_variant_key'] = $selection['variant_key'];
+	}
 
 	if ( $selection['price'] !== '' ) {
 		$cart_item_data['bsc_product_variant_price'] = $selection['price'];
@@ -295,6 +764,10 @@ function bsc_add_product_variant_meta_to_order_item( $item, $cart_item_key, $val
 
 	if ( ! empty( $options['size']['name'] ) ) {
 		$item->add_meta_data( 'Tamano', wc_clean( $options['size']['name'] ), true );
+	}
+
+	if ( ! empty( $values['bsc_product_variant_key'] ) ) {
+		$item->add_meta_data( '_bsc_product_variant_key', sanitize_key( $values['bsc_product_variant_key'] ), true );
 	}
 }
 add_action( 'woocommerce_checkout_create_order_line_item', 'bsc_add_product_variant_meta_to_order_item', 20, 4 );
@@ -1460,12 +1933,23 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 			'pending'    => BSC_Order_Progress_Bar::RECEIVED,
 			'preparing'  => BSC_Order_Progress_Bar::RECEIVED,
 			'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
-			'completed'  => BSC_Order_Progress_Bar::DONE,
-			'refunded'   => BSC_Order_Progress_Bar::REFUNDED,
+			'completed'  => BSC_Order_Progress_Bar::SHIPPED,
+			'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
 			'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
 			'failed'     => BSC_Order_Progress_Bar::CANCELLED,
+			'bsc-archived' => BSC_Order_Progress_Bar::ARCHIVED,
 		);
 		return $map[ $wc_status ] ?? BSC_Order_Progress_Bar::CANCELLED;
+	}
+
+	function bsc_map_order_to_bar( WC_Order $order ): string {
+		require_once get_template_directory() . '/components/orders/order-progress-bar.php';
+
+		if ( $order->get_meta( '_bsc_archived_at', true ) ) {
+			return BSC_Order_Progress_Bar::ARCHIVED;
+		}
+
+		return bsc_map_order_status_to_bar( $order->get_status() );
 	}
 
 	// ── BSC: Auto-archive orders after N days (daily WP cron) ────────────
