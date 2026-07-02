@@ -1,5 +1,4 @@
 @use "../../tokens/public" as bsc;
-@use "../../pages/page-checkout" as checkout;
 
 .bsc__account-section {
   padding: 3rem 2rem;
@@ -14,200 +13,97 @@
 }
 
 .bsc__account-form {
-  --bsc-account-data-text: var(--bsc-color-text, #333);
-  --bsc-account-data-border: var(--bsc-color-input-border, #d1d1d6);
-  --bsc-account-data-placeholder: var(--bsc-color-placeholder, #aaa);
-
-  width: min(620px, 100%);
-  max-width: 620px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: var(--bsc-spacing-xl, 2rem) var(--bsc-spacing-sm, 0.75rem) var(--bsc-spacing-lg, 2rem);
-  color: var(--bsc-account-data-text);
-  font-family: inherit;
+  padding: 3rem 1rem;
+}
 
-  .bsc__account-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-    align-items: stretch;
-    width: 100%;
+.bsc__account-grid {
+  display: grid;
+  grid-template-columns: 1fr 2px 1fr 2px 1fr;
+  gap: bsc.$space-lg;
+  align-items: flex-start;
+}
+
+.bsc__account-col {
+  display: flex;
+  flex-direction: column;
+  gap: bsc.$space-xs;
+  min-width: 0;
+}
+
+.bsc__field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+
+  label {
+    margin-bottom: bsc.$space-xs;
+    color: bsc.$text;
+    font-weight: 700;
+    letter-spacing: 1px;
   }
 
-  .bsc__account-col {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-    min-width: 0;
+  input,
+  select {
+    @include bsc.field-control($border-style: dashed);
   }
 
-  .bsc__vl {
-    display: none;
+  input[disabled],
+  input[readonly] {
+    cursor: not-allowed;
+    background-color: bsc.$border-muted;
+    color: bsc.$text-muted;
   }
 
-  .bsc__field {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin: 0 0 var(--bsc-spacing-md, 1.5rem);
-
-    label {
-      margin-bottom: var(--bsc-spacing-xs, 0.5rem);
-      color: var(--bsc-account-data-text);
-      font-size: var(--bsc-font-size, 14px);
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    input,
-    select {
-      @include checkout.bsc__form-control;
-
-      & {
-        box-sizing: border-box;
-        min-height: var(--bsc-input-height, 42px);
-        padding: var(--bsc-spacing-sm, 0.75rem);
-        border: 1px solid var(--bsc-account-data-border) !important;
-        border-radius: var(--bsc-radius-md, 8px);
-        border-bottom-right-radius: var(--bsc-radius-md, 8px);
-        border-bottom-left-radius: var(--bsc-radius-md, 8px);
-        background-color: #fff;
-        color: var(--bsc-account-data-text);
-        font-family: inherit;
-        font-size: var(--bsc-font-size, 14px);
-        line-height: 1.2;
-        letter-spacing: 1px;
-        box-shadow: none;
-      }
-
-      &::placeholder {
-        color: var(--bsc-account-data-placeholder);
-        opacity: 1;
-      }
-    }
-
-    input[disabled],
-    input[readonly] {
-      cursor: not-allowed;
-      border-color: var(--bsc-account-data-border) !important;
-      background-color: var(--bsc-color-bg-light, #f9f9f9);
-      color: var(--bsc-account-data-text);
-      opacity: 1;
-      -webkit-text-fill-color: var(--bsc-account-data-text);
-    }
-
-    input[type="date"] {
-      min-height: var(--bsc-input-height, 42px);
-      font-family: inherit;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    select {
-      box-sizing: border-box;
-      display: block;
-      height: var(--bsc-input-height, 42px);
-      min-height: var(--bsc-input-height, 42px);
-      padding-right: 40px;
-      line-height: 1.2;
-      background-image:
-        linear-gradient(45deg, transparent 50%, var(--bsc-account-data-text) 50%),
-        linear-gradient(135deg, var(--bsc-account-data-text) 50%, transparent 50%);
-      background-position:
-        calc(100% - 18px) 50%,
-        calc(100% - 13px) 50%;
-      background-repeat: no-repeat;
-      background-size: 5px 5px, 5px 5px;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    input:hover,
-    select:hover {
-      border-color: #000 !important;
-    }
-
-    input:focus,
-    select:focus {
-      border-color: #000 !important;
-      box-shadow: 0 0 0 1px #000;
-    }
+  input[type='date'] {
+    min-height: 42px;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
-  .bsc__account-needs {
-    h3 {
-      margin: var(--bsc-spacing-xs, 0.5rem) 0 var(--bsc-spacing-md, 1rem);
-      padding: 0;
-      color: var(--bsc-account-data-text);
-      font-size: var(--bsc-font-size, 14px);
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+  .bsc__account-form & select {
+    box-sizing: border-box;
+    display: block;
+    height: 40px;
+    min-height: 40px;
+    padding-right: 2.25rem;
+    line-height: 1.25;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, bsc.$text 50%),
+      linear-gradient(135deg, bsc.$text 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 12px) 50%;
+    background-repeat: no-repeat;
+    background-size: 6px 6px;
   }
+}
 
-  .bsc__need {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: var(--bsc-spacing-md, 1.5rem);
-
-    .bsc__need-icon {
-      width: 26px;
-      height: 26px;
-      flex-shrink: 0;
-    }
-
-    .bsc__need-input {
-      @include checkout.bsc__form-control;
-
-      & {
-        box-sizing: border-box;
-        flex: 1;
-        min-width: 0;
-        min-height: var(--bsc-input-height, 42px);
-        padding: var(--bsc-spacing-sm, 0.75rem);
-        border: 1px solid var(--bsc-account-data-border) !important;
-        border-radius: var(--bsc-radius-md, 8px);
-        border-bottom-right-radius: var(--bsc-radius-md, 8px);
-        border-bottom-left-radius: var(--bsc-radius-md, 8px);
-        background-color: #fff;
-        color: var(--bsc-account-data-text);
-        font-family: inherit;
-        font-size: var(--bsc-font-size, 14px);
-        line-height: 1.2;
-        letter-spacing: 1px;
-        box-shadow: none;
-      }
-    }
-
-    .bsc__need-input:hover {
-      border-color: #000 !important;
-    }
-
-    .bsc__need-input:focus {
-      border-color: #000 !important;
-      box-shadow: 0 0 0 1px #000;
-    }
+.bsc__account-needs {
+  h3 {
+    margin: 0 0 1rem;
+    padding: 0;
+    color: bsc.$text;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
   }
+}
 
-  .bsc__need-input::placeholder {
-    color: var(--bsc-account-data-placeholder);
-    opacity: 1;
-  }
+.bsc__account-submit {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+  margin-top: 2rem;
+  text-align: left;
 
-  .bsc__account-submit {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    width: 100%;
-    margin-top: var(--bsc-spacing-md, 1.5rem);
-    text-align: left;
-
-    button {
-      min-height: var(--bsc-input-height, 42px);
-      margin: 0;
-    }
+  button {
+    margin: 0;
   }
 }
 
@@ -272,6 +168,43 @@
   }
 }
 
+.bsc__need {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: bsc.$space-lg;
+
+  .bsc__need-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .bsc__need-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed bsc.$border;
+    background-color: bsc.$surface;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+}
+
+.bsc__need-input::placeholder {
+  color: bsc.$text-muted;
+  font-style: italic;
+}
+
+.bsc__vl {
+  display: block;
+  width: 2px;
+  height: 100%;
+  margin: 0;
+  background-color: bsc.$text-muted;
+  opacity: 0.5;
+}
+
 /* Tablet */
 @include bsc.media-max("tablet-lg") {
   .bsc__account-section {
@@ -279,8 +212,23 @@
   }
 
   .bsc__account-form {
-    width: min(620px, 100%);
-    padding: var(--bsc-spacing-xl, 2rem) var(--bsc-spacing-sm, 0.75rem) var(--bsc-spacing-lg, 1.5rem);
+    padding: 2.5rem 1rem;
+  }
+
+  .bsc__account-grid {
+    grid-template-columns: 1fr 2px 1fr;
+    gap: 18px;
+  }
+
+  /* Oculta el segundo divisor y deja solo 2 columnas */
+  .bsc__account-grid > .bsc__vl:nth-of-type(2) {
+    display: none;
+  }
+
+  /* Hace que la tercera columna baje completa */
+  .bsc__account-grid > .bsc__account-col:nth-of-type(3) {
+    grid-column: 1 / -1;
+    margin-top: 8px;
   }
 }
 
@@ -297,73 +245,89 @@
   }
 
   .bsc__account-form {
-    width: 100%;
     padding: 2rem 0.75rem;
+  }
 
-    .bsc__field {
-      margin-bottom: var(--bsc-spacing-md, 1rem);
+  .bsc__account-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 
-      label {
-        font-size: 0.92rem;
-        letter-spacing: 0.8px;
-      }
+  .bsc__vl {
+    display: none;
+  }
 
-      input,
-      select {
-        font-size: 0.95rem;
-      }
+  .bsc__account-col {
+    gap: 4px;
+  }
 
-      select {
-        height: 44px;
-        min-height: 44px;
-        padding-right: 2.5rem;
-        background-position:
-          calc(100% - 20px) 50%,
-          calc(100% - 14px) 50%;
-      }
+  .bsc__field {
+    margin-bottom: 16px;
+
+    label {
+      font-size: 0.92rem;
+      letter-spacing: 0.6px;
     }
 
-    .bsc__account-needs h3 {
-      margin-bottom: 0.75rem;
-      font-size: 15px;
+    input,
+    select {
+      padding: 0.75rem;
+      font-size: 0.95rem;
     }
 
-    .bsc__need {
-      gap: 10px;
-      margin-bottom: var(--bsc-spacing-md, 1rem);
+    .bsc__account-form & select {
+      height: 44px;
+      min-height: 44px;
+      padding-right: 2.5rem;
+      background-position:
+        calc(100% - 20px) 50%,
+        calc(100% - 14px) 50%;
+    }
+  }
 
-      .bsc__need-icon {
-        width: 22px;
-        height: 22px;
-      }
+  .bsc__account-needs h3 {
+    margin-bottom: 0.75rem;
+    font-size: 15px;
+  }
 
-      .bsc__need-input {
-        font-size: 0.95rem;
-      }
+  .bsc__need {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .bsc__need-icon {
+      width: 22px;
+      height: 22px;
+      margin-top: 0.5rem;
     }
 
-    .bsc__field--need {
-      .bsc__need-wrapper {
-        .bsc__check-icon {
-          left: auto;
-          right: 0.75rem;
-          width: 18px;
-          height: 18px;
-        }
+    .bsc__need-input {
+      width: 100%;
+      font-size: 0.95rem;
+    }
+  }
 
-        input {
-          padding-right: 2.25rem;
-        }
+  .bsc__field--need {
+    .bsc__need-wrapper {
+      .bsc__check-icon {
+        left: auto;
+        right: 0.75rem;
+        width: 18px;
+        height: 18px;
+      }
+
+      input {
+        padding-right: 2.25rem;
       }
     }
+  }
 
-    .bsc__account-submit {
-      justify-content: stretch;
-      margin-top: 1.5rem;
+  .bsc__account-submit {
+    justify-content: stretch;
+    margin-top: 1.5rem;
 
-      button {
-        width: 100%;
-      }
+    button {
+      width: 100%;
     }
   }
 }
@@ -374,29 +338,30 @@
     padding: 1.5rem 0.75rem;
   }
 
+  .bsc__account-form {
+    padding: 1.5rem 0.5rem;
+  }
+
   .bsc__account-title {
     font-size: 1.25rem;
   }
 
-  .bsc__account-form {
-    padding: 1.5rem 0.5rem;
-
-    .bsc__field {
-      label {
-        font-size: 0.88rem;
-      }
-
-      input,
-      select {
-        border-radius: 6px;
-        font-size: 0.92rem;
-      }
+  .bsc__field {
+    label {
+      font-size: 0.88rem;
     }
 
-    .bsc__need {
-      .bsc__need-input {
-        font-size: 0.92rem;
-      }
+    input,
+    select {
+      padding: 0.7rem;
+      border-radius: 6px;
+      font-size: 0.92rem;
+    }
+  }
+
+  .bsc__need {
+    .bsc__need-input {
+      font-size: 0.92rem;
     }
   }
 }
