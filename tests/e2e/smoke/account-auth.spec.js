@@ -9,6 +9,16 @@ const {
 } = require('../helpers/env');
 const { gotoAndStabilize, loginFromAccount } = require('../helpers/ui');
 
+function accountBillingAddressRoute() {
+  const base = routes.accountAddresses || '/mi-cuenta/edit-address/';
+
+  if (/\/billing\/?$/i.test(base)) {
+    return base;
+  }
+
+  return `${base.replace(/\/+$/, '')}/billing/`;
+}
+
 test.describe('BSC smoke - auth and account', () => {
   test('login page validates empty required fields', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for auth smoke');
@@ -106,6 +116,41 @@ test.describe('BSC smoke - auth and account', () => {
     }
 
     await expect(page.locator('.bsc__orders-row, .bsc__orders-card').first()).toBeAttached();
+  });
+
+  test('billing address form uses checkout-style fields', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for account smoke');
+    test.skip(!hasAccountAuth(), 'The auth fixture or PW_ACCOUNT_* credentials are required.');
+
+    await loginFromAccount(page, routes.login, routes.account, auth.username || auth.email, auth.password);
+    await gotoAndStabilize(page, accountBillingAddressRoute());
+
+    const form = page.locator('.bsc__shipping-address').first();
+    await expect(form).toBeVisible();
+    await expect(page.locator('.woocommerce-address-fields__field-wrapper').first()).toHaveCSS('display', 'grid');
+    await expect(page.locator('#billing_first_name_field label').first()).toHaveCSS('display', 'none');
+
+    for (const selector of ['#billing_first_name', '#billing_last_name', '#billing_address_1', '#billing_phone']) {
+      const field = page.locator(selector).first();
+      await expect(field).toBeVisible();
+
+      const metrics = await field.evaluate((node) => {
+        const style = window.getComputedStyle(node);
+        const rect = node.getBoundingClientRect();
+
+        return {
+          borderRadius: parseFloat(style.borderTopLeftRadius) || 0,
+          borderStyle: style.borderTopStyle,
+          fontSize: parseFloat(style.fontSize) || 0,
+          height: rect.height,
+        };
+      });
+
+      expect(metrics.borderRadius).toBeGreaterThanOrEqual(4);
+      expect(metrics.borderStyle).toBe('solid');
+      expect(metrics.fontSize).toBeGreaterThanOrEqual(14);
+      expect(metrics.height).toBeGreaterThanOrEqual(40);
+    }
   });
 
   test('view order route renders authenticated order details', async ({ page }) => {

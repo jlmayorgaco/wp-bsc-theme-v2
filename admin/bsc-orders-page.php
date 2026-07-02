@@ -776,7 +776,10 @@ function bsc_export_orders_csv( array $order_ids ): void {
 
 		$items = array();
 		foreach ( $order->get_items() as $item ) {
-			$items[] = $item->get_quantity() . '× ' . $item->get_name();
+			$item_name = $item instanceof WC_Order_Item_Product && function_exists( 'bsc_format_order_item_name_with_variant' )
+				? bsc_format_order_item_name_with_variant( $item )
+				: $item->get_name();
+			$items[]   = $item->get_quantity() . '× ' . $item_name;
 		}
 
 		fputcsv(
@@ -879,16 +882,37 @@ function bsc_render_packing_view( array $order_ids ): void {
 						$product      = $item->get_product();
 						$product_id   = (int) $item->get_product_id();
 						$sku          = $product ? $product->get_sku() : '';
-						$stock        = class_exists( 'BSC_Stock' ) ? BSC_Stock::get_stock( $product_id ) : array(
+						$variant_data = $item instanceof WC_Order_Item_Product && function_exists( 'bsc_get_order_item_product_variant_data' )
+							? bsc_get_order_item_product_variant_data( $item )
+							: array(
+								'variant_key' => '',
+								'parts'       => array(),
+							);
+
+						$variant_key = sanitize_key( (string) ( $variant_data['variant_key'] ?? '' ) );
+						$stock       = array(
 							'bodega' => 0,
 							'tienda' => 0,
 						);
-						$source_label = class_exists( 'BSC_Stock' ) && $item instanceof WC_Order_Item_Product
+
+						if ( class_exists( 'BSC_Stock' ) ) {
+							$stock = '' !== $variant_key
+								? BSC_Stock::get_variant_stock( $product_id, $variant_key )
+								: BSC_Stock::get_stock( $product_id );
+						}
+
+						$variant_label = ! empty( $variant_data['parts'] ) ? implode( ' / ', $variant_data['parts'] ) : '';
+						$source_label  = class_exists( 'BSC_Stock' ) && $item instanceof WC_Order_Item_Product
 							? BSC_Stock::get_order_item_source_label( $item, $product_id )
 							: 'Bodega';
 						?>
 					<tr data-order-id="<?php echo esc_attr( $order->get_id() ); ?>" data-item-id="<?php echo esc_attr( $item->get_id() ); ?>" data-product-id="<?php echo esc_attr( $product_id ); ?>">
-						<td><?php echo esc_html( $item->get_name() ); ?></td>
+						<td>
+							<?php echo esc_html( $item->get_name() ); ?>
+							<?php if ( '' !== $variant_label ) : ?>
+								<br><small>Variante: <?php echo esc_html( $variant_label ); ?></small>
+							<?php endif; ?>
+						</td>
 						<td><?php echo esc_html( $sku ); ?></td>
 						<td><?php echo esc_html( $item->get_quantity() ); ?></td>
 						<td><?php echo wp_kses_post( wc_price( $item->get_total() ) ); ?></td>

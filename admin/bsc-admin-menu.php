@@ -131,6 +131,10 @@ function bsc_dashboard_quick_links(): array {
 			'label' => 'Creators',
 		),
 		array(
+			'page'  => 'bsc-contact',
+			'label' => 'Contacto',
+		),
+		array(
 			'page'  => 'bsc-newsletter',
 			'label' => 'Newsletter',
 		),
@@ -298,7 +302,17 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_creators_page'
 	);
 
-	// 10. Newsletter leads - admin / shop manager
+	// 10. Contact messages - admin / shop manager
+	add_submenu_page(
+		'bsc-dashboard',
+		__( 'Contacto BSC', 'bsc-2-0' ),
+		__( 'Contacto', 'bsc-2-0' ),
+		'manage_woocommerce',
+		'bsc-contact',
+		'bsc_render_contact_page'
+	);
+
+	// 11. Newsletter leads - admin / shop manager
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Newsletter BSC', 'bsc-2-0' ),
@@ -308,7 +322,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_newsletter_page'
 	);
 
-	// 11. Emails - admin only
+	// 12. Emails - admin only
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Emails BSC', 'bsc-2-0' ),
@@ -318,7 +332,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_followup_emails_page'
 	);
 
-	// 12. Monitoreo post-launch - admin only
+	// 13. Monitoreo post-launch - admin only
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Monitoreo BSC', 'bsc-2-0' ),
@@ -328,7 +342,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_monitoring_page'
 	);
 
-	// 13. Control de Acceso - role x page matrix
+	// 14. Control de Acceso - role x page matrix
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Control de Acceso', 'bsc-2-0' ),
@@ -338,7 +352,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_access_page'
 	);
 
-	// 14. Configuracion - admin only (always last)
+	// 15. Configuracion - admin only (always last)
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Configuración BSC', 'bsc-2-0' ),
@@ -419,6 +433,7 @@ require_once get_template_directory() . '/admin/bsc-product-edit-page.php';  // 
 require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // BSC-066
 require_once get_template_directory() . '/admin/bsc-header-menus-page.php';
 require_once get_template_directory() . '/admin/bsc-creators-page.php';
+require_once get_template_directory() . '/admin/bsc-contact-page.php';
 require_once get_template_directory() . '/admin/bsc-newsletter-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-monitoring-page.php';
@@ -818,6 +833,11 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_email_from_name', sanitize_text_field( wp_unslash( $_POST['bsc_email_from_name'] ?? 'Bubble Skin Care' ) ) );
 		update_option( 'bsc_email_from_address', sanitize_email( wp_unslash( $_POST['bsc_email_from_address'] ?? '' ) ) );
 		update_option( 'bsc_low_stock_threshold', max( 0, intval( wp_unslash( $_POST['bsc_low_stock_threshold'] ?? 3 ) ) ) );
+		$parking_page_enabled = isset( $_POST['bsc_parking_page_enabled'] ) ? 1 : 0;
+		update_option( 'bsc_parking_page_enabled', $parking_page_enabled );
+		update_option( 'woocommerce_coming_soon', $parking_page_enabled ? 'yes' : 'no' );
+		update_option( 'woocommerce_store_pages_only', 'no' );
+		update_option( 'woocommerce_coming_soon_visibility', $parking_page_enabled ? 'coming-soon' : 'live' );
 		$ga4_measurement_id = strtoupper( sanitize_text_field( wp_unslash( $_POST['bsc_ga4_measurement_id'] ?? '' ) ) );
 		update_option( 'bsc_ga4_measurement_id', preg_match( '/^G-[A-Z0-9]+$/', $ga4_measurement_id ) ? $ga4_measurement_id : '' );
 		update_option( 'bsc_seo_default_title', sanitize_text_field( wp_unslash( $_POST['bsc_seo_default_title'] ?? '' ) ) );
@@ -844,6 +864,8 @@ function bsc_render_settings_page(): void {
 
 		echo '<div class="notice notice-success is-dismissible"><p>✓ Configuración guardada.</p></div>';
 	}
+
+	$parking_page_enabled = function_exists( 'bsc_is_parking_page_enabled' ) ? bsc_is_parking_page_enabled() : false;
 	?>
 	<div class="wrap">
 		<h1>Configuración BSC</h1>
@@ -879,6 +901,16 @@ function bsc_render_settings_page(): void {
 				</tr>
 
 				<tr><th colspan="2"><h2 class="bsc-admin-settings__section-title bsc-admin-settings__section-title--spaced">Tienda</h2></th></tr>
+				<tr>
+					<th>Pagina de parqueo</th>
+					<td>
+						<label>
+							<input type="checkbox" name="bsc_parking_page_enabled" value="1" <?php checked( $parking_page_enabled, true ); ?>>
+							Mostrar pagina de parqueo a visitantes.
+						</label>
+						<p class="description">Cuando esta desactivada, produccion queda navegable para clientes. Administradores y Shop Managers pueden entrar aunque este activa.</p>
+					</td>
+				</tr>
 				<tr>
 					<th><label for="bsc_free_shipping_threshold">Umbral de envío gratis (COP)</label></th>
 					<td>
@@ -929,7 +961,7 @@ function bsc_render_settings_page(): void {
 						<input type="number" id="bsc_form_data_retention_days" name="bsc_form_data_retention_days"
 							value="<?php echo esc_attr( function_exists( 'bsc_privacy_get_form_retention_days' ) ? bsc_privacy_get_form_retention_days() : 730 ); ?>"
 							class="small-text" min="30" step="30">
-						<p class="description">Aplica a leads de Newsletter y Bubble Creators guardados en el panel.</p>
+						<p class="description">Aplica a mensajes de Contacto, leads de Newsletter y Bubble Creators guardados en el panel.</p>
 					</td>
 				</tr>
 				<tr>

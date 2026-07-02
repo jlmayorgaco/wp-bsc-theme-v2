@@ -344,6 +344,12 @@ function bsc_get_email_template_manifest(): array {
 			'file'    => 'bsc-password-reset-email.php',
 		),
 		array(
+			'slug'    => 'password-changed',
+			'label'   => 'Contrasena actualizada',
+			'trigger' => 'Inmediato al cambiar contrasena desde Mis datos',
+			'file'    => 'bsc-password-changed-email.php',
+		),
+		array(
 			'slug'    => 'birthday',
 			'label'   => 'Cumpleanos',
 			'trigger' => 'Diario, una vez por ano',

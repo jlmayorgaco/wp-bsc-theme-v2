@@ -422,7 +422,18 @@ class BSC_Stock {
 			);
 		}
 
-		$product_id = $product_id > 0 ? $product_id : (int) $item->get_product_id();
+		$product_id  = 0 < $product_id ? $product_id : (int) $item->get_product_id();
+		$variant_key = sanitize_key( (string) $item->get_meta( '_bsc_product_variant_key', true ) );
+		if (
+			'' !== $variant_key
+			&& function_exists( 'bsc_product_has_saved_variant_matrix' )
+			&& bsc_product_has_saved_variant_matrix( $product_id )
+		) {
+			return self::allocation_label(
+				self::allocate_variant_for_quantity( $product_id, $variant_key, max( 1, (int) $item->get_quantity() ) )
+			);
+		}
+
 		return self::allocation_label( self::allocate_for_quantity( $product_id, max( 1, (int) $item->get_quantity() ) ) );
 	}
 

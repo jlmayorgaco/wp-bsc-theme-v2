@@ -125,7 +125,7 @@ final class BSC_Order_Label_ViewModel {
 
 		$names = array();
 		foreach ( $items as $item ) {
-			$names[] = $item->get_name();
+			$names[] = self::resolve_contains_item_name( $item );
 		}
 
 		$count = count( $names );
@@ -144,7 +144,34 @@ final class BSC_Order_Label_ViewModel {
 		return $count . ' productos';
 	}
 
+	/**
+	 * Resolve a compact product + variant label for shipping labels.
+	 *
+	 * @param WC_Order_Item $item Order line item.
+	 * @return string
+	 */
+	private static function resolve_contains_item_name( WC_Order_Item $item ): string {
+		$name = $item->get_name();
+
+		if ( ! $item instanceof WC_Order_Item_Product || ! function_exists( 'bsc_format_order_item_variant_label' ) ) {
+			return $name;
+		}
+
+		$variant_label = bsc_format_order_item_variant_label( $item );
+		if ( '' === $variant_label ) {
+			return $name;
+		}
+
+		return self::truncate( $name, 24 ) . ' - ' . self::truncate( $variant_label, 18 );
+	}
+
 	private static function truncate_for_summary( string $name ): string {
+		if ( false !== strpos( $name, ' - ' ) ) {
+			list( $product_name, $variant_label ) = explode( ' - ', $name, 2 );
+
+			return self::truncate( $product_name, 13 ) . ' - ' . self::truncate( $variant_label, 12 );
+		}
+
 		return self::truncate( $name, 28 );
 	}
 
