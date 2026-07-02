@@ -158,7 +158,16 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 		$lines = array();
 
 		foreach ( $item->get_items() as $line_item ) {
-			$lines[] = esc_html( $line_item->get_quantity() . '× ' . $line_item->get_name() );
+			$line = esc_html( $line_item->get_quantity() . '× ' . $line_item->get_name() );
+
+			if ( $line_item instanceof WC_Order_Item_Product && function_exists( 'bsc_format_order_item_variant_label' ) ) {
+				$variant_label = bsc_format_order_item_variant_label( $line_item );
+				if ( '' !== $variant_label ) {
+					$line .= '<br><small class="bsc-admin-orders__meta">Variante: ' . esc_html( $variant_label ) . '</small>';
+				}
+			}
+
+			$lines[] = $line;
 		}
 
 		return $lines ? implode( '<br>', $lines ) : '—';

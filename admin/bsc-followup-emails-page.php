@@ -884,6 +884,7 @@ function bsc_render_followup_emails_page(): void {
 			update_option( 'bsc_followup_emails_enabled', isset( $_POST['bsc_followup_emails_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_welcome_email_enabled', isset( $_POST['bsc_welcome_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_password_reset_email_enabled', isset( $_POST['bsc_password_reset_email_enabled'] ) ? 1 : 0 );
+			update_option( 'bsc_password_changed_email_enabled', isset( $_POST['bsc_password_changed_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_birthday_email_enabled', isset( $_POST['bsc_birthday_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_inactive_email_enabled', isset( $_POST['bsc_inactive_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_inactive_email_days', max( 1, absint( wp_unslash( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) ) );
@@ -1320,6 +1321,15 @@ function bsc_render_followup_emails_page(): void {
 						<label>
 							<input type="checkbox" name="bsc_password_reset_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_password_reset_email_enabled' ), 1 ); ?>>
 							Usar template branded BSC para reset
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th>Contraseña actualizada</th>
+					<td>
+						<label>
+							<input type="checkbox" name="bsc_password_changed_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_password_changed_email_enabled' ), 1 ); ?>>
+							Usar template branded BSC cuando se cambia desde Mis datos
 						</label>
 					</td>
 				</tr>

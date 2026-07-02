@@ -91,29 +91,26 @@ $account-address-error-color: red;
 }
 
 .bsc__shipping-address {
-  --bsc-account-address-text: #{$account-address-border-color};
-  --bsc-account-address-border: #{$account-address-border-color};
+  --bsc-account-address-text: var(--bsc-color-text, #333);
+  --bsc-account-address-border: var(--bsc-color-input-border, #d1d1d6);
   --bsc-account-address-error: #{$account-address-error-color};
+  --bsc-account-address-placeholder: var(--bsc-color-placeholder, #aaa);
 
   display: block;
-  width: min(740px, 100%);
-  max-width: 740px;
+  width: min(920px, 100%);
+  max-width: 920px;
   margin: 0 auto;
+  padding: var(--bsc-spacing-xl) var(--bsc-spacing-sm) var(--bsc-spacing-lg);
 
   h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.15rem;
-    padding-bottom: 22px;
-    color: #333;
-    letter-spacing: 1px;
-    text-align: center;
     width: 100%;
-    margin: 0 auto;
-  }
-
-  .input-text {
-    color: #333;
+    margin: 0 auto var(--bsc-spacing-md);
+    padding-bottom: 0;
+    color: var(--bsc-account-address-text);
+    font-size: var(--bsc-font-size);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-align: center;
   }
 
   .woocommerce-address-fields,
@@ -124,51 +121,85 @@ $account-address-error-color: red;
 
   .woocommerce-address-fields__field-wrapper {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 18px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--bsc-spacing-md);
   }
 
   .form-row {
     float: none;
+    grid-column: span 6;
     width: 100%;
-    margin: 0 0 var(--bsc-spacing-md);
+    min-width: 0;
+    margin: 0;
     padding: 0;
   }
 
   .form-row-first,
   .form-row-last {
     float: none;
-    width: 100%;
+    grid-column: span 3;
+  }
+
+  #billing_phone_field,
+  #billing_email_field,
+  #shipping_phone_field,
+  #shipping_email_field {
+    grid-column: span 3;
+  }
+
+  #billing_state_field,
+  #billing_city_field,
+  #billing_postcode_field,
+  #shipping_state_field,
+  #shipping_city_field,
+  #shipping_postcode_field {
+    grid-column: span 2;
   }
 
   .form-row-wide,
   #billing_company_field,
   #billing_address_1_field,
   #billing_address_2_field,
-  #billing_email_field,
   #shipping_company_field,
   #shipping_address_1_field,
   #shipping_address_2_field {
     grid-column: 1 / -1;
   }
 
+  .form-row label {
+    display: none;
+  }
+
+  .woocommerce-input-wrapper {
+    display: block;
+  }
+
   .input-text,
   input[type="text"],
   input[type="email"],
   input[type="tel"],
+  input[type="number"],
+  input[type="password"],
   select,
   textarea {
     @include checkout.bsc__form-control;
 
     & {
       box-sizing: border-box;
-      height: var(--bsc-input-height);
+      min-height: var(--bsc-input-height);
       border-color: var(--bsc-account-address-border) !important;
       border-radius: var(--bsc-radius-md);
       background-color: #fff;
       color: var(--bsc-account-address-text);
       font-family: inherit;
+      font-size: var(--bsc-font-size);
+      letter-spacing: 1px;
       box-shadow: none;
+    }
+
+    &::placeholder {
+      color: var(--bsc-account-address-placeholder);
+      opacity: 1;
     }
   }
 
@@ -179,6 +210,7 @@ $account-address-error-color: red;
   }
 
   select:not(.select2-hidden-accessible) {
+    height: var(--bsc-input-height);
     padding-right: 40px;
     line-height: 1.2;
     background-image:
@@ -202,9 +234,11 @@ $account-address-error-color: red;
     display: flex;
     align-items: center;
     height: var(--bsc-input-height);
+    min-height: var(--bsc-input-height);
     border: 1px solid var(--bsc-account-address-border);
-    border-radius: var(--bsc-radius-md);
+    border-radius: var(--bsc-radius-sm);
     background-color: #fff;
+    cursor: pointer;
     transition:
       border-color 0.2s ease,
       box-shadow 0.2s ease;
@@ -219,14 +253,19 @@ $account-address-error-color: red;
   }
 
   .select2-selection__arrow {
-    height: 100% !important;
-    right: 8px !important;
+    position: absolute;
+    top: 8px !important;
+    right: 5px !important;
+    width: 20px;
+    height: 26px !important;
   }
 
   .input-text:hover,
   input[type="text"]:hover,
   input[type="email"]:hover,
   input[type="tel"]:hover,
+  input[type="number"]:hover,
+  input[type="password"]:hover,
   select:hover,
   textarea:hover,
   .select2-selection--single:hover {
@@ -237,6 +276,8 @@ $account-address-error-color: red;
   input[type="text"]:focus,
   input[type="email"]:focus,
   input[type="tel"]:focus,
+  input[type="number"]:focus,
+  input[type="password"]:focus,
   select:focus,
   textarea:focus,
   .select2-container--focus .select2-selection--single,
@@ -292,11 +333,12 @@ $account-address-error-color: red;
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
-    padding-top: 20px;
+    margin: 0;
+    padding-top: var(--bsc-spacing-md);
 
     button {
       min-height: var(--bsc-input-height);
-      margin: 10px 0;
+      margin: 0;
       border: 1px solid var(--bsc-account-address-border);
       color: #fff;
       transition:
@@ -376,7 +418,23 @@ $account-address-error-color: red;
 
     .woocommerce-address-fields__field-wrapper {
       grid-template-columns: 1fr;
-      column-gap: 0;
+      gap: var(--bsc-spacing-md);
+    }
+
+    .form-row,
+    .form-row-first,
+    .form-row-last,
+    #billing_phone_field,
+    #billing_email_field,
+    #shipping_phone_field,
+    #shipping_email_field,
+    #billing_state_field,
+    #billing_city_field,
+    #billing_postcode_field,
+    #shipping_state_field,
+    #shipping_city_field,
+    #shipping_postcode_field {
+      grid-column: 1 / -1;
     }
   }
 
