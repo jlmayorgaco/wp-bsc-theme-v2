@@ -40,6 +40,63 @@ function bsc_is_parking_page_enabled(): bool {
 }
 
 /**
+ * Check whether the current request must stay accessible while parking is enabled.
+ */
+function bsc_is_parking_page_auth_request(): bool {
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Normalized for path comparison only.
+	$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+	if ( ! is_string( $request_path ) ) {
+		$request_path = '';
+	}
+
+	$request_path = '/' . trim( strtolower( rawurldecode( $request_path ) ), '/' );
+
+	$home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+	$home_path = is_string( $home_path ) ? '/' . trim( strtolower( $home_path ), '/' ) : '';
+
+	if ( '' !== $home_path && '/' !== $home_path && 0 === strpos( $request_path, $home_path . '/' ) ) {
+		$request_path = substr( $request_path, strlen( $home_path ) );
+	}
+
+	return in_array(
+		$request_path,
+		array(
+			'/login',
+			'/register',
+			'/signup',
+			'/sign-up',
+			'/wp-login.php',
+			'/wp-signup.php',
+		),
+		true
+	);
+}
+
+/**
+ * Keep WordPress and BSC auth routes available when WooCommerce coming soon is active.
+ *
+ * @param mixed $value WooCommerce coming soon option value.
+ * @return mixed
+ */
+function bsc_allow_auth_routes_through_woocommerce_coming_soon( $value ) {
+	return bsc_is_parking_page_auth_request() ? 'no' : $value;
+}
+add_filter( 'option_woocommerce_coming_soon', 'bsc_allow_auth_routes_through_woocommerce_coming_soon', 0 );
+
+/**
+ * Keep WordPress and BSC auth routes out of WooCommerce coming soon visibility mode.
+ *
+ * @param mixed $value WooCommerce coming soon visibility option value.
+ * @return mixed
+ */
+function bsc_allow_auth_routes_through_woocommerce_coming_soon_visibility( $value ) {
+	return bsc_is_parking_page_auth_request() ? 'live' : $value;
+}
+add_filter( 'option_woocommerce_coming_soon_visibility', 'bsc_allow_auth_routes_through_woocommerce_coming_soon_visibility', 0 );
+
+/**
  * Check whether the current user can bypass the parking page.
  */
 function bsc_current_user_can_bypass_parking_page(): bool {
@@ -51,7 +108,12 @@ function bsc_current_user_can_bypass_parking_page(): bool {
  * Render the BSC parking page before public template routing.
  */
 function bsc_maybe_render_parking_page(): void {
-	if ( is_admin() || bsc_current_user_can_bypass_parking_page() || ! bsc_is_parking_page_enabled() ) {
+	if (
+		is_admin()
+		|| bsc_current_user_can_bypass_parking_page()
+		|| bsc_is_parking_page_auth_request()
+		|| ! bsc_is_parking_page_enabled()
+	) {
 		return;
 	}
 
