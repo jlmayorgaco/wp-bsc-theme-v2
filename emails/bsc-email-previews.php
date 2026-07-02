@@ -16,6 +16,10 @@ function bsc_get_email_preview_definitions(): array {
 			'label'    => 'Recuperar contrasena',
 			'template' => 'bsc-password-reset-email.php',
 		),
+		'password-changed'    => array(
+			'label'    => 'Contrasena actualizada',
+			'template' => 'bsc-password-changed-email.php',
+		),
 		'birthday'            => array(
 			'label'    => 'Cumpleanos',
 			'template' => 'bsc-birthday-email.php',
@@ -232,6 +236,13 @@ function bsc_get_email_preview_context( string $slug ): array {
 			return array(
 				'user'      => $user,
 				'reset_url' => wp_lostpassword_url(),
+			);
+
+		case 'password-changed':
+			return array(
+				'user'        => $user,
+				'account_url' => $account_url,
+				'reset_url'   => wp_lostpassword_url(),
 			);
 
 		case 'birthday':

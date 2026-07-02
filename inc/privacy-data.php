@@ -84,6 +84,10 @@ function bsc_privacy_prune_form_data(): void {
 		bsc_newsletter_save_subscribers( bsc_newsletter_get_subscribers() );
 	}
 
+	if ( function_exists( 'bsc_contact_get_messages' ) && function_exists( 'bsc_contact_save_messages' ) ) {
+		bsc_contact_save_messages( bsc_contact_get_messages() );
+	}
+
 	$applications = get_option( 'bsc_creator_applications', array() );
 	if ( is_array( $applications ) ) {
 		update_option( 'bsc_creator_applications', bsc_privacy_prune_rows( $applications, 1000 ), false );
