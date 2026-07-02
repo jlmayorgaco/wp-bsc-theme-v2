@@ -166,7 +166,7 @@ $account-address-error-color: red;
     grid-column: 1 / -1;
   }
 
-  &--billing {
+  &.bsc__account-address-v2--billing {
     width: min(620px, 100%);
     max-width: 620px;
 
