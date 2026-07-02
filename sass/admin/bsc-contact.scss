@@ -1,30 +1,15 @@
 @use "foundation" as admin;
 
-.bsc-admin-contact__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .bsc-admin-contact__filters {
-  margin: 16px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.bsc-admin-contact__filters label {
-  font-weight: 600;
+  margin-top: 10px;
 }
 
 .bsc-admin-contact__filters input[type="search"] {
-  min-width: 240px;
+  min-width: 260px;
 }
 
 .bsc-admin-contact__table {
-  margin-top: 8px;
+  min-width: 1180px;
 }
 
 .bsc-admin-contact__message {
@@ -32,30 +17,33 @@
 }
 
 .bsc-admin-contact__status-form {
-  display: grid;
-  grid-template-columns: minmax(120px, 150px) minmax(180px, 1fr) auto;
   align-items: start;
-  gap: 6px;
+  display: grid;
+  gap: admin.$space-3;
+  grid-template-columns: 1fr;
 }
 
 .bsc-admin-contact__status-form select {
-  max-width: 150px;
+  width: 100%;
 }
 
 .bsc-admin-contact__status-form textarea {
-  width: 100%;
   min-height: 48px;
   resize: vertical;
+  width: 100%;
 }
 
 .bsc-admin-contact__row-actions {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  @include admin.inline-stack($gap: admin.$space-3);
 }
 
 .bsc-admin-contact__delete-form {
   display: inline;
+  margin: 0;
+}
+
+@media (max-width: 782px) {
+  .bsc-admin-contact__status-form {
+    grid-template-columns: 1fr;
+  }
 }

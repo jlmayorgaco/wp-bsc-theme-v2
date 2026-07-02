@@ -198,11 +198,16 @@ function bsc_render_creators_page(): void {
 	);
 	?>
 	<div class="wrap bsc-admin-creators">
-		<div class="bsc-admin-creators__header">
-			<h1 class="wp-heading-inline">Bubble Creators</h1>
-			<a href="<?php echo esc_url( $export_url ); ?>" class="page-title-action">Exportar CSV</a>
+		<div class="bsc-admin-page-header bsc-admin-page-header--compact">
+			<div>
+				<span class="bsc-admin-page-header__eyebrow">Comunidad</span>
+				<h1>Bubble Creators</h1>
+				<p class="bsc-admin-page-header__description">Revisa solicitudes, perfiles sociales, seguimiento y privacidad desde una vista operativa.</p>
+			</div>
+			<div class="bsc-admin-page-header__actions">
+				<a href="<?php echo esc_url( $export_url ); ?>" class="button button-primary">Exportar CSV</a>
+			</div>
 		</div>
-		<hr class="wp-header-end">
 
 		<?php if ('' !== $notice_message) : ?>
 			<div class="bsc-admin-note bsc-admin-note--success">
@@ -210,20 +215,25 @@ function bsc_render_creators_page(): void {
 			</div>
 		<?php endif; ?>
 
-		<form method="get" class="bsc-admin-creators__filters">
+		<form method="get" class="bsc-admin-creators__filters bsc-admin-filter-panel">
 			<input type="hidden" name="page" value="bsc-creators">
-			<label for="creator_status">Estado</label>
-			<select id="creator_status" name="creator_status">
-				<option value="">Todos</option>
-				<?php foreach ($statuses as $status_key => $status_label) : ?>
-					<option value="<?php echo esc_attr( $status_key ); ?>" <?php selected( $status_filter, $status_key ); ?>>
-						<?php echo esc_html( $status_label ); ?>
-					</option>
-				<?php endforeach; ?>
-			</select>
-			<button type="submit" class="button">Filtrar</button>
+			<div class="bsc-admin-field">
+				<label for="creator_status">Estado</label>
+				<select id="creator_status" name="creator_status">
+					<option value="">Todos</option>
+					<?php foreach ($statuses as $status_key => $status_label) : ?>
+						<option value="<?php echo esc_attr( $status_key ); ?>" <?php selected( $status_filter, $status_key ); ?>>
+							<?php echo esc_html( $status_label ); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<div class="bsc-admin-filter-panel__actions">
+				<button type="submit" class="button button-primary">Filtrar</button>
+			</div>
 		</form>
 
+		<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush bsc-admin-table-wrap--spacious">
 		<table class="wp-list-table widefat fixed striped bsc-admin-creators__table">
 			<thead>
 				<tr>
@@ -301,16 +311,17 @@ function bsc_render_creators_page(): void {
 							<?php wp_nonce_field( 'bsc_creators_action', 'bsc_creators_nonce' ); ?>
 							<input type="hidden" name="bsc_creator_action" value="delete_application">
 							<input type="hidden" name="application_id" value="<?php echo esc_attr( $index ); ?>">
-							<button type="submit" class="button button-small" onclick="return confirm('Eliminar esta solicitud y sus datos personales?');">Eliminar datos</button>
+							<button type="submit" class="button button-small bsc-admin-button-danger" onclick="return confirm('Eliminar esta solicitud y sus datos personales?');">Eliminar datos</button>
 						</form>
 					</td>
 				</tr>
 			<?php endforeach; ?>
 			<?php if (0 === $visible_rows) : ?>
-				<tr><td colspan="11"><?php echo esc_html( $status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavia.' ); ?></td></tr>
+				<tr><td colspan="11" class="bsc-admin-empty-state"><?php echo esc_html( $status_filter ? 'No hay solicitudes con este estado.' : 'No hay solicitudes de creators todavia.' ); ?></td></tr>
 			<?php endif; ?>
 			</tbody>
 		</table>
+		</div>
 	</div>
 	<?php
 }

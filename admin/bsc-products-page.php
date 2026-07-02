@@ -754,27 +754,32 @@ function bsc_render_products_page(): void {
 						</td>
 						<td>
 							<div class="bsc-admin-actions bsc-admin-products__row-actions">
-								<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">Editar</a>
-								<a href="<?php echo esc_url( $view_url ); ?>" class="button button-small" target="_blank" rel="noopener noreferrer">Ver tienda</a>
-								<button
-									type="button"
-									class="button button-small bsc-stock-history-btn"
-									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
-									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
-								>Historial</button>
-								<button
-									type="button"
-									class="button button-small bsc-product-variants-btn"
-									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
-									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
-								>Variantes</button>
-								<button
-									type="button"
-									class="button button-small bsc-admin-products__delete bsc-product-delete-btn"
-									data-product-id="<?php echo esc_attr( $post->ID ); ?>"
-									data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
-									aria-label="<?php echo esc_attr( sprintf( 'Borrar %s', $post->post_title ) ); ?>"
-								>Borrar</button>
+								<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small button-primary bsc-admin-products__primary-action">Editar</a>
+								<details class="bsc-admin-products__more-actions">
+									<summary class="button button-small bsc-admin-products__more-summary">Mas</summary>
+									<div class="bsc-admin-products__more-menu">
+										<a href="<?php echo esc_url( $view_url ); ?>" class="button button-small" target="_blank" rel="noopener noreferrer">Ver tienda</a>
+										<button
+											type="button"
+											class="button button-small bsc-stock-history-btn"
+											data-product-id="<?php echo esc_attr( $post->ID ); ?>"
+											data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
+										>Historial</button>
+										<button
+											type="button"
+											class="button button-small bsc-product-variants-btn"
+											data-product-id="<?php echo esc_attr( $post->ID ); ?>"
+											data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
+										>Variantes</button>
+										<button
+											type="button"
+											class="button button-small bsc-admin-products__delete bsc-product-delete-btn"
+											data-product-id="<?php echo esc_attr( $post->ID ); ?>"
+											data-product-name="<?php echo esc_attr( $post->post_title ); ?>"
+											aria-label="<?php echo esc_attr( sprintf( 'Borrar %s', $post->post_title ) ); ?>"
+										>Borrar</button>
+									</div>
+								</details>
 							</div>
 							<div class="bsc-admin-inline-editor bsc-admin-products__save-controls">
 								<span class="bsc-admin-inline-editor__pending" data-role="pending">Guardar cambios</span>

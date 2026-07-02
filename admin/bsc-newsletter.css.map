@@ -1,1 +1,1 @@
-{"version":3,"sourceRoot":"","sources":["../sass/admin/bsc-newsletter.scss"],"names":[],"mappings":"AAEA;EACE;EACA;EACA;EACA;;;AAGF;EACE;EACA;EACA;EACA;EACA;;;AAGF;EACE;;;AAGF;EACE;;;AAGF;EACE;;;AAGF;EACE;EACA;EACA;EACA;;;AAGF;EACE;EACA;EACA","file":"bsc-newsletter.css"}
+{"version":3,"sourceRoot":"","sources":["../sass/admin/bsc-newsletter.scss","../sass/admin/_foundation.scss"],"names":[],"mappings":"AAEA;EACE;;;AAGF;EACE;;;AAGF;EACE;;;AAGF;EACE;EACA;EACA,KCqCQ;EDpCR;;;AAGF;EACE;;;AAGF;EACE;EACA;EACA;;;AAGF;EACE;;;AAGF;EACE;IACE","file":"bsc-newsletter.css"}

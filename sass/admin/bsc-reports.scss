@@ -5,18 +5,11 @@
 }
 
 .bsc-admin-reports__tab-content {
-    background: admin.$surface;
-    border: 1px solid admin.$border-subtle;
-    border-top: none;
-    padding: 20px 24px;
     margin-bottom: 20px;
+    padding: 20px 24px;
 }
 
 .bsc-admin-reports__sales-filters {
-    background: admin.$surface-soft;
-    border: 1px solid admin.$border;
-    border-radius: 6px;
-    padding: 14px 16px;
     margin-bottom: 16px;
 }
 
@@ -247,6 +240,15 @@
 
 .bsc-admin-reports__stock-table {
     font-size: 13px;
+    min-width: 860px;
+}
+
+.bsc-admin-reports__panel {
+    min-width: 0;
+}
+
+.bsc-admin-reports__panel .bsc-admin-table-wrap {
+    margin-top: 0;
 }
 
 .bsc-admin-reports__stock-col-product {

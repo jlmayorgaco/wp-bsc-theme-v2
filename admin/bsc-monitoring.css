@@ -5,14 +5,10 @@
 
 .bsc-admin-monitoring__owner {
   align-items: flex-start;
-  background: #ffffff;
-  border: 1px solid #dcdcde;
-  border-radius: 8px;
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
   margin: 16px 0 24px;
-  padding: 18px;
 }
 
 .bsc-admin-monitoring__owner h2,
@@ -106,8 +102,13 @@
   margin: 8px 0;
 }
 
-.bsc-admin-monitoring__table {
+.bsc-admin-monitoring__table-wrap {
   max-width: 980px;
+}
+
+.bsc-admin-monitoring__table {
+  min-width: 720px;
+  width: 100%;
 }
 
 .bsc-admin-monitoring__badge--critical {

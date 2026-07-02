@@ -10,11 +10,7 @@
 }
 
 .bsc-admin-product-edit__header {
-  align-items: flex-end;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .bsc-admin-product-edit__header h1 {
@@ -930,13 +926,11 @@
 
 .bsc-admin-product-edit__actions {
   align-items: center;
-  background: admin.$surface;
-  border-top: 1px solid admin.$border-strong;
   display: flex;
-  gap: 8px;
+  gap: admin.$space-3;
   justify-content: flex-end;
-  margin-top: 4px;
-  padding: 14px 0 0;
+  margin-top: admin.$space-5;
+  max-width: 1280px;
 }
 
 .bsc-admin-product-edit__action-link {
