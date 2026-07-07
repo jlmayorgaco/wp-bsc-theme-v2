@@ -131,37 +131,23 @@ class BSC_Stock {
 		return max( 0, (int) $stock['bodega'] ) + max( 0, (int) $stock['tienda'] );
 	}
 
+	public static function sync_stock_status( int $product_id ): void {
+		if ( $product_id <= 0 ) {
+			return;
+		}
+
+		update_post_meta( $product_id, '_stock_status', self::get_total_stock( $product_id ) > 0 ? 'instock' : 'outofstock' );
+
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients( $product_id );
+		}
+	}
+
 	public static function get_available_stock_meta_query(): array {
 		return array(
-			'relation' => 'OR',
-			array(
-				'key'     => '_stock_bodega',
-				'value'   => 0,
-				'compare' => '>',
-				'type'    => 'NUMERIC',
-			),
-			array(
-				'key'     => '_stock_tienda',
-				'value'   => 0,
-				'compare' => '>',
-				'type'    => 'NUMERIC',
-			),
-			array(
-				'relation' => 'AND',
-				array(
-					'key'     => '_stock_bodega',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => '_stock_tienda',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => '_stock_status',
-					'value'   => 'instock',
-					'compare' => '=',
-				),
-			),
+			'key'     => '_stock_status',
+			'value'   => 'instock',
+			'compare' => '=',
 		);
 	}
 
@@ -499,6 +485,7 @@ class BSC_Stock {
 
 		wp_cache_delete( $product_id, 'post_meta' );
 		$new = (int) get_post_meta( $product_id, $meta_key, true );
+		self::sync_stock_status( $product_id );
 		self::log_movement( $product_id, $type, $delta, $current, $new, $reason );
 
 		return $new;

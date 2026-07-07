@@ -198,6 +198,10 @@ add_action(
 			}
 		}
 
+		if ( class_exists( 'BSC_Stock' ) ) {
+			BSC_Stock::sync_stock_status( $post_id );
+		}
+
 		if (isset( $_POST['_envio_tipo'] )) {
 			$allowed = array( 'bodega', 'tienda', 'ambos' );
 			$value   = sanitize_text_field( wp_unslash( $_POST['_envio_tipo'] ) );

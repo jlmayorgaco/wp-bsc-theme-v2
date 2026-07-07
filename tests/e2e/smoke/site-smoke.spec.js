@@ -67,7 +67,7 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('#profile-button-mobile').first()).toBeVisible();
   });
 
-  test('header search hides brand suggestions', async ({ page }, testInfo) => {
+  test('header search hides suggestion meta labels', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for header search smoke');
 
     await page.route('**/wp-admin/admin-ajax.php*', async (route) => {
@@ -109,10 +109,9 @@ test.describe('BSC smoke', () => {
     await toggle.click();
     await input.fill('tocobo');
 
-    await expect(results.locator('.search-empty')).toContainText('No se encontraron productos.');
-    await expect(results.locator('.search-result-item--suggestion')).toHaveCount(0);
-    await expect(results).not.toContainText('TOCOBO');
-    await expect(results).not.toContainText('Marca');
+    await expect(results.locator('.search-result-item--suggestion')).toHaveCount(1);
+    await expect(results.locator('.search-result-item--suggestion .search-result-name')).toHaveText('TOCOBO');
+    await expect(results.locator('.search-result-item--suggestion .search-result-meta')).toBeHidden();
   });
 
   test('mobile menu toggles open and closed', async ({ page }, testInfo) => {

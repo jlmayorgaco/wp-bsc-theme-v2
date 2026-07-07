@@ -34,6 +34,10 @@ $menu-title-font: 'Helvetica', sans-serif;
   border-radius: 4px;
 }
 
+.search-result-meta {
+  display: none;
+}
+
 /* DESKTOP */
 .bsc.header__search {
   position: absolute;

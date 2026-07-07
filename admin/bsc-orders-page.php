@@ -46,15 +46,17 @@ add_action(
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'bsc_admin_orders' ),
 				'strings'  => array(
-					'saved'             => 'Elemento guardado',
-					'saving'            => 'Guardando...',
-					'save'              => 'Guardar',
-					'saveError'         => 'Error al actualizar estado',
-					'trackingError'     => 'Error al guardar tracking',
-					'connectionError'   => 'Error de conexion. Intenta de nuevo.',
-					'selectFirst'       => 'Selecciona al menos un pedido primero.',
-					'selectStatus'      => 'Selecciona el estado que quieres aplicar.',
-					'bulkStatusConfirm' => 'Vas a cambiar el estado de los pedidos seleccionados. ¿Continuar?',
+					'saved'               => 'Elemento guardado',
+					'saving'              => 'Guardando...',
+					'save'                => 'Guardar',
+					'saveError'           => 'Error al actualizar estado',
+					'trackingError'       => 'Error al guardar tracking',
+					'trackingUrlInvalid'  => 'La URL de seguimiento debe empezar por https:// o http://.',
+					'trackingUrlRequired' => 'Ingresa la URL completa de seguimiento antes de guardar la guia.',
+					'connectionError'     => 'Error de conexion. Intenta de nuevo.',
+					'selectFirst'         => 'Selecciona al menos un pedido primero.',
+					'selectStatus'        => 'Selecciona el estado que quieres aplicar.',
+					'bulkStatusConfirm'   => 'Vas a cambiar el estado de los pedidos seleccionados. ¿Continuar?',
 				),
 			)
 		);
@@ -562,16 +564,25 @@ function bsc_ajax_save_tracking(): void {
 		wp_send_json_error( array( 'message' => 'Sin permisos' ) );
 	}
 
-	$order_id      = absint( wp_unslash( $_POST['order_id'] ?? 0 ) );
-	$tracking_code = sanitize_text_field( wp_unslash( $_POST['tracking_code'] ?? '' ) );
-	$tracking_link = esc_url_raw( wp_unslash( $_POST['tracking_link'] ?? '' ) );
+	$order_id            = absint( wp_unslash( $_POST['order_id'] ?? 0 ) );
+	$tracking_code       = sanitize_text_field( wp_unslash( $_POST['tracking_code'] ?? '' ) );
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Raw URL is validated before esc_url_raw() so scheme-less URLs stay invalid.
+	$tracking_link_input = trim( (string) wp_unslash( $_POST['tracking_link'] ?? '' ) );
 
 	$order = wc_get_order( $order_id );
 	if ( ! $order ) {
 		wp_send_json_error( array( 'message' => 'Pedido no encontrado' ) );
 	}
 
-	$tracking_link = bsc_resolve_tracking_link( $tracking_code, $tracking_link );
+	$tracking_link = bsc_resolve_tracking_link( $tracking_code, $tracking_link_input );
+
+	if ( '' !== $tracking_link_input && '' === $tracking_link ) {
+		wp_send_json_error( array( 'message' => 'Ingresa una URL completa de seguimiento que empiece por https:// o http://.' ) );
+	}
+
+	if ( $tracking_code && '' === $tracking_link ) {
+		wp_send_json_error( array( 'message' => 'Ingresa la URL completa de seguimiento antes de guardar la guia.' ) );
+	}
 
 	update_post_meta( $order_id, '_bsc_tracking_code', $tracking_code );
 	update_post_meta( $order_id, '_bsc_tracking_link', $tracking_link );
@@ -645,22 +656,33 @@ function bsc_ajax_pack_order_item_stock(): void {
 	);
 }
 
-function bsc_default_tracking_link( string $tracking_code = '' ): string {
-	return (string) apply_filters(
-		'bsc_default_tracking_link',
-		'https://www.servientrega.com/wps/portal/rastreo-envio',
-		$tracking_code
-	);
-}
-
+/**
+ * Sanitize a user-provided full tracking URL.
+ *
+ * @param string $tracking_code Tracking code kept for backward-compatible callers.
+ * @param string $tracking_link Submitted tracking URL.
+ * @return string Sanitized URL or empty string.
+ */
 function bsc_resolve_tracking_link( string $tracking_code, string $tracking_link = '' ): string {
-	$tracking_link = esc_url_raw( $tracking_link );
+	$tracking_link = trim( $tracking_link );
 
-	if ( $tracking_link || ! $tracking_code ) {
-		return $tracking_link;
+	if ( '' === $tracking_link ) {
+		return '';
 	}
 
-	return esc_url_raw( bsc_default_tracking_link( $tracking_code ) );
+	$scheme = wp_parse_url( $tracking_link, PHP_URL_SCHEME );
+	$host   = wp_parse_url( $tracking_link, PHP_URL_HOST );
+
+	if (
+		! is_string( $scheme )
+		|| ! is_string( $host )
+		|| '' === $host
+		|| ! in_array( strtolower( $scheme ), array( 'http', 'https' ), true )
+	) {
+		return '';
+	}
+
+	return esc_url_raw( $tracking_link );
 }
 
 // BSC-033: Send shipping notification email

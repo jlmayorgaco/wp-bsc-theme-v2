@@ -16,12 +16,50 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-
-wc_print_notice( esc_html__( 'Password reset email has been sent.', 'woocommerce' ) );
 ?>
 
-<?php do_action( 'woocommerce_before_lost_password_confirmation_message' ); ?>
+<section class="login login--lost-password" aria-labelledby="bsc-lost-password-confirmation-title">
+	<div class="login__container">
+		<div class="login__image">
+			<?php
+			bsc_responsive_theme_image(
+				'images/signin_signup/bsc_signin_cover.png',
+				'Imagen de fondo de correo enviado',
+				array(
+					'loading'       => 'eager',
+					'fetchpriority' => 'high',
+				),
+				'(max-width: 768px) 0px, 50vw'
+			);
+			?>
+		</div>
 
-<p><?php echo esc_html( apply_filters( 'woocommerce_lost_password_confirmation_message', esc_html__( 'A password reset email has been sent to the email address on file for your account, but may take several minutes to show up in your inbox. Please wait at least 10 minutes before attempting another reset.', 'woocommerce' ) ) ); ?></p>
+		<div class="login__form">
+			<div class="form__image">
+				<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signin_rainbow.png' ); ?>" alt="Decoraci&oacute;n arco&iacute;ris correo enviado" />
+			</div>
 
-<?php do_action( 'woocommerce_after_lost_password_confirmation_message' ); ?>
+			<div class="form__title">
+				<h1 id="bsc-lost-password-confirmation-title" class="form__heading bsc__title">Revisa tu correo</h1>
+			</div>
+
+			<div class="form__fields">
+				<?php do_action( 'woocommerce_before_lost_password_confirmation_message' ); ?>
+
+				<div class="form__notice form__notice--success" role="status">
+					Te enviamos un enlace para restablecer tu contrase&ntilde;a.
+				</div>
+
+				<p class="form__copy">
+					<?php echo wp_kses_post( apply_filters( 'woocommerce_lost_password_confirmation_message', 'Puede tardar unos minutos en aparecer en tu bandeja de entrada. Si no lo ves, revisa spam o promociones antes de solicitar otro enlace.' ) ); ?>
+				</p>
+
+				<div class="form__links">
+					<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="form__link">Volver a iniciar sesi&oacute;n</a>
+				</div>
+
+				<?php do_action( 'woocommerce_after_lost_password_confirmation_message' ); ?>
+			</div>
+		</div>
+	</div>
+</section>

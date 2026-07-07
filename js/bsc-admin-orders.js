@@ -61,6 +61,22 @@
     );
   }
 
+  function isCompleteTrackingUrl(value) {
+    var url = $.trim(value || '');
+
+    if (!url) {
+      return false;
+    }
+
+    try {
+      var parsedUrl = new window.URL(url);
+
+      return !!parsedUrl.host && (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:');
+    } catch (error) {
+      return false;
+    }
+  }
+
   function updateStatusBadge($row, status) {
     var $badge = $row.find('.bsc-order-badge').first();
     var cleanStatus = String(status || '').replace(/^wc-/, '');
@@ -206,8 +222,23 @@
     var trackingCode = $.trim($cell.find('.bsc-tracking-code').val());
     var trackingLink = $.trim($cell.find('.bsc-tracking-link').val());
     var $indicator = $cell.find('.bsc-saved-indicator').first();
+    var isCodeInput = $input.hasClass('bsc-tracking-code');
 
     if (!trackingCode && !trackingLink) {
+      return;
+    }
+
+    if (trackingCode && !trackingLink && isCodeInput) {
+      return;
+    }
+
+    if (trackingLink && !isCompleteTrackingUrl(trackingLink)) {
+      alert(strings.trackingUrlInvalid || 'La URL de seguimiento debe empezar por https:// o http://.');
+      return;
+    }
+
+    if (trackingCode && !trackingLink) {
+      alert(strings.trackingUrlRequired || 'Ingresa la URL completa de seguimiento antes de guardar la guia.');
       return;
     }
 

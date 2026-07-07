@@ -187,7 +187,7 @@ function bsc_parse_birthday_month_day( string $raw ): array {
 }
 
 function bsc_handle_new_customer_welcome_email( int $user_id ): void {
-	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_welcome_email_enabled' ) ) {
+	if ( ! (bool) bsc_get_followup_email_setting( 'bsc_welcome_email_enabled' ) ) {
 		return;
 	}
 

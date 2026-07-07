@@ -16,30 +16,62 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-
-do_action( 'woocommerce_before_lost_password_form' );
 ?>
 
-<form method="post" class="woocommerce-ResetPassword lost_reset_password">
+<section class="login login--lost-password" aria-labelledby="bsc-lost-password-title">
+	<div class="login__container">
+		<div class="login__image">
+			<?php
+			bsc_responsive_theme_image(
+				'images/signin_signup/bsc_signin_cover.png',
+				'Imagen de fondo de recuperaci&oacute;n de contrase&ntilde;a',
+				array(
+					'loading'       => 'eager',
+					'fetchpriority' => 'high',
+				),
+				'(max-width: 768px) 0px, 50vw'
+			);
+			?>
+		</div>
 
-	<p><?php echo apply_filters( 'woocommerce_lost_password_message', esc_html__( 'Lost your password? Please enter your username or email address. You will receive a link to create a new password via email.', 'woocommerce' ) ); ?></p><?php // @codingStandardsIgnoreLine ?>
+		<div class="login__form">
+			<div class="form__image">
+				<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signin_rainbow.png' ); ?>" alt="Decoraci&oacute;n arco&iacute;ris recuperaci&oacute;n" />
+			</div>
 
-	<p class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first">
-		<label for="user_login"><?php esc_html_e( 'Username or email', 'woocommerce' ); ?>&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text"><?php esc_html_e( 'Required', 'woocommerce' ); ?></span></label>
-		<input class="woocommerce-Input woocommerce-Input--text input-text" type="text" name="user_login" id="user_login" autocomplete="username" required aria-required="true" />
-	</p>
+			<div class="form__title">
+				<h1 id="bsc-lost-password-title" class="form__heading bsc__title">Recuperar contrase&ntilde;a</h1>
+			</div>
 
-	<div class="clear"></div>
+			<div class="form__fields">
+				<?php do_action( 'woocommerce_before_lost_password_form' ); ?>
 
-	<?php do_action( 'woocommerce_lostpassword_form' ); ?>
+				<form method="post" class="woocommerce-ResetPassword lost_reset_password form form--lost-password" novalidate>
+					<p id="bsc-lost-password-help" class="form__copy">
+						<?php echo wp_kses_post( apply_filters( 'woocommerce_lost_password_message', 'Ingresa tu correo electr&oacute;nico o usuario y te enviaremos un enlace para crear una nueva contrase&ntilde;a.' ) ); ?>
+					</p>
 
-	<p class="woocommerce-form-row form-row">
-		<input type="hidden" name="wc_reset_password" value="true" />
-		<button type="submit" class="woocommerce-Button button<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" value="<?php esc_attr_e( 'Reset password', 'woocommerce' ); ?>"><?php esc_html_e( 'Reset password', 'woocommerce' ); ?></button>
-	</p>
+					<div class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first form__field">
+						<label for="user_login" class="form__label"><strong>Correo</strong> o usuario&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text">Requerido</span></label>
+						<input class="woocommerce-Input woocommerce-Input--text input-text form__input" type="text" name="user_login" id="user_login" autocomplete="username" required aria-required="true" aria-describedby="bsc-lost-password-help" />
+					</div>
 
-	<?php wp_nonce_field( 'lost_password', 'woocommerce-lost-password-nonce' ); ?>
+					<?php do_action( 'woocommerce_lostpassword_form' ); ?>
 
-</form>
-<?php
-do_action( 'woocommerce_after_lost_password_form' );
+					<div class="woocommerce-form-row form-row form__field form__field--submit">
+						<input type="hidden" name="wc_reset_password" value="true" />
+						<button type="submit" class="woocommerce-Button button bsc__button bsc__button--auth-cta form__submit form__submit--auth-cta btn btn--primary" value="Enviar enlace">Enviar enlace</button>
+					</div>
+
+					<?php wp_nonce_field( 'lost_password', 'woocommerce-lost-password-nonce' ); ?>
+				</form>
+
+				<div class="form__links">
+					<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="form__link">&iquest;Recordaste tu contrase&ntilde;a? Inicia sesi&oacute;n</a>
+				</div>
+
+				<?php do_action( 'woocommerce_after_lost_password_form' ); ?>
+			</div>
+		</div>
+	</div>
+</section>
