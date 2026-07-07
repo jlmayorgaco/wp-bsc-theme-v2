@@ -54,6 +54,11 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 			wp_set_current_user( $user_id );
 			wp_set_auth_cookie( $user_id, true );
 			do_action( 'wp_login', $email, get_user_by( 'ID', $user_id ) );
+
+			if ( function_exists( 'bsc_handle_new_customer_welcome_email' ) ) {
+				bsc_handle_new_customer_welcome_email( (int) $user_id );
+			}
+
 			wp_safe_redirect( home_url( '/registro-familia-bubbles/' ) );
 			exit;
 		}
@@ -107,7 +112,18 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 
 			<div class="bsc__form-field">
 			<label for="password" class="bsc__label"><strong>Contrase&ntilde;a</strong></label>
+			<div class="bsc-password-field">
 			<input type="password" name="password" id="password" class="bsc__input" required />
+			<button
+				type="button"
+				class="bsc-password-toggle"
+				data-target="password"
+				aria-pressed="false"
+				aria-label="Mostrar contrase&ntilde;a">
+				<i class="fas fa-eye" aria-hidden="true"></i>
+				<span class="bsc-password-toggle__label">Mostrar contrase&ntilde;a</span>
+			</button>
+			</div>
 			<div class="bsc__error-msg" id="error_password"></div>
 			</div>
 
@@ -124,7 +140,7 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 			</div>
 
 			<div class="bsc__form-links">
-			<a class="bsc__form-link no-link">&iquest;Ya tienes cuenta? Ingresa a BSC</a>
+			<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="bsc__form-link">&iquest;Ya tienes cuenta? Ingresa a BSC</a>
 			</div>
 		</form>
 		</div>

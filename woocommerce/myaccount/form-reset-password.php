@@ -16,38 +16,70 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-
-do_action( 'woocommerce_before_reset_password_form' );
 ?>
 
-<form method="post" class="woocommerce-ResetPassword lost_reset_password">
+<section class="login login--lost-password" aria-labelledby="bsc-reset-password-title">
+	<div class="login__container">
+		<div class="login__image">
+			<?php
+			bsc_responsive_theme_image(
+				'images/signin_signup/bsc_signin_cover.png',
+				'Imagen de fondo de nueva contrase&ntilde;a',
+				array(
+					'loading'       => 'eager',
+					'fetchpriority' => 'high',
+				),
+				'(max-width: 768px) 0px, 50vw'
+			);
+			?>
+		</div>
 
-	<p><?php echo apply_filters( 'woocommerce_reset_password_message', esc_html__( 'Enter a new password below.', 'woocommerce' ) ); ?></p><?php // @codingStandardsIgnoreLine ?>
+		<div class="login__form">
+			<div class="form__image">
+				<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signin_rainbow.png' ); ?>" alt="Decoraci&oacute;n arco&iacute;ris nueva contrase&ntilde;a" />
+			</div>
 
-	<p class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first">
-		<label for="password_1"><?php esc_html_e( 'New password', 'woocommerce' ); ?>&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text"><?php esc_html_e( 'Required', 'woocommerce' ); ?></span></label>
-		<input type="password" class="woocommerce-Input woocommerce-Input--text input-text" name="password_1" id="password_1" autocomplete="new-password" required aria-required="true" />
-	</p>
-	<p class="woocommerce-form-row woocommerce-form-row--last form-row form-row-last">
-		<label for="password_2"><?php esc_html_e( 'Re-enter new password', 'woocommerce' ); ?>&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text"><?php esc_html_e( 'Required', 'woocommerce' ); ?></span></label>
-		<input type="password" class="woocommerce-Input woocommerce-Input--text input-text" name="password_2" id="password_2" autocomplete="new-password" required aria-required="true" />
-	</p>
+			<div class="form__title">
+				<h1 id="bsc-reset-password-title" class="form__heading bsc__title">Crear nueva contrase&ntilde;a</h1>
+			</div>
 
-	<input type="hidden" name="reset_key" value="<?php echo esc_attr( $args['key'] ); ?>" />
-	<input type="hidden" name="reset_login" value="<?php echo esc_attr( $args['login'] ); ?>" />
+			<div class="form__fields">
+				<?php do_action( 'woocommerce_before_reset_password_form' ); ?>
 
-	<div class="clear"></div>
+				<form method="post" class="woocommerce-ResetPassword lost_reset_password form form--lost-password" novalidate>
+					<p id="bsc-reset-password-help" class="form__copy">
+						<?php echo wp_kses_post( apply_filters( 'woocommerce_reset_password_message', 'Escribe una nueva contrase&ntilde;a segura para volver a ingresar a tu cuenta.' ) ); ?>
+					</p>
 
-	<?php do_action( 'woocommerce_resetpassword_form' ); ?>
+					<div class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first form__field">
+						<label for="password_1" class="form__label"><strong>Nueva contrase&ntilde;a</strong>&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text">Requerido</span></label>
+						<input type="password" class="woocommerce-Input woocommerce-Input--text input-text form__input" name="password_1" id="password_1" autocomplete="new-password" required aria-required="true" aria-describedby="bsc-reset-password-help" />
+					</div>
 
-	<p class="woocommerce-form-row form-row">
-		<input type="hidden" name="wc_reset_password" value="true" />
-		<button type="submit" class="woocommerce-Button button<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" value="<?php esc_attr_e( 'Save', 'woocommerce' ); ?>"><?php esc_html_e( 'Save', 'woocommerce' ); ?></button>
-	</p>
+					<div class="woocommerce-form-row woocommerce-form-row--last form-row form-row-last form__field">
+						<label for="password_2" class="form__label"><strong>Confirmar contrase&ntilde;a</strong>&nbsp;<span class="required" aria-hidden="true">*</span><span class="screen-reader-text">Requerido</span></label>
+						<input type="password" class="woocommerce-Input woocommerce-Input--text input-text form__input" name="password_2" id="password_2" autocomplete="new-password" required aria-required="true" />
+					</div>
 
-	<?php wp_nonce_field( 'reset_password', 'woocommerce-reset-password-nonce' ); ?>
+					<input type="hidden" name="reset_key" value="<?php echo esc_attr( $args['key'] ); ?>" />
+					<input type="hidden" name="reset_login" value="<?php echo esc_attr( $args['login'] ); ?>" />
 
-</form>
-<?php
-do_action( 'woocommerce_after_reset_password_form' );
+					<?php do_action( 'woocommerce_resetpassword_form' ); ?>
 
+					<div class="woocommerce-form-row form-row form__field form__field--submit">
+						<input type="hidden" name="wc_reset_password" value="true" />
+						<button type="submit" class="woocommerce-Button button bsc__button bsc__button--auth-cta form__submit form__submit--auth-cta btn btn--primary" value="Guardar contrase&ntilde;a">Guardar contrase&ntilde;a</button>
+					</div>
+
+					<?php wp_nonce_field( 'reset_password', 'woocommerce-reset-password-nonce' ); ?>
+				</form>
+
+				<div class="form__links">
+					<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="form__link">Volver a iniciar sesi&oacute;n</a>
+				</div>
+
+				<?php do_action( 'woocommerce_after_reset_password_form' ); ?>
+			</div>
+		</div>
+	</div>
+</section>

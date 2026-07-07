@@ -9,6 +9,7 @@ get_header();
 
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only login error flag.
 $login_error = isset( $_GET['login'] ) && 'failed' === sanitize_key( wp_unslash( $_GET['login'] ) );
+$lost_password_url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_url() : wp_lostpassword_url();
 ?>
 <main class="login">
 	<div class="login__container">
@@ -49,7 +50,18 @@ $login_error = isset( $_GET['login'] ) && 'failed' === sanitize_key( wp_unslash(
 
 			<div class="form__field form__field--password">
 			<label for="user_pass" class="form__label"><strong>Contrase&ntilde;a</strong></label>
-			<input type="password" name="pwd" id="user_pass" class="form__input" required />
+			<div class="bsc-password-field">
+				<input type="password" name="pwd" id="user_pass" class="form__input" required />
+				<button
+					type="button"
+					class="bsc-password-toggle"
+					data-target="user_pass"
+					aria-pressed="false"
+					aria-label="Mostrar contrase&ntilde;a">
+					<i class="fas fa-eye" aria-hidden="true"></i>
+					<span class="bsc-password-toggle__label">Mostrar contrase&ntilde;a</span>
+				</button>
+			</div>
 			<div class="form__error-msg" id="error_user_pass"></div>
 			</div>
 
@@ -66,7 +78,7 @@ $login_error = isset( $_GET['login'] ) && 'failed' === sanitize_key( wp_unslash(
 			</div>
 
 			<div class="form__links">
-			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>" class="form__link">&iquest;Olvidaste tu contrase&ntilde;a?</a>
+			<a href="<?php echo esc_url( $lost_password_url ); ?>" class="form__link">&iquest;Olvidaste tu contrase&ntilde;a?</a>
 			</div>
 
 			<hr class="form__divider">

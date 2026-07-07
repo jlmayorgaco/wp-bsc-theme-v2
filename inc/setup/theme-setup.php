@@ -29,7 +29,8 @@ if (!function_exists( 'bsc_2_0_setup' )) {
 
 		register_nav_menus(
 			array(
-				'menu-1' => esc_html__( 'Primary', 'bsc-2-0' ),
+				'menu-1'          => esc_html__( 'Primary', 'bsc-2-0' ),
+				'bsc-header-mega' => esc_html__( 'BSC Header Mega Menu', 'bsc-2-0' ),
 			)
 		);
 

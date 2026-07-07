@@ -10,8 +10,23 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Redirect anonymous account-page visitors to the custom login page.
  */
+function bsc_is_account_password_reset_request(): bool {
+	global $wp;
+
+	if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'lost-password' ) ) {
+		return true;
+	}
+
+	return isset( $wp->query_vars['lost-password'] );
+}
+
 function bsc_redirect_my_account_guests() {
-	if ( is_account_page() && ! is_user_logged_in() ) {
+	if (
+		function_exists( 'is_account_page' )
+		&& is_account_page()
+		&& ! is_user_logged_in()
+		&& ! bsc_is_account_password_reset_request()
+	) {
 		wp_safe_redirect( home_url( '/login/' ) );
 		exit;
 	}
@@ -46,9 +61,17 @@ function bsc_is_parking_page_auth_request(): bool {
 	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Normalized for path comparison only.
 	$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
 	$request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+	$request_query = wp_parse_url( $request_uri, PHP_URL_QUERY );
 
 	if ( ! is_string( $request_path ) ) {
 		$request_path = '';
+	}
+
+	$request_action = '';
+
+	if ( is_string( $request_query ) ) {
+		parse_str( $request_query, $request_query_args );
+		$request_action = isset( $request_query_args['action'] ) ? sanitize_key( (string) $request_query_args['action'] ) : '';
 	}
 
 	$request_path = '/' . trim( strtolower( rawurldecode( $request_path ) ), '/' );
@@ -60,18 +83,36 @@ function bsc_is_parking_page_auth_request(): bool {
 		$request_path = substr( $request_path, strlen( $home_path ) );
 	}
 
-	return in_array(
+	if ( in_array(
 		$request_path,
 		array(
 			'/login',
 			'/register',
+			'/registro-familia-bubbles',
 			'/signup',
 			'/sign-up',
-			'/wp-login.php',
 			'/wp-signup.php',
 		),
 		true
+	) ) {
+		return true;
+	}
+
+	foreach ( array( '/my-account/lost-password', '/mi-cuenta/lost-password' ) as $lost_password_path ) {
+		if ( $request_path === $lost_password_path || str_starts_with( $request_path, $lost_password_path . '/' ) ) {
+			return true;
+		}
+	}
+
+	$allowed_wp_login_actions = array(
+		'',
+		'lostpassword',
+		'retrievepassword',
+		'rp',
+		'resetpass',
 	);
+
+	return '/wp-login.php' === $request_path && in_array( $request_action, $allowed_wp_login_actions, true );
 }
 
 /**

@@ -297,7 +297,7 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
 		return sprintf(
 			'<input type="text" class="bsc-tracking-code" data-order-id="%1$d" value="%2$s" placeholder="Código de guía">'
-			. '<input type="text" class="bsc-tracking-link" data-order-id="%1$d" value="%3$s" placeholder="URL de seguimiento">'
+			. '<input type="url" class="bsc-tracking-link" data-order-id="%1$d" value="%3$s" placeholder="URL completa de seguimiento">'
 			. '<span class="bsc-saved-indicator bsc-saved-indicator--tracking">✓ Guardado</span>',
 			$id,
 			$code,

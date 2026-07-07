@@ -9484,6 +9484,164 @@ textarea:focus-visible {
   color: #343434;
 }
 
+.login--lost-password .login__container {
+  min-height: 600px;
+}
+.login--lost-password .login__form .form__fields {
+  align-items: center;
+  gap: 16px;
+}
+.login--lost-password .login__form .form--lost-password {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  margin: 0;
+}
+.login--lost-password .login__form .form__copy {
+  width: min(100%, 390px);
+  margin: 0 auto 4px;
+  color: #4c4c4c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: center;
+  letter-spacing: 0;
+}
+.login--lost-password .login__form .form__field {
+  width: 100%;
+  margin-bottom: 0;
+}
+.login--lost-password .login__form .form-row label.form__label {
+  display: block;
+}
+.login--lost-password .login__form .form__field--submit {
+  width: min(100%, 350px);
+  margin-top: 10px;
+}
+.login--lost-password .login__form .form__submit--auth-cta {
+  min-height: 44px;
+  line-height: 1.15;
+  white-space: normal;
+}
+.login--lost-password .login__form .form__links {
+  max-width: 390px;
+  margin: 0 auto;
+}
+.login--lost-password .form__notice,
+.login--lost-password .woocommerce-error,
+.login--lost-password .woocommerce-message,
+.login--lost-password .woocommerce-info {
+  box-sizing: border-box;
+  width: min(100%, 390px);
+  margin: 0 auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid #f5c2c7;
+  border-right-width: 4px;
+  border-radius: 8px;
+  background: #f8d7da;
+  color: #842029;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: right;
+}
+.login--lost-password .woocommerce-error {
+  padding-right: 1rem;
+  list-style: none;
+}
+.login--lost-password .woocommerce-error li {
+  margin: 0;
+  padding: 0;
+}
+.login--lost-password .form__notice--success,
+.login--lost-password .woocommerce-message {
+  border-color: #9ad0aa;
+  background: #e9f7ee;
+  color: #2f6f45;
+}
+.login--lost-password .woocommerce-info {
+  border-color: #f1d36d;
+  background: #fff7d0;
+  color: #333;
+}
+@media (max-width: 768px) {
+  .login--lost-password .login__container {
+    min-height: calc(100vh - 118px);
+  }
+  .login--lost-password .login__form {
+    padding: 42px 10px 52px;
+  }
+  .login--lost-password .login__form .form__copy,
+  .login--lost-password .login__form .form__links,
+  .login--lost-password .login__form .form__notice,
+  .login--lost-password .login__form .woocommerce-error,
+  .login--lost-password .login__form .woocommerce-message,
+  .login--lost-password .login__form .woocommerce-info {
+    width: min(100%, 340px);
+  }
+  .login--lost-password .login__form .form__field--submit {
+    width: min(100%, 350px);
+  }
+}
+
+.bsc-password-field {
+  position: relative;
+  width: 350px;
+  max-width: calc(100% - 24px);
+  margin: 0 auto;
+}
+
+.login .login__form .bsc-password-field .form__input,
+.bsc__auth .bsc__form-container .bsc-password-field .bsc__input {
+  width: 100%;
+  padding-left: 40px;
+  margin: 0;
+}
+
+.bsc-password-toggle {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.bsc-password-toggle:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+.bsc-password-toggle:hover, .bsc-password-toggle:focus-visible {
+  color: #333;
+}
+.bsc-password-toggle i {
+  pointer-events: none;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bsc-password-toggle__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .bsc__auth {
   display: block;
   height: 100%;
@@ -9560,6 +9718,23 @@ textarea:focus-visible {
     width: 90%;
     margin: 0 auto;
   }
+}
+.bsc__auth .bsc__form-container .bsc__password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  margin: 0;
+}
+.bsc__auth .bsc__form-container .bsc__form-copy {
+  width: min(100%, 390px);
+  margin: 0 auto 4px;
+  color: #4c4c4c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: center;
+  letter-spacing: 0;
 }
 .bsc__auth .bsc__form-container .bsc__form-field {
   display: flex;
@@ -9647,6 +9822,187 @@ textarea:focus-visible {
 }
 .bsc__auth .bsc__form-container .bsc__form-links .bsc__form-link:hover {
   color: #343434;
+}
+
+.bsc__auth--lost-password .bsc__container {
+  min-height: 640px;
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__form-fields {
+  align-items: center;
+  gap: 16px;
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__form-field {
+  width: 100%;
+  margin-bottom: 0;
+}
+.bsc__auth--lost-password .bsc__form-container .form-row label.bsc__label {
+  display: block;
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__form-field--submit {
+  width: min(100%, 390px);
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__input {
+  box-sizing: border-box;
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__button--auth-cta {
+  min-width: 260px;
+  min-height: 44px;
+  border-radius: 30px;
+  line-height: 1.15;
+  white-space: normal;
+}
+.bsc__auth--lost-password .bsc__form-container .bsc__form-links {
+  max-width: 390px;
+  margin: 0 auto;
+}
+.bsc__auth--lost-password .bsc__auth-notice,
+.bsc__auth--lost-password .woocommerce-error,
+.bsc__auth--lost-password .woocommerce-message,
+.bsc__auth--lost-password .woocommerce-info {
+  box-sizing: border-box;
+  width: min(100%, 390px);
+  margin: 0 auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid #f5c2c7;
+  border-right-width: 4px;
+  border-radius: 8px;
+  background: #f8d7da;
+  color: #842029;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: right;
+}
+.bsc__auth--lost-password .woocommerce-error {
+  padding-right: 1rem;
+  list-style: none;
+}
+.bsc__auth--lost-password .woocommerce-error li {
+  margin: 0;
+  padding: 0;
+}
+.bsc__auth--lost-password .bsc__auth-notice--success,
+.bsc__auth--lost-password .woocommerce-message {
+  border-color: #9ad0aa;
+  background: #e9f7ee;
+  color: #2f6f45;
+}
+.bsc__auth--lost-password .woocommerce-info {
+  border-color: #f1d36d;
+  background: #fff7d0;
+  color: #333;
+}
+@media (max-width: 768px) {
+  .bsc__auth--lost-password .bsc__container {
+    min-height: calc(100vh - 118px);
+  }
+  .bsc__auth--lost-password .bsc__form-container {
+    padding: 42px 10px 52px;
+  }
+  .bsc__auth--lost-password .bsc__form-container .bsc__form-copy,
+  .bsc__auth--lost-password .bsc__form-container .bsc__form-links,
+  .bsc__auth--lost-password .bsc__form-container .bsc__auth-notice,
+  .bsc__auth--lost-password .bsc__form-container .woocommerce-error,
+  .bsc__auth--lost-password .bsc__form-container .woocommerce-message,
+  .bsc__auth--lost-password .bsc__form-container .woocommerce-info {
+    width: min(100%, 340px);
+  }
+  .bsc__auth--lost-password .bsc__form-container .bsc__button--auth-cta {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.bsc-register-welcome {
+  min-height: calc(100vh - 150px);
+  padding: 72px 20px 88px;
+  background: #f1f4f2;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.bsc-register-welcome__content {
+  width: min(100%, 720px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.bsc-register-welcome__rainbow {
+  width: 188px;
+  max-width: 62vw;
+  height: auto;
+  display: block;
+  margin-bottom: 10px;
+}
+.bsc-register-welcome__title {
+  margin: 0;
+  color: #333;
+  font-family: "Helvetica", sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+.bsc-register-welcome__divider {
+  margin: 8px 0 28px;
+  color: #333;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+}
+.bsc-register-welcome__copy {
+  max-width: 630px;
+  margin: 0 auto 30px;
+  color: #4c4c4c;
+  font-family: "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.55;
+}
+.bsc-register-welcome__copy strong {
+  color: #333;
+  font-weight: 800;
+}
+.bsc-register-welcome .bsc-register-welcome__button {
+  width: auto;
+  min-width: 264px;
+  min-height: 44px;
+  padding: 13px 28px;
+  border-radius: 24px;
+  background: #333;
+  color: #fff;
+  font-size: 16px;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+.bsc-register-welcome .bsc-register-welcome__button:hover, .bsc-register-welcome .bsc-register-welcome__button:focus-visible {
+  background: #F7C0CD;
+  color: #333;
+}
+@media (max-width: 768px) {
+  .bsc-register-welcome {
+    min-height: calc(100vh - 118px);
+    padding: 56px 22px 72px;
+  }
+  .bsc-register-welcome__rainbow {
+    width: 164px;
+    max-width: 76vw;
+  }
+  .bsc-register-welcome__copy {
+    max-width: 34rem;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .bsc-register-welcome .bsc-register-welcome__button {
+    width: 100%;
+    max-width: 320px;
+    min-width: 0;
+  }
 }
 
 .bsc__shop {
@@ -17589,6 +17945,10 @@ body.page-skin-quiz #mobileSidebar {
   height: 40px;
   object-fit: contain;
   border-radius: 4px;
+}
+
+.search-result-meta {
+  display: none;
 }
 
 /* DESKTOP */
