@@ -1224,6 +1224,28 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		}
 	);
 
+	if ( ! function_exists( 'bsc_translate_password_reset_woocommerce_text' ) ) {
+		function bsc_translate_password_reset_woocommerce_text( string $translation, string $text, string $domain ): string {
+			if ( 'woocommerce' !== $domain ) {
+				return $translation;
+			}
+
+			$password_reset_text = array(
+				'Enter a username or email address.' => 'Ingresa tu usuario o correo electr&oacute;nico.',
+				'Invalid username or email.' => 'No encontramos una cuenta con ese usuario o correo electr&oacute;nico.',
+				'Password reset is not allowed for this user' => 'No es posible restablecer la contrase&ntilde;a de este usuario.',
+				'Please enter your password.' => 'Ingresa tu nueva contrase&ntilde;a.',
+				'Passwords do not match.' => 'Las contrase&ntilde;as no coinciden.',
+				'Your password has been reset successfully.' => 'Tu contrase&ntilde;a se actualiz&oacute; correctamente.',
+				'This key is invalid or has already been used. Please reset your password again if needed.' => 'Este enlace no es v&aacute;lido o ya fue usado. Solicita uno nuevo si necesitas restablecer tu contrase&ntilde;a.',
+				'This password reset key is for a different user account. Please log out and try again.' => 'Este enlace pertenece a otra cuenta. Cierra sesi&oacute;n e intenta de nuevo.',
+			);
+
+			return $password_reset_text[ $text ] ?? $translation;
+		}
+	}
+	add_filter( 'gettext', 'bsc_translate_password_reset_woocommerce_text', 20, 3 );
+
 
 
 

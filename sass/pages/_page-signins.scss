@@ -219,6 +219,130 @@ $font-stack: "Helvetica", sans-serif;
   }
 }
 
+.login--lost-password {
+  .login__container {
+    min-height: 600px;
+  }
+
+  .login__form {
+    .form__fields {
+      align-items: center;
+      gap: 16px;
+    }
+
+    .form--lost-password {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      margin: 0;
+    }
+
+    .form__copy {
+      width: min(100%, 390px);
+      margin: 0 auto 4px;
+      color: #4c4c4c;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.55;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .form__field {
+      width: 100%;
+      margin-bottom: 0;
+    }
+
+    .form-row label.form__label {
+      display: block;
+    }
+
+    .form__field--submit {
+      width: min(100%, 350px);
+      margin-top: 10px;
+    }
+
+    .form__submit--auth-cta {
+      min-height: 44px;
+      line-height: 1.15;
+      white-space: normal;
+    }
+
+    .form__links {
+      max-width: 390px;
+      margin: 0 auto;
+    }
+  }
+
+  .form__notice,
+  .woocommerce-error,
+  .woocommerce-message,
+  .woocommerce-info {
+    box-sizing: border-box;
+    width: min(100%, 390px);
+    margin: 0 auto;
+    padding: 0.9rem 1rem;
+    border: 1px solid $error-border;
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: $error-bg;
+    color: $error-color;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: 0;
+    text-align: left;
+  }
+
+  .woocommerce-error {
+    padding-left: 1rem;
+    list-style: none;
+
+    li {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .form__notice--success,
+  .woocommerce-message {
+    border-color: #9ad0aa;
+    background: #e9f7ee;
+    color: #2f6f45;
+  }
+
+  .woocommerce-info {
+    border-color: #f1d36d;
+    background: #fff7d0;
+    color: $black;
+  }
+
+  @media (max-width: 768px) {
+    .login__container {
+      min-height: calc(100vh - 118px);
+    }
+
+    .login__form {
+      padding: 42px 10px 52px;
+
+      .form__copy,
+      .form__links,
+      .form__notice,
+      .woocommerce-error,
+      .woocommerce-message,
+      .woocommerce-info {
+        width: min(100%, 340px);
+      }
+
+      .form__field--submit {
+        width: min(100%, 350px);
+      }
+    }
+  }
+}
+
 
 // _bsc-auth.scss
 
@@ -227,6 +351,65 @@ $bsc-color-black: #333;
 $bsc-error-bg: #f8d7da;
 $bsc-error-color: #842029;
 $bsc-error-border: #f5c2c7;
+
+.bsc-password-field {
+  position: relative;
+  width: 350px;
+  max-width: calc(100% - 24px);
+  margin: 0 auto;
+}
+
+.login .login__form .bsc-password-field .form__input,
+.bsc__auth .bsc__form-container .bsc-password-field .bsc__input {
+  width: 100%;
+  padding-right: 40px;
+  margin: 0;
+}
+
+.bsc-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transform: translateY(-50%);
+
+  &:focus-visible {
+    outline: 2px solid $bsc-color-black;
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $bsc-color-black;
+  }
+
+  i {
+    pointer-events: none;
+    font-size: 14px;
+    line-height: 1;
+  }
+}
+
+.bsc-password-toggle__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 
 .bsc__auth {
   display: block;
@@ -307,6 +490,25 @@ $bsc-error-border: #f5c2c7;
         width: 90%;
         margin: 0 auto;
       }
+    }
+
+    .bsc__password-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      margin: 0;
+    }
+
+    .bsc__form-copy {
+      width: min(100%, 390px);
+      margin: 0 auto 4px;
+      color: #4c4c4c;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.55;
+      text-align: center;
+      letter-spacing: 0;
     }
 
     .bsc__form-field {
@@ -409,6 +611,218 @@ $bsc-error-border: #f5c2c7;
           color: #343434;
         }
       }
+    }
+  }
+}
+
+.bsc__auth--lost-password {
+  .bsc__container {
+    min-height: 640px;
+  }
+
+  .bsc__form-container {
+    .bsc__form-fields {
+      align-items: center;
+      gap: 16px;
+    }
+
+    .bsc__form-field {
+      width: 100%;
+      margin-bottom: 0;
+    }
+
+    .form-row label.bsc__label {
+      display: block;
+    }
+
+    .bsc__form-field--submit {
+      width: min(100%, 390px);
+    }
+
+    .bsc__input {
+      box-sizing: border-box;
+    }
+
+    .bsc__button--auth-cta {
+      min-width: 260px;
+      min-height: 44px;
+      border-radius: 30px;
+      line-height: 1.15;
+      white-space: normal;
+    }
+
+    .bsc__form-links {
+      max-width: 390px;
+      margin: 0 auto;
+    }
+  }
+
+  .bsc__auth-notice,
+  .woocommerce-error,
+  .woocommerce-message,
+  .woocommerce-info {
+    box-sizing: border-box;
+    width: min(100%, 390px);
+    margin: 0 auto;
+    padding: 0.9rem 1rem;
+    border: 1px solid $bsc-error-border;
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: $bsc-error-bg;
+    color: $bsc-error-color;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: 0;
+    text-align: left;
+  }
+
+  .woocommerce-error {
+    padding-left: 1rem;
+    list-style: none;
+
+    li {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .bsc__auth-notice--success,
+  .woocommerce-message {
+    border-color: #9ad0aa;
+    background: #e9f7ee;
+    color: #2f6f45;
+  }
+
+  .woocommerce-info {
+    border-color: #f1d36d;
+    background: #fff7d0;
+    color: $bsc-color-black;
+  }
+
+  @media (max-width: 768px) {
+    .bsc__container {
+      min-height: calc(100vh - 118px);
+    }
+
+    .bsc__form-container {
+      padding: 42px 10px 52px;
+
+      .bsc__form-copy,
+      .bsc__form-links,
+      .bsc__auth-notice,
+      .woocommerce-error,
+      .woocommerce-message,
+      .woocommerce-info {
+        width: min(100%, 340px);
+      }
+
+      .bsc__button--auth-cta {
+        width: 100%;
+        min-width: 0;
+      }
+    }
+  }
+}
+
+.bsc-register-welcome {
+  min-height: calc(100vh - 150px);
+  padding: 72px 20px 88px;
+  background: #f1f4f2;
+  color: $bsc-color-black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  &__content {
+    width: min(100%, 720px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__rainbow {
+    width: 188px;
+    max-width: 62vw;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  &__title {
+    margin: 0;
+    color: $bsc-color-black;
+    font-family: $font-stack;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  &__divider {
+    margin: 8px 0 28px;
+    color: $bsc-color-black;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  &__copy {
+    max-width: 630px;
+    margin: 0 auto 30px;
+    color: #4c4c4c;
+    font-family: $font-stack;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.55;
+
+    strong {
+      color: $bsc-color-black;
+      font-weight: 800;
+    }
+  }
+
+  & &__button {
+    width: auto;
+    min-width: 264px;
+    min-height: 44px;
+    padding: 13px 28px;
+    border-radius: 24px;
+    background: $bsc-color-black;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 1.1;
+
+    &:hover,
+    &:focus-visible {
+      background: $bsc-color-pink;
+      color: $bsc-color-black;
+    }
+  }
+
+  @media (max-width: 768px) {
+    min-height: calc(100vh - 118px);
+    padding: 56px 22px 72px;
+
+    &__rainbow {
+      width: 164px;
+      max-width: 76vw;
+    }
+
+    &__copy {
+      max-width: 34rem;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    & &__button {
+      width: 100%;
+      max-width: 320px;
+      min-width: 0;
     }
   }
 }
