@@ -39,6 +39,7 @@ const routes = {
     fixture?.routes?.login ||
     '/login/',
   register: process.env.PW_ROUTE_REGISTER || '/register/',
+  registerWelcome: process.env.PW_ROUTE_REGISTER_WELCOME || '/registro-familia-bubbles/',
   bubbleCreators: process.env.PW_ROUTE_BUBBLE_CREATORS || '/bubble-creators/',
   account:
     process.env.PW_ROUTE_ACCOUNT ||
