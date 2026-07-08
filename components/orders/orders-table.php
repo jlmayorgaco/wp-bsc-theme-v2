@@ -80,30 +80,34 @@ class BSC_Orders_Table {
 					}
 					?>
 					<article class="bsc__orders-card status-<?php echo esc_attr( $order->get_status() ); ?>">
-						<div class="bsc__orders-card-row">
-							<span class="bsc__orders-card-label">Número de Orden</span>
-							<div class="bsc__orders-card-value bsc__orders-card-value--order-number">
-								<a href="<?php echo esc_url( $order->get_view_order_url() ); ?>">
+						<a
+							class="bsc__orders-card-link"
+							href="<?php echo esc_url( $order->get_view_order_url() ); ?>"
+							aria-label="<?php echo esc_attr( sprintf( 'Ver detalles de la orden #%s', $order->get_order_number() ) ); ?>"
+						>
+							<div class="bsc__orders-card-row">
+								<span class="bsc__orders-card-label">Número de Orden</span>
+								<div class="bsc__orders-card-value bsc__orders-card-value--order-number">
 									#<?php echo esc_html( $order->get_order_number() ); ?>
-								</a>
+								</div>
 							</div>
-						</div>
 
-						<div class="bsc__orders-card-row">
-							<span class="bsc__orders-card-label">Fecha</span>
-							<div class="bsc__orders-card-value">
-								<time datetime="<?php echo esc_attr( $order->get_date_created()->date( 'c' ) ); ?>">
-									<?php echo esc_html( $this->format_order_date( $order ) ); ?>
-								</time>
+							<div class="bsc__orders-card-row">
+								<span class="bsc__orders-card-label">Fecha</span>
+								<div class="bsc__orders-card-value">
+									<time datetime="<?php echo esc_attr( $order->get_date_created()->date( 'c' ) ); ?>">
+										<?php echo esc_html( $this->format_order_date( $order ) ); ?>
+									</time>
+								</div>
 							</div>
-						</div>
 
-						<div class="bsc__orders-card-row bsc__orders-card-row--status">
-							<span class="bsc__orders-card-label">Estado</span>
-							<div class="bsc__orders-card-value bsc__orders-card-value--status">
-								<?php $this->render_progress_bar( $order ); ?>
+							<div class="bsc__orders-card-row bsc__orders-card-row--status">
+								<span class="bsc__orders-card-label">Estado</span>
+								<div class="bsc__orders-card-value bsc__orders-card-value--status">
+									<?php $this->render_progress_bar( $order ); ?>
+								</div>
 							</div>
-						</div>
+						</a>
 					</article>
 				<?php endforeach; ?>
 			</div>
