@@ -47,14 +47,30 @@
   }
 
   &-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-    padding: 1rem;
     background: #fff;
     border: 1px solid #eee;
     border-radius: 2px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  &-card-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1rem;
+    color: var(--bsc-color-text);
+    text-decoration: none;
+
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: -2px;
+    }
   }
 
   &-card-row {
@@ -79,17 +95,8 @@
   &-card-value {
     color: var(--bsc-color-text);
 
-    a {
-      color: var(--bsc-color-text);
-      font-weight: bold;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
     &--order-number {
+      font-weight: bold;
       letter-spacing: 1px;
     }
 
@@ -153,6 +160,10 @@
 
     &-card {
       margin: 0;
+    }
+
+    &-card-value {
+      font-size: 0.9rem;
     }
 
     &-pagination {
