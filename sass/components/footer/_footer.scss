@@ -340,6 +340,9 @@ $breakpoints: (
 
     i {
       margin-left: 5px;
+          position: relative;
+    top: -1px;
+    left: -1px;
     }
 
     .footer__wa {
