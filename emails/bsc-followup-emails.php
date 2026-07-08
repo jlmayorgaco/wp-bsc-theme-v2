@@ -27,6 +27,15 @@ function bsc_is_followup_emails_enabled(): bool {
 	return (bool) bsc_get_followup_email_setting( 'bsc_followup_emails_enabled' );
 }
 
+/**
+ * Whether BSC password reset emails should be customized.
+ *
+ * @return bool
+ */
+function bsc_is_password_reset_email_enabled(): bool {
+	return bsc_is_followup_emails_enabled() && (bool) bsc_get_followup_email_setting( 'bsc_password_reset_email_enabled' );
+}
+
 function bsc_get_email_shop_url(): string {
 	if ( function_exists( 'wc_get_page_id' ) ) {
 		$shop_page_id = (int) wc_get_page_id( 'shop' );
@@ -223,8 +232,17 @@ function bsc_handle_new_customer_welcome_email( int $user_id ): void {
 add_action( 'user_register', 'bsc_handle_new_customer_welcome_email', 20 );
 add_action( 'woocommerce_created_customer', 'bsc_handle_new_customer_welcome_email', 20 );
 
+/**
+ * Customize the native WordPress reset password email with the BSC template.
+ *
+ * @param array   $defaults   Email defaults.
+ * @param string  $key        Password reset key.
+ * @param string  $user_login User login.
+ * @param WP_User $user_data  User object.
+ * @return array
+ */
 function bsc_customize_password_reset_email( array $defaults, string $key, string $user_login, WP_User $user_data ): array {
-	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_password_reset_email_enabled' ) ) {
+	if ( ! bsc_is_password_reset_email_enabled() ) {
 		return $defaults;
 	}
 
@@ -247,8 +265,14 @@ function bsc_customize_password_reset_email( array $defaults, string $key, strin
 }
 add_filter( 'retrieve_password_notification_email', 'bsc_customize_password_reset_email', 10, 4 );
 
+/**
+ * Customize the native WordPress reset password subject fallback.
+ *
+ * @param string $title Default title.
+ * @return string
+ */
 function bsc_password_reset_title_fallback( string $title ): string {
-	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_password_reset_email_enabled' ) ) {
+	if ( ! bsc_is_password_reset_email_enabled() ) {
 		return $title;
 	}
 
@@ -256,8 +280,17 @@ function bsc_password_reset_title_fallback( string $title ): string {
 }
 add_filter( 'retrieve_password_title', 'bsc_password_reset_title_fallback', 10, 1 );
 
+/**
+ * Customize the native WordPress reset password message fallback.
+ *
+ * @param string       $message    Default message.
+ * @param string       $key        Password reset key.
+ * @param string       $user_login User login.
+ * @param WP_User|null $user_data  User object.
+ * @return string
+ */
 function bsc_password_reset_message_fallback( string $message, string $key, string $user_login, $user_data ): string {
-	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_password_reset_email_enabled' ) ) {
+	if ( ! bsc_is_password_reset_email_enabled() ) {
 		return $message;
 	}
 
@@ -271,6 +304,118 @@ function bsc_password_reset_message_fallback( string $message, string $key, stri
 	return "Hola {$name},\n\nUsa este enlace para cambiar tu contraseña:\n{$reset_url}\n\nSi no solicitaste este cambio, ignora este correo.\n";
 }
 add_filter( 'retrieve_password_message', 'bsc_password_reset_message_fallback', 10, 4 );
+
+/**
+ * Shared subject for BSC password reset emails.
+ *
+ * @return string
+ */
+function bsc_get_password_reset_email_subject(): string {
+	return wp_specialchars_decode( 'Recupera tu contrase&ntilde;a - Bubble Skin Care', ENT_QUOTES );
+}
+
+/**
+ * Force a clean Spanish subject for the native WordPress reset email.
+ *
+ * @param array   $defaults   Email defaults.
+ * @param string  $key        Password reset key.
+ * @param string  $user_login User login.
+ * @param WP_User $user_data  User object.
+ * @return array
+ */
+function bsc_force_password_reset_notification_email_subject( array $defaults, string $key, string $user_login, WP_User $user_data ): array {
+	unset( $key, $user_login, $user_data );
+
+	if ( bsc_is_password_reset_email_enabled() ) {
+		$defaults['subject'] = bsc_get_password_reset_email_subject();
+	}
+
+	return $defaults;
+}
+add_filter( 'retrieve_password_notification_email', 'bsc_force_password_reset_notification_email_subject', 20, 4 );
+
+/**
+ * Force a clean Spanish subject for older WordPress reset hooks.
+ *
+ * @param string $title Default title.
+ * @return string
+ */
+function bsc_force_password_reset_title_fallback( string $title ): string {
+	if ( ! bsc_is_password_reset_email_enabled() ) {
+		return $title;
+	}
+
+	return bsc_get_password_reset_email_subject();
+}
+add_filter( 'retrieve_password_title', 'bsc_force_password_reset_title_fallback', 20, 1 );
+
+/**
+ * Force a clean Spanish plain-text fallback for older WordPress reset hooks.
+ *
+ * @param string       $message    Default message.
+ * @param string       $key        Password reset key.
+ * @param string       $user_login User login.
+ * @param WP_User|null $user_data  User object.
+ * @return string
+ */
+function bsc_force_password_reset_message_fallback( string $message, string $key, string $user_login, $user_data ): string {
+	if ( ! bsc_is_password_reset_email_enabled() ) {
+		return $message;
+	}
+
+	$reset_url = network_site_url(
+		'wp-login.php?action=rp&key=' . rawurlencode( $key ) . '&login=' . rawurlencode( $user_login ),
+		'login'
+	);
+	$name      = $user_data instanceof WP_User ? $user_data->display_name : $user_login;
+	$password  = wp_specialchars_decode( 'contrase&ntilde;a', ENT_QUOTES );
+
+	return sprintf(
+		"Hola %s,\n\nUsa este enlace para cambiar tu %s:\n%s\n\nSi no solicitaste este cambio, ignora este correo.\n",
+		wp_strip_all_tags( (string) $name ),
+		$password,
+		$reset_url
+	);
+}
+add_filter( 'retrieve_password_message', 'bsc_force_password_reset_message_fallback', 20, 4 );
+
+/**
+ * Force a Spanish subject for WooCommerce reset password emails.
+ *
+ * @param string $subject Default subject.
+ * @param mixed  $_object Related object.
+ * @param mixed  $_email  WooCommerce email object.
+ * @return string
+ */
+function bsc_customize_woocommerce_password_reset_subject( string $subject, $_object = null, $_email = null ): string {
+	unset( $_object, $_email );
+
+	if ( ! bsc_is_password_reset_email_enabled() ) {
+		return $subject;
+	}
+
+	return bsc_get_password_reset_email_subject();
+}
+add_filter( 'woocommerce_email_subject_customer_reset_password', 'bsc_customize_woocommerce_password_reset_subject', 10, 3 );
+
+/**
+ * Force a Spanish heading for WooCommerce reset password emails.
+ *
+ * @param string $heading Default heading.
+ * @param mixed  $_object Related object.
+ * @param mixed  $_email  WooCommerce email object.
+ * @return string
+ */
+function bsc_customize_woocommerce_password_reset_heading( string $heading, $_object = null, $_email = null ): string {
+	unset( $_object, $_email );
+
+	if ( ! bsc_is_password_reset_email_enabled() ) {
+		return $heading;
+	}
+
+	return wp_specialchars_decode( 'Recupera tu contrase&ntilde;a', ENT_QUOTES );
+}
+add_filter( 'woocommerce_email_heading_customer_reset_password', 'bsc_customize_woocommerce_password_reset_heading', 10, 3 );
 
 function bsc_customize_password_changed_email( array $pass_change_email, array $user, array $userdata ): array {
 	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_password_changed_email_enabled' ) ) {
