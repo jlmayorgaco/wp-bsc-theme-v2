@@ -329,12 +329,13 @@ $container-width: bsc.$container-wide;
    ========================================= */
 .bsc-kb-grid {
   display: grid;
+      width: 100%;
   grid-template-columns: repeat(3, minmax(280px, 1fr));
   gap: 2rem;
   justify-content: center;
   align-items: start;
   max-width: 1140px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1rem;
   padding-inline: 1rem;
       padding-top: 3em;
     padding-bottom: 1em;

@@ -119,7 +119,7 @@ class BSC_Order_View {
 			</li>
 			<li class="<?php echo esc_attr( $date_item_class ); ?>">
 			<div class="bsc__order-overview__title">Fecha:</div>
-			<div class="bsc__order-overview__content"><?php echo esc_html( wc_format_datetime( $this->order->get_date_created() ) ); ?></div>
+			<div class="bsc__order-overview__content"><?php echo esc_html( $this->format_order_date() ); ?></div>
 			</li>
 			<li class="<?php echo esc_attr( $progress_item_class ); ?>">
 			<div class="bsc__order-overview__title">Estado:</div>
@@ -133,6 +133,31 @@ class BSC_Order_View {
 			</li>
 		</ul>
 		<?php
+	}
+
+	private function format_order_date(): string {
+		$date_created = $this->order->get_date_created();
+
+		if ( ! $date_created ) {
+			return '';
+		}
+
+		$months = array(
+			'January'   => 'enero',
+			'February'  => 'febrero',
+			'March'     => 'marzo',
+			'April'     => 'abril',
+			'May'       => 'mayo',
+			'June'      => 'junio',
+			'July'      => 'julio',
+			'August'    => 'agosto',
+			'September' => 'septiembre',
+			'October'   => 'octubre',
+			'November'  => 'noviembre',
+			'December'  => 'diciembre',
+		);
+
+		return strtr( $date_created->date( 'j F Y' ), $months );
 	}
 
 	private function render_items(): void {
@@ -329,6 +354,10 @@ class BSC_Order_View {
 			if ( '' === $shipping_address ) {
 				$shipping_address = trim( $this->order->get_billing_address_1() . ' ' . $this->order->get_billing_address_2() );
 			}
+		}
+
+		if ( function_exists( 'bsc_resolve_colombia_city_label' ) ) {
+			$shipping_city = bsc_resolve_colombia_city_label( $shipping_city );
 		}
 
 		return array(

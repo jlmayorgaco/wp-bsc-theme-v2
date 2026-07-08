@@ -77,6 +77,10 @@ final class BSC_Order_Label_ViewModel {
 	private static function resolve_city( WC_Order $order ): string {
 		$city = trim( $order->get_shipping_city() ?: $order->get_billing_city() );
 
+		if ( $city !== '' && function_exists( 'bsc_resolve_colombia_city_label' ) ) {
+			return bsc_resolve_colombia_city_label( $city );
+		}
+
 		if ( $city !== '' && function_exists( 'bsc_get_colombia_shipping_places' ) ) {
 			foreach ( bsc_get_colombia_shipping_places() as $_dept => $cities ) {
 				if ( is_array( $cities ) && isset( $cities[ $city ] ) ) {

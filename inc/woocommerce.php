@@ -1689,18 +1689,33 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		return $colombia_places;
 	}
 
+	function bsc_get_colombia_city_code_candidates( string $city ): array {
+		if ( ! preg_match_all( '/\d{5,8}/', $city, $matches ) ) {
+			return array();
+		}
+
+		$candidates = array();
+
+		foreach ( $matches[0] as $match ) {
+			$code         = (string) $match;
+			$candidates[] = $code;
+
+			if ( strlen( $code ) < 8 ) {
+				$candidates[] = str_pad( $code, 8, '0' );
+			}
+		}
+
+		return array_values( array_unique( $candidates ) );
+	}
+
 	function bsc_lookup_colombia_city_location( string $city ): array {
 		$city = trim( $city );
 		if ( $city === '' ) {
 			return array();
 		}
 
-		$city_code = '';
-		if ( preg_match( '/\b(\d{8})\b/', $city, $matches ) ) {
-			$city_code = $matches[1];
-		}
-
-		$normalized_city = bsc_normalize_shipping_text( $city );
+		$city_code_candidates = bsc_get_colombia_city_code_candidates( $city );
+		$normalized_city      = bsc_normalize_shipping_text( $city );
 
 		foreach ( bsc_get_colombia_shipping_places() as $state => $cities ) {
 			if ( ! is_array( $cities ) ) {
@@ -1711,7 +1726,7 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 				$code  = (string) $code;
 				$label = (string) $label;
 
-				if ( $city_code !== '' && $code === $city_code ) {
+				if ( ! empty( $city_code_candidates ) && in_array( $code, $city_code_candidates, true ) ) {
 					return array(
 						'state'           => (string) $state,
 						'city'            => $label,
@@ -1732,6 +1747,47 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		}
 
 		return array();
+	}
+
+	function bsc_resolve_colombia_city_label( string $city ): string {
+		$city = trim( $city );
+		if ( '' === $city ) {
+			return '';
+		}
+
+		$city_location = bsc_lookup_colombia_city_location( $city );
+		if ( ! empty( $city_location['city'] ) ) {
+			return (string) $city_location['city'];
+		}
+
+		return $city;
+	}
+
+	add_action( 'woocommerce_checkout_update_order_meta', 'bsc_normalize_colombia_order_city_labels', 20 );
+	function bsc_normalize_colombia_order_city_labels( $order_id ): void {
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$billing_city  = bsc_resolve_colombia_city_label( (string) $order->get_billing_city() );
+		$shipping_city = bsc_resolve_colombia_city_label( (string) $order->get_shipping_city() );
+		$changed       = false;
+
+		if ( '' !== $billing_city && $billing_city !== $order->get_billing_city() ) {
+			$order->set_billing_city( $billing_city );
+			$changed = true;
+		}
+
+		if ( '' !== $shipping_city && $shipping_city !== $order->get_shipping_city() ) {
+			$order->set_shipping_city( $shipping_city );
+			$changed = true;
+		}
+
+		if ( $changed ) {
+			$order->save();
+		}
 	}
 
 	function bsc_shipping_text_contains_any( string $haystack, array $needles ): bool {

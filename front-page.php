@@ -301,7 +301,7 @@
 		<div class="front__container">
 
 			<div class="about__title">
-			<strong>Bubble</strong> Lover ! Conoce más de nosotros
+			<strong>Bubble</strong> Lover ! <br class="about__title-break">Conoce más de nosotros
 			</div>
 
 			<div class="about__cols">
@@ -324,7 +324,7 @@
 
 			<div class="about__col">
 				<img class="about__icon" src="<?php echo esc_url( $theme_uri . '/images/bsc_home_about_icon3.png' ); ?>" alt="">
-				<h1 class="about__title">Regalito sorpresa</h1>
+				<h1 class="about__title">K-Beauty gratis</h1>
 				<h2 class="about__subtitle">con el programa de fidelización</h2>
 			</div>
 

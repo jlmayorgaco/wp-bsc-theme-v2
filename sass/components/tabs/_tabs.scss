@@ -209,9 +209,18 @@ $tab-state-duration: 180ms;
 
   .bsc__tabs {
   margin-top: 0rem;
+      width: calc(100% - 1rem);
 }
+ .bsc__tabs .tabs__header {
+        gap: 0rem !important;
+        width: calc(100% - 2rem);
+ }
+ .bsc__tabs .tabs__header.tabs__headers--favs {
+        gap: 0.75rem !important;
+ }
  .bsc__tabs .tab__header {
-  width: 85px;
+   width: 88px;
+   
 }
   
 }

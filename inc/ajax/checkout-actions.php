@@ -73,13 +73,17 @@ function bsc_render_checkout_city_field( string $key, array $field, string $coun
 	<select name="<?php echo esc_attr( $key ); ?>" id="<?php echo esc_attr( $field_id ); ?>" class="<?php echo esc_attr( implode( ' ', $input_classes ) ); ?>" placeholder="<?php echo esc_attr( $placeholder ); ?>" data-placeholder="<?php echo esc_attr( $placeholder ); ?>" <?php if ( $required ) : ?>required aria-required="true"<?php endif; ?>>
 		<option value=""><?php echo esc_html( $placeholder ); ?></option>
 		<?php foreach ( $cities as $city_code => $city_name ) : ?>
-		<option value="<?php echo esc_attr( $city_code ); ?>"><?php echo esc_html( $city_name ); ?></option>
+		<option value="<?php echo esc_attr( bsc_format_checkout_city_option_value( (string) $city_code, (string) $city_name ) ); ?>"><?php echo esc_html( $city_name ); ?></option>
 		<?php endforeach; ?>
 	</select>
 	</p>
 	<?php
 
 	return ob_get_clean();
+}
+
+function bsc_format_checkout_city_option_value( string $city_code, string $city_name ): string {
+	return sprintf( '%s (%s)', $city_name, $city_code );
 }
 
 function bsc_get_checkout_cities_for_state( string $country, string $state ): array {
