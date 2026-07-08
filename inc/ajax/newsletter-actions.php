@@ -44,5 +44,5 @@ function bsc_newsletter_subscribe() {
 		array( 'Content-Type: text/plain; charset=UTF-8' )
 	);
 
-	wp_send_json_success( array( 'message' => 'Bienvenida a la comunidad BSC. Pronto tendras novedades exclusivas.' ) );
+	wp_send_json_success( array( 'message' => 'Bienvenido a la comunidad BSC. Pronto tendras novedades exclusivas.' ) );
 }
