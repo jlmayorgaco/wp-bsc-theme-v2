@@ -430,6 +430,12 @@ $order-review-badge-size: 30px;
 
     &__item {
       margin-bottom: 1rem;
+
+      &--progress {
+        align-self: stretch;
+        width: 100%;
+        max-width: 100%;
+      }
     }
 
     &__content {
@@ -519,6 +525,11 @@ $order-review-badge-size: 30px;
         margin: 0;
         padding: 0;
         list-style: none;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
 
         .shipping-details__item {
           margin-bottom: 0.75em;
@@ -618,6 +629,10 @@ $order-review-badge-size: 30px;
     border-radius: 50%;
     background-color: white;
     font-weight: bold;
+
+    span {
+      color: #333;
+    }
 
     @include mq($bp-xs) {
       top: -10px;
