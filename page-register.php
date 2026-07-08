@@ -1,6 +1,5 @@
 <?php
 /* Template Name: Registro personalizado */
-get_header();
 
 $registration_error = '';
 
@@ -66,6 +65,8 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 		$registration_error = 'Hubo un error al crear la cuenta. Intenta con otro correo.';
 	}
 }
+
+get_header();
 ?>
 
 <main class="bsc__auth">
