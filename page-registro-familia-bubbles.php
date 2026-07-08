@@ -2,6 +2,8 @@
 /**
  * Registration welcome screen.
  *
+ * Template Name: Bienvenida registro BSC
+ *
  * @package BSC2
  */
 
