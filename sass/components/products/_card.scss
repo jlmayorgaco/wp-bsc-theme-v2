@@ -110,7 +110,7 @@ padding-left: 1px;
   .card__brand {
     font-size: 0.875rem;
     font-weight: 400;
-    color: #999;
+    color: #333;
     margin-bottom: 0.75rem;
 
     .card__brand-name {
@@ -210,6 +210,59 @@ padding-left: 1px;
     padding-top: 0px;
     --bsc--product-w: calc(100vw - 76px);
     --bsc--product-h: 300px;
+ }
+ .bsc__product-card .card__brand {
+    font-size: 0.7rem;
+ }
+ .bsc__slider .bsc__product-card {
+    flex: 0 0 40%;
+    max-width: 40%;
+    min-width: 0;
+    padding: 0 0.5rem 1rem;
+    --bsc--product-w: 100%;
+    --bsc--product-h: auto;
+    scroll-snap-align: start;
+ }
+ .bsc__slider .bsc__product-card .card__images {
+    aspect-ratio: 8 / 9;
+    height: auto;
+ }
+ .bsc__slider .bsc__product-card .card__images img,
+ .bsc__slider .bsc__product-card .card__images .card__image {
+    height: 100%;
+ }
+ .bsc__slider .bsc__product-card .card__rating {
+    gap: 3px;
+    padding: 8px 0px;
+ }
+ .bsc__slider .bsc__product-card .card__rating .star {
+    width: 13px;
+    height: 13px;
+ }
+ .bsc__slider .bsc__product-card .card__title {
+    width: 100%;
+    font-size: 13px;
+    letter-spacing: 0;
+ }
+ .bsc__slider .bsc__product-card .card__brand {
+    width: 100%;
+    margin-bottom: 0.35rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+ }
+ .bsc__slider .bsc__product-card .card__price {
+    font-size: 15px;
+    letter-spacing: 0;
+    padding: 4px 0px;
+ }
+ .bsc__slider .bsc__product-card .bsc__button--product-card,
+ .bsc__slider .bsc__product-card .bsc__button-add-to-cart,
+ .bsc__slider .bsc__product-card .bsc__button-add-to-cart--variable {
+    width: 100%;
+    min-width: 0;
+    padding: 0.45rem 0.5rem;
+    font-size: 12px;
  }
  .bsc__product-card .card__brand .card__brand-name {
   font-weight: bold;
