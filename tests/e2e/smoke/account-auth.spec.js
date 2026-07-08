@@ -41,6 +41,22 @@ test.describe('BSC smoke - auth and account', () => {
     await expect(page.locator('#error_password')).toContainText('Por favor ingresa una contrase');
   });
 
+  test('register success redirects to welcome screen', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for auth smoke');
+
+    const uniqueEmail = `bsc-e2e-${testInfo.project.name}-${Date.now()}-${Math.floor(Math.random() * 100000)}@example.com`;
+
+    await gotoAndStabilize(page, routes.register);
+    await page.locator('#nombres').fill('Maria Prueba');
+    await page.locator('#email').fill(uniqueEmail);
+    await page.locator('#password').fill('BubbleTest123!');
+    await page.locator('#register-submit').click();
+
+    await expect(page).toHaveURL(/\/registro-familia-bubbles\/?$/);
+    await expect(page.locator('#bsc-register-welcome-title')).toContainText('Bienvenido Bubble lover');
+    await expect(page.locator('.bsc-register-welcome__button')).toBeVisible();
+  });
+
   test('edit account keeps hidden Woo fields in sync', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for account smoke');
     test.skip(!hasAccountAuth(), 'The auth fixture or PW_ACCOUNT_* credentials are required.');
