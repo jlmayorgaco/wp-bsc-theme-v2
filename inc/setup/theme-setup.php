@@ -134,6 +134,7 @@ if (!function_exists( 'bsc_create_default_pages' )) {
 			),
 			array(
 				'slug'    => 'registro-familia-bubbles',
+				'template' => 'page-registro-familia-bubbles.php',
 				'title'   => '¡Bienvenida a la familia Bubbles!',
 				'content' => sprintf( '<p>Gracias por registrarte. Ya eres parte de la familia Bubbles Skin Care.</p><p><a href="%s">Explorar la tienda</a></p>', esc_url( $shop_url ) ),
 			),
