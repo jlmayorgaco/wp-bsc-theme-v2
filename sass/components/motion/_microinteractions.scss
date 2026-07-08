@@ -160,6 +160,7 @@
 
   :where(.bsc__menu-nav--button, .header__menu a, .footer__link, .footer__heading a, .tabs__button, .bsc-skin-quiz__mode-tab)::after {
     content: "";
+    display: none;
     position: absolute;
     left: 50%;
     bottom: -6px;
