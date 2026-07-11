@@ -757,7 +757,8 @@ class BSCShopPage {
 		echo "<div class='shop__header'>";
 		echo "<h1 class='bsc__title'><strong>" . esc_html( $cat->name ) . '</strong></h1>';
 		if (!empty( $cat->description )) {
-			echo "<p class='bsc__description'>" . esc_html( $cat->description ) . '</p>';
+			$description = html_entity_decode( (string) $cat->description, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			echo "<p class='bsc__description'>" . wp_kses_post( $description ) . '</p>';
 		}
 		echo '</div>';
 
