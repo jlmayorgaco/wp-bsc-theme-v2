@@ -948,6 +948,7 @@ if (!function_exists( 'bsc_get_header_menu_product_category_choice' )) {
 			'id'     => (int) $term->term_id,
 			'name'   => (string) $term->name,
 			'slug'   => $slug,
+			'parent' => (int) $term->parent,
 			'label'  => $label,
 			'search' => strtolower( remove_accents( $label . ' ' . $slug ) ),
 		);

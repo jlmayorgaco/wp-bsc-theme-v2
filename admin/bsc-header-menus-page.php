@@ -12,6 +12,7 @@ require_once get_template_directory() . '/components/header/header-menu-config.p
 add_action( 'admin_init', 'bsc_handle_header_menus_save' );
 add_action( 'admin_enqueue_scripts', 'bsc_enqueue_header_menus_admin_assets' );
 add_action( 'wp_ajax_bsc_header_menu_search_categories', 'bsc_ajax_header_menu_search_categories' );
+add_action( 'wp_ajax_bsc_header_menu_create_category', 'bsc_ajax_header_menu_create_category' );
 
 /**
  * Enqueue assets for the Header Menus admin page.
@@ -51,6 +52,8 @@ function bsc_enqueue_header_menus_admin_assets(): void {
 		array(
 			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
 			'nonce'           => wp_create_nonce( 'bsc_header_menus_search' ),
+			'createNonce'     => wp_create_nonce( 'bsc_header_menus_categories' ),
+			'categoryChoices' => bsc_get_header_menu_product_category_choices(),
 			'minSearchLength' => 2,
 			'searchDelay'     => 250,
 		)
@@ -80,6 +83,122 @@ function bsc_ajax_header_menu_search_categories(): void {
 	wp_send_json_success(
 		array(
 			'choices' => bsc_search_header_menu_product_category_choices( $query, $selected, 30 ),
+		)
+	);
+}
+
+/**
+ * Build the default slug for a product category created from Header Menus.
+ * Child categories inherit the parent slug prefix to match the catalog convention.
+ *
+ * @param string $name      Category name.
+ * @param int    $parent_id Parent product category term ID.
+ */
+function bsc_header_menu_build_category_slug( string $name, int $parent_id = 0 ): string {
+	$name_slug = sanitize_title( $name );
+
+	if ( $parent_id <= 0 ) {
+		return $name_slug;
+	}
+
+	$parent = get_term( $parent_id, 'product_cat' );
+
+	if ( ! $parent instanceof WP_Term || '' === (string) $parent->slug ) {
+		return $name_slug;
+	}
+
+	return sanitize_title( (string) $parent->slug . '-' . $name_slug );
+}
+
+/**
+ * Create and return a product category without leaving the Header Menus page.
+ */
+function bsc_ajax_header_menu_create_category(): void {
+	check_ajax_referer( 'bsc_header_menus_categories', 'nonce' );
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error(
+			array(
+				'message' => esc_html__( 'No tienes permisos para crear categorias.', 'bsc-2-0' ),
+			),
+			403
+		);
+	}
+
+	if ( ! taxonomy_exists( 'product_cat' ) ) {
+		wp_send_json_error(
+			array(
+				'message' => esc_html__( 'WooCommerce no tiene disponible la taxonomia de categorias.', 'bsc-2-0' ),
+			),
+			400
+		);
+	}
+
+	// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce is verified above.
+	$name      = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+	$slug      = isset( $_POST['slug'] ) ? sanitize_title( wp_unslash( $_POST['slug'] ) ) : '';
+	$parent_id = isset( $_POST['parent'] ) ? absint( wp_unslash( $_POST['parent'] ) ) : 0;
+	// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+	if ( '' === $name ) {
+		wp_send_json_error(
+			array(
+				'message' => esc_html__( 'Escribe el nombre de la categoria.', 'bsc-2-0' ),
+			),
+			400
+		);
+	}
+
+	if ( $parent_id > 0 ) {
+		$parent = get_term( $parent_id, 'product_cat' );
+
+		if ( ! $parent instanceof WP_Term ) {
+			wp_send_json_error(
+				array(
+					'message' => esc_html__( 'La categoria padre seleccionada ya no existe.', 'bsc-2-0' ),
+				),
+				400
+			);
+		}
+	}
+
+	if ( '' === $slug ) {
+		$slug = bsc_header_menu_build_category_slug( $name, $parent_id );
+	}
+
+	$result = wp_insert_term(
+		$name,
+		'product_cat',
+		array(
+			'parent' => $parent_id,
+			'slug'   => $slug,
+		)
+	);
+
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error(
+			array(
+				'message' => $result->get_error_message(),
+			),
+			400
+		);
+	}
+
+	$choice = bsc_get_header_menu_product_category_choice( (int) $result['term_id'] );
+
+	if ( empty( $choice ) ) {
+		wp_send_json_error(
+			array(
+				'message' => esc_html__( 'La categoria se creo, pero no se pudo cargar en el selector.', 'bsc-2-0' ),
+			),
+			500
+		);
+	}
+
+	wp_send_json_success(
+		array(
+			'choice'  => $choice,
+			'message' => esc_html__( 'Categoria creada y asignada. Guarda los header menus para publicar el cambio.', 'bsc-2-0' ),
 		)
 	);
 }
@@ -455,7 +574,7 @@ function bsc_render_header_menu_item( string $menu_slug, string $section_index, 
 			>
 		</label>
 		<div class="bsc-header-menu-item__category">
-			<label for="<?php echo esc_attr( $field_id ); ?>-category-search">Buscar categoria</label>
+			<label for="<?php echo esc_attr( $field_id ); ?>-category-search">Categoria destino</label>
 			<input
 				type="search"
 				id="<?php echo esc_attr( $field_id ); ?>-category-search"
@@ -466,6 +585,37 @@ function bsc_render_header_menu_item( string $menu_slug, string $section_index, 
 				data-bsc-header-menu-category-search
 			>
 			<?php bsc_render_header_menu_category_select( $field_id . '-category', $field_name . '[term_id]', $term_id, $selected_choice ); ?>
+			<div class="bsc-header-menu-item__category-tools">
+				<button type="button" class="button button-small" data-bsc-header-menu-category-load>Ver todas</button>
+				<button type="button" class="button button-small" data-bsc-header-menu-category-create-toggle>+ Crear categoria</button>
+			</div>
+			<p class="bsc-header-menu-item__category-help" data-bsc-header-menu-category-help>
+				Busca por nombre, jerarquia o slug y selecciona el resultado.
+			</p>
+			<div class="bsc-header-menu-category-create" data-bsc-header-menu-category-create hidden>
+				<div class="bsc-header-menu-category-create__grid">
+					<label>
+						<span>Nombre</span>
+						<input type="text" placeholder="Dispositivos" data-bsc-header-menu-category-create-name>
+					</label>
+					<label>
+						<span>Categoria padre</span>
+						<select data-bsc-header-menu-category-create-parent>
+							<option value="">Sin categoria padre</option>
+						</select>
+					</label>
+					<label class="bsc-header-menu-category-create__slug">
+						<span>Slug</span>
+						<input type="text" placeholder="Se genera automaticamente" data-bsc-header-menu-category-create-slug>
+					</label>
+				</div>
+				<p class="bsc-header-menu-category-create__note">El slug hereda el prefijo del padre. Puedes editarlo antes de crear.</p>
+				<div class="bsc-header-menu-category-create__actions">
+					<button type="button" class="button button-primary" data-bsc-header-menu-category-create-submit>Crear y asignar</button>
+					<button type="button" class="button" data-bsc-header-menu-category-create-cancel>Cancelar</button>
+				</div>
+				<p class="bsc-header-menu-category-create__status" role="status" aria-live="polite" data-bsc-header-menu-category-create-status></p>
+			</div>
 		</div>
 		<div class="bsc-header-menu-item__actions">
 			<button type="button" class="button button-small" data-bsc-header-menu-item-up>Subir</button>

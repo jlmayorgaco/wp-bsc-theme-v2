@@ -48,7 +48,7 @@ $render_cart_recommendations = static function ( int $products_limit = 5 ): void
 	<?php
 	if (WC()->cart->is_empty()) {
 		?>
-		<h1 class="bsc__title"> Ohh ... <strong>tu carrito</strong> esta vacio </h1> <?php } ?>
+		<h1 class="bsc__title bsc__title--cart-empty"> Ohh ... <strong>tu carrito</strong> esta vacio </h1> <?php } ?>
 
 	<div class="container__empty <?php echo esc_attr( WC()->cart->is_empty() ? 'is-visible' : '' ); ?> ">
 		<p class="bsc__cart-empty">

@@ -91,6 +91,27 @@ $account-address-error-color: red;
   }
 }
 
+.woocommerce-account .woocommerce-MyAccount-content > .woocommerce-notices-wrapper > .woocommerce-message {
+  box-sizing: border-box;
+  width: min(620px, calc(100% - 2rem));
+  margin: 1.5rem auto 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed tokens.$success;
+  border-radius: tokens.$radius-md;
+  background-color: color-mix(in srgb, tokens.$success 12%, tokens.$surface);
+  color: tokens.$text;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  text-align: center;
+
+  &::before {
+    display: none;
+  }
+}
+
 .bsc__shipping-address {
   --bsc-color-text: #{tokens.$text};
   --bsc-color-input-border: #{tokens.$border-soft};
@@ -407,6 +428,7 @@ $account-address-error-color: red;
 
   .bsc__address-content {
     width: 100%;
+    padding-left: 95px;
   }
 
   .bsc__address-card {
@@ -486,6 +508,10 @@ $account-address-error-color: red;
     button {
       width: 100%;
     }
+  }
+
+  .bsc__shipping-address .bsc__address-button.button {
+    margin-top: 42px;
   }
 
   .bsc__account-container {
