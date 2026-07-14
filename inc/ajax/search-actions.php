@@ -71,6 +71,56 @@ function bsc_search_filter_eligible_product_ids( array $product_ids, int $limit 
 	return array_slice( $eligible_ids, max( 0, $offset ), $limit );
 }
 
+function bsc_search_is_excluded_category_term( WP_Term $term ): bool {
+	$excluded_slugs = array( 'uncategorized', 'sin-categorizar' );
+	$excluded_names = array( 'uncategorized', 'sin categorizar', 'sin categoria' );
+
+	return in_array( strtolower( $term->slug ), $excluded_slugs, true )
+		|| in_array( strtolower( $term->name ), $excluded_names, true );
+}
+
+function bsc_search_get_excluded_category_term_ids(): array {
+	$excluded_terms = get_terms(
+		array(
+			'taxonomy'   => 'product_cat',
+			'slug'       => array( 'uncategorized', 'sin-categorizar' ),
+			'fields'     => 'ids',
+			'hide_empty' => false,
+		)
+	);
+
+	if ( empty( $excluded_terms ) || is_wp_error( $excluded_terms ) ) {
+		return array();
+	}
+
+	return array_values( array_map( 'absint', $excluded_terms ) );
+}
+
+function bsc_search_filter_suggestions( array $suggestions ): array {
+	return array_values(
+		array_filter(
+			$suggestions,
+			static function ( $suggestion ): bool {
+				if ( ! is_array( $suggestion ) ) {
+					return false;
+				}
+
+				$type = (string) ( $suggestion['type'] ?? '' );
+				if ( ! in_array( $type, array( 'brand', 'category' ), true ) ) {
+					return true;
+				}
+
+				$label = sanitize_key( remove_accents( strtolower( wp_strip_all_tags( (string) ( $suggestion['label'] ?? '' ) ) ) ) );
+				$url   = sanitize_title( wp_parse_url( (string) ( $suggestion['url'] ?? '' ), PHP_URL_PATH ) ?: '' );
+
+				return ! in_array( $label, array( 'uncategorized', 'sin-categorizar' ), true )
+					&& ! str_contains( $url, 'uncategorized' )
+					&& ! str_contains( $url, 'sin-categorizar' );
+			}
+		)
+	);
+}
+
 function bsc_search_apply_public_query_constraints( array $args ): array {
 	if ( function_exists( 'bsc_apply_public_product_query_constraints' ) ) {
 		return bsc_apply_public_product_query_constraints( $args, 'search' );
@@ -93,7 +143,7 @@ function bsc_search_products() {
 	}
 
 	// ── Transient cache (15 min per unique search term) ────────────────────
-	$cache_key = 'bsc_search_v' . bsc_get_search_cache_version() . '_' . md5( $query );
+	$cache_key = 'bsc_search_schema2_v' . bsc_get_search_cache_version() . '_' . md5( $query );
 	$cached    = get_transient( $cache_key );
 	if ( $cached !== false ) {
 		$cached_products    = isset( $cached['products'] ) && is_array( $cached['products'] ) ? $cached['products'] : (array) $cached;
@@ -101,6 +151,7 @@ function bsc_search_products() {
 		$cached_suggestions = isset( $cached['suggestions'] ) && is_array( $cached['suggestions'] )
 			? $cached['suggestions']
 			: ( function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, $cached_product_ids ) : array() );
+		$cached_suggestions = bsc_search_filter_suggestions( $cached_suggestions );
 
 		$cached_products = array_values(
 			array_filter(
@@ -174,12 +225,14 @@ function bsc_search_products() {
 
 	// ── 3. Brand / category name ───────────────────────────────────────────
 	if ( count( bsc_search_filter_eligible_product_ids( $collected_ids, 8 ) ) < 8 ) {
+		$excluded_category_term_ids = bsc_search_get_excluded_category_term_ids();
 		$matching_terms = get_terms(
 			array(
 				'taxonomy'   => 'product_cat',
 				'name__like' => $query,
 				'fields'     => 'ids',
 				'hide_empty' => true,
+				'exclude'    => $excluded_category_term_ids,
 			)
 		);
 
@@ -214,6 +267,7 @@ function bsc_search_products() {
 
 	if ( empty( $product_ids ) ) {
 		$suggestions = function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, array() ) : array();
+		$suggestions = bsc_search_filter_suggestions( $suggestions );
 		set_transient(
 			$cache_key,
 			array(
@@ -247,6 +301,10 @@ function bsc_search_products() {
 		$terms = get_the_terms( $pid, 'product_cat' );
 		if ( $terms && ! is_wp_error( $terms ) ) {
 			foreach ( $terms as $term ) {
+				if ( bsc_search_is_excluded_category_term( $term ) ) {
+					continue;
+				}
+
 				if ( strpos( $term->slug, '-marca' ) !== false ) {
 					$brand = $term->name;
 					break;
@@ -276,6 +334,7 @@ function bsc_search_products() {
 
 	// ── Cache and return ───────────────────────────────────────────────────
 	$suggestions = function_exists( 'bsc_growth_search_suggestions' ) ? bsc_growth_search_suggestions( $query, $product_ids ) : array();
+	$suggestions = bsc_search_filter_suggestions( $suggestions );
 	set_transient(
 		$cache_key,
 		array(

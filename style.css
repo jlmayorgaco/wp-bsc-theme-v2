@@ -89,7 +89,7 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 }
 
 .bsc__description {
-  width: calc(100vw - 2em);
+  width: calc(100vw - 4em);
   max-width: 1000px;
   margin: 0 auto;
   color: var(--color--text);
@@ -97,9 +97,12 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
   font-size: 18px;
   font-weight: 100;
   letter-spacing: 2px;
-  line-height: 29.25px;
+  line-height: 20px;
   text-align: center;
   text-rendering: optimizelegibility;
+}
+.bsc__description strong {
+  font-weight: bold;
 }
 
 .bsc__price {
@@ -114,6 +117,11 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
     font-size: 15px;
   }
 }
+.bsc__title--cart-empty {
+  padding-top: 10px !important;
+  font-size: 18px !important;
+}
+
 /* Inherit box-sizing to more easily change it's value on a component level.
 @link http://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/ */
 *,
@@ -11357,6 +11365,10 @@ textarea:focus-visible {
     padding-top: 10px;
   }
 }
+.bsc__title.bsc__title--cart-empty {
+  padding-top: 10px;
+}
+
 .bsc {
   --bsc-color-text: #333;
   --bsc-color-accent: var(--color--main);
@@ -12085,7 +12097,12 @@ textarea:focus-visible {
   line-height: 1.625;
   text-rendering: optimizeLegibility;
   text-size-adjust: 100%;
-  text-align: center;
+  text-align: left;
+}
+@media (max-width: 768px) {
+  .bsc__product--page .bsc__product-shortdesc p {
+    text-align: center;
+  }
 }
 .bsc__product--page .bsc__product-shortdesc p:first-child {
   margin-bottom: 2rem;
@@ -12907,7 +12924,7 @@ textarea:focus-visible {
 }
 .page-contact-us .bsc__contact-hero p {
   max-width: 710px;
-  margin: 36px auto 0;
+  margin: 26px auto 0;
   color: var(--color--text, #333333);
   font-size: 18px;
   font-weight: 400;
@@ -20890,6 +20907,26 @@ body.admin-bar .bsc__header--desktop {
   color: #333;
 }
 
+.woocommerce-account .woocommerce-MyAccount-content > .woocommerce-notices-wrapper > .woocommerce-message {
+  box-sizing: border-box;
+  width: min(620px, 100% - 2rem);
+  margin: 1.5rem auto 0;
+  padding: 0.85rem 1rem;
+  border: 1px dashed var(--color--accent-success, #48bb78);
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--color--accent-success, #48bb78) 12%, var(--color--surface, #ffffff));
+  color: var(--color--text, #333333);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.woocommerce-account .woocommerce-MyAccount-content > .woocommerce-notices-wrapper > .woocommerce-message::before {
+  display: none;
+}
+
 .bsc__shipping-address {
   --bsc-color-text: var(--color--text, #333333);
   --bsc-color-input-border: #d1d1d6;
@@ -21211,6 +21248,7 @@ body.admin-bar .bsc__header--desktop {
   }
   .bsc__address-content {
     width: 100%;
+    padding-left: 95px;
   }
   .bsc__address-card {
     border: none;
@@ -21279,6 +21317,9 @@ body.admin-bar .bsc__header--desktop {
   }
   .bsc__shipping-address .button--save-profile button {
     width: 100%;
+  }
+  .bsc__shipping-address .bsc__address-button.button {
+    margin-top: 42px;
   }
   .bsc__account-container {
     padding-bottom: 0;
@@ -21578,6 +21619,10 @@ body.admin-bar .bsc__header--desktop {
   }
   .bsc__account-submit button {
     width: 100%;
+  }
+  .bsc__account-notice--success {
+    letter-spacing: 1px;
+    text-align: center;
   }
 }
 /* Small mobile */

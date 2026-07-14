@@ -1246,6 +1246,17 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 	}
 	add_filter( 'gettext', 'bsc_translate_password_reset_woocommerce_text', 20, 3 );
 
+	if ( ! function_exists( 'bsc_translate_address_woocommerce_text' ) ) {
+		function bsc_translate_address_woocommerce_text( string $translation, string $text, string $domain ): string {
+			if ( 'woocommerce' === $domain && 'Address changed successfully.' === $text ) {
+				return '¡Dirección actualizada correctamente!';
+			}
+
+			return $translation;
+		}
+	}
+	add_filter( 'gettext', 'bsc_translate_address_woocommerce_text', 20, 3 );
+
 
 
 

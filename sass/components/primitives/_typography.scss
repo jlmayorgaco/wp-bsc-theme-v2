@@ -29,7 +29,7 @@
 }
 
 .bsc__description {
-  width: calc(100vw - 2em);
+  width: calc(100vw - 4em);
   max-width: 1000px;
   margin: 0 auto;
   color: var(--color--text);
@@ -37,9 +37,13 @@
   font-size: 18px;
   font-weight: 100;
   letter-spacing: 2px;
-  line-height: 29.25px;
+  line-height: 20px;
   text-align: center;
   text-rendering: optimizelegibility;
+
+  strong{
+    font-weight: bold;
+  }
 }
 
 .bsc__price {
@@ -53,4 +57,12 @@
     margin-bottom: 30px;
     font-size: 15px;
   }
+}
+
+
+
+
+.bsc__title--cart-empty{
+  padding-top: 10px !important;
+      font-size: 18px !important;
 }

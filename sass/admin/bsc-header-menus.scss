@@ -255,6 +255,71 @@
 	border-color: #d63638;
 }
 
+.bsc-header-menu-item__category select.is-loading {
+	background-image: linear-gradient(90deg, transparent, rgb(34 113 177 / 12%), transparent);
+	background-size: 200% 100%;
+}
+
+.bsc-header-menu-item__category-tools,
+.bsc-header-menu-category-create__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.bsc-header-menu-item__category-help,
+.bsc-header-menu-category-create__note,
+.bsc-header-menu-category-create__status {
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.4;
+	margin: 0;
+}
+
+.bsc-header-menu-item__category-help.is-error,
+.bsc-header-menu-category-create__status.is-error {
+	color: #b32d2e;
+}
+
+.bsc-header-menu-category-create__status.is-success {
+	color: #008a20;
+}
+
+.bsc-header-menu-category-create {
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	display: grid;
+	gap: 10px;
+	margin-top: 4px;
+	padding: 10px;
+}
+
+.bsc-header-menu-category-create[hidden] {
+	display: none;
+}
+
+.bsc-header-menu-category-create__grid {
+	display: grid;
+	gap: 10px;
+}
+
+.bsc-header-menu-category-create__grid label {
+	display: grid;
+	gap: 5px;
+}
+
+.bsc-header-menu-category-create__grid input,
+.bsc-header-menu-category-create__grid select {
+	min-height: 34px;
+	width: 100%;
+}
+
+.bsc-header-menu-category-create__slug input {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+}
+
 @media (max-width: 1100px) {
 	.bsc-header-menus-admin__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
