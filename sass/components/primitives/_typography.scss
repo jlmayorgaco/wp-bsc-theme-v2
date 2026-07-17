@@ -55,7 +55,18 @@
 @media (max-width: 767px) {
   .bsc__description {
     margin-bottom: 30px;
-    font-size: 15px;
+    font-size: 14px;
+        line-height: 1.625;
+        font-weight: 100;
+            text-rendering: optimizeLegibility;
+  }
+
+  .bsc__title {
+    padding-top: 0px;
+    font-size: 20px;
+    &:after{
+      margin-top: 15px;
+    }
   }
 }
 

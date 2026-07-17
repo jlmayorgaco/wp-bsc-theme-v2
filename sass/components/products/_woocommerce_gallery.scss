@@ -157,8 +157,8 @@
   } 
 
   .bsc__product-gallery {
-        --thumb-w: 70px;
-        --thumb-h: 70px;
+    --thumb-w: 90px;
+    --thumb-h: var(--thumb-w);
     --thumbs-gap: 10px;
 
     --thumbs-w: var(--thumb-w);
@@ -194,9 +194,12 @@
   }
 
   .flex-control-thumbs li {
-    width: var(--thumb-w);
-    min-width: var(--thumb-w);
-    height: var(--thumb-h);
+    flex: 1 1 var(--thumb-w);
+    width: auto;
+    min-width: 0;
+    max-width: var(--thumb-w);
+    height: auto;
+    aspect-ratio: 1 / 1;
   }
 
   .woocommerce-product-gallery .zoomImg {

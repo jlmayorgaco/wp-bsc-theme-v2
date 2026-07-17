@@ -24,7 +24,19 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 			return;
 		}
 
+		echo '<div class="bsc__filters-mobile-toolbar">';
+		echo '<button type="button" class="bsc__filters-mobile-toggle" aria-controls="bscFiltersForm" aria-expanded="false">';
+		echo '<span class="bsc__filters-mobile-toggle-label">Filtrar y ordenar</span>';
+		echo '<span class="bsc__filters-mobile-count" hidden>0</span>';
+		echo '<span class="bsc__filters-mobile-toggle-icon" aria-hidden="true"></span>';
+		echo '</button>';
+		echo '</div>';
+
 		echo '<form id="bscFiltersForm" class="bsc__filters">';
+		echo '<div class="bsc__filters-mobile-header">';
+		echo '<strong class="bsc__filters-mobile-title">Filtros</strong>';
+		echo '<button type="button" class="bsc__filters-mobile-close" aria-label="Cerrar filtros">&times;</button>';
+		echo '</div>';
 		$this->render_hidden_inputs( $context );
 		$this->render_sort_group( $context );
 
@@ -112,10 +124,12 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		$step        = $this->config->get_price_step();
 
 		echo '<div class="bsc__filters-group bsc__filters-group--price">';
+		echo '<div class="bsc__filters-price-title">Precio</div>';
 		echo '<div class="bsc__filters-price-wrapper">';
+		echo '<div class="bsc__filters-price-track" aria-hidden="true"></div>';
 
 		printf(
-			"<input class='bsc__filters-range bsc__filters-range--min' type='range' min='%s' max='%s' step='%s' name='min_price' id='min_price' value='%s'>",
+			"<input class='bsc__filters-range bsc__filters-range--min' type='range' min='%s' max='%s' step='%s' name='min_price' id='min_price' value='%s' aria-label='Precio mínimo'>",
 			esc_attr( (string) $display_min ),
 			esc_attr( (string) $display_max ),
 			esc_attr( (string) $step ),
@@ -123,7 +137,7 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		);
 
 		printf(
-			"<input class='bsc__filters-range bsc__filters-range--max' type='range' min='%s' max='%s' step='%s' name='max_price' id='max_price' value='%s'>",
+			"<input class='bsc__filters-range bsc__filters-range--max' type='range' min='%s' max='%s' step='%s' name='max_price' id='max_price' value='%s' aria-label='Precio máximo'>",
 			esc_attr( (string) $display_min ),
 			esc_attr( (string) $display_max ),
 			esc_attr( (string) $step ),
@@ -131,8 +145,8 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		);
 
 		echo '<div class="bsc__filters-price-values">';
-		echo '<label class="bsc__filters-price-label"><output class="bsc__filters-price-output" id="min_price_output">' . esc_html( (string) $context->get_min_price() ) . '</output>$</label>';
-		echo '<label class="bsc__filters-price-label"><output class="bsc__filters-price-output" id="max_price_output">' . esc_html( (string) $context->get_max_price() ) . '</output>$</label>';
+		echo '<output class="bsc__filters-price-output" id="min_price_output">' . esc_html( '$' . number_format( $context->get_min_price(), 0, ',', '.' ) ) . '</output>';
+		echo '<output class="bsc__filters-price-output" id="max_price_output">' . esc_html( '$' . number_format( $context->get_max_price(), 0, ',', '.' ) ) . '</output>';
 		echo '</div>';
 		echo '</div>';
 		echo '</div>';

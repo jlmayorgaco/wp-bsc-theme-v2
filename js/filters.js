@@ -3,14 +3,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const maxInput = document.getElementById('max_price');
   const minOutput = document.getElementById('min_price_output');
   const maxOutput = document.getElementById('max_price_output');
+  const priceWrapper = minInput?.closest('.bsc__filters-price-wrapper');
 
-  if (!minInput || !maxInput || !minOutput || !maxOutput) {
+  if (!minInput || !maxInput || !minOutput || !maxOutput || !priceWrapper) {
     return;
   }
 
+  const priceFormatter = new Intl.NumberFormat('es-CO', {
+    maximumFractionDigits: 0,
+  });
+
+  const formatPrice = (value) => `$${priceFormatter.format(Number(value))}`;
+
   const syncOutputs = () => {
-    minOutput.value = minInput.value;
-    maxOutput.value = maxInput.value;
+    const rangeMin = Number(minInput.min);
+    const rangeMax = Number(minInput.max);
+    const rangeSize = rangeMax - rangeMin || 1;
+    const minPercent = ((Number(minInput.value) - rangeMin) / rangeSize) * 100;
+    const maxPercent = ((Number(maxInput.value) - rangeMin) / rangeSize) * 100;
+    const formattedMin = formatPrice(minInput.value);
+    const formattedMax = formatPrice(maxInput.value);
+
+    minOutput.value = formattedMin;
+    maxOutput.value = formattedMax;
+    minInput.setAttribute('aria-valuetext', formattedMin);
+    maxInput.setAttribute('aria-valuetext', formattedMax);
+    priceWrapper.style.setProperty('--bsc-range-min', `${minPercent}%`);
+    priceWrapper.style.setProperty('--bsc-range-max', `${maxPercent}%`);
   };
 
   minInput.addEventListener('input', () => {
@@ -136,6 +155,56 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   updateActiveFilters();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('bscFiltersForm');
+  const sidebar = form?.closest('.shop__sidebar');
+  const toggle = sidebar?.querySelector('.bsc__filters-mobile-toggle');
+  const closeButton = sidebar?.querySelector('.bsc__filters-mobile-close');
+  const count = sidebar?.querySelector('.bsc__filters-mobile-count');
+
+  if (!form || !sidebar || !toggle || !closeButton || !count) {
+    return;
+  }
+
+  sidebar.classList.add('has-mobile-filter-toggle');
+
+  const setOpen = (isOpen, returnFocus = false) => {
+    sidebar.classList.toggle('is-filters-open', isOpen);
+    toggle.setAttribute('aria-expanded', String(isOpen));
+
+    if (returnFocus) {
+      toggle.focus();
+    }
+  };
+
+  const updateCount = () => {
+    const selectedCount = form.querySelectorAll(
+      '.bsc__filters-input[type="checkbox"]:checked, .bsc__filters-input[type="radio"]:checked'
+    ).length;
+
+    count.textContent = String(selectedCount);
+    count.hidden = selectedCount === 0;
+  };
+
+  toggle.addEventListener('click', () => {
+    setOpen(!sidebar.classList.contains('is-filters-open'));
+  });
+
+  closeButton.addEventListener('click', () => {
+    setOpen(false, true);
+  });
+
+  form.addEventListener('change', updateCount);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && sidebar.classList.contains('is-filters-open')) {
+      setOpen(false, true);
+    }
+  });
+
+  updateCount();
 });
 
 

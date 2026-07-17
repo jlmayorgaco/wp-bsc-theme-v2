@@ -12,12 +12,51 @@
   scroll-behavior: smooth;
 }
 
+.bsc__slider-progress {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .bsc__slider {
-    padding-left: 6px;
-    padding-right: 6px;
-    scroll-snap-type: x proximity;
+    padding-left: 0;
+    padding-right: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
- 
+  .bsc__slider-progress {
+    width: min(44%, 180px);
+    margin: 2px auto 20px;
+  }
+
+  .bsc__slider-progress.is-active {
+    display: block;
+  }
+
+  .bsc__slider-progress-track {
+    display: block;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background-color: #ececec;
+  }
+
+  .bsc__slider-progress-thumb {
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: inherit;
+    background-color: #333;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsc__slider {
+    scroll-behavior: auto;
+  }
 }
