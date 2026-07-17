@@ -144,13 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
       name.textContent = product.name || '';
       info.appendChild(name);
 
-      if (product.brand) {
-        const brand = document.createElement('span');
-        brand.classList.add('search-result-brand');
-        brand.textContent = product.brand;
-        info.appendChild(brand);
-      }
-
       if (product.price) {
         const price = document.createElement('span');
         price.classList.add('search-result-price');

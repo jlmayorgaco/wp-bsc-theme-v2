@@ -110,6 +110,14 @@ function bsc_2_0_scripts() {
 		true
 	);
 
+	wp_enqueue_script(
+		'bsc-2-0-product-slider-progress',
+		get_template_directory_uri() . '/js/product-slider-progress.js',
+		array(),
+		(string) filemtime( get_template_directory() . '/js/product-slider-progress.js' ),
+		true
+	);
+
 	// Scripts solo en home
 	if (is_front_page()) {
 		// Tabs - seccion favoritos por tipo de piel

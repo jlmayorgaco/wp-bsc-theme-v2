@@ -33,10 +33,20 @@ $container-width: bsc.$container-wide;
     max-width: $container-width;
     margin: 0 auto;
     padding-inline: $spacing-md;
+
+    @include bsc.media-max("phone") {
+      padding-top: 0;
+    }
   }
 
   .bsc__shop-nav {
     padding-block: $spacing-md;
+
+    @include bsc.media-max("phone") {
+      display: flex;
+      justify-content: center;
+      font-size: $font-size-sm;
+    }
 
     a {
       color: $color-text;
@@ -96,7 +106,7 @@ $container-width: bsc.$container-wide;
     display: block;
 
     @include bsc.media-max("tablet") {
-      order: 2;
+      order: -1;
     }
   }
 
@@ -111,7 +121,17 @@ $container-width: bsc.$container-wide;
     gap: $spacing-lg;
 
     @media (max-width: 576px) {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(12px, 4vw, 18px);
+
+      > .bsc-product-card,
+      > .bsc__product-card {
+        min-width: 0;
+      }
+
+      > p {
+        grid-column: 1 / -1;
+      }
     }
 
     &:has(.bsc__loading) {
@@ -176,6 +196,15 @@ $container-width: bsc.$container-wide;
   .bsc__shop.bsc__search-page {
     .bsc__search-results-form {
       grid-template-columns: 1fr;
+
+      #bsc-search-results-input {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        border-color: #333;
+        letter-spacing: 1px;
+        margin-bottom: 1em;
+      }
     }
   }
 }
