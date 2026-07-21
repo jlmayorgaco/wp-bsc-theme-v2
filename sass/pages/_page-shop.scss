@@ -84,6 +84,10 @@ $container-width: bsc.$container-wide;
     @include bsc.media-max("tablet") {
       grid-template-columns: 1fr;
     }
+
+    @include bsc.media-max("phone") {
+      gap: $spacing-md;
+    }
   }
 
   .shop__catalog-layout {
@@ -140,6 +144,37 @@ $container-width: bsc.$container-wide;
       align-items: center;
       width: 100%;
       height: 300px;
+    }
+  }
+
+  .bsc__products-empty {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: $spacing-lg $spacing-md $spacing-xl;
+    text-align: center;
+
+    padding-bottom: 0px;
+
+    .bsc__empty-logo {
+      display: block;
+      width: clamp(180px, 30vw, 260px);
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    .bsc__products-empty-title {
+      margin-right: auto;
+      margin-bottom: $spacing-sm;
+      margin-left: auto;
+    }
+
+    .bsc__button {
+      min-height: 44px;
     }
   }
 
@@ -272,7 +307,7 @@ $container-width: bsc.$container-wide;
 .bsc__container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 5rem;
+  padding: 2rem 1.5rem 2rem;
 }
 
 /* =========================================

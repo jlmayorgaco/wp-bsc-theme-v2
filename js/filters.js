@@ -235,7 +235,7 @@ jQuery(document).ready(function($) {
                     }));
                   }, 500)
                 } else {
-                    $('#bscProductsContainer').html('<p>No se encontraron productos.</p>');
+                    $('#bscProductsContainer').html(bsc_filters.empty_products_html);
                 }
             },
             error: function() {
