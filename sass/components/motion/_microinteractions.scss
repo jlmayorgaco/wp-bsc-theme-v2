@@ -51,7 +51,6 @@
 
   :where(.bsc__button, .button, button, input[type="submit"]):where(:hover, :focus-visible) {
     transform: translateY(-2px);
-    box-shadow: var(--shadow--interactive);
   }
 
   :where(.bsc__button, .button, button, input[type="submit"]):active {
@@ -89,7 +88,6 @@
 
   :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc-bp-coupon):where(:hover, :focus-within) {
     transform: translateY(-5px);
-    box-shadow: var(--shadow--interactive);
   }
 
   :where(.bsc__product-card .card__images, .bsc__menu-nav-image, .bsc-skin-quiz__products a, .bsc-skin-quiz__compare-frame) {
@@ -186,7 +184,6 @@
 
   :where(.bsc-skin-quiz__choice, .bsc-skin-quiz__photo-option, .bsc-skin-quiz__upload-control):where(:hover, :focus-within) {
     transform: translateY(-3px);
-    box-shadow: var(--shadow--interactive);
   }
 
   .bsc-skin-quiz__choice input:checked + span,
@@ -235,7 +232,6 @@
 
   :where(.quantity button, .bsc__quantity-controls button, .row_action_buttons button, .swiper-button-prev, .swiper-button-next):where(:hover, :focus-visible) {
     transform: scale(1.06);
-    box-shadow: var(--shadow--interactive);
   }
 
   :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__orders-table tr, .bsc__order-progress-step) {

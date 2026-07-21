@@ -157,10 +157,7 @@ if ( function_exists( 'bsc_metrics_record_search' ) ) {
 						?>
 					<?php endforeach; ?>
 				<?php else : ?>
-					<div class="bsc__search-empty">
-						<p>No encontramos productos para esa busqueda.</p>
-						<a class="bsc__button" href="<?php echo esc_url( function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' ) ); ?>">Volver a la tienda</a>
-					</div>
+					<?php bsc_render_products_empty_state(); ?>
 				<?php endif; ?>
 			</div>
 

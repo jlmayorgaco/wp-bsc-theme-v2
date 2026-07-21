@@ -23,7 +23,7 @@ class BSC_Catalog_Product_Renderer {
 					$card->render();
 				}
 			} else {
-				echo '<p>No se encontraron productos.</p>';
+				bsc_render_products_empty_state( false );
 			}
 		} finally {
 			wp_reset_postdata();

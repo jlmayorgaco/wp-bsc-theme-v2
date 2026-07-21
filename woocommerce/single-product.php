@@ -115,8 +115,8 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 			<?php if ( ! empty( $color_variants ) ) : ?>
 			<section class="bsc-product-options__group bsc-product-options__group--color" aria-label="Color">
 				<div class="bsc-product-options__header">
-					<span class="bsc-product-options__label">Color</span>
-					<span class="bsc-product-options__selected" data-bsc-color-current-label>Escoge un color</span>
+					<span class="bsc-product-options__label">Tono: </span>
+					<span class="bsc-product-options__selected" data-bsc-color-current-label>Escoge un tono</span>
 				</div>
 				<div class="bsc-product-options__color-list" data-bsc-color-list role="listbox" aria-label="Color">
 					<?php foreach ( $color_variants as $index => $variant ) : ?>
