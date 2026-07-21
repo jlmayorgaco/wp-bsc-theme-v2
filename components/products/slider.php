@@ -41,6 +41,7 @@
 		}
 
 		public function render(): void {
+			static $slider_instance = 0;
 
 			// Convert saved product tokens (legacy SKUs or product IDs) to eligible IDs.
 			$product_ids = array_values(
@@ -85,11 +86,13 @@
 			}
 
 			$slug_class = $this->slug ? "bsc__slider--{$this->slug}" : '';
+			$slider_instance++;
+			$slider_id = 'bsc-product-slider-' . $slider_instance;
 
 			if (!empty( $this->label )) {
 				echo "<h2 class='bsc__slider-title'>" . esc_html( $this->label ) . '</h2>';
 			}
-			echo "<div class='bsc__slider " . esc_attr( $slug_class ) . "'>";
+			echo '<div id="' . esc_attr( $slider_id ) . '" class="bsc__slider ' . esc_attr( $slug_class ) . '">';
 
 			while ($query->have_posts()) {
 				$query->the_post();
@@ -102,6 +105,9 @@
 				}
 			}
 
+			echo '</div>';
+			echo '<div class="bsc__slider-progress" role="progressbar" aria-label="Progreso del carrusel de productos" aria-controls="' . esc_attr( $slider_id ) . '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">';
+			echo '<span class="bsc__slider-progress-track"><span class="bsc__slider-progress-thumb"></span></span>';
 			echo '</div>';
 
 			wp_reset_postdata();

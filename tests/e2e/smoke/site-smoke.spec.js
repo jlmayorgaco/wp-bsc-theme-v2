@@ -114,6 +114,60 @@ test.describe('BSC smoke', () => {
     await expect(results.locator('.search-result-item--suggestion .search-result-meta')).toBeHidden();
   });
 
+  test('header product results show name and price without brand', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for header search smoke');
+
+    await page.route('**/wp-admin/admin-ajax.php*', async (route) => {
+      const request = route.request();
+
+      if (request.method() === 'GET' && request.url().includes('action=bsc_search_products')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: {
+              products: [{
+                name: 'Protector solar',
+                brand: 'TOCOBO',
+                price: '$85.000',
+                permalink: '/producto/protector-solar/',
+              }],
+              suggestions: [],
+            },
+          }),
+        });
+        return;
+      }
+
+      await route.continue();
+    });
+
+    await gotoAndStabilize(page, routes.home);
+
+    const isDesktop = testInfo.project.name === 'desktop';
+    const toggle = page.locator(isDesktop ? '.bsc__header--desktop .btn-search-toggle' : '#mobile-search-btn').first();
+    const input = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .header-search-input'
+        : '.bsc-mobile-search-panel .header-search-input'
+    ).first();
+    const results = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .search-results'
+        : '.bsc-mobile-search-panel .search-results'
+    ).first();
+
+    await toggle.click();
+    await input.fill('tocobo');
+
+    const productResult = results.locator('.search-result-item:not(.search-result-item--all)').first();
+    await expect(productResult.locator('.search-result-name')).toHaveText('Protector solar');
+    await expect(productResult.locator('.search-result-price')).toHaveText('$85.000');
+    await expect(productResult.locator('.search-result-brand')).toHaveCount(0);
+    await expect(productResult).not.toContainText('TOCOBO');
+  });
+
   test('mobile menu toggles open and closed', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for mobile-nav smoke');
     test.skip(testInfo.project.name === 'desktop', 'Mobile/tablet-only smoke');
