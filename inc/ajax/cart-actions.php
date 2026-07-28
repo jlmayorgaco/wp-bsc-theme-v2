@@ -32,7 +32,29 @@ function bsc_ajax_add_to_cart_handler() {
 	$added = WC()->cart->add_to_cart( $product_id, $quantity, 0, array(), $cart_item_data );
 
 	if ($added) {
-		WC_AJAX::get_refreshed_fragments();
+		$cart_item = WC()->cart->get_cart_item( $added );
+
+		ob_start();
+		woocommerce_mini_cart();
+		$mini_cart = ob_get_clean();
+
+		wp_send_json(
+			array(
+				'fragments'     => apply_filters(
+					'woocommerce_add_to_cart_fragments',
+					array(
+						'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>',
+					)
+				),
+				'cart_hash'     => WC()->cart->get_cart_hash(),
+				'bsc_cart_item' => array(
+					'key'         => $added,
+					'quantity'    => max( 1, (int) ( $cart_item['quantity'] ?? $quantity ) ),
+					'product_id'  => (int) ( $cart_item['product_id'] ?? $product_id ),
+					'variant_key' => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
+				),
+			)
+		);
 	} else {
 		wp_send_json_error( array( 'error' => 'No se pudo agregar el producto al carrito.' ) );
 	}

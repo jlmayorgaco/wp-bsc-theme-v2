@@ -239,6 +239,17 @@ jQuery(function ($) {
 
     if (!$button.length) return;
 
+    const $quantityControls = $button.siblings(SELECTORS.quantityControls).first();
+    const displayedVariantKey = String($quantityControls.attr('data-variant-key') || '');
+    const selectedVariantKey = available ? String(variant.key || '') : '';
+
+    if (displayedVariantKey && displayedVariantKey !== selectedVariantKey) {
+      $quantityControls.remove();
+      $button
+        .removeClass('bsc__button-add-to-cart--hidden')
+        .removeData('bscCartItemKey bscCartItemQuantity bscCartVariantKey');
+    }
+
     if ($button.data('bscOriginalHtml') === undefined) {
       $button.data('bscOriginalHtml', $button.html());
       $button.data('bscOriginalAria', $button.attr('aria-label') || '');
@@ -386,6 +397,51 @@ jQuery(function ($) {
     };
   }
 
+  function showQuantityControls($btn) {
+    const productId = $btn.data('product_id');
+    const cartItemKey = $btn.data('bscCartItemKey') || '';
+    const variantKey = $btn.data('bscCartVariantKey') || '';
+    const parsedQuantity = parseInt($btn.data('bscCartItemQuantity'), 10);
+    const quantity = Number.isNaN(parsedQuantity) ? 1 : Math.max(1, parsedQuantity);
+    let $controls = $btn.siblings(SELECTORS.quantityControls).first();
+
+    if (!$controls.length) {
+      $controls = $('<div>', {
+        class: 'bsc__quantity-controls',
+        'data-product_id': productId,
+      });
+
+      $('<button>', {
+        type: 'button',
+        class: 'bsc__qty-minus',
+        'aria-label': 'Disminuir cantidad',
+      }).html('&minus;').appendTo($controls);
+
+      $('<span>', {
+        class: 'bsc__qty-value',
+        text: quantity,
+        'aria-live': 'polite',
+      }).appendTo($controls);
+
+      $('<button>', {
+        type: 'button',
+        class: 'bsc__qty-plus',
+        'aria-label': 'Aumentar cantidad',
+      }).text('+').appendTo($controls);
+
+      $btn.parent().append($controls);
+    }
+
+    $controls
+      .attr('data-item-key', cartItemKey)
+      .attr('data-variant-key', variantKey)
+      .find(SELECTORS.quantityValue)
+      .text(quantity);
+
+    $btn.siblings('.added_to_cart').remove();
+    $btn.addClass('bsc__button-add-to-cart--hidden');
+  }
+
   function closeColorPickers($except) {
     $('[data-bsc-color-picker]').not($except || $()).each(function () {
       const $picker = $(this);
@@ -503,6 +559,14 @@ jQuery(function ($) {
       nonce: bsc_ajax.nonce,
       ...getProductOptionPayload($btn),
     }).done((response) => {
+      const addedItem = response?.bsc_cart_item;
+
+      if (addedItem?.key) {
+        $btn.data('bscCartItemKey', addedItem.key);
+        $btn.data('bscCartItemQuantity', addedItem.quantity);
+        $btn.data('bscCartVariantKey', addedItem.variant_key || '');
+      }
+
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => {
       console.error('Add to cart failed:', err);
@@ -520,6 +584,8 @@ jQuery(function ($) {
     const hasVariantOptions = getProductOptions($btn).length > 0;
 
     if (hasVariantOptions) {
+      showQuantityControls($btn);
+
       if (safeFragments['a.cart-contents']) {
         $('a.cart-contents').replaceWith(safeFragments['a.cart-contents']);
 
@@ -542,18 +608,7 @@ jQuery(function ($) {
 
     if ($btn.siblings(SELECTORS.quantityControls).length) return;
 
-    const productId = $btn.data('product_id');
-    const quantityControls = `
-      <div class="bsc__quantity-controls" data-product_id="${productId}">
-        <button class="bsc__qty-minus">&minus;</button>
-        <span class="bsc__qty-value">1</span>
-        <button class="bsc__qty-plus">+</button>
-      </div>
-    `;
-
-    $btn.siblings('.added_to_cart').remove();
-    $btn.parent().append(quantityControls);
-    $btn.addClass('bsc__button-add-to-cart--hidden');
+    showQuantityControls($btn);
 
     // a.cart-contents is not rendered in the BSC header; replaceWith is a no-op
     // but kept for forward-compatibility if header ever adds the fragment
