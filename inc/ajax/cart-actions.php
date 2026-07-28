@@ -53,6 +53,7 @@ function bsc_ajax_add_to_cart_handler() {
 					'quantity'    => max( 1, (int) ( $cart_item['quantity'] ?? $quantity ) ),
 					'product_id'  => (int) ( $cart_item['product_id'] ?? $product_id ),
 					'variant_key' => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
+					'stock_total' => max( 0, (int) ( $cart_item['bsc_product_options']['stock_total'] ?? 0 ) ),
 				),
 			)
 		);
@@ -160,11 +161,23 @@ function bsc_get_cart_quantities() {
 	$items = array();
 
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
+		$product_id  = (int) ( $item['product_id'] ?? 0 );
+		$variant_key = sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) );
+		$stock_total = max( 0, (int) ( $item['bsc_product_options']['stock_total'] ?? 0 ) );
+
+		if ( $variant_key !== '' && function_exists( 'bsc_find_product_variant_matrix_row' ) ) {
+			$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, '', '', '', false );
+			if ( is_array( $variant ) ) {
+				$stock_total = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+			}
+		}
+
 		$items[] = array(
 			'key'         => $key,
 			'quantity'    => (int) $item['quantity'],
-			'product_id'  => (int) ( $item['product_id'] ?? 0 ),
-			'variant_key' => sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) ),
+			'product_id'  => $product_id,
+			'variant_key' => $variant_key,
+			'stock_total' => $stock_total,
 		);
 	}
 

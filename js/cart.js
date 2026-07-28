@@ -29,6 +29,7 @@ jQuery(function ($) {
     const productId = item?.product_id;
     const variantKey = item?.variant_key || '';
     const quantity = parseInt(item?.quantity, 10);
+    const stockTotal = parseInt(item?.stock_total, 10);
 
     if (!productId || !variantKey || Number.isNaN(quantity)) return;
 
@@ -39,6 +40,7 @@ jQuery(function ($) {
         product_id: productId,
         variant_key: variantKey,
         quantity,
+        stock_total: Number.isNaN(stockTotal) ? null : Math.max(0, stockTotal),
       });
     } else {
       variantCartItems.delete(stateKey);
@@ -62,6 +64,19 @@ jQuery(function ($) {
     $control.toggleClass('is-busy', isBusy);
     $control.find(SELECTORS.plusBtn + ', ' + SELECTORS.minusBtn + ', ' + SELECTORS.deleteBtn)
       .prop('disabled', isBusy);
+
+    if (!isBusy) {
+      const quantity = parseInt($control.find(SELECTORS.quantityValue).text(), 10);
+      const stockTotal = parseInt($control.attr('data-stock-total'), 10);
+      const reachedStockLimit = !Number.isNaN(quantity)
+        && !Number.isNaN(stockTotal)
+        && quantity >= stockTotal;
+
+      $control.find(SELECTORS.plusBtn)
+        .prop('disabled', reachedStockLimit)
+        .attr('aria-label', reachedStockLimit ? 'Stock máximo alcanzado' : 'Aumentar cantidad')
+        .attr('title', reachedStockLimit ? 'Stock máximo alcanzado' : '');
+    }
   }
 
   function syncCartCount(count) {
@@ -350,7 +365,10 @@ jQuery(function ($) {
         return !hasSizes || !sizeName || row.size_name === sizeName;
       });
 
-      $option.prop('disabled', !available).toggleClass('is-unavailable', !available);
+      $option
+        .prop('disabled', !available)
+        .prop('hidden', !available)
+        .toggleClass('is-unavailable', !available);
     });
 
     $options.find('[data-bsc-size-option]').each(function () {
@@ -361,7 +379,10 @@ jQuery(function ($) {
         return !hasColors || !colorName || (row.color_name === colorName && (!colorHex || String(row.color_hex).toLowerCase() === String(colorHex).toLowerCase()));
       });
 
-      $option.prop('disabled', !available).toggleClass('is-unavailable', !available);
+      $option
+        .prop('disabled', !available)
+        .prop('hidden', !available)
+        .toggleClass('is-unavailable', !available);
     });
 
     if (!hasAnyStock) {
@@ -441,6 +462,7 @@ jQuery(function ($) {
     const cartItemKey = $btn.data('bscCartItemKey') || '';
     const variantKey = $btn.data('bscCartVariantKey') || '';
     const parsedQuantity = parseInt($btn.data('bscCartItemQuantity'), 10);
+    const parsedStockTotal = parseInt($btn.data('bscVariantStockTotal'), 10);
     const quantity = Number.isNaN(parsedQuantity) ? 1 : Math.max(1, parsedQuantity);
     let $controls = $btn.siblings(SELECTORS.quantityControls).first();
 
@@ -474,9 +496,11 @@ jQuery(function ($) {
     $controls
       .attr('data-item-key', cartItemKey)
       .attr('data-variant-key', variantKey)
+      .attr('data-stock-total', Number.isNaN(parsedStockTotal) ? '' : parsedStockTotal)
       .find(SELECTORS.quantityValue)
       .text(quantity);
 
+    setControlBusy($controls, false);
     $btn.siblings('.added_to_cart').remove();
     $btn.addClass('bsc__button-add-to-cart--hidden');
   }
@@ -500,7 +524,55 @@ jQuery(function ($) {
     $button.data('bscCartItemKey', item.key);
     $button.data('bscCartItemQuantity', item.quantity);
     $button.data('bscCartVariantKey', item.variant_key);
+    $button.data('bscVariantStockTotal', item.stock_total);
     showQuantityControls($button);
+  }
+
+  function cartErrorMessage(error) {
+    const response = error?.responseJSON || error || {};
+
+    return response?.data?.error || response?.data?.message || response?.error || response?.message || '';
+  }
+
+  function markSelectedVariantOutOfStock($btn) {
+    const $options = getProductOptions($btn);
+    const variant = findSelectedVariant($options, true);
+    if (!$options.length || !variant) return;
+
+    $.post(bsc_ajax.ajax_url, {
+      action: 'bsc_get_cart_quantities',
+      nonce: bsc_ajax.nonce,
+    }).done(function (response) {
+      if (response?.success) {
+        applyCartItemSnapshot(response.data);
+      }
+
+      const productId = $btn.data('product_id');
+      const cartItem = variantCartItems.get(variantCartStateKey(productId, variant.key || ''));
+      if (cartItem?.quantity > 0) {
+        syncSelectedVariantCartState($options, variant);
+        return;
+      }
+
+      variant.stock_total = 0;
+
+      if (variantHasSizes(getVariantMatrix($options))) {
+        $options.find('[data-bsc-size-option].is-selected')
+          .removeClass('is-selected')
+          .attr('aria-selected', 'false');
+        $options.find('[data-bsc-selected-size-name]').val('');
+        $options.find('[data-bsc-size-current-label]').text('Escoge un tamaño');
+      } else {
+        $options.find('[data-bsc-color-option].is-selected')
+          .removeClass('is-selected')
+          .attr('aria-selected', 'false');
+        $options.find('[data-bsc-selected-color-name], [data-bsc-selected-color-hex]').val('');
+        $options.find('[data-bsc-color-current-label]').text('Escoge un tono');
+      }
+
+      syncVariantOptions($options);
+      updateProductPrice($options);
+    });
   }
 
   function closeColorPickers($except) {
@@ -632,18 +704,26 @@ jQuery(function ($) {
       const addedItem = response?.bsc_cart_item;
 
       if (response?.success === false || !addedItem?.key) {
-        console.error('Add to cart failed:', response?.data?.error || 'Invalid cart response');
+        const errorMessage = cartErrorMessage(response);
+        if (errorMessage.includes('stock suficiente')) {
+          markSelectedVariantOutOfStock($btn);
+        }
+        console.error('Add to cart failed:', errorMessage || 'Invalid cart response');
         return;
       }
 
       $btn.data('bscCartItemKey', addedItem.key);
       $btn.data('bscCartItemQuantity', addedItem.quantity);
       $btn.data('bscCartVariantKey', addedItem.variant_key || '');
+      $btn.data('bscVariantStockTotal', addedItem.stock_total);
       rememberVariantCartItem(addedItem);
 
       syncCartCount(response.cart_count);
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => {
+      if (cartErrorMessage(err).includes('stock suficiente')) {
+        markSelectedVariantOutOfStock($btn);
+      }
       console.error('Add to cart failed:', err);
     }).always(() => {
       $btn.data('processing', false);
@@ -805,6 +885,7 @@ jQuery(function ($) {
           quantity: wasRemoved ? 0 : serverQty,
           product_id: serverProductId,
           variant_key: variantKey,
+          stock_total: parseInt($control.attr('data-stock-total'), 10),
         });
       }
 
