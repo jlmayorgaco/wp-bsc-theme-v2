@@ -169,6 +169,29 @@ function bsc_product_variant_effective_price( array $variant ): string {
 	return $sale_price !== '' ? $sale_price : $regular_price;
 }
 
+/**
+ * Return the combined warehouse and store stock for a custom variant.
+ *
+ * @param array $variant Custom product variant data.
+ * @return int
+ */
+function bsc_product_variant_stock_total( array $variant ): int {
+	$stock_bodega = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) );
+	$stock_tienda = max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+
+	return $stock_bodega + $stock_tienda;
+}
+
+/**
+ * Determine whether a custom variant can be shown on the storefront.
+ *
+ * @param array $variant Custom product variant data.
+ * @return bool
+ */
+function bsc_product_variant_is_publicly_available( array $variant ): bool {
+	return ! empty( $variant['enabled'] ) && bsc_product_variant_stock_total( $variant ) > 0;
+}
+
 function bsc_get_legacy_product_color_variants( int $product_id ): array {
 	if ( $product_id <= 0 || get_post_meta( $product_id, '_bsc_color_variants_enabled', true ) !== '1' ) {
 		return array();
@@ -434,7 +457,10 @@ function bsc_get_product_variant_matrix( int $product_id, bool $include_disabled
 }
 
 function bsc_get_product_variant_matrix_public_data( int $product_id ): array {
-	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+	$matrix = array_filter(
+		bsc_get_product_variant_matrix( $product_id, false ),
+		'bsc_product_variant_is_publicly_available'
+	);
 
 	return array_values(
 		array_map(
@@ -452,7 +478,7 @@ function bsc_get_product_variant_matrix_public_data( int $product_id ): array {
 					'price'         => bsc_product_variant_effective_price( $variant ),
 					'stock_bodega'  => $stock_bodega,
 					'stock_tienda'  => $stock_tienda,
-					'stock_total'   => $stock_bodega + $stock_tienda,
+					'stock_total'   => bsc_product_variant_stock_total( $variant ),
 					'enabled'       => ! empty( $variant['enabled'] ),
 				);
 			},
@@ -488,7 +514,10 @@ function bsc_sync_product_variant_parent_stock( int $product_id, ?array $matrix 
 }
 
 function bsc_get_product_color_variants( int $product_id ): array {
-	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+	$matrix = array_filter(
+		bsc_get_product_variant_matrix( $product_id, false ),
+		'bsc_product_variant_is_publicly_available'
+	);
 	if ( empty( $matrix ) ) {
 		return array();
 	}
@@ -527,7 +556,10 @@ function bsc_get_product_color_variants( int $product_id ): array {
 }
 
 function bsc_get_product_size_variants( int $product_id ): array {
-	$matrix = bsc_get_product_variant_matrix( $product_id, false );
+	$matrix = array_filter(
+		bsc_get_product_variant_matrix( $product_id, false ),
+		'bsc_product_variant_is_publicly_available'
+	);
 	if ( empty( $matrix ) ) {
 		return array();
 	}
@@ -559,7 +591,7 @@ function bsc_get_product_size_variants( int $product_id ): array {
 }
 
 function bsc_product_has_public_variant_options( int $product_id ): bool {
-	return ! empty( bsc_get_product_variant_matrix( $product_id, false ) );
+	return ! empty( bsc_get_product_variant_matrix_public_data( $product_id ) );
 }
 
 function bsc_find_product_variant_matrix_row(

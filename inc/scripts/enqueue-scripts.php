@@ -159,6 +159,16 @@ function bsc_2_0_scripts() {
 			true
 		);
 
+		wp_localize_script(
+			'bsc-2-0-products-filters',
+			'bsc_filters',
+			array(
+				'empty_products_html' => function_exists( 'bsc_get_products_empty_state_html' )
+					? bsc_get_products_empty_state_html( false )
+					: '',
+			)
+		);
+
 		// Client-side category filter (renderLevel2 subcategory tabs)
 		wp_enqueue_script(
 			'bsc-2-0-category-filter',

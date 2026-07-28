@@ -729,7 +729,7 @@ class BSCShopPage {
 			wp_reset_postdata();
 
 		} else {
-			echo '<p>No hay productos en esta categoría.</p>';
+			bsc_render_products_empty_state( false );
 		}
 
 		echo '</div>'; // #bscProductsContainer
@@ -863,7 +863,7 @@ class BSCShopPage {
 			}
 			wp_reset_postdata();
 		} else {
-			echo '<p class="bsc__empty-category">No hay productos en esta categoría.</p>';
+			bsc_render_products_empty_state( false );
 		}
 
 		return $query;

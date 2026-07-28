@@ -35,6 +35,33 @@ if ( ! function_exists( 'bsc_2_0_posted_on' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'bsc_get_products_empty_state_html' ) ) :
+	/**
+	 * Returns the shared empty state used by product grids and AJAX filters.
+	 */
+	function bsc_get_products_empty_state_html( bool $show_button = true ): string {
+		ob_start();
+		get_template_part(
+			'components/products/empty-state',
+			null,
+			array(
+				'show_button' => $show_button,
+			)
+		);
+
+		return trim( (string) ob_get_clean() );
+	}
+endif;
+
+if ( ! function_exists( 'bsc_render_products_empty_state' ) ) :
+	/**
+	 * Renders the shared product-grid empty state.
+	 */
+	function bsc_render_products_empty_state( bool $show_button = true ): void {
+		echo bsc_get_products_empty_state_html( $show_button ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Template values are escaped at their source.
+	}
+endif;
+
 if ( ! function_exists( 'bsc_2_0_posted_by' ) ) :
 	/**
 	 * Prints HTML with meta information for the current author.

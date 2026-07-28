@@ -329,13 +329,16 @@ $font-weight-bold: 600;
     border-radius: 8px;
     background: $color-surface;
     color: $color-text-primary;
-    box-shadow: 0 6px 18px rgba(51, 51, 51, 0.08);
+    box-shadow: none;
     cursor: pointer;
     font-family: $font-family-base;
     font-size: $font-size-sm;
     font-weight: $font-weight-bold;
     letter-spacing: 0.5px;
     text-align: left;
+
+        box-shadow: none;
+    border-radius: 0px;
   }
 
   .bsc__filters-mobile-toggle-label {
@@ -526,9 +529,11 @@ $font-weight-bold: 600;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 32px;
   margin: 0 0 1rem;
   width: 100%;
+
+  padding-top: 42px;
 
   &[hidden] {
     display: none;
@@ -538,16 +543,15 @@ $font-weight-bold: 600;
 .bsc__active-filter-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
+  justify-content: flex-start;
+  gap: 1.5rem;
   max-width: 100%;
-  min-height: 44px;
+  min-height: 32px;
   padding: 0.55rem 0.8rem;
-  border: 1px solid rgba(51, 51, 51, 0.08);
+  border: 1px solid #333;
   border-radius: 999px;
-  background: var(--color--main, #F7C0CD);
+  background: var(--color--accent-warning, #fdf4c6);
   color: $color-text-primary;
-  box-shadow: 0 8px 20px rgba(247, 192, 205, 0.28);
   cursor: pointer;
   font-family: $font-family-base;
   font-size: $font-size-sm;
@@ -555,6 +559,8 @@ $font-weight-bold: 600;
   letter-spacing: 0;
   line-height: 1.1;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  margin: 0px;
 
   &:hover,
   &:focus-visible {
@@ -580,6 +586,9 @@ $font-weight-bold: 600;
   font-size: 0.95rem;
   font-weight: $font-weight-bold;
   line-height: 1;
+
+  position: relative;
+  left: -6px;
 }
 
 
@@ -622,4 +631,31 @@ $font-weight-bold: 600;
   100% {
     transform: rotate(360deg);
   }
+}
+
+
+
+
+
+
+
+
+@media screen and (max-width: 48em) {
+  .bsc__active-filters {
+  display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+           gap: 16px;
+        margin: 0 0 1rem;
+        width: 100%;
+        padding-top: 6px;
+
+  padding-top: 12px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
 }
