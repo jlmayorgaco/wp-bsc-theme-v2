@@ -32,9 +32,33 @@ function bsc_ajax_add_to_cart_handler() {
 	$added = WC()->cart->add_to_cart( $product_id, $quantity, 0, array(), $cart_item_data );
 
 	if ($added) {
-		WC_AJAX::get_refreshed_fragments();
+		$cart_item = WC()->cart->get_cart_item( $added );
+
+		ob_start();
+		woocommerce_mini_cart();
+		$mini_cart = ob_get_clean();
+
+		wp_send_json(
+			array(
+				'fragments'     => apply_filters(
+					'woocommerce_add_to_cart_fragments',
+					array(
+						'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>',
+					)
+				),
+				'cart_hash'     => WC()->cart->get_cart_hash(),
+				'cart_count'    => (int) WC()->cart->get_cart_contents_count(),
+				'bsc_cart_item' => array(
+					'key'         => $added,
+					'quantity'    => max( 1, (int) ( $cart_item['quantity'] ?? $quantity ) ),
+					'product_id'  => (int) ( $cart_item['product_id'] ?? $product_id ),
+					'variant_key' => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
+					'stock_total' => max( 0, (int) ( $cart_item['bsc_product_options']['stock_total'] ?? 0 ) ),
+				),
+			)
+		);
 	} else {
-		wp_send_json_error( array( 'error' => 'No se pudo agregar el producto al carrito.' ) );
+		wp_send_json_error( array( 'error' => 'No se pudo agregar el producto al carrito.' ), 409 );
 	}
 }
 
@@ -137,9 +161,23 @@ function bsc_get_cart_quantities() {
 	$items = array();
 
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
+		$product_id  = (int) ( $item['product_id'] ?? 0 );
+		$variant_key = sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) );
+		$stock_total = max( 0, (int) ( $item['bsc_product_options']['stock_total'] ?? 0 ) );
+
+		if ( $variant_key !== '' && function_exists( 'bsc_find_product_variant_matrix_row' ) ) {
+			$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, '', '', '', false );
+			if ( is_array( $variant ) ) {
+				$stock_total = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
+			}
+		}
+
 		$items[] = array(
-			'key'      => $key,
-			'quantity' => $item['quantity'],
+			'key'         => $key,
+			'quantity'    => (int) $item['quantity'],
+			'product_id'  => $product_id,
+			'variant_key' => $variant_key,
+			'stock_total' => $stock_total,
 		);
 	}
 

@@ -12192,6 +12192,25 @@ textarea:focus-visible {
   display: grid;
   gap: 0.65rem;
 }
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:not(:disabled), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:not(:disabled) {
+  transform-origin: top center;
+  animation: bsc-variant-choice-swing 420ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:nth-child(2), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:nth-child(2) {
+  animation-delay: 20ms;
+}
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:nth-child(3), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:nth-child(3) {
+  animation-delay: 40ms;
+}
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:nth-child(4), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:nth-child(4) {
+  animation-delay: 60ms;
+}
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:nth-child(5), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:nth-child(5) {
+  animation-delay: 80ms;
+}
+.bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:nth-child(n+6), .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:nth-child(n+6) {
+  animation-delay: 100ms;
+}
 .bsc__product--page .bsc-product-options__group--color {
   gap: 0.9rem;
 }
@@ -12397,6 +12416,9 @@ textarea:focus-visible {
   margin: -0.25rem 0 0;
   text-align: left;
 }
+.bsc__product--page .bsc-product-options__stock.is-out-of-stock {
+  color: #c83c5a;
+}
 .bsc__product--page .bsc__product-cart {
   width: fit-content;
   margin-bottom: 2rem;
@@ -12566,9 +12588,16 @@ textarea:focus-visible {
   .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart {
     width: calc(100vw - 95px);
     cursor: pointer;
+    color: #fff;
     background-color: #333;
     border-radius: 30px;
     transition: all 0.25s ease-in-out;
+    border: 2px solid white;
+  }
+  .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:hover, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:focus-visible, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:active {
+    cursor: not-allowed;
+    opacity: 0.95;
+    border: 2px solid white;
   }
   .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__quantity-controls {
     width: calc(100vw - 95px);
@@ -12618,6 +12647,29 @@ textarea:focus-visible {
     justify-content: flex-start;
     display: flex;
     width: 100%;
+  }
+}
+@keyframes bsc-variant-choice-swing {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(8deg);
+  }
+  40% {
+    transform: rotate(-6deg);
+  }
+  60% {
+    transform: rotate(4deg);
+  }
+  80% {
+    transform: rotate(-2deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__color-option:not(:disabled),
+  .bsc__product--page .bsc-product-options__group.is-selection-prompted .bsc-product-options__size-option:not(:disabled) {
+    animation: none;
   }
 }
 .page-bubble-creators {
@@ -22896,6 +22948,10 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants dd {
   margin-right: 0.5rem;
+}
+.bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants .variation-Tamao,
+.bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants .variation-Tamao p {
+  color: #333;
 }
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_total {
   width: 4em;

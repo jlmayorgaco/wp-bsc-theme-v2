@@ -348,7 +348,7 @@
       });
 
       $nameLabel.append(
-        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Tamano' }),
+        $('<span>', { class: 'bsc-admin-product-edit__field-label', text: 'Tamaño' }),
         $nameInput
       );
       $row.append(

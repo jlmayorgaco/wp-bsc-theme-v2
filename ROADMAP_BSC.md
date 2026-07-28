@@ -2175,7 +2175,7 @@ QA:
 Riesgo:
 Medio. Desencolar mal puede romper interacciones.
 
-## BSC-RM-039 - Optimizar imagenes y tamanos en cards/sliders/menu
+## BSC-RM-039 - Optimizar imagenes y Tamaños en cards/sliders/menu
 
 Prioridad: P1
 Area: Performance, UI
@@ -2192,7 +2192,7 @@ Resultado:
 - QA visual completo verde con `npm run test:e2e:visual`.
 
 Problema:
-Cards, sliders, menu y hero usan imagenes de producto/categoria. Si cargan tamanos originales o sin lazy/eager correcto, empeora LCP y scroll.
+Cards, sliders, menu y hero usan imagenes de producto/categoria. Si cargan Tamaños originales o sin lazy/eager correcto, empeora LCP y scroll.
 
 Evidencia:
 - Product cards renderizan imagenes desde uploads.

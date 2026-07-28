@@ -93,8 +93,8 @@ function bsc_theme_importer_make_notice( string $type, string $message, string $
 
 function bsc_theme_importer_upload_error_message( int $error_code ): string {
 	$messages = array(
-		UPLOAD_ERR_INI_SIZE   => 'El archivo supera el tamano maximo del servidor.',
-		UPLOAD_ERR_FORM_SIZE  => 'El archivo supera el tamano permitido por el formulario.',
+		UPLOAD_ERR_INI_SIZE   => 'El archivo supera el Tamaño maximo del servidor.',
+		UPLOAD_ERR_FORM_SIZE  => 'El archivo supera el Tamaño permitido por el formulario.',
 		UPLOAD_ERR_PARTIAL    => 'El archivo se subio incompleto.',
 		UPLOAD_ERR_NO_FILE    => 'Selecciona un archivo antes de continuar.',
 		UPLOAD_ERR_NO_TMP_DIR => 'El servidor no tiene directorio temporal configurado.',
