@@ -550,6 +550,14 @@
       gap: 0.25rem;
     }
 
+    .bsc-product-options__size-list {
+      align-items: center;
+      justify-content: center;
+      column-gap: 0.2rem;
+      row-gap: 0.5rem;
+      width: 100%;
+    }
+
     .bsc-product-options__stock {
       text-align: center;
     }
