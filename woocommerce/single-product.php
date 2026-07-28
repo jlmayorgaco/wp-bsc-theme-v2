@@ -145,7 +145,7 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 			<?php endif; ?>
 
 			<?php if ( ! empty( $size_variants ) ) : ?>
-			<section class="bsc-product-options__group bsc-product-options__group--size" aria-label="Tamano">
+			<section class="bsc-product-options__group bsc-product-options__group--size" aria-label="Tamaño">
 				<div class="bsc-product-options__header">
 					<span class="bsc-product-options__label">Tama&ntilde;o</span>
 					<span class="bsc-product-options__selected" data-bsc-size-current-label>Escoge un tama&ntilde;o</span>

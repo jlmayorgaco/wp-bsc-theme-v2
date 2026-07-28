@@ -50,7 +50,7 @@ $label_print_js_url   = trailingslashit( get_template_directory_uri() ) . 'js/ad
 			type="button"
 			data-bsc-label-action="reset-size">Restablecer medida</button>
 
-	<div class="bsc-labels-toolbar__size-controls" aria-label="Ajuste de tamano de etiqueta">
+	<div class="bsc-labels-toolbar__size-controls" aria-label="Ajuste de Tamaño de etiqueta">
 		<label class="bsc-labels-toolbar__size-field" for="bsc-label-width-mm">
 		Ancho (mm)
 		<input id="bsc-label-width-mm"
@@ -73,12 +73,12 @@ $label_print_js_url   = trailingslashit( get_template_directory_uri() ) . 'js/ad
 	</div>
 
 	<p class="bsc-labels-toolbar__hint">
-		<strong>PDF exacto</strong> genera un PDF real con ese tamano de hoja.<br>
+		<strong>PDF exacto</strong> genera un PDF real con ese Tamaño de hoja.<br>
 		<strong>Imprimir navegador</strong> queda como fallback y puede forzar Letter/A4 con destinos como Microsoft Print to PDF.
 	</p>
 
 	<p class="bsc-labels-toolbar__notice">
-		Si usas el dialogo del navegador, desactiva <strong>headers/footers</strong>. Para tamano exacto, usa el boton <strong>Descargar PDF exacto</strong>.
+		Si usas el dialogo del navegador, desactiva <strong>headers/footers</strong>. Para Tamaño exacto, usa el boton <strong>Descargar PDF exacto</strong>.
 	</p>
 	</div>
 

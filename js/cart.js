@@ -182,13 +182,13 @@ jQuery(function ($) {
 
   function variantSelectionMessage(hasColors, hasSizes, colorName, sizeName) {
     if (hasColors && hasSizes) {
-      if (!colorName && !sizeName) return 'Selecciona color y tamano para continuar.';
+      if (!colorName && !sizeName) return 'Selecciona color y Tamaño para continuar.';
       if (!colorName) return 'Selecciona un color disponible.';
-      if (!sizeName) return 'Selecciona un tamano disponible.';
+      if (!sizeName) return 'Selecciona un Tamaño disponible.';
     }
 
     if (hasColors && !colorName) return 'Selecciona un color disponible.';
-    if (hasSizes && !sizeName) return 'Selecciona un tamano disponible.';
+    if (hasSizes && !sizeName) return 'Selecciona un Tamaño disponible.';
 
     return 'Selecciona una variante disponible.';
   }
@@ -285,6 +285,38 @@ jQuery(function ($) {
     }
   }
 
+  function variantStockSubject($options) {
+    const matrix = getVariantMatrix($options);
+
+    if (variantHasSizes(matrix)) return 'tamaño';
+    if (variantHasColors(matrix)) return 'tono';
+
+    return 'producto';
+  }
+
+  function updateVariantStockStatus($options, variant) {
+    const $button = $options.closest('.bsc__product-info').find(SELECTORS.addToCart).first();
+    const $status = $options.find('[data-bsc-variant-stock-status]').first();
+    const variantKey = String(variant?.key || '');
+    const item = variantCartItems.get(variantCartStateKey($button.data('product_id'), variantKey));
+    const variantStock = parseInt(variant?.stock_total, 10);
+    const itemStock = parseInt(item?.stock_total, 10);
+    const stockTotal = Number.isNaN(itemStock) ? variantStock : itemStock;
+    const quantityInCart = Math.max(0, parseInt(item?.quantity, 10) || 0);
+    const remainingStock = Math.max(0, (Number.isNaN(stockTotal) ? 0 : stockTotal) - quantityInCart);
+
+    $status.removeClass('is-out-of-stock');
+
+    if (remainingStock === 0) {
+      $status
+        .addClass('is-out-of-stock')
+        .text(`Ya no hay más stock disponible para este ${variantStockSubject($options)}.`);
+      return;
+    }
+
+    $status.text(remainingStock <= 3 ? 'Pocas unidades disponibles.' : '');
+  }
+
   function updateAddToCartAvailability($options, variant, message = '') {
     const $button = $options.closest('.bsc__product-info').find(SELECTORS.addToCart).first();
     const $status = $options.find('[data-bsc-variant-stock-status]').first();
@@ -319,7 +351,7 @@ jQuery(function ($) {
       } else {
         $button.removeAttr('aria-label');
       }
-      $status.text(Number(variant.stock_total || 0) <= 3 ? 'Pocas unidades disponibles.' : '');
+      updateVariantStockStatus($options, variant);
       syncSelectedVariantCartState($options, variant);
       return;
     }
@@ -331,7 +363,7 @@ jQuery(function ($) {
         .addClass('is-selection-required')
         .html('<span>Selecciona opciones</span>')
         .attr('aria-label', message);
-      $status.text(message);
+      $status.removeClass('is-out-of-stock').text(message);
       return;
     }
 
@@ -341,7 +373,9 @@ jQuery(function ($) {
       .removeClass('is-selection-required')
       .html('<span>Agotado</span>')
       .attr('aria-label', 'Variante agotada');
-    $status.text('Sin stock para esta combinacion.');
+    $status
+      .addClass('is-out-of-stock')
+      .text(`Ya no hay más stock disponible para este ${variantStockSubject($options)}.`);
   }
 
   function syncVariantOptions($options) {
@@ -718,6 +752,11 @@ jQuery(function ($) {
       $btn.data('bscVariantStockTotal', addedItem.stock_total);
       rememberVariantCartItem(addedItem);
 
+      const $options = getProductOptions($btn);
+      if ($options.length) {
+        updateVariantStockStatus($options, findSelectedVariant($options, true));
+      }
+
       syncCartCount(response.cart_count);
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => {
@@ -887,6 +926,11 @@ jQuery(function ($) {
           variant_key: variantKey,
           stock_total: parseInt($control.attr('data-stock-total'), 10),
         });
+
+        const $options = getProductOptions($control);
+        if ($options.length) {
+          updateVariantStockStatus($options, findSelectedVariant($options, true));
+        }
       }
 
       if (Number(cartCount) === 0 && redirectToEmptyCheckoutState()) {

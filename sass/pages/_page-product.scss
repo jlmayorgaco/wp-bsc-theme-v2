@@ -411,6 +411,10 @@
     line-height: 1.4;
     margin: -0.25rem 0 0;
     text-align: left;
+
+    &.is-out-of-stock {
+      color: #c83c5a;
+    }
   }
 
   .bsc__product-cart {
@@ -619,13 +623,15 @@
         background-color: #333;
         border-radius: 30px;
         transition: all 0.25s ease-in-out;
+           border: 2px solid white;
 
         &.is-selection-required,
         &.is-selection-required:hover,
         &.is-selection-required:focus-visible,
         &.is-selection-required:active {
           cursor: not-allowed;
-          opacity: 0.55;
+          opacity: 0.95;
+          border: 2px solid white;
         }
       }
 

@@ -12416,6 +12416,9 @@ textarea:focus-visible {
   margin: -0.25rem 0 0;
   text-align: left;
 }
+.bsc__product--page .bsc-product-options__stock.is-out-of-stock {
+  color: #c83c5a;
+}
 .bsc__product--page .bsc__product-cart {
   width: fit-content;
   margin-bottom: 2rem;
@@ -12589,10 +12592,12 @@ textarea:focus-visible {
     background-color: #333;
     border-radius: 30px;
     transition: all 0.25s ease-in-out;
+    border: 2px solid white;
   }
   .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:hover, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:focus-visible, .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart.is-selection-required:active {
     cursor: not-allowed;
-    opacity: 0.55;
+    opacity: 0.95;
+    border: 2px solid white;
   }
   .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__quantity-controls {
     width: calc(100vw - 95px);
