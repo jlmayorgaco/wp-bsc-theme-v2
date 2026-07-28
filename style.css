@@ -22944,6 +22944,10 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants dd {
   margin-right: 0.5rem;
 }
+.bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants .variation-Tamao,
+.bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_name_brand .item__variants .variation-Tamao p {
+  color: #333;
+}
 .bsc__checkout-cart .checkout-cart__item .item__col.col2 .row .col_total {
   width: 4em;
   flex-shrink: 0;
