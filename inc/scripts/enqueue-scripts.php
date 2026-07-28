@@ -96,7 +96,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-add-to-cart',
 			get_template_directory_uri() . '/js/cart.js',
 			array( 'jquery' ),
-			BSC_THEME_VERSION,
+			(string) filemtime( get_template_directory() . '/js/cart.js' ),
 			true
 		);
 	}

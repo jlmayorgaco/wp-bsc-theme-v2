@@ -70,6 +70,14 @@ jQuery(function ($) {
     return $btn.closest('.bsc__product--page').find('[data-bsc-product-options]').first();
   }
 
+  function prefersReducedMotion() {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+
+  function isMobileVariantFlow() {
+    return window.matchMedia?.('(max-width: 768px), (pointer: coarse)').matches === true;
+  }
+
   function formatCopPrice(price) {
     const numericPrice = Number(price);
     if (!Number.isFinite(numericPrice)) return '';
@@ -167,6 +175,63 @@ jQuery(function ($) {
     }) || null;
   }
 
+  function getMissingVariantGroups($options) {
+    const matrix = getVariantMatrix($options);
+    let $groups = $();
+
+    if (variantHasColors(matrix) && !selectedColorName($options)) {
+      $groups = $groups.add($options.find('.bsc-product-options__group--color').first());
+    }
+
+    if (variantHasSizes(matrix) && !selectedSizeName($options)) {
+      $groups = $groups.add($options.find('.bsc-product-options__group--size').first());
+    }
+
+    return $groups;
+  }
+
+  function promptVariantSelection($options) {
+    if (!$options.length) return;
+
+    const $groups = getMissingVariantGroups($options);
+    if (!$groups.length) return;
+
+    const reduceMotion = prefersReducedMotion();
+    const optionsElement = $options.get(0);
+    const firstChoice = $groups.first()
+      .find('[data-bsc-color-option]:not(:disabled), [data-bsc-size-option]:not(:disabled)')
+      .get(0);
+
+    optionsElement.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center',
+    });
+
+    $groups.removeClass('is-selection-prompted');
+    $groups.each(function () {
+      // Restart the cue when the customer taps "Selecciona opciones" again.
+      void this.offsetWidth;
+      $(this).addClass('is-selection-prompted');
+    });
+
+    window.clearTimeout($options.data('bscVariantPromptTimer'));
+    $options.data('bscVariantPromptTimer', window.setTimeout(() => {
+      $groups.removeClass('is-selection-prompted');
+    }, 560));
+
+    window.setTimeout(() => {
+      firstChoice?.focus({ preventScroll: true });
+    }, reduceMotion ? 0 : 320);
+
+    if (isMobileVariantFlow() && typeof navigator.vibrate === 'function') {
+      try {
+        navigator.vibrate([40, 45, 40]);
+      } catch (error) {
+        // Haptic feedback is optional and unsupported on some mobile browsers.
+      }
+    }
+  }
+
   function updateAddToCartAvailability($options, variant, message = '') {
     const $button = $options.closest('.bsc__product-info').find(SELECTORS.addToCart).first();
     const $status = $options.find('[data-bsc-variant-stock-status]').first();
@@ -179,9 +244,11 @@ jQuery(function ($) {
       $button.data('bscOriginalAria', $button.attr('aria-label') || '');
     }
 
-    $button.prop('disabled', !available).attr('aria-disabled', available ? 'false' : 'true');
-
     if (available) {
+      $button
+        .prop('disabled', false)
+        .attr('aria-disabled', 'false')
+        .removeClass('is-selection-required');
       $button.html($button.data('bscOriginalHtml'));
       if ($button.data('bscOriginalAria')) {
         $button.attr('aria-label', $button.data('bscOriginalAria'));
@@ -193,12 +260,22 @@ jQuery(function ($) {
     }
 
     if (message) {
-      $button.html('<span>Selecciona opciones</span>').attr('aria-label', message);
+      $button
+        .prop('disabled', false)
+        .attr('aria-disabled', 'true')
+        .addClass('is-selection-required')
+        .html('<span>Selecciona opciones</span>')
+        .attr('aria-label', message);
       $status.text(message);
       return;
     }
 
-    $button.html('<span>Agotado</span>').attr('aria-label', 'Variante agotada');
+    $button
+      .prop('disabled', true)
+      .attr('aria-disabled', 'true')
+      .removeClass('is-selection-required')
+      .html('<span>Agotado</span>')
+      .attr('aria-label', 'Variante agotada');
     $status.text('Sin stock para esta combinacion.');
   }
 
@@ -402,6 +479,15 @@ jQuery(function ($) {
     e.preventDefault();
 
     const $btn = $(this);
+    if ($btn.hasClass('is-selection-required')) {
+      if (!$btn.data('bscVariantPrompting')) {
+        $btn.data('bscVariantPrompting', true);
+        promptVariantSelection(getProductOptions($btn));
+        window.setTimeout(() => $btn.data('bscVariantPrompting', false), 450);
+      }
+      return;
+    }
+
     if ($btn.prop('disabled')) return;
     if ($btn.data('processing')) return;
     $btn.data('processing', true);

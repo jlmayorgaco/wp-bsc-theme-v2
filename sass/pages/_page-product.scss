@@ -137,6 +137,36 @@
   .bsc-product-options__group {
     display: grid;
     gap: 0.65rem;
+
+    &.is-selection-prompted .bsc-product-options__color-option:not(:disabled),
+    &.is-selection-prompted .bsc-product-options__size-option:not(:disabled) {
+      animation: bsc-variant-choice-shake 300ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    &.is-selection-prompted .bsc-product-options__color-option:nth-child(2),
+    &.is-selection-prompted .bsc-product-options__size-option:nth-child(2) {
+      animation-delay: 20ms;
+    }
+
+    &.is-selection-prompted .bsc-product-options__color-option:nth-child(3),
+    &.is-selection-prompted .bsc-product-options__size-option:nth-child(3) {
+      animation-delay: 40ms;
+    }
+
+    &.is-selection-prompted .bsc-product-options__color-option:nth-child(4),
+    &.is-selection-prompted .bsc-product-options__size-option:nth-child(4) {
+      animation-delay: 60ms;
+    }
+
+    &.is-selection-prompted .bsc-product-options__color-option:nth-child(5),
+    &.is-selection-prompted .bsc-product-options__size-option:nth-child(5) {
+      animation-delay: 80ms;
+    }
+
+    &.is-selection-prompted .bsc-product-options__color-option:nth-child(n + 6),
+    &.is-selection-prompted .bsc-product-options__size-option:nth-child(n + 6) {
+      animation-delay: 100ms;
+    }
   }
 
   .bsc-product-options__group--color {
@@ -587,6 +617,14 @@
         background-color: #333;
         border-radius: 30px;
         transition: all 0.25s ease-in-out;
+
+        &.is-selection-required,
+        &.is-selection-required:hover,
+        &.is-selection-required:focus-visible,
+        &.is-selection-required:active {
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
       }
 
       .bsc__quantity-controls {
@@ -658,6 +696,38 @@
         justify-content: flex-start;
         display: flex;
         width: 100%;
+    }
+  }
+}
+
+@keyframes bsc-variant-choice-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bsc__product--page .bsc-product-options__group.is-selection-prompted {
+    .bsc-product-options__color-option:not(:disabled),
+    .bsc-product-options__size-option:not(:disabled) {
+      animation: none;
     }
   }
 }
