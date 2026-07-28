@@ -12528,6 +12528,7 @@ textarea:focus-visible {
   .bsc__product--page .bsc__product-cart--add-to-cart-button .bsc__button-add-to-cart {
     width: calc(100vw - 95px);
     cursor: pointer;
+    color: #fff;
     background-color: #333;
     border-radius: 30px;
     transition: all 0.25s ease-in-out;
