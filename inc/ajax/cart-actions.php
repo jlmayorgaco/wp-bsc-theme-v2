@@ -47,6 +47,7 @@ function bsc_ajax_add_to_cart_handler() {
 					)
 				),
 				'cart_hash'     => WC()->cart->get_cart_hash(),
+				'cart_count'    => (int) WC()->cart->get_cart_contents_count(),
 				'bsc_cart_item' => array(
 					'key'         => $added,
 					'quantity'    => max( 1, (int) ( $cart_item['quantity'] ?? $quantity ) ),
@@ -56,7 +57,7 @@ function bsc_ajax_add_to_cart_handler() {
 			)
 		);
 	} else {
-		wp_send_json_error( array( 'error' => 'No se pudo agregar el producto al carrito.' ) );
+		wp_send_json_error( array( 'error' => 'No se pudo agregar el producto al carrito.' ), 409 );
 	}
 }
 

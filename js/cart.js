@@ -561,12 +561,16 @@ jQuery(function ($) {
     }).done((response) => {
       const addedItem = response?.bsc_cart_item;
 
-      if (addedItem?.key) {
-        $btn.data('bscCartItemKey', addedItem.key);
-        $btn.data('bscCartItemQuantity', addedItem.quantity);
-        $btn.data('bscCartVariantKey', addedItem.variant_key || '');
+      if (response?.success === false || !addedItem?.key) {
+        console.error('Add to cart failed:', response?.data?.error || 'Invalid cart response');
+        return;
       }
 
+      $btn.data('bscCartItemKey', addedItem.key);
+      $btn.data('bscCartItemQuantity', addedItem.quantity);
+      $btn.data('bscCartVariantKey', addedItem.variant_key || '');
+
+      syncCartCount(response.cart_count);
       $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $btn]);
     }).fail((err) => {
       console.error('Add to cart failed:', err);
