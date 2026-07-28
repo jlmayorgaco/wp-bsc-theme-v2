@@ -161,8 +161,10 @@ function bsc_get_cart_quantities() {
 
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
 		$items[] = array(
-			'key'      => $key,
-			'quantity' => $item['quantity'],
+			'key'         => $key,
+			'quantity'    => (int) $item['quantity'],
+			'product_id'  => (int) ( $item['product_id'] ?? 0 ),
+			'variant_key' => sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) ),
 		);
 	}
 
