@@ -12218,18 +12218,21 @@ textarea:focus-visible {
   letter-spacing: 0;
   text-transform: none;
 }
-.bsc__product--page .bsc-product-options__group--color .bsc-product-options__header {
+.bsc__product--page .bsc-product-options__group--color .bsc-product-options__header,
+.bsc__product--page .bsc-product-options__group--size .bsc-product-options__header {
   justify-content: flex-start;
   gap: 1.1rem;
 }
-.bsc__product--page .bsc-product-options__group--color .bsc-product-options__label {
+.bsc__product--page .bsc-product-options__group--color .bsc-product-options__label,
+.bsc__product--page .bsc-product-options__group--size .bsc-product-options__label {
   color: #222222;
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.12em;
   line-height: 1;
 }
-.bsc__product--page .bsc-product-options__group--color .bsc-product-options__selected {
+.bsc__product--page .bsc-product-options__group--color .bsc-product-options__selected,
+.bsc__product--page .bsc-product-options__group--size .bsc-product-options__selected {
   color: #333;
   font-size: 14px;
   font-weight: 500;
@@ -12491,16 +12494,19 @@ textarea:focus-visible {
     flex-direction: column;
     gap: 0.25rem;
   }
-  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__header {
+  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__header,
+  .bsc__product--page .bsc-product-options__group--size .bsc-product-options__header {
     align-items: baseline;
     flex-direction: row;
     justify-content: center;
     gap: 0.85rem;
   }
-  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__label {
+  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__label,
+  .bsc__product--page .bsc-product-options__group--size .bsc-product-options__label {
     font-size: 16px;
   }
-  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__selected {
+  .bsc__product--page .bsc-product-options__group--color .bsc-product-options__selected,
+  .bsc__product--page .bsc-product-options__group--size .bsc-product-options__selected {
     font-size: 15px;
   }
   .bsc__product--page .bsc-product-options__color-list {
