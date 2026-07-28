@@ -772,7 +772,7 @@ function bsc_add_product_variant_item_data( array $item_data, array $cart_item )
 
 	if ( ! empty( $options['size']['name'] ) ) {
 		$item_data[] = array(
-			'key'   => 'Tamano',
+			'key'   => 'Tamaño',
 			'value' => wc_clean( $options['size']['name'] ),
 		);
 	}
@@ -789,7 +789,7 @@ add_filter( 'woocommerce_get_item_data', 'bsc_add_product_variant_item_data', 20
  */
 function bsc_get_order_item_product_variant_data( WC_Order_Item_Product $item ): array {
 	$color_name  = trim( (string) $item->get_meta( 'Color', true ) );
-	$size_name   = trim( (string) $item->get_meta( 'Tamano', true ) );
+	$size_name   = trim( (string) $item->get_meta( 'Tamaño', true ) );
 	$variant_key = sanitize_key( (string) $item->get_meta( '_bsc_product_variant_key', true ) );
 
 	if ( '' === $size_name ) {
@@ -853,7 +853,7 @@ function bsc_add_product_variant_meta_to_order_item( $item, $cart_item_key, $val
 	}
 
 	if ( ! empty( $options['size']['name'] ) ) {
-		$item->add_meta_data( 'Tamano', wc_clean( $options['size']['name'] ), true );
+		$item->add_meta_data( 'Tamaño', wc_clean( $options['size']['name'] ), true );
 	}
 
 	if ( ! empty( $values['bsc_product_variant_key'] ) ) {

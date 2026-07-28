@@ -736,7 +736,7 @@ function bsc_render_product_edit_page(): void {
 		$size_variants          = bsc_product_edit_sanitize_size_variants( $size_variants_raw, $variant_errors );
 
 		if ($color_variants_enabled && $size_variants_enabled) {
-			wp_die( esc_html__( 'Elige variantes por color o por tamano, no ambas.', 'bsc-2-0' ) );
+			wp_die( esc_html__( 'Elige variantes por color o por Tamaño, no ambas.', 'bsc-2-0' ) );
 		}
 
 		if (!$color_variants_enabled) {
@@ -1026,7 +1026,7 @@ function bsc_render_product_edit_page(): void {
 							>
 							Habilitar variantes de color
 						</label>
-						<span class="bsc-admin-product-edit__field-note">Agrega cada tono con su precio y stock. Solo puedes usar variantes por color o por tamano.</span>
+						<span class="bsc-admin-product-edit__field-note">Agrega cada tono con su precio y stock. Solo puedes usar variantes por color o por Tamaño.</span>
 
 						<div class="bsc-admin-product-edit__color-panel<?php echo esc_attr( $color_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-color-variants-panel>
 							<div class="bsc-admin-product-edit__color-list" data-bsc-color-variants-list>
@@ -1138,7 +1138,7 @@ function bsc_render_product_edit_page(): void {
 					</div>
 
 					<div class="postbox bsc-admin-product-edit__card" data-bsc-size-variants>
-						<h2 class="bsc-admin-product-edit__section-title">Variantes de tamano</h2>
+						<h2 class="bsc-admin-product-edit__section-title">Variantes de Tamaño</h2>
 
 						<label class="bsc-admin-product-edit__field bsc-admin-product-edit__field--checkbox bsc-admin-product-edit__size-toggle">
 							<input
@@ -1148,9 +1148,9 @@ function bsc_render_product_edit_page(): void {
 								data-bsc-size-variants-toggle
 								<?php checked( $size_variants_enabled ); ?>
 							>
-							Habilitar variantes de tamano
+							Habilitar variantes de Tamaño
 						</label>
-						<span class="bsc-admin-product-edit__field-note">Crea opciones como 50 ml, 150 ml, S, M o L. Cada tamano tiene su propio precio y stock.</span>
+						<span class="bsc-admin-product-edit__field-note">Crea opciones como 50 ml, 150 ml, S, M o L. Cada Tamaño tiene su propio precio y stock.</span>
 
 						<div class="bsc-admin-product-edit__size-panel<?php echo esc_attr( $size_variants_enabled ? '' : ' is-hidden' ); ?>" data-bsc-size-variants-panel>
 							<div class="bsc-admin-product-edit__size-list" data-bsc-size-variants-list>
@@ -1165,7 +1165,7 @@ function bsc_render_product_edit_page(): void {
 									?>
 									<div class="bsc-admin-product-edit__size-row" data-bsc-size-variant-row>
 										<label class="bsc-admin-product-edit__field bsc-admin-product-edit__size-name">
-											<span class="bsc-admin-product-edit__field-label">Tamano</span>
+											<span class="bsc-admin-product-edit__field-label">Tamaño</span>
 											<input
 												type="text"
 												name="_bsc_size_variants[<?php echo esc_attr( (string) $index ); ?>][name]"
@@ -1240,7 +1240,7 @@ function bsc_render_product_edit_page(): void {
 									</div>
 								<?php endforeach; ?>
 							</div>
-							<button type="button" class="button" data-bsc-size-variant-add>Agregar tamano</button>
+							<button type="button" class="button" data-bsc-size-variant-add>Agregar Tamaño</button>
 						</div>
 					</div>
 

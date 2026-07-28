@@ -477,7 +477,7 @@ function bsc_enqueue_products_page_assets( string $hook ): void {
 				'deleted'                => 'Producto enviado a la papelera.',
 				'deleteError'            => 'No se pudo borrar el producto.',
 				'variantsTitlePrefix'    => 'Variantes: ',
-				'variantsEmpty'          => 'Este producto no tiene colores o tamanos configurados.',
+				'variantsEmpty'          => 'Este producto no tiene colores o Tamaños configurados.',
 				'variantsSaved'          => 'Variantes guardadas.',
 				'variantsSaveError'      => 'No se pudieron guardar las variantes.',
 				'connectionError'        => 'Error de conexión. Intenta de nuevo.',
