@@ -330,12 +330,37 @@
     border-radius: 999px;
     font-weight: 700;
     text-align: center;
+
+    &.is-selected {
+      border-color: #333333;
+
+      .bsc-product-options__option-price {
+        color: #333333;
+      }
+    }
   }
 
   .bsc-product-options__size-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
+  }
+
+  @media (min-width: 769px) {
+    .bsc-product-options__size-list {
+      flex-wrap: nowrap;
+      gap: 0.2rem;
+      width: 100%;
+    }
+
+    .bsc-product-options__size-option {
+      flex: 1 1 0;
+      min-width: 0;
+      gap: 0.1rem;
+      padding-right: 0.65rem;
+      padding-left: 0.65rem;
+      white-space: nowrap;
+    }
   }
 
   .bsc-product-options__option-name {
@@ -345,7 +370,7 @@
   .bsc-product-options__option-price {
     margin-left: auto;
     color: #666666;
-    font-size: 12px;
+    font-size: 14px;
     white-space: nowrap;
   }
 
