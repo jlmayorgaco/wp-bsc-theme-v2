@@ -42,8 +42,6 @@ if (count( $repeated_slides ) > 0) : ?>
 				<?php
 				$image_attrs = array(
 					'alt'      => $slide['title'],
-					'width'    => '1440',
-					'height'   => '700',
 					'loading'  => 0 === $i ? 'eager' : 'lazy',
 					'decoding' => 0 === $i ? 'sync' : 'async',
 					'sizes'    => '100vw',

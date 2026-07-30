@@ -57,6 +57,11 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
+    min-width: 0;
+
+    > * {
+      min-width: 0;
+    }
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -64,6 +69,10 @@
   }
 
   .bsc__product-gallery {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
     img {
       display: block;
       max-width: 100%;

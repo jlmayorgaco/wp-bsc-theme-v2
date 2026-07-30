@@ -8,10 +8,6 @@
 // -------------------------------------------
 $font-primary: 'Helvetica', sans-serif;
 
-$swiper-height-desktop: 500px;
-$swiper-height-tablet: 420px;
-$swiper-height-mobile: 600px;
-
 $container-max-width: var(--size--page-container-w);
 
 $button-radius: 30px;
@@ -19,67 +15,54 @@ $button-padding: 12px 24px;
 
 $color-text-main: #333;
 $color-title-accent: #333;
-$color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
-
 // -------------------------------------------
 // BASE - DESKTOP
 // -------------------------------------------
 .bsc__home-swiper {
-  --bsc-swiper-slide--h: #{$swiper-height-desktop};
-
   --swiper-navigation-sides-offset: 50px;
 
   position: relative;
-  height: var(--bsc-swiper-slide--h);
+  width: 100%;
+  height: auto;
   display: block;
   z-index: 0;
   overflow: hidden;
 
   .swiper-wrapper {
-    align-items: stretch;
+    align-items: flex-start;
   }
 }
 
 .bsc-swiper__slide {
-  --bsc-swiper-slide--h: #{$swiper-height-desktop};
   position: relative;
-  height: var(--bsc-swiper-slide--h) !important;
+  height: auto !important;
   display: block;
   overflow: hidden;
 
   .slide__image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    @include mixins.fluid-image(var(--bsc-swiper-slide--h));
-
-    height: var(--bsc-swiper-slide--h) !important;
-    overflow-y: hidden;
+    position: relative;
+    width: 100%;
+    height: auto !important;
 
     img {
-      
-      @include mixins.fluid-image(var(--bsc-swiper-slide--h));
       display: block;
-      object-fit: cover;
-      object-position: center center;
-       height: var(--bsc-swiper-slide--h) !important;
-    overflow-y: hidden;
-    
+      width: 100%;
+      height: auto !important;
+      max-width: none;
     }
   }
 
   .slide__content {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
-    height: var(--bsc-swiper-slide--h);
+    height: 100%;
     margin: 0 auto;
 
     .slide__container {
       width: 100%;
       max-width: $container-max-width;
-      height: var(--bsc-swiper-slide--h);
+      height: 100%;
       margin: 0 auto;
       @include mixins.flex-center(flex-end, center);
     }
@@ -105,6 +88,8 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       letter-spacing: 1px;
       color: $color-title-accent !important;
       color: var(--color--text);
+
+      display: none;
     }
 
     .hero__text {
@@ -115,6 +100,8 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       line-height: 1.3;
       letter-spacing: 1.5px;
       color: $color-text-main;
+
+         display: none;
     }
 
     .hero__button {
@@ -128,7 +115,6 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
 // SWIPER GENERIC OVERRIDES
 // -------------------------------------------
 .swiper-slide {
-  @include mixins.flex-center(flex-end, center);
   padding: 0;
   background-position: center;
   background-size: cover;
@@ -189,11 +175,6 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
 // TABLET
 // -------------------------------------------
 @media (min-width: 801px) and (max-width: 1024px) {
-  .bsc__home-swiper,
-  .bsc-swiper__slide {
-    --bsc-swiper-slide--h: #{$swiper-height-tablet};
-  }
-
   .bsc-swiper__slide {
     .slide__content {
       .slide__container {
@@ -240,16 +221,15 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
   }
 
   .bsc__home-swiper {
-    --bsc-swiper-slide--h: 350px;
     position: relative;
-    height: 350px !important;
+    height: auto !important;
     overflow: hidden;
   }
 
   .bsc__home-swiper .swiper-wrapper,
   .bsc__home-swiper .swiper-slide,
   .bsc-swiper__slide {
-    height: 350px !important;
+    height: auto !important;
   }
 
   .bsc-swiper__slide {
@@ -262,14 +242,12 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       top: auto;
       left: auto;
       width: 100%;
-      height: 350px !important;
-      overflow: hidden;
+      height: auto !important;
 
       img {
         width: 100%;
-        height: 350px !important;
-        object-fit: cover;
-        object-position: center center;
+        height: auto !important;
+        max-width: none;
         display: block;
       }
     }
@@ -278,29 +256,13 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       position: absolute;
       inset: 0;
       width: 100%;
-      height: 350px !important;
+      height: 100%;
       z-index: 2;
-      padding: 1rem 1rem 1.5rem;
+      padding: 0.5rem 1rem;
       box-sizing: border-box;
 
       .bsc__title{
         font-size: 28px;
-      }
-
-      &::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        background: linear-gradient(
-          to bottom,
-          rgba(255, 255, 255, 0.02) 0%,
-          rgba(255, 255, 255, 0.06) 25%,
-          rgba(255, 255, 255, 0.10) 45%,
-          rgba(255, 255, 255, 0.20) 68%,
-          rgba(255, 255, 255, 0.25) 82%,
-          $color-mobile-overlay-light 100%
-        );
       }
 
       .slide__container {
@@ -312,16 +274,20 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
         margin: 0 auto;
         padding: 0;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
       }
     }
 
     .slide__hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       width: 100%;
       min-width: 0;
       max-width: 340px;
-      margin: 0 auto 1rem;
+      margin: 0;
       padding: 0;
       box-sizing: border-box;
       text-align: center;
@@ -329,8 +295,9 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       transform: none;
 
       .hero__title {
-        margin: 0 0 0.85rem;
-        font-size: 28px;
+        width: 100%;
+        margin: 0 0 0.5rem;
+        font-size: 24px;
         line-height: 1.02;
         font-weight: 700;
         letter-spacing: 0.2px;
@@ -339,9 +306,10 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
       }
 
       .hero__text {
-        margin: 0 0 1.25rem;
-        font-size: 1.02rem;
-        line-height: 1.32;
+        width: 100%;
+        margin: 0 0 1rem;
+        font-size: 0.8rem;
+        line-height: 1.25;
         font-weight: 300;
         letter-spacing: 0.15px;
         color: $color-text-main;
@@ -352,11 +320,16 @@ $color-mobile-overlay-light: rgba(255, 255, 255, 0.92);
         align-items: center;
         justify-content: center;
         min-width: 180px;
-        min-height: 48px;
-        padding: 0.85rem 1.5rem;
+        min-height: 0;
+        height: auto;
+        padding: 0.45rem 1.5rem;
         border-radius: 999px;
+        font-size: 16px;
         text-decoration: none;
         font-weight: 700;
+
+        position: relative;
+        bottom: 2em;
       }
     }
   }
