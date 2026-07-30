@@ -10,10 +10,11 @@ $sidebar-mobile-cta-radius: 30px;
 // -------------------------------------------
 .bsc__sidebar--mobile {
   display: block;
-  width: calc(100% - 10px);
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
   margin-top: 0px;
-  overflow-y: scroll;
+  overflow-y: auto;
   box-sizing: border-box;
   padding: 1em;
 

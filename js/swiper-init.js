@@ -16,6 +16,7 @@
     /* global Swiper */
     new Swiper('.bsc__home-swiper', {
       loop: false,
+      autoHeight: true,
       initialSlide: isMobile ? 1 : 0,
       autoplay: {
         delay: 4000,
