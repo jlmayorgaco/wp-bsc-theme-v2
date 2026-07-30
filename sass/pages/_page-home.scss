@@ -549,6 +549,10 @@
 
   .bsc__page.page-home {
     overflow: hidden;
+
+    .home__products--section {
+      padding-top: 1em;
+    }
   }
 
   .home__brands--section {

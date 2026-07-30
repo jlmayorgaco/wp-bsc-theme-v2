@@ -21,6 +21,8 @@
   display: flex;
   position: relative;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   flex-direction: row-reverse;
   justify-content: space-between;
   align-items: stretch;
@@ -30,12 +32,15 @@
 .woocommerce-product-gallery__wrapper {
   flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   min-height: var(--gallery-main-min-h);
   aspect-ratio: var(--gallery-aspect-ratio);
 }
 
 .woocommerce-product-gallery .flex-viewport{
     width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
     height: 100%;
     min-height: var(--gallery-main-min-h);
     aspect-ratio: var(--gallery-aspect-ratio);
@@ -154,6 +159,9 @@
   .woocommerce-product-gallery {
     flex-direction: row !important;
     flex-wrap: wrap !important;
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
   } 
 
   .bsc__product-gallery {
@@ -166,6 +174,10 @@
 
     --view-w: var(--thumbs-h) - var(--thumbs-gap);
     --view-h: var(--thumbs-h);
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .woocommerce-product-gallery__trigger {
