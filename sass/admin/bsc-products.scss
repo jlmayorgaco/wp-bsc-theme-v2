@@ -55,7 +55,7 @@
 }
 
 .bsc-admin-products__table {
-  min-width: 980px;
+  min-width: 1120px;
 }
 
 .bsc-admin-products__col-discount {
@@ -77,6 +77,10 @@
 
 .bsc-admin-products__col-price {
   width: 132px;
+}
+
+.bsc-admin-products__col-location {
+  width: 142px;
 }
 
 .bsc-admin-products__col-stock {
@@ -102,6 +106,26 @@
 .bsc-admin-products__sku {
   color: admin.$text-muted;
   font-size: 11px;
+}
+
+.bsc-admin-products__location-input {
+  font-family: admin.$font-code;
+  min-height: 34px;
+  text-transform: uppercase;
+  width: 124px;
+}
+
+.bsc-admin-products__location-input:invalid:not(:placeholder-shown) {
+  background: admin.$surface-danger;
+  border-color: admin.$danger-border;
+}
+
+.bsc-admin-products__location-note {
+  color: admin.$text-muted;
+  display: block;
+  font-size: 10px;
+  line-height: 1.2;
+  margin-top: 4px;
 }
 
 .bsc-admin-products__variant-count {

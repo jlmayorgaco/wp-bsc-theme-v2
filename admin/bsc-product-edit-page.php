@@ -638,11 +638,16 @@ function bsc_render_product_edit_page(): void {
 
 		$new_title       = sanitize_text_field( wp_unslash( $_POST['post_title'] ?? '' ) );
 		$new_excerpt     = wp_kses_post( wp_unslash( $_POST['post_excerpt'] ?? '' ) );
+		$location_code   = bsc_normalize_product_location_code( wp_unslash( $_POST['_bsc_location_code'] ?? '' ) );
 		$post_status_raw = isset( $_POST['post_status'] ) ? sanitize_key( wp_unslash( $_POST['post_status'] ) ) : '';
 		$product_status  = in_array( $post_status_raw, array( 'publish', 'draft', 'hidden', 'archive', 'delete' ), true )
 			? $post_status_raw
 			: 'draft';
 		$new_status      = in_array( $product_status, array( 'publish', 'hidden' ), true ) ? 'publish' : 'draft';
+
+		if ( ! bsc_is_valid_product_location_code( $location_code ) ) {
+			wp_die( esc_html__( 'Location code invalido. Usa el formato COD-M4-E1.', 'bsc-2-0' ) );
+		}
 
 		if ('delete' === $product_status) {
 			wp_trash_post( $product_id );
@@ -668,6 +673,7 @@ function bsc_render_product_edit_page(): void {
 
 		$sku = sanitize_text_field( wp_unslash( $_POST['_sku'] ?? '' ) );
 		update_post_meta( $product_id, '_sku', $sku );
+		bsc_update_product_location_code( $product_id, $location_code );
 
 		$regular_price        = bsc_sanitize_product_price_value( wp_unslash( $_POST['_regular_price'] ?? '' ) );
 		$discount_percent_raw = isset( $_POST['_discount_percent'] )
@@ -824,6 +830,7 @@ function bsc_render_product_edit_page(): void {
 
 	$stock                   = BSC_Stock::get_stock( $product_id );
 	$sku                     = $product->get_sku();
+	$location_code           = bsc_get_product_location_code( $product_id );
 	$product_status          = bsc_get_product_edit_status_value( $post, $product );
 	$regular_price           = $product->get_regular_price();
 	$sale_price              = $product->get_sale_price();
@@ -950,6 +957,24 @@ function bsc_render_product_edit_page(): void {
 							<label class="bsc-admin-product-edit__field">
 								<span class="bsc-admin-product-edit__field-label">SKU</span>
 								<input type="text" name="_sku" value="<?php echo esc_attr( $sku ); ?>" class="regular-text">
+							</label>
+
+							<label class="bsc-admin-product-edit__field">
+								<span class="bsc-admin-product-edit__field-label">Location code</span>
+								<input
+									type="text"
+									name="_bsc_location_code"
+									value="<?php echo esc_attr( $location_code ); ?>"
+									class="regular-text"
+									pattern="COD-M[0-9]+-E[0-9]+"
+									maxlength="30"
+									placeholder="COD-M4-E1"
+									title="Usa el formato COD-M4-E1"
+									autocomplete="off"
+									spellcheck="false"
+									data-bsc-location-code
+								>
+								<span class="bsc-admin-product-edit__field-note">Formato: COD-M4-E1 (mueble 4, espacio 1).</span>
 							</label>
 
 							<label class="bsc-admin-product-edit__field">

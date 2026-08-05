@@ -10,6 +10,10 @@
   var rootLabels = config.rootLabels || {};
   var strings = config.strings || {};
 
+  $(document).on('input', '[data-bsc-location-code]', function () {
+    this.value = String(this.value).toUpperCase();
+  });
+
   function escapeHtml(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;')

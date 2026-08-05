@@ -111,6 +111,7 @@ $menu-title-font: 'Helvetica', sans-serif;
     padding: 0;
     border: 0;
     background: transparent;
+    color: var(--color--text, #333333);
     line-height: 0; // kill baseline gaps when using <img>
     opacity: 1;
     transition: opacity .15s ease;

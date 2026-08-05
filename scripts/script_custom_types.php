@@ -2,16 +2,25 @@
 /**
  * Register Custom Post Type: Home Slides
  * Add Meta Box and Fields (No Plugin)
+ *
+ * @package BSC_2_0
  */
 
 add_action( 'init', 'bsc_register_home_slide_post_type' );
+/**
+ * Register the Home Slide post type.
+ */
 function bsc_register_home_slide_post_type() {
 	register_post_type(
 		'home_slide',
 		array(
 			'labels'        => array(
-				'name'          => __( 'BSC Home Slides', 'bsc' ),
-				'singular_name' => __( 'Home Slide', 'bsc' ),
+				'name'               => __( 'BSC Home Slides', 'bsc-2-0' ),
+				'singular_name'      => __( 'Home Slide', 'bsc-2-0' ),
+				'add_new_item'       => __( 'Agregar slide', 'bsc-2-0' ),
+				'edit_item'          => __( 'Editar slide', 'bsc-2-0' ),
+				'featured_image'     => __( 'Imagen desktop', 'bsc-2-0' ),
+				'set_featured_image' => __( 'Seleccionar imagen desktop', 'bsc-2-0' ),
 			),
 			'public'        => true,
 			'has_archive'   => false,
@@ -19,7 +28,7 @@ function bsc_register_home_slide_post_type() {
 			'supports'      => array( 'title', 'thumbnail' ),
 			'show_in_rest'  => true,
 			'menu_position' => 20,
-			// BSC-021: hide CPT auto-menu; Hero Slides submenu lives under BSC in bsc-admin-menu.php
+			// BSC-021: hide CPT auto-menu; Hero Slides submenu lives under BSC in bsc-admin-menu.php.
 			'show_in_menu'  => false,
 		)
 	);
@@ -30,10 +39,13 @@ function bsc_register_home_slide_post_type() {
 // -----------------------------------------------------------------------------
 
 add_action( 'add_meta_boxes', 'bsc_add_home_slide_meta_box' );
+/**
+ * Register the Home Slide options meta box.
+ */
 function bsc_add_home_slide_meta_box() {
 	add_meta_box(
 		'bsc_home_slide_fields',
-		__( 'Slide Options', 'bsc' ),
+		__( 'Slide Options', 'bsc-2-0' ),
 		'bsc_render_home_slide_fields',
 		'home_slide',
 		'normal',
@@ -41,8 +53,78 @@ function bsc_add_home_slide_meta_box() {
 	);
 }
 
+/**
+ * The slide options box owns both responsive images, so the legacy featured
+ * image box would be a confusing duplicate of the desktop selector.
+ */
+function bsc_remove_home_slide_featured_image_box() {
+	remove_meta_box( 'postimagediv', 'home_slide', 'side' );
+}
+add_action( 'add_meta_boxes_home_slide', 'bsc_remove_home_slide_featured_image_box', 20 );
+
+/**
+ * Render one image selector in the Home Slide editor.
+ *
+ * @param string $field_name Form field name.
+ * @param string $label      Visible field label.
+ * @param string $help       Field guidance.
+ * @param int    $image_id   Selected attachment ID.
+ */
+function bsc_render_home_slide_image_field( string $field_name, string $label, string $help, int $image_id ): void {
+	$empty_message = 'slide_mobile_image_id' === $field_name
+		? __( 'Sin imagen mobile propia. Se usara la imagen desktop.', 'bsc-2-0' )
+		: __( 'Selecciona la imagen horizontal para desktop.', 'bsc-2-0' );
+	$media_title   = 'slide_mobile_image_id' === $field_name
+		? __( 'Seleccionar imagen mobile', 'bsc-2-0' )
+		: __( 'Seleccionar imagen desktop', 'bsc-2-0' );
+	?>
+	<article class="bsc-home-slide-image-field" data-bsc-home-slide-image-field data-empty-message="<?php echo esc_attr( $empty_message ); ?>">
+		<h3><?php echo esc_html( $label ); ?></h3>
+		<p class="description"><?php echo esc_html( $help ); ?></p>
+		<div class="bsc-home-slide-image-field__preview" data-bsc-home-slide-image-preview>
+			<?php if ( $image_id > 0 ) : ?>
+				<?php echo wp_get_attachment_image( $image_id, 'medium', false, array( 'alt' => '' ) ); ?>
+			<?php else : ?>
+				<p><?php echo esc_html( $empty_message ); ?></p>
+			<?php endif; ?>
+		</div>
+		<input
+			type="hidden"
+			name="<?php echo esc_attr( $field_name ); ?>"
+			value="<?php echo esc_attr( (string) $image_id ); ?>"
+			data-bsc-home-slide-image-id
+		>
+		<div class="bsc-home-slide-image-field__actions">
+			<button
+				type="button"
+				class="button"
+				data-bsc-home-slide-image-select
+				data-media-title="<?php echo esc_attr( $media_title ); ?>"
+			>
+				<?php echo esc_html( $image_id > 0 ? __( 'Cambiar imagen', 'bsc-2-0' ) : __( 'Seleccionar imagen', 'bsc-2-0' ) ); ?>
+			</button>
+			<button
+				type="button"
+				class="button-link-delete"
+				data-bsc-home-slide-image-remove
+				<?php if ( $image_id <= 0 ) : ?>
+					hidden
+				<?php endif; ?>
+			>
+				<?php esc_html_e( 'Quitar', 'bsc-2-0' ); ?>
+			</button>
+		</div>
+	</article>
+	<?php
+}
+
+/**
+ * Render the editable Home Slide options.
+ *
+ * @param WP_Post $post Slide being edited.
+ */
 function bsc_render_home_slide_fields( $post ) {
-	// Define all fields once for scalability
+	// Define all fields once for scalability.
 	$fields = array(
 		'slide_subtitle'    => array(
 			'label' => 'Subtitle',
@@ -60,6 +142,13 @@ function bsc_render_home_slide_fields( $post ) {
 
 	wp_nonce_field( 'bsc_save_slide_meta', 'bsc_slide_nonce' );
 
+	printf(
+		'<p><label for="slide_order"><strong>%1$s</strong></label><br><input class="small-text" type="number" min="0" step="1" name="menu_order" id="slide_order" value="%2$s"><span class="description bsc-home-slide-order-help">%3$s</span></p>',
+		esc_html__( 'Orden del slide', 'bsc-2-0' ),
+		esc_attr( (string) $post->menu_order ),
+		esc_html__( 'Los numeros menores aparecen primero. Usa 1, 2, 3...', 'bsc-2-0' )
+	);
+
 	foreach ($fields as $name => $config) {
 		$value = get_post_meta( $post->ID, "_{$name}", true );
 		printf(
@@ -71,6 +160,27 @@ function bsc_render_home_slide_fields( $post ) {
 			esc_attr( $value )
 		);
 	}
+
+	$desktop_image_id = (int) get_post_thumbnail_id( $post->ID );
+	$mobile_image_id  = (int) get_post_meta( $post->ID, '_slide_mobile_image_id', true );
+	?>
+	<div class="bsc-home-slide-images">
+		<?php
+		bsc_render_home_slide_image_field(
+			'slide_desktop_image_id',
+			__( 'Imagen desktop', 'bsc-2-0' ),
+			__( 'Recomendada: banner horizontal de alta resolucion.', 'bsc-2-0' ),
+			$desktop_image_id
+		);
+		bsc_render_home_slide_image_field(
+			'slide_mobile_image_id',
+			__( 'Imagen mobile', 'bsc-2-0' ),
+			__( 'Recomendada: composicion vertical o cuadrada optimizada para celular.', 'bsc-2-0' ),
+			$mobile_image_id
+		);
+		?>
+	</div>
+	<?php
 }
 
 // -----------------------------------------------------------------------------
@@ -78,8 +188,13 @@ function bsc_render_home_slide_fields( $post ) {
 // -----------------------------------------------------------------------------
 
 add_action( 'save_post_home_slide', 'bsc_save_home_slide_meta' );
+/**
+ * Save Home Slide content and responsive image selections.
+ *
+ * @param int $post_id Slide ID.
+ */
 function bsc_save_home_slide_meta( $post_id ) {
-	// Verify nonce
+	// Verify nonce.
 	if (
 		!isset( $_POST['bsc_slide_nonce'] ) ||
 		!wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['bsc_slide_nonce'] ) ), 'bsc_save_slide_meta' )
@@ -87,28 +202,152 @@ function bsc_save_home_slide_meta( $post_id ) {
 		return;
 	}
 
-	// Auto-save guard
+	// Auto-save guard.
 	if (defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE) {
 		return;
 	}
 
-	// Permissions check
+	// Permissions check.
 	if (!current_user_can( 'edit_post', $post_id )) {
 		return;
 	}
 
-	// Save expected fields
+	// Save expected fields.
 	$fields = array( 'slide_subtitle', 'slide_button_text', 'slide_button_link' );
 
 	foreach ($fields as $field) {
 		$value = sanitize_text_field( wp_unslash( $_POST[ $field ] ?? '' ) );
-		$clean = $field === 'slide_button_link'
+		$clean = 'slide_button_link' === $field
 			? esc_url_raw( $value )
 			: $value;
 
 		update_post_meta( $post_id, "_$field", $clean );
 	}
+
+	$desktop_image_id = absint( wp_unslash( $_POST['slide_desktop_image_id'] ?? 0 ) );
+	$mobile_image_id  = absint( wp_unslash( $_POST['slide_mobile_image_id'] ?? 0 ) );
+
+	if ( 0 < $desktop_image_id && wp_attachment_is_image( $desktop_image_id ) ) {
+		set_post_thumbnail( $post_id, $desktop_image_id );
+	} else {
+		delete_post_thumbnail( $post_id );
+	}
+
+	if ( 0 < $mobile_image_id && wp_attachment_is_image( $mobile_image_id ) ) {
+		update_post_meta( $post_id, '_slide_mobile_image_id', $mobile_image_id );
+	} else {
+		delete_post_meta( $post_id, '_slide_mobile_image_id' );
+	}
 }
+
+/**
+ * Load the media selector only while editing Home Slides.
+ *
+ * @param string $hook_suffix Current admin page hook.
+ */
+function bsc_home_slide_admin_assets( string $hook_suffix ): void {
+	if ( ! in_array( $hook_suffix, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+
+	$screen = get_current_screen();
+	if ( ! $screen || 'home_slide' !== $screen->post_type ) {
+		return;
+	}
+
+	wp_enqueue_media();
+
+	$css_path = get_template_directory() . '/admin/bsc-home-slides.css';
+	$js_path  = get_template_directory() . '/js/admin/bsc-home-slides.js';
+
+	if ( file_exists( $css_path ) ) {
+		wp_enqueue_style(
+			'bsc-home-slides-admin',
+			get_template_directory_uri() . '/admin/bsc-home-slides.css',
+			array(),
+			(string) filemtime( $css_path )
+		);
+	}
+
+	if ( file_exists( $js_path ) ) {
+		wp_enqueue_script(
+			'bsc-home-slides-admin',
+			get_template_directory_uri() . '/js/admin/bsc-home-slides.js',
+			array( 'media-editor' ),
+			(string) filemtime( $js_path ),
+			true
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'bsc_home_slide_admin_assets' );
+
+/**
+ * Show the configured slide order in the admin list.
+ *
+ * @param array $columns Existing list columns.
+ * @return array
+ */
+function bsc_home_slide_admin_columns( array $columns ): array {
+	$ordered_columns = array();
+
+	foreach ( $columns as $key => $label ) {
+		if ( 'date' === $key ) {
+			$ordered_columns['menu_order'] = __( 'Orden', 'bsc-2-0' );
+		}
+		$ordered_columns[ $key ] = $label;
+	}
+
+	return $ordered_columns;
+}
+add_filter( 'manage_home_slide_posts_columns', 'bsc_home_slide_admin_columns' );
+
+/**
+ * Render custom Home Slide admin columns.
+ *
+ * @param string $column  Column key.
+ * @param int    $post_id Slide ID.
+ */
+function bsc_home_slide_admin_column_content( string $column, int $post_id ): void {
+	if ( 'menu_order' === $column ) {
+		echo esc_html( (string) get_post_field( 'menu_order', $post_id ) );
+	}
+}
+add_action( 'manage_home_slide_posts_custom_column', 'bsc_home_slide_admin_column_content', 10, 2 );
+
+/**
+ * Make the Order column sortable.
+ *
+ * @param array $columns Sortable columns.
+ * @return array
+ */
+function bsc_home_slide_sortable_columns( array $columns ): array {
+	$columns['menu_order'] = 'menu_order';
+
+	return $columns;
+}
+add_filter( 'manage_edit-home_slide_sortable_columns', 'bsc_home_slide_sortable_columns' );
+
+/**
+ * Keep the Home Slides list in the same order as the storefront by default.
+ *
+ * @param WP_Query $query Current admin query.
+ */
+function bsc_home_slide_admin_default_order( WP_Query $query ): void {
+	if ( ! is_admin() || ! $query->is_main_query() || 'home_slide' !== $query->get( 'post_type' ) ) {
+		return;
+	}
+
+	if ( ! $query->get( 'orderby' ) ) {
+		$query->set(
+			'orderby',
+			array(
+				'menu_order' => 'ASC',
+				'date'       => 'DESC',
+			)
+		);
+	}
+}
+add_action( 'pre_get_posts', 'bsc_home_slide_admin_default_order' );
 
 // BSC-021: bsc-home-favorites is registered as a submenu of BSC in bsc-admin-menu.php.
 // The standalone add_menu_page() has been removed to avoid a duplicate top-level entry.

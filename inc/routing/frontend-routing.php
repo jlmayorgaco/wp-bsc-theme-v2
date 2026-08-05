@@ -34,6 +34,23 @@ function bsc_redirect_my_account_guests() {
 add_action( 'template_redirect', 'bsc_redirect_my_account_guests' );
 
 /**
+ * Check whether the current request is the local storefront oracle.
+ *
+ * The saved parking setting remains untouched so production keeps its configured state.
+ */
+function bsc_is_local_storefront_request(): bool {
+	if ( 'local' !== wp_get_environment_type() ) {
+		return false;
+	}
+
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Parsed as a hostname and compared with one exact local value.
+	$raw_host = isset( $_SERVER['HTTP_HOST'] ) ? (string) wp_unslash( $_SERVER['HTTP_HOST'] ) : '';
+	$host     = wp_parse_url( 'http://' . $raw_host, PHP_URL_HOST );
+
+	return is_string( $host ) && 'bsc.local' === strtolower( rtrim( $host, '.' ) ); // bsc-local-host-exception
+}
+
+/**
  * Check whether the BSC parking page should be shown.
  */
 function bsc_is_parking_page_enabled(): bool {
@@ -122,7 +139,7 @@ function bsc_is_parking_page_auth_request(): bool {
  * @return mixed
  */
 function bsc_allow_auth_routes_through_woocommerce_coming_soon( $value ) {
-	return bsc_is_parking_page_auth_request() ? 'no' : $value;
+	return bsc_is_local_storefront_request() || bsc_is_parking_page_auth_request() ? 'no' : $value;
 }
 add_filter( 'option_woocommerce_coming_soon', 'bsc_allow_auth_routes_through_woocommerce_coming_soon', 0 );
 
@@ -133,7 +150,7 @@ add_filter( 'option_woocommerce_coming_soon', 'bsc_allow_auth_routes_through_woo
  * @return mixed
  */
 function bsc_allow_auth_routes_through_woocommerce_coming_soon_visibility( $value ) {
-	return bsc_is_parking_page_auth_request() ? 'live' : $value;
+	return bsc_is_local_storefront_request() || bsc_is_parking_page_auth_request() ? 'live' : $value;
 }
 add_filter( 'option_woocommerce_coming_soon_visibility', 'bsc_allow_auth_routes_through_woocommerce_coming_soon_visibility', 0 );
 
@@ -151,6 +168,7 @@ function bsc_current_user_can_bypass_parking_page(): bool {
 function bsc_maybe_render_parking_page(): void {
 	if (
 		is_admin()
+		|| bsc_is_local_storefront_request()
 		|| bsc_current_user_can_bypass_parking_page()
 		|| bsc_is_parking_page_auth_request()
 		|| ! bsc_is_parking_page_enabled()
