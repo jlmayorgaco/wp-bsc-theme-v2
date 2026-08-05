@@ -36,6 +36,12 @@ const blockedPatterns = [
   /\blocalhost\b/i,
   /\b127\.0\.0\.1\b/,
 ];
+const allowedReferences = new Map([
+  [
+    'inc/routing/frontend-routing.php',
+    new Set(['bsc-local-host-exception']),
+  ],
+]);
 
 function toPosix(filePath) {
   return filePath.split(path.sep).join('/');
@@ -76,7 +82,11 @@ for (const file of collectFiles(root)) {
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
 
   lines.forEach((line, index) => {
-    if (blockedPatterns.some((pattern) => pattern.test(line))) {
+    const isApprovedReference = [...(allowedReferences.get(relativePath) || [])].some(
+      (marker) => line.includes(marker),
+    );
+
+    if (!isApprovedReference && blockedPatterns.some((pattern) => pattern.test(line))) {
       findings.push({
         file: relativePath,
         line: index + 1,

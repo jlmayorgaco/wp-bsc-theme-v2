@@ -1244,6 +1244,12 @@ QA:
 Riesgo:
 Alto. Puede dejar la tienda inutilizable o romper pagos.
 
+Estado local 2026-08-03:
+- `bsc.local` omite el parking en PHP solo cuando `WP_ENVIRONMENT_TYPE=local`, sin modificar la opción guardada.
+- Los demás hosts, incluida producción, conservan el estado `coming-soon` configurado.
+- El icono guest del header fija el token de texto para no heredar el azul del navegador.
+- QA focalizada: `php tests/frontend-routing-local-host.php` y baseline visual desktop del header.
+
 ---
 
 # P1 - Seguridad, datos y operacion

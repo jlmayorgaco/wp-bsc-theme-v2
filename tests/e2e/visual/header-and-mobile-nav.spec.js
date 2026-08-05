@@ -10,10 +10,15 @@ test.describe('BSC visual baseline - header and mobile nav', () => {
     await gotoAndStabilize(page, routes.home);
 
     const desktopHeader = page.locator('.bsc__header--desktop .header__container').first();
+    const searchButton = desktopHeader.locator('.icon--search > button');
+    const profileLink = desktopHeader.locator('.icon--profile > a');
 
     await expect(desktopHeader).toBeVisible();
+    await expect(searchButton).toHaveCSS('color', 'rgb(51, 51, 51)');
+    await expect(profileLink).toHaveCSS('color', 'rgb(51, 51, 51)');
     await expect(desktopHeader).toHaveScreenshot('header-desktop-shell.png', {
       animations: 'disabled',
+      maxDiffPixelRatio: 0.001,
     });
   });
 

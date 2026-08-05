@@ -1,8 +1,21 @@
 <?php
+/**
+ * Home hero slider with responsive desktop and mobile images.
+ *
+ * @package BSC_2_0
+ */
+
 $slides_query = new WP_Query(
 	array(
 		'post_type'      => 'home_slide',
+		'post_status'    => 'publish',
 		'posts_per_page' => 10,
+		'orderby'        => array(
+			'menu_order' => 'ASC',
+			'date'       => 'DESC',
+			'ID'         => 'ASC',
+		),
+		'no_found_rows'  => true,
 	)
 );
 
@@ -12,18 +25,29 @@ if ($slides_query->have_posts()) {
 	while ($slides_query->have_posts()) {
 		$slides_query->the_post();
 
-		// BSC-003: use WP featured image; fallback to placeholder if none is set.
-		// To use real banners: upload Home-01-100.jpg / Home-02-100.jpg to WP Media
-		// and set as Featured Image on each Home Slide CPT post.
-		$thumb_id = get_post_thumbnail_id( get_the_ID() );
-		$thumb    = $thumb_id ? get_the_post_thumbnail_url( get_the_ID(), 'full' ) : '';
+		$slide_post_id    = get_the_ID();
+		$desktop_image_id = (int) get_post_thumbnail_id( $slide_post_id );
+		$mobile_image_id  = (int) get_post_meta( $slide_post_id, '_slide_mobile_image_id', true );
+
+		if ( $desktop_image_id > 0 && ! wp_attachment_is_image( $desktop_image_id ) ) {
+			$desktop_image_id = 0;
+		}
+		if ( $mobile_image_id > 0 && ! wp_attachment_is_image( $mobile_image_id ) ) {
+			$mobile_image_id = 0;
+		}
+
+		// Existing slides keep their featured image as desktop. Either format can
+		// safely back up the other until both responsive assets are configured.
+		$render_desktop_image_id = $desktop_image_id ? $desktop_image_id : $mobile_image_id;
+		$render_mobile_image_id  = $mobile_image_id ? $mobile_image_id : $desktop_image_id;
+
 		$slides[] = array(
-			'title'       => get_the_title(),
-			'subtitle'    => get_post_meta( get_the_ID(), '_slide_subtitle', true ),
-			'image_id'    => $thumb_id,
-			'image'       => $thumb ?: get_template_directory_uri() . '/images/bsc__placeholder_product.jpg',
-			'button_text' => get_post_meta( get_the_ID(), '_slide_button_text', true ),
-			'button_link' => get_post_meta( get_the_ID(), '_slide_button_link', true ),
+			'title'            => get_the_title(),
+			'subtitle'         => get_post_meta( $slide_post_id, '_slide_subtitle', true ),
+			'desktop_image_id' => $render_desktop_image_id,
+			'mobile_image_id'  => $render_mobile_image_id,
+			'button_text'      => get_post_meta( $slide_post_id, '_slide_button_text', true ),
+			'button_link'      => get_post_meta( $slide_post_id, '_slide_button_link', true ),
 		);
 	}
 	wp_reset_postdata();
@@ -51,12 +75,26 @@ if (count( $repeated_slides ) > 0) : ?>
 					$image_attrs['fetchpriority'] = 'high';
 				}
 
-				if (!empty( $slide['image_id'] )) {
-					echo wp_get_attachment_image( (int) $slide['image_id'], 'full', false, $image_attrs );
+				$desktop_image_id = (int) $slide['desktop_image_id'];
+				$mobile_image_id  = (int) $slide['mobile_image_id'];
+
+				if ( $desktop_image_id > 0 ) {
+					?>
+					<picture>
+						<?php if ( $mobile_image_id > 0 && $mobile_image_id !== $desktop_image_id ) : ?>
+							<?php
+							$mobile_srcset = wp_get_attachment_image_srcset( $mobile_image_id, 'full' );
+							$mobile_srcset = $mobile_srcset ? $mobile_srcset : wp_get_attachment_image_url( $mobile_image_id, 'full' );
+							?>
+							<source media="(max-width: 800px)" srcset="<?php echo esc_attr( (string) $mobile_srcset ); ?>" sizes="100vw">
+						<?php endif; ?>
+						<?php echo wp_get_attachment_image( $desktop_image_id, 'full', false, $image_attrs ); ?>
+					</picture>
+					<?php
 				} else {
 					printf(
 						'<img src="%s" alt="%s" width="1440" height="700" loading="%s" decoding="%s"%s>',
-						esc_url( $slide['image'] ),
+						esc_url( get_template_directory_uri() . '/images/bsc__placeholder_product.jpg' ),
 						esc_attr( $slide['title'] ),
 						esc_attr( $image_attrs['loading'] ),
 						esc_attr( $image_attrs['decoding'] ),

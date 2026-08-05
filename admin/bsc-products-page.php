@@ -106,6 +106,15 @@ function bsc_ajax_update_product_stocks(): void {
 		wp_send_json_error( array( 'message' => 'Producto invalido' ), 400 );
 	}
 
+	$has_location_code = isset( $_POST['location_code'] );
+	$location_code     = $has_location_code
+		? bsc_normalize_product_location_code( wp_unslash( $_POST['location_code'] ) )
+		: bsc_get_product_location_code( $product_id );
+
+	if ( ! bsc_is_valid_product_location_code( $location_code ) ) {
+		wp_send_json_error( array( 'message' => 'Location code invalido. Usa el formato COD-M4-E1.' ), 400 );
+	}
+
 	$current_bodega = (int) get_post_meta( $product_id, '_stock_bodega', true );
 	$current_tienda = (int) get_post_meta( $product_id, '_stock_tienda', true );
 
@@ -147,10 +156,15 @@ function bsc_ajax_update_product_stocks(): void {
 		$product = wc_get_product( $product_id );
 	}
 
+	if ($has_location_code) {
+		bsc_update_product_location_code( $product_id, $location_code );
+	}
+
 	wp_send_json_success(
 		array(
 			'bodega'        => $bodega,
 			'tienda'        => $tienda,
+			'location_code' => $location_code,
 			'regular_price' => $product instanceof WC_Product ? $product->get_regular_price() : '',
 			'sale_price'    => $product instanceof WC_Product ? $product->get_sale_price() : '',
 		)
@@ -469,6 +483,7 @@ function bsc_enqueue_products_page_assets( string $hook ): void {
 				'saveError'              => 'No se pudieron guardar los cambios.',
 				'priceError'             => 'Revisa los precios antes de guardar.',
 				'salePriceError'         => 'El precio de oferta no puede superar el precio regular.',
+				'locationCodeError'       => 'Location code invalido. Usa el formato COD-M4-E1.',
 				'discountNoSelection'    => 'Selecciona al menos un producto.',
 				'discountInvalidPercent' => 'Ingresa un descuento entre 0% y 99%.',
 				'discountApplied'        => 'Descuento actualizado.',
@@ -526,7 +541,7 @@ function bsc_render_products_page(): void {
 			<div>
 				<span class="bsc-admin-page-header__eyebrow">Catalogo y stock</span>
 				<h1 class="wp-heading-inline">Productos BSC</h1>
-				<p class="bsc-admin-page-header__description">Edita precio, inventario y visibilidad sin salir del flujo operativo.</p>
+				<p class="bsc-admin-page-header__description">Edita ubicacion, precio, inventario y visibilidad sin salir del flujo operativo.</p>
 			</div>
 			<div class="bsc-admin-page-header__actions">
 				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=bsc-dashboard' ) ); ?>">Dashboard</a>
@@ -617,6 +632,7 @@ function bsc_render_products_page(): void {
 					</th>
 					<th class="bsc-admin-products__col-image">Imagen</th>
 					<th>Nombre / SKU</th>
+					<th class="bsc-admin-products__col-location">Location code</th>
 					<th class="bsc-admin-products__col-price">Precio (COP)</th>
 					<th class="bsc-admin-products__col-stock">Stock Bodega</th>
 					<th class="bsc-admin-products__col-stock">Stock Tienda</th>
@@ -633,6 +649,7 @@ function bsc_render_products_page(): void {
 					}
 
 					$sku                  = $product->get_sku();
+					$location_code        = bsc_get_product_location_code( $post->ID );
 					$price                = $product->get_regular_price();
 					$sale_price           = $product->get_sale_price();
 					$stock                = BSC_Stock::get_stock( $post->ID );
@@ -691,6 +708,26 @@ function bsc_render_products_page(): void {
 							<?php if ($variant_count > 0) : ?>
 								<br><span class="bsc-admin-products__variant-count"><?php echo esc_html( sprintf( '%d variantes', $variant_count ) ); ?></span>
 							<?php endif; ?>
+						</td>
+						<td>
+							<label class="screen-reader-text" for="bsc-location-code-<?php echo esc_attr( $post->ID ); ?>">
+								Location code de <?php echo esc_html( $post->post_title ); ?>
+							</label>
+							<input
+								type="text"
+								id="bsc-location-code-<?php echo esc_attr( $post->ID ); ?>"
+								class="bsc-product-inline-input bsc-location-code-input bsc-admin-products__location-input bsc-admin-inline-editor__field"
+								data-field="location_code"
+								data-original="<?php echo esc_attr( $location_code ); ?>"
+								value="<?php echo esc_attr( $location_code ); ?>"
+								pattern="COD-M[0-9]+-E[0-9]+"
+								maxlength="30"
+								placeholder="COD-M4-E1"
+								title="Usa el formato COD-M4-E1"
+								autocomplete="off"
+								spellcheck="false"
+							>
+							<span class="bsc-admin-products__location-note">Mueble / espacio</span>
 						</td>
 						<td>
 							<div class="bsc-admin-products__price-fields">
@@ -795,7 +832,7 @@ function bsc_render_products_page(): void {
 				<?php endforeach; ?>
 
 				<?php if (empty( $products )) : ?>
-					<tr><td colspan="8" class="bsc-admin-products__empty">No hay productos.</td></tr>
+					<tr><td colspan="9" class="bsc-admin-products__empty">No hay productos.</td></tr>
 				<?php endif; ?>
 			</tbody>
 		</table>
