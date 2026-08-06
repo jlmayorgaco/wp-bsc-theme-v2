@@ -212,6 +212,29 @@ $color-title-accent: #333;
   }
 }
 
+// Tablet and desktop share the same CTA placement. The slide container is the
+// positioning reference, while mobile keeps its dedicated layout below.
+@media (min-width: 801px) {
+  .bsc-swiper__slide .slide__content .slide__container {
+    position: relative;
+  }
+
+  .bsc-swiper__slide .slide__hero {
+    position: absolute;
+    right: 0;
+    bottom: 5em;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    max-width: none;
+    margin: 0;
+    padding: 0 !important;
+    text-align: center;
+  }
+}
+
 // -------------------------------------------
 // MOBILE
 // -------------------------------------------

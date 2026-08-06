@@ -9099,7 +9099,7 @@ textarea:focus-visible {
     overflow: hidden;
   }
   .bsc__page.page-home .home__products--section {
-    padding-top: 1em;
+    padding-top: 2em;
   }
   .home__brands--section {
     position: relative;
@@ -10613,6 +10613,10 @@ textarea:focus-visible {
     max-width: 100%;
     gap: 1.25rem;
     padding-inline: 1rem;
+  }
+  .bsc-kb-grid.bsc-kb-grid--home {
+    margin-top: 0;
+    padding-top: 0;
   }
   .bsc-kb-card {
     min-height: 420px;
@@ -18977,6 +18981,7 @@ body.mobile-menu-open .bsc__header--mobile .mobile-toggle__icon--close {
   padding: 0;
   border: 0;
   background: transparent;
+  color: var(--color--text, #333333);
   line-height: 0;
   opacity: 1;
   transition: opacity 0.15s ease;
@@ -19045,7 +19050,10 @@ body.admin-bar .bsc__header--desktop {
   --footer--floating-whatsapp--w: 150px;
   --footer--floating-whatsapp--h: 45px;
   --footer--floating-whatsapp--bottom: 0px;
-  --footer--floating-whatsapp--right: calc((100vw - var(--size--page-container-w)) / 2);
+  --footer--floating-whatsapp--right: max(
+    14px,
+    calc((100vw - var(--size--page-container-w)) / 2)
+  );
   --footer--floating-cart-icon--w: 50px;
   --footer--floating-cart-icon--h: 50px;
   --footer--floating-cart-icon--bottom: calc(
@@ -19326,15 +19334,32 @@ body.admin-bar .bsc__header--desktop {
   }
 }
 @media (max-width: 992px) {
+  .footer__links-section {
+    flex-wrap: nowrap;
+    gap: clamp(12px, 2vw, 20px);
+  }
   .footer__column {
-    min-width: 150px;
-    margin-left: 20px;
+    min-width: 0;
+    margin-left: 0;
+  }
+  .footer__heading {
+    font-size: clamp(0.95em, 1.75vw, 1.1em);
+  }
+  .footer__link {
+    font-size: clamp(0.8em, 1.45vw, 0.95em);
+    letter-spacing: clamp(0.25px, 0.08vw, 1px);
   }
   .footer__logo, .footer__social-icons {
     margin-left: 20px;
   }
+  .footer__logo img {
+    max-width: clamp(145px, 18vw, 180px);
+  }
+  .footer__copyright {
+    min-width: 0;
+  }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .footer {
     padding: 30px 15px;
   }
@@ -19691,6 +19716,25 @@ body.admin-bar .bsc__header--desktop {
   .swiper-button-next,
   .swiper-rtl .swiper-button-prev {
     left: 50px !important;
+  }
+}
+@media (min-width: 801px) {
+  .bsc-swiper__slide .slide__content .slide__container {
+    position: relative;
+  }
+  .bsc-swiper__slide .slide__hero {
+    position: absolute;
+    left: 0;
+    bottom: 5em;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    max-width: none;
+    margin: 0;
+    padding: 0 !important;
+    text-align: center;
   }
 }
 @media (max-width: 800px) {
@@ -20707,15 +20751,11 @@ body.admin-bar .bsc__header--desktop {
    WooCommerce Product Gallery
 ------------------------------ */
 .bsc__product-gallery {
-  --thumb-w: 120px;
-  --thumb-h: 120px;
   --thumbs-gap: 10px;
   --gallery-aspect-ratio: 1 / 1;
+  --thumb-w: calc((100% - (4 * var(--thumbs-gap))) / 5);
+  --thumb-h: var(--thumb-w);
   --thumbs-w: var(--thumb-w);
-  --thumbs-h: calc((3 * var(--thumbs-gap)) + (4 * var(--thumb-h)));
-  --gallery-main-min-h: var(--thumbs-h);
-  --view-w: var(--thumbs-h) - var(--thumbs-gap);
-  --view-h: var(--thumbs-h);
 }
 
 /* Main gallery container */
@@ -20727,26 +20767,40 @@ body.admin-bar .bsc__header--desktop {
   min-width: 0;
   flex-direction: row-reverse;
   justify-content: space-between;
-  align-items: stretch;
+  align-items: flex-start;
   gap: var(--thumbs-gap);
 }
 
 .woocommerce-product-gallery__wrapper {
-  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
   min-width: 0;
-  max-width: 100%;
-  min-height: var(--gallery-main-min-h);
-  aspect-ratio: var(--gallery-aspect-ratio);
 }
 
 .woocommerce-product-gallery .flex-viewport {
-  width: 100% !important;
+  flex: 1 1 0;
+  width: auto !important;
   max-width: 100%;
   min-width: 0;
-  height: 100%;
-  min-height: var(--gallery-main-min-h);
+  height: auto;
+  min-height: 0;
   aspect-ratio: var(--gallery-aspect-ratio);
   overflow: hidden;
+}
+.woocommerce-product-gallery .flex-viewport > .woocommerce-product-gallery__wrapper {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  height: 100%;
+}
+.woocommerce-product-gallery .flex-viewport .woocommerce-product-gallery__image {
+  flex: 0 0 auto;
+  height: 100%;
+}
+.woocommerce-product-gallery .flex-viewport .woocommerce-product-gallery__image > a {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .woocommerce-product-gallery .flex-viewport img {
   display: block;
@@ -20754,6 +20808,7 @@ body.admin-bar .bsc__header--desktop {
   height: 100%;
   box-sizing: border-box;
   object-fit: contain;
+  object-position: center;
 }
 
 /* Thumbnail container */
@@ -20764,16 +20819,18 @@ body.admin-bar .bsc__header--desktop {
   flex-direction: column;
   flex: 0 0 var(--thumbs-w);
   width: var(--thumbs-w);
-  height: var(--thumbs-h);
-  min-height: var(--thumbs-h);
+  height: auto;
+  min-height: 0;
   gap: var(--thumbs-gap);
 }
 .flex-control-thumbs li {
   list-style: none !important;
   counter-increment: none !important;
-  width: var(--thumb-w);
-  height: calc((100% - 3 * var(--thumbs-gap)) / 4);
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
   min-height: 0;
+  aspect-ratio: 1/1;
   position: relative;
 }
 .flex-control-thumbs li img {
@@ -20865,7 +20922,8 @@ body.admin-bar .bsc__header--desktop {
     top: calc(2 * var(--thumbs-gap));
   }
   .woocommerce-product-gallery .flex-viewport {
-    width: 100%;
+    flex: 0 0 100%;
+    width: 100% !important;
     max-width: 100%;
     height: auto;
     min-height: 0;
@@ -22404,6 +22462,14 @@ details[open] .bsc__product-detail-category > summary::after {
 .bsc__tabs .tab__header .tab__icon--accent .cls-1 {
   fill: #fc0054;
 }
+.bsc__tabs .tab__header .tab__icon--hair-care > g > .cls-2 {
+  paint-order: stroke fill;
+  stroke: var(--color--text, #333333);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+  transition: fill 180ms ease, stroke 180ms ease;
+}
 .bsc__tabs .tab__header .tab__title {
   font-size: 0.9rem;
   color: var(--color--muted, #888888);
@@ -22452,6 +22518,10 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 
 .bsc__tabs .tab__header:not(.active):not(:hover) .cls-3 {
+  stroke: var(--color--muted, #888888);
+}
+
+.bsc__tabs .tab__header[data-tab-name=hair-care]:not(.active):not(:hover) .tab__icon--hair-care > g > .cls-2 {
   stroke: var(--color--muted, #888888);
 }
 
