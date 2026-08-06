@@ -30,6 +30,7 @@ test.describe('BSC admin products smoke', () => {
     await openAdminProductsPage(page, testInfo);
 
     await expect(page.locator('.bsc-price-input[data-field="regular_price"]').first()).toBeVisible();
+    await expect(page.locator('.bsc-location-code-input[data-field="location_code"]').first()).toBeVisible();
     await expect(page.locator('.bsc-price-input[data-field="sale_price"]')).toHaveCount(0);
 
     const discountToggle = page.locator('#bsc-discount-mode-toggle').first();
@@ -74,6 +75,7 @@ test.describe('BSC admin products smoke', () => {
       );
       await expect(currentPage.locator('#bsc-select-main-image').first()).toBeVisible();
       await expect(currentPage.locator('input[name="_regular_price"]').first()).toBeVisible();
+      await expect(currentPage.locator('input[name="_bsc_location_code"]').first()).toBeVisible();
       await expect(currentPage.locator('input[name="_discount_percent"]').first()).toBeVisible();
       await expect(currentPage.locator('input[name="_sale_price"]')).toHaveCount(0);
       await expect(currentPage.locator('select[name="post_status"]').first()).toBeVisible();

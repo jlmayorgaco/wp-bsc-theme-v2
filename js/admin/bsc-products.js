@@ -214,9 +214,17 @@
     return $input.hasClass('bsc-price-input');
   }
 
+  function isLocationCodeInput($input) {
+    return $input.hasClass('bsc-location-code-input');
+  }
+
   function isInputValid($input) {
     var rawValue = String($input.val()).trim();
     var value;
+
+    if (isLocationCodeInput($input)) {
+      return rawValue === '' || /^COD-M[0-9]+-E[0-9]+$/.test(rawValue);
+    }
 
     value = isStockInput($input)
       ? parseInt(rawValue, 10)
@@ -277,6 +285,8 @@
         payload[$input.data('type')] = parseInt(value, 10);
       } else if (isPriceInput($input)) {
         payload[$input.data('field')] = value;
+      } else if (isLocationCodeInput($input)) {
+        payload.location_code = value;
       }
 
       return undefined;
@@ -284,7 +294,15 @@
 
     if (invalidInput) {
       invalidInput.trigger('focus');
-      showToast(strings.priceError || strings.saveError || 'No se pudieron guardar los cambios.', 'error');
+      if (invalidInput.get(0) && typeof invalidInput.get(0).reportValidity === 'function') {
+        invalidInput.get(0).reportValidity();
+      }
+      showToast(
+        isLocationCodeInput(invalidInput)
+          ? strings.locationCodeError || 'Location code invalido. Usa el formato COD-M4-E1.'
+          : strings.priceError || strings.saveError || 'No se pudieron guardar los cambios.',
+        'error'
+      );
       return;
     }
 
@@ -455,7 +473,7 @@
       $row.remove();
 
       if (!$tbody.find('.bsc-admin-products__row').length) {
-        $tbody.append('<tr><td colspan="8" class="bsc-admin-products__empty">No hay productos.</td></tr>');
+        $tbody.append('<tr><td colspan="9" class="bsc-admin-products__empty">No hay productos.</td></tr>');
       }
 
       updateDiscountState();
@@ -596,7 +614,13 @@
   }
 
   $(document).on('input change', '.bsc-product-inline-input', function () {
-    syncRowState(getRow($(this)));
+    var $input = $(this);
+
+    if (isLocationCodeInput($input)) {
+      $input.val(String($input.val()).toUpperCase());
+    }
+
+    syncRowState(getRow($input));
   });
 
   $(document).on('click', '.bsc-product-row-save', function () {
