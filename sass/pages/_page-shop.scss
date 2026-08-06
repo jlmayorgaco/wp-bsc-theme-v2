@@ -619,6 +619,11 @@ $container-width: bsc.$container-wide;
     padding-inline: 1rem;
   }
 
+  .bsc-kb-grid.bsc-kb-grid--home {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
   .bsc-kb-card {
     min-height: 420px;
   }
