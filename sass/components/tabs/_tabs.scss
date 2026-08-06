@@ -94,6 +94,15 @@ $tab-state-duration: 180ms;
       }
     }
 
+    .tab__icon--hair-care > g > .cls-2 {
+      paint-order: stroke fill;
+      stroke: bsc.$text;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.6;
+      transition: fill $tab-state-duration ease, stroke $tab-state-duration ease;
+    }
+
     .tab__title {
       font-size: 0.9rem;
       color: bsc.$text-muted;
@@ -154,6 +163,11 @@ $tab-state-duration: 180ms;
 }
 
 .bsc__tabs .tab__header:not(.active):not(:hover) .cls-3 {
+  stroke: bsc.$text-muted;
+}
+
+.bsc__tabs .tab__header[data-tab-name="hair-care"]:not(.active):not(:hover)
+  .tab__icon--hair-care > g > .cls-2 {
   stroke: bsc.$text-muted;
 }
 

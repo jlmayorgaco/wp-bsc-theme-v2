@@ -69,7 +69,7 @@ $footer-floating: (
 
 $breakpoints: (
   lg: 992px,
-  md: 768px,
+  md: 767px,
   sm: 480px
 );
 
@@ -145,7 +145,10 @@ $breakpoints: (
   --footer--floating-whatsapp--w: #{footer-floating(whatsapp-width)};
   --footer--floating-whatsapp--h: #{footer-floating(whatsapp-height)};
   --footer--floating-whatsapp--bottom: #{footer-floating(whatsapp-bottom)};
-  --footer--floating-whatsapp--right: calc((100vw - var(--size--page-container-w)) / 2);
+  --footer--floating-whatsapp--right: max(
+    14px,
+    calc((100vw - var(--size--page-container-w)) / 2)
+  );
 
   --footer--floating-cart-icon--w: #{footer-floating(cart-width)};
   --footer--floating-cart-icon--h: #{footer-floating(cart-height)};
@@ -470,14 +473,36 @@ $breakpoints: (
 // =======================================================
 @include mq(bp(lg)) {
   .footer {
+    &__links-section {
+      flex-wrap: nowrap;
+      gap: clamp(12px, 2vw, 20px);
+    }
+
     &__column {
-      min-width: footer-layout(column-min-width-md);
-      margin-right: footer-space(column-gap-md);
+      min-width: 0;
+      margin-right: 0;
+    }
+
+    &__heading {
+      font-size: clamp(0.95em, 1.75vw, 1.1em);
+    }
+
+    &__link {
+      font-size: clamp(0.8em, 1.45vw, 0.95em);
+      letter-spacing: clamp(0.25px, 0.08vw, 1px);
     }
 
     &__logo,
     &__social-icons {
       margin-right: footer-space(column-gap-md);
+    }
+
+    &__logo img {
+      max-width: clamp(145px, 18vw, #{footer-layout(logo-max-width)});
+    }
+
+    &__copyright {
+      min-width: 0;
     }
   }
 }
