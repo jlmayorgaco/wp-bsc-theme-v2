@@ -411,6 +411,10 @@ $contact-placeholder: bsc.$text-muted;
       margin: 0 auto;
     }
 
+    .bsc__contact-card__arrow {
+      display: none;
+    }
+
     .bsc__contact-main {
       margin-top: 24px;
       padding-bottom: 58px;

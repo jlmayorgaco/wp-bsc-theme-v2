@@ -172,7 +172,10 @@ test.describe('BSC smoke', () => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for mobile-nav smoke');
     test.skip(testInfo.project.name === 'desktop', 'Mobile/tablet-only smoke');
 
-    await gotoAndStabilize(page, routes.home);
+    await gotoAndStabilize(page, routes.home, {
+      primePage: false,
+      waitForImages: false,
+    });
 
     const menuToggle = page.locator('#mobileMenuToggle').first();
     const mobileSidebar = page.locator('#mobileSidebar').first();
@@ -185,9 +188,38 @@ test.describe('BSC smoke', () => {
     await expect(mobileSidebar).toHaveClass(/is-open/);
     await expect(body).toHaveClass(/mobile-menu-open/);
 
+    const skinCareMenu = mobileSidebar
+      .locator('details.mobile-nav--catalog')
+      .filter({ hasText: 'SKIN CARE' })
+      .first();
+    const skinCareSummary = skinCareMenu.locator('summary').first();
+
+    await skinCareSummary.click();
+    await expect(skinCareMenu).toHaveAttribute('open', '');
+    await expect(skinCareMenu.locator('.mobile-nav__section-title').first()).toBeVisible();
+    await expect(skinCareMenu.locator('.mobile-nav__image').first()).toBeVisible();
+
+    const contentOrder = await skinCareMenu.locator('.mobile-nav__content').evaluate((content) =>
+      Array.from(content.children).slice(0, 3).map((child) => child.tagName)
+    );
+    expect(contentOrder).toEqual(['SECTION', 'A', 'SECTION']);
+
+    const overlayPosition = await page.evaluate(() => {
+      const header = document.querySelector('#mobileHeader');
+      const sidebar = document.querySelector('#mobileSidebar');
+
+      return {
+        headerBottom: header?.getBoundingClientRect().bottom || 0,
+        sidebarTop: sidebar?.getBoundingClientRect().top || 0,
+      };
+    });
+    expect(Math.abs(overlayPosition.headerBottom - overlayPosition.sidebarTop)).toBeLessThanOrEqual(1);
+    await expect(body).toHaveCSS('overflow', 'hidden');
+
     await menuToggle.click();
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
     await expect(mobileSidebar).not.toHaveClass(/is-open/);
+    await expect(mobileSidebar).toHaveAttribute('aria-hidden', 'true');
   });
 
   test('category page renders product cards', async ({ page }) => {
@@ -203,6 +235,93 @@ test.describe('BSC smoke', () => {
 
     await gotoAndStabilize(page, routes.groupCategory);
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
+  });
+
+  test('mobile contact cards hide their external-link arrows', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for contact smoke');
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only contact presentation');
+
+    await gotoAndStabilize(page, routes.contact, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const contactCards = page.locator('.bsc__contact-card');
+    const contactArrows = page.locator('.bsc__contact-card__arrow');
+
+    await expect(contactCards).toHaveCount(3);
+    await expect(contactArrows).toHaveCount(3);
+
+    for (const arrow of await contactArrows.all()) {
+      await expect(arrow).toBeHidden();
+    }
+  });
+
+  test('mobile filter removes the repeated title and enlarges the sort control', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for catalog filter smoke');
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only filter presentation');
+
+    await gotoAndStabilize(page, routes.groupCategory, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    await page.locator('.bsc__filters-mobile-toggle').click();
+
+    const filterTitle = page.locator('.bsc__filters-mobile-title');
+    const closeButton = page.locator('.bsc__filters-mobile-close');
+    const sortSelect = page.locator('.bsc__filters-sort-select');
+
+    await expect(filterTitle).toBeHidden();
+    await expect(closeButton).toBeVisible();
+    await expect(sortSelect).toBeVisible();
+    await expect(sortSelect).toHaveCSS('min-height', '52px');
+    await expect(sortSelect).toHaveCSS('font-size', '16px');
+
+    const sortBox = await sortSelect.boundingBox();
+    expect(sortBox?.height || 0).toBeGreaterThanOrEqual(52);
+  });
+
+  test('mobile active filter badges remove without the pink interaction shadow', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for active filter smoke');
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only active filter presentation');
+
+    await gotoAndStabilize(
+      page,
+      '/product-category/group-skin-care/sk-rutina/sk-rutina-s1-limpiadores-aceitosos/?piel=sk-tipo-piel-mixta',
+      { primePage: false, waitForImages: false }
+    );
+
+    const activeBadge = page.locator('.bsc__active-filter-badge').filter({ hasText: 'Piel mixta' });
+    await expect(activeBadge).toBeVisible();
+
+    await activeBadge.hover();
+    await expect(activeBadge).toHaveCSS('box-shadow', 'none');
+    await expect(activeBadge).toHaveCSS('transform', 'none');
+
+    await activeBadge.click();
+    await expect(activeBadge).toHaveCount(0);
+    await expect(page.locator('.bsc__product-card').first()).toBeVisible();
+  });
+
+  test('mobile variable product CTA uses the BSC outlined interaction state', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for product card smoke');
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only interaction state');
+
+    await gotoAndStabilize(page, routes.groupCategory, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const optionsButton = page.locator('.bsc__button-add-to-cart--variable').first();
+    await expect(optionsButton).toBeAttached();
+    await optionsButton.hover();
+
+    await expect(optionsButton).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(optionsButton).toHaveCSS('border-color', 'rgb(51, 51, 51)');
+    await expect(optionsButton).toHaveCSS('border-style', 'solid');
+    await expect(optionsButton).toHaveCSS('border-width', '1px');
+    await expect(optionsButton).toHaveCSS('color', 'rgb(51, 51, 51)');
   });
 
   test('category price ranges sync their visible outputs', async ({ page }) => {
@@ -245,6 +364,34 @@ test.describe('BSC smoke', () => {
         '.woocommerce-product-gallery, .product, .bsc__product-gallery'
       ).first()
     ).toBeVisible();
+  });
+
+  test('mobile reported PDP renders recommendation cards', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for PDP recommendation smoke');
+    test.skip(testInfo.project.name !== 'mobile', 'Mobile-only recommendation regression');
+
+    await gotoAndStabilize(page, routes.groupCategory, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const reportedProductLink = page
+      .locator('a[href*="/product/"]')
+      .filter({ hasText: 'Madagascar Centella Light Cleansing Oil SKIN1004' })
+      .first();
+    const fallbackProductLink = page.locator('.bsc__product-card a[href*="/product/"]').first();
+    const productHref = (await reportedProductLink.getAttribute('href'))
+      || (await fallbackProductLink.getAttribute('href'));
+
+    expect(productHref).toBeTruthy();
+    await gotoAndStabilize(page, productHref, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const recommendations = page.locator('.bsc__product-recommendations').first();
+    await expect(recommendations.locator('.bsc__product-card').first()).toBeVisible();
+    await expect(recommendations.locator('.bsc__empty-recommendations')).toHaveCount(0);
   });
 
   test('product card add-to-cart toggles quantity controls and restores CTA at zero', async ({ page }, testInfo) => {

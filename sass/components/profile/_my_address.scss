@@ -451,6 +451,15 @@ $account-address-error-color: red;
     margin-bottom: 0;
   }
 
+  .bsc__address-card .bsc__address-button,
+  .bsc__address-card .bsc__address-button:hover,
+  .bsc__address-card .bsc__address-button:focus-visible,
+  .bsc__address-card .bsc__address-button:active {
+    border-color: #333;
+    background-color: #333;
+    color: #fff;
+  }
+
   .bsc__address-subtitle {
     font-size: 18px;
     margin-bottom: 0;

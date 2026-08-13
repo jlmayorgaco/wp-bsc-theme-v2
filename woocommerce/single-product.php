@@ -272,15 +272,21 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 		<?php
 		$key            = 'bsc-recomended-products';
 		$products_limit = 5;
-		$skus           = get_related_product_skus( $product_id, $products_limit );
+		$product_tokens = get_related_product_skus( $product_id, $products_limit );
+		$slider         = new BSC_Products_Sliders();
+		$slider->setMax( $products_limit );
+		$slider->setSkus( $product_tokens );
+		$slider->set_excluded_product_ids( array( $product_id ) );
+		$slider->setSlug( $key );
 
-		if (!empty( $skus )) {
-			$slider = new BSC_Products_Sliders();
-			$slider->setSkus( $skus );
-			$slider->setSlug( $key );
-			$slider->render();
-		} else {
+		ob_start();
+		$slider->render();
+		$recommendations_html = trim( (string) ob_get_clean() );
+
+		if ('' === $recommendations_html) {
 			echo '<p class="bsc__empty-recommendations">No hay productos disponibles.</p>';
+		} else {
+			echo wp_kses_post( $recommendations_html );
 		}
 		?>
 		</div>

@@ -17,7 +17,6 @@ function bsc_recommendation_product_is_eligible( ?WC_Product $product, array $ex
 		: $product->get_status() === 'publish';
 
 	return $is_publicly_listable
-		&& $product->get_sku() !== ''
 		&& $product->is_purchasable()
 		&& $product->is_in_stock();
 }
@@ -36,9 +35,11 @@ function bsc_recommendation_collect_skus( array $product_ids, int $limit, array 
 			continue;
 		}
 
-		$sku = $product->get_sku();
+		// Generated recommendations use product IDs so products without an SKU,
+		// and numeric SKUs that look like IDs, resolve consistently in the slider.
+		$sku = (string) $product_id;
 
-		if ($sku && !in_array( $sku, $skus, true )) {
+		if (!in_array( $sku, $skus, true )) {
 			$skus[] = $sku;
 		}
 	}
