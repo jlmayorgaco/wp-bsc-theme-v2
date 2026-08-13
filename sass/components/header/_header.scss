@@ -32,6 +32,7 @@ $menu-title-font: 'Helvetica', sans-serif;
   --header-mobile-shell-h: 56px;
   --header-mobile-search-top: 63px;
   --header-mobile-sidebar-top: 65px;
+  --header-mobile-overlay-top: var(--header-mobile-sidebar-top);
 }
 
 
@@ -186,6 +187,22 @@ $menu-title-font: 'Helvetica', sans-serif;
     display: block;
     position: sticky;
     top: 0;
-    z-index: 999;
+    z-index: 1200;
+  }
+}
+
+body.admin-bar .bsc__header--mobile {
+  top: var(--wp-admin--admin-bar--height, 32px);
+}
+
+@media screen and (max-width: 782px) {
+  body.admin-bar .bsc__header--mobile {
+    top: var(--wp-admin--admin-bar--height, 46px);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  body.admin-bar .bsc__header--mobile {
+    top: 0;
   }
 }

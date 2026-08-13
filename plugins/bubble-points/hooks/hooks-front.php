@@ -9,6 +9,14 @@ function bsc_bp_enqueue_scripts() {
 	}
 
 	wp_enqueue_script(
+		'bsc-bubble-points-scroll',
+		get_stylesheet_directory_uri() . '/plugins/bubble-points/scripts/bubble-points-scroll.js',
+		array(),
+		(string) filemtime( get_stylesheet_directory() . '/plugins/bubble-points/scripts/bubble-points-scroll.js' ),
+		true
+	);
+
+	wp_enqueue_script(
 		'bsc-bubble-points-modal',
 		get_stylesheet_directory_uri() . '/plugins/bubble-points/scripts/bubble-points-modal.js',
 		array( 'jquery' ),

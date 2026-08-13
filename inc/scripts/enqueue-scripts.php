@@ -43,7 +43,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-mobile-menu',
 		get_template_directory_uri() . '/js/mobile-menu.js',
 		array(),
-		BSC_THEME_VERSION,
+		(string) filemtime( get_template_directory() . '/js/mobile-menu.js' ),
 		true
 	);
 
@@ -143,7 +143,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-swiper-init',
 			get_template_directory_uri() . '/js/swiper-init.js',
 			array( 'swiper-js' ),
-			BSC_THEME_VERSION,
+			(string) filemtime( get_template_directory() . '/js/swiper-init.js' ),
 			true
 		);
 	}
@@ -276,7 +276,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-account-edit',
 			get_template_directory_uri() . '/js/account-edit.js',
 			array(),
-			BSC_THEME_VERSION,
+			(string) filemtime( get_template_directory() . '/js/account-edit.js' ),
 			true
 		);
 	}

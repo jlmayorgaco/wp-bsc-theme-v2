@@ -361,6 +361,16 @@ padding-left: 1px;
   margin-top: 0px;
   padding-top: 0px;
 }
+ .bsc__product-card .bsc__button-add-to-cart--variable {
+  border: 1px solid transparent;
+ }
+ .bsc__product-card .bsc__button-add-to-cart--variable:hover,
+ .bsc__product-card .bsc__button-add-to-cart--variable:focus-visible,
+ .bsc__product-card .bsc__button-add-to-cart--variable:active {
+  background-color: #fff;
+  border-color: #333;
+  color: #333;
+ }
  .bsc__slider--ultimos_lanzamientos{
   padding-top: 0px !important;
  }

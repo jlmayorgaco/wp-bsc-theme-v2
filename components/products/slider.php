@@ -16,6 +16,9 @@
 		private $slug         = '';
 		private $max_products = 5;
 
+		/** @var int[] Product IDs that must not be rendered. */
+		private $excluded_product_ids = array();
+
 		public function setMax( $max_products ) {
 			$this->max_products = $max_products;
 		}
@@ -28,6 +31,19 @@
 						return trim( (string) $token );
 					},
 					$skus
+				)
+			);
+		}
+
+		/**
+		 * Exclude products from the slider output and its fallback query.
+		 *
+		 * @param int[] $product_ids Product IDs to exclude.
+		 */
+		public function set_excluded_product_ids( array $product_ids ): void {
+			$this->excluded_product_ids = array_values(
+				array_unique(
+					array_filter( array_map( 'absint', $product_ids ) )
 				)
 			);
 		}
@@ -48,12 +64,16 @@
 				array_filter(
 					array_map( array( $this, 'resolveProductTokenToId' ), $this->skus ),
 					fn( $product_id ) => $this->isEligibleProductId( (int) $product_id )
+						&& !in_array( (int) $product_id, $this->excluded_product_ids, true )
 				)
 			);
 			$needed      = $this->max_products - count( $product_ids );
 
 			if ($needed > 0) {
-				$fallback_ids = $this->getFallbackProductIds( $needed, $product_ids );
+				$fallback_ids = $this->getFallbackProductIds(
+					$needed,
+					array_values( array_unique( array_merge( $product_ids, $this->excluded_product_ids ) ) )
+				);
 				$product_ids  = array_unique( array_merge( $product_ids, $fallback_ids ) );
 			}
 
