@@ -370,6 +370,16 @@ $order-review-badge-size: 30px;
   }
 }
 
+.bsc__page--view-order .bsc__thankyou-actions .bsc__button {
+  border: 1px solid transparent;
+
+  &:hover {
+    background-color: #fff;
+    border-color: #333;
+    color: #333;
+  }
+}
+
 .bsc__shipping-calculator-form,
 .bsc__checkout-coupon-form {
   display: none;

@@ -405,7 +405,7 @@ $font-weight-bold: 600;
     z-index: 2;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     min-height: 48px;
     padding: 0 $spacing-md;
     border-bottom: 1px solid #d8d8d8;
@@ -413,7 +413,7 @@ $font-weight-bold: 600;
   }
 
   .bsc__filters-mobile-title {
-    display: block;
+    display: none;
     color: $color-text-primary;
     font-family: $font-family-base;
     font-size: $font-size-xs;
@@ -475,7 +475,9 @@ $font-weight-bold: 600;
   }
 
   .bsc__filters-sort-select {
-    min-height: 44px;
+    min-height: 52px;
+    padding: 0.75rem 0.875rem;
+    font-size: 1rem;
   }
 
   .bsc__filters-group--price {
@@ -657,5 +659,17 @@ $font-weight-bold: 600;
     display: none;
   }
 }
+
+  .bsc__active-filter-badge {
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover,
+    &:focus,
+    &:focus-visible,
+    &:active {
+      box-shadow: none;
+      transform: none;
+    }
+  }
 
 }

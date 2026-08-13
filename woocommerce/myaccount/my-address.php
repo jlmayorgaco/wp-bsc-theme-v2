@@ -49,7 +49,7 @@ $pretty_fields = array(
 
 		<?php foreach ( $addresses as $type => $data ) : ?>
 		<div class="bsc__address-card">
-			<h3><?php echo esc_html( $data['label'] ); ?></h3>
+			<h3 id="account-address-summary"><?php echo esc_html( $data['label'] ); ?></h3>
 			<p class="bsc__address-subtitle"><?php echo esc_html( html_entity_decode( 'Direcci&oacute;n y datos', ENT_QUOTES, 'UTF-8' ) ); ?></p>
 
 			<div class="bsc__address-content">

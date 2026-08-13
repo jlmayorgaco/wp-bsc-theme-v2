@@ -12,11 +12,16 @@ $sidebar-mobile-cta-radius: 30px;
   display: block;
   width: 100%;
   max-width: 100%;
-  height: 100vh;
-  margin-top: 0px;
+  height: calc(100vh - var(--header-mobile-overlay-top, var(--header-mobile-sidebar-top)));
+  height: calc(100dvh - var(--header-mobile-overlay-top, var(--header-mobile-sidebar-top)));
+  max-height: calc(100vh - var(--header-mobile-overlay-top, var(--header-mobile-sidebar-top)));
+  max-height: calc(100dvh - var(--header-mobile-overlay-top, var(--header-mobile-sidebar-top)));
+  margin-top: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding: 1em;
+  padding: 0 16px 32px;
 
   background-color: #fff;
   box-shadow: 2px 8px 23px 3px rgba(0, 0, 0, 0.2);
@@ -25,30 +30,75 @@ $sidebar-mobile-cta-radius: 30px;
   font-size: 13px;
   letter-spacing: 2px;
 
+  .sidebar-mobile__container {
+    width: min(100%, 620px);
+    margin: 0 auto;
+  }
+
+  .sidebar-mobile__nav {
+    border-top: 1px solid #d5d8dc;
+  }
+
   // -------------------------------------------
   // Container
   // -------------------------------------------
 
   .mobile-nav__title {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     position: relative;
-    padding: 10px 0;
+    min-height: 52px;
+    padding: 12px 0;
     border-bottom: 1px solid #d5d8dc;
     font-size: 14px;
+    box-sizing: border-box;
+    cursor: pointer;
+    list-style: none;
+    -webkit-tap-highlight-color: transparent;
 
     &::marker {
       content: '';
     }
 
-    &::after {
-      // Add arrow icon if needed
+    &::-webkit-details-marker {
+      display: none;
     }
+
+    &::before {
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 7px solid $sidebar-mobile-link-color;
+      content: '';
+      flex: 0 0 auto;
+      transition: transform 0.2s ease;
+    }
+
+    &::after {
+      display: none;
+      content: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $sidebar-mobile-link-color;
+      outline-offset: 3px;
+    }
+  }
+
+  .mobile-nav[open] > .mobile-nav__title::before {
+    transform: rotate(90deg);
   }
 
   a.mobile-nav__title {
     color: $sidebar-mobile-link-color;
     font-weight: 300;
     text-decoration: none;
+
+    &::before {
+      visibility: hidden;
+    }
   }
 
   .mobile-nav__title-text {
@@ -59,29 +109,67 @@ $sidebar-mobile-cta-radius: 30px;
     text-decoration: none;
   }
 
-  .mobile-nav__title-icon {}
+  .mobile-nav__content {
+    padding: 2px 8px 24px 22px;
+  }
+
+  .mobile-nav__section {
+    padding: 24px 0 4px;
+  }
+
+  .mobile-nav__section-title {
+    margin: 0 0 20px;
+    color: $sidebar-mobile-link-color;
+    font-family: $sidebar-mobile-font-family;
+    font-size: clamp(24px, 8vw, 32px);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    line-height: 1.15;
+  }
 
   .mobile-nav__items {
-    display: block;
-    padding: 1em;
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-nav--account > .mobile-nav__items {
+    padding: 16px 8px 20px 22px;
   }
 
   .mobile-nav__item {
     display: block;
     width: 100%;
-    margin-bottom: 10px;
+    margin: 0;
   }
-
-
 
   .mobile-nav__item-link {
+    display: inline-block;
     color: $sidebar-mobile-link-color;
     font-weight: 300;
-    font-size: 14px;
+    font-size: 16px;
+    letter-spacing: 2px;
+    line-height: 1.45;
     text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color--main);
+    }
   }
 
-  .mobile-nav__item-text {}
+  .mobile-nav__image-link {
+    display: block;
+    margin: 24px 0 8px;
+  }
+
+  .mobile-nav__image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
 
   // -------------------------------------------
   // CTA Button
@@ -217,19 +305,21 @@ $sidebar-mobile-cta-radius: 30px;
 
 #mobileSidebar {
   position: fixed;
-  top: var(--header-mobile-sidebar-top);
+  top: var(--header-mobile-overlay-top, var(--header-mobile-sidebar-top));
   left: 0;
   width: 100%;
-  height: fit-content;
   background: #fff;
   transform: translateX(-100%);
   transition: transform 0.4s ease-in-out;
-  z-index: 999;
+  z-index: 1190;
 
   &.is-open {
     transform: translateX(0);
-    top: var(--header-mobile-sidebar-top);
   }
+}
+
+body.mobile-menu-open {
+  overflow: hidden;
 }
 
 

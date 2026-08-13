@@ -12,7 +12,7 @@
 
     /* global Swiper */
     new Swiper('.bsc__home-swiper', {
-      loop: false,
+      loop: true,
       autoHeight: true,
       initialSlide: 0,
       autoplay: {

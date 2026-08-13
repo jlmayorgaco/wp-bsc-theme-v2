@@ -1,4 +1,4 @@
-<aside class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar" aria-label="Menu movil">
+<aside class="bsc bsc__sidebar bsc__sidebar--mobile" id="mobileSidebar" aria-label="Menu movil" aria-hidden="true" inert>
 	<div class="sidebar-mobile__container">
 
 
@@ -6,7 +6,7 @@
 	<!-- Navigation -->
 	<nav class="sidebar-mobile__nav">
 
-		<details class="mobile-nav">
+		<details class="mobile-nav mobile-nav--account">
 			<summary class="mobile-nav__title">
 				<div class="mobile-nav__title-text">MI CUENTA</div>
 			</summary>
@@ -46,24 +46,39 @@
 			<?php $menuSections = $menu->getMenus(); ?>
 
 			<?php if (count( $menuSections ) > 0) { ?>
-				<details class="mobile-nav">
+				<details class="mobile-nav mobile-nav--catalog">
 					<summary class="mobile-nav__title">
 						<div class="mobile-nav__title-text"><?php echo esc_html( $menu->getName() ); ?></div>
 					</summary>
 
-					<ul class="mobile-nav__items">
-						<?php foreach ($menuSections as $section) : ?>
-							<?php foreach ($section['items'] as $item) : ?>
+					<div class="mobile-nav__content">
+						<?php foreach ($menuSections as $section_index => $section) : ?>
+							<section class="mobile-nav__section" id="mobile-<?php echo esc_attr( $section['slug'] ); ?>">
+								<h3 class="mobile-nav__section-title"><?php echo esc_html( $section['title'] ); ?></h3>
+								<ul class="mobile-nav__items">
+									<?php foreach ($section['items'] as $item) : ?>
+										<li class="mobile-nav__item <?php echo esc_attr( $item['slug'] ); ?>">
+											<a class="mobile-nav__item-link" href="<?php echo esc_url( $item['link'] ); ?>">
+												<span class="mobile-nav__item-text"><?php echo esc_html( $item['title'] ); ?></span>
+											</a>
+										</li>
+									<?php endforeach; ?>
+								</ul>
+							</section>
 
-
-							<li class="mobile-nav__item <?php echo esc_attr( $item['slug'] ); ?>">
-							<a class="mobile-nav__item-link" href="<?php echo esc_url( $item['link'] ); ?>">
-								<span class="mobile-nav__item-text"><?php echo esc_html( $item['title'] ); ?></span>
-							</a>
-							</li>
+							<?php if (0 === $section_index && '' !== $menu->getImage()) : ?>
+								<a class="mobile-nav__image-link" href="<?php echo esc_url( $menu->getLink() ); ?>">
+									<img
+										class="mobile-nav__image"
+										src="<?php echo esc_url( $menu->getImage() ); ?>"
+										alt="<?php echo esc_attr( $menu->getName() ); ?>"
+										loading="lazy"
+										decoding="async"
+									>
+								</a>
+							<?php endif; ?>
 						<?php endforeach; ?>
-						<?php endforeach; ?>
-					</ul>
+					</div>
 				</details>
 
 			<?php } ?>

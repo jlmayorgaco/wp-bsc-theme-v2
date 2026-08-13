@@ -329,6 +329,15 @@
     button {
       width: 100%;
     }
+
+    .bsc__address-button,
+    .bsc__address-button:hover,
+    .bsc__address-button:focus-visible,
+    .bsc__address-button:active {
+      border-color: #333;
+      background-color: #333;
+      color: #fff;
+    }
   }
 
   .bsc__account-notice--success {

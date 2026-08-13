@@ -12,7 +12,7 @@ $points_by_user = BSC_Bubble_Points::get( $user_id );
 
 <div class="bsc profile-points">
 	<div class="profile-points__container">
-		<h1 class="profile-points__title"><?php echo esc_html( html_entity_decode( '&#161; Tienes ', ENT_QUOTES, 'UTF-8' ) ); ?><strong><?php echo number_format( $points_by_user ); ?></strong> Bubble Points !</h1>
+		<h1 id="bubble-points-balance" class="profile-points__title"><?php echo esc_html( html_entity_decode( '&#161; Tienes ', ENT_QUOTES, 'UTF-8' ) ); ?><strong><?php echo number_format( $points_by_user ); ?></strong> Bubble Points !</h1>
 		<div class="profile-points__coupons">
 			<?php
 			foreach ($coupons as $coupon_config) :

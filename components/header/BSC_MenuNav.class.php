@@ -16,6 +16,9 @@ class BSC_MenuNav {
 	public function setImage( string $image ): void {
 		$this->image = $image;
 	}
+	public function getImage(): string {
+		return $this->image;
+	}
 	public function setLink( string $link ): void {
 		$this->link = $link;
 	}

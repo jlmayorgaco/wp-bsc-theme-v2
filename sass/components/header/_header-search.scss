@@ -97,7 +97,7 @@ $menu-title-font: 'Helvetica', sans-serif;
 /* MOBILE */
 .bsc-mobile-search-panel {
   position: fixed;
-  top: var(--header-mobile-search-top); /* adjust to the mobile header height */
+  top: var(--header-mobile-overlay-top, var(--header-mobile-search-top));
   left: 0;
   width: 100%;
   background: #fff;

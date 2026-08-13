@@ -40,7 +40,7 @@ $default_last_name    = $current_user->last_name ? $current_user->last_name : ''
 	<div class="bsc__account-grid">
 
 	<div class="bsc__account-col">
-		<div class="bsc__field">
+		<div id="account-profile-details" class="bsc__field">
 		<label for="account_full_name">Nombres y apellidos:</label>
 		<input
 			type="text"

@@ -187,7 +187,25 @@
     control.addEventListener('change', maybeClear);
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function initAccountAddress() {
+    var addressSummary = document.getElementById('account-address-summary');
+    var isMobileViewport = window.matchMedia
+      && window.matchMedia('(max-width: 768px)').matches;
+
+    if (addressSummary && isMobileViewport) {
+      var reduceMotion = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      window.setTimeout(function () {
+        var top = addressSummary.getBoundingClientRect().top + window.scrollY - 80;
+
+        window.scrollTo({
+          top: Math.max(0, top),
+          behavior: reduceMotion ? 'auto' : 'smooth',
+        });
+      }, 150);
+    }
+
     var form = document.querySelector('form.bsc__shipping-address');
 
     if (!form) {
@@ -233,5 +251,11 @@
         firstErrorControl.focus({ preventScroll: true });
       }
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAccountAddress, { once: true });
+  } else {
+    initAccountAddress();
+  }
 })();
