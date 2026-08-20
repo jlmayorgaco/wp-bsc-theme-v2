@@ -33,10 +33,9 @@ if ( function_exists( 'bsc_get_email_shop_url' ) ) {
 			decoding="async"
 		>
 
-		<h1 id="bsc-register-welcome-title" class="bsc-register-welcome__title">&iexcl;Bienvenido Bubble lover!</h1>
-		<div class="bsc-register-welcome__divider" aria-hidden="true">~~~</div>
+		<h1 id="bsc-register-welcome-title" class="bsc-register-welcome__title bsc__title">&iexcl;Bienvenido Bubble lover!</h1>
 
-		<p class="bsc-register-welcome__copy">
+		<p class="bsc-register-welcome__copy bsc__description">
 			Ahora podr&aacute;s disfrutar de todos los beneficios que tenemos para ti, como
 			<strong>acumular puntos</strong> con cada compra que hagas en
 			<strong>bubbleskincare.com</strong>, tener un
@@ -45,7 +44,7 @@ if ( function_exists( 'bsc_get_email_shop_url' ) ) {
 			mundo del k-beauty !!!
 		</p>
 
-		<a class="bsc-register-welcome__button bsc__button" href="<?php echo esc_url( $shop_url ); ?>">
+		<a class="bsc-register-welcome__button bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card" href="<?php echo esc_url( $shop_url ); ?>">
 			&iexcl; Quiero visitar la tienda !
 		</a>
 	</section>

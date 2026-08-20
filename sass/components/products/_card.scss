@@ -344,6 +344,9 @@ padding-left: 1px;
     justify-content: center;
     align-items: center;
  }
+ .shop__products .bsc__product-card .bsc__button-add-to-cart--hidden {
+    display: none;
+ }
  .shop__products .bsc__product-card .bsc__quantity-controls {
     width: 100%;
     gap: 4px;

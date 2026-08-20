@@ -114,14 +114,14 @@ $sidebar-mobile-cta-radius: 30px;
   }
 
   .mobile-nav__section {
-    padding: 24px 0 4px;
+    padding: 12px 0 4px;
   }
 
   .mobile-nav__section-title {
-    margin: 0 0 20px;
+    margin: 0 0 10px;
     color: $sidebar-mobile-link-color;
     font-family: $sidebar-mobile-font-family;
-    font-size: clamp(24px, 8vw, 32px);
+    font-size: 24px;
     font-weight: 400;
     letter-spacing: 0.5px;
     line-height: 1.15;
@@ -129,7 +129,7 @@ $sidebar-mobile-cta-radius: 30px;
 
   .mobile-nav__items {
     display: grid;
-    gap: 12px;
+    gap: 6px;
     margin: 0;
     padding: 0;
     list-style: none;

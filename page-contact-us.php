@@ -15,8 +15,7 @@ get_header();
 <main class="bsc bsc__page page-contact-us">
 	<section class="bsc__contact-hero" aria-labelledby="bsc-contact-title">
 		<img class="bsc__contact-hero__mark" src="<?php echo esc_url( $theme_uri ); ?>/images/bsc_profile_logo.png" alt="" aria-hidden="true">
-		<h1 id="bsc-contact-title"><strong>Contacto</strong></h1>
-		<img class="bsc__contact-wave" src="<?php echo esc_url( $theme_uri ); ?>/images/bsc_title_underline.png" alt="" aria-hidden="true">
+		<h1 id="bsc-contact-title" class="bsc__title"><strong>Contacto</strong></h1>
 		<p class="bsc__description">
 			Estamos aqu&iacute; para ayudarte con productos, pedidos, rutinas, colaboraciones y cualquier duda sobre tu experiencia K-Beauty.
 		</p>

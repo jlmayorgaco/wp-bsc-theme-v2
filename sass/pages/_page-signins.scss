@@ -62,6 +62,7 @@ $font-stack: "Helvetica", sans-serif;
 
     .form__image {
       text-align: center;
+      margin-top: 60px;
       margin-bottom: 5px;
 
       img {
@@ -85,6 +86,7 @@ $font-stack: "Helvetica", sans-serif;
         font-weight: 600;
         letter-spacing: 2px;
         margin-bottom: 0;
+        padding-top: 20px;
       }
     }
 
@@ -117,7 +119,7 @@ $font-stack: "Helvetica", sans-serif;
         margin: 0 auto;
         padding: 0;
 
-        input:hover {
+        input:not(.form__submit--product-card):hover {
           background-color: $pink;
           color: $black !important;
         }
@@ -128,6 +130,8 @@ $font-stack: "Helvetica", sans-serif;
       font-size: 16px;
       letter-spacing: 2px;
       text-align: center;
+
+      padding-bottom: 10px !important;
 
       strong {
         font-weight: 600;
@@ -167,6 +171,20 @@ $font-stack: "Helvetica", sans-serif;
 
       &--auth-cta {
         width: 100%;
+      }
+
+      &--product-card {
+        width: auto;
+        min-width: 160px;
+        padding: 12px 24px;
+        border: 0;
+        appearance: none;
+        white-space: nowrap;
+
+        &:hover {
+          background-color: $pink;
+          color: $black;
+        }
       }
     }
 
@@ -268,6 +286,11 @@ $font-stack: "Helvetica", sans-serif;
       min-height: 44px;
       line-height: 1.15;
       white-space: normal;
+
+      &:hover {
+        background-color: $pink;
+        color: $black;
+      }
     }
 
     .form__links {
@@ -728,7 +751,7 @@ $bsc-error-border: #f5c2c7;
 .bsc-register-welcome {
   min-height: calc(100vh - 150px);
   padding: 72px 20px 88px;
-  background: #f1f4f2;
+  background: #fff;
   color: $bsc-color-black;
   display: flex;
   align-items: center;
@@ -751,51 +774,30 @@ $bsc-error-border: #f5c2c7;
   }
 
   &__title {
-    margin: 0;
-    color: $bsc-color-black;
-    font-family: $font-stack;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1.25;
-  }
-
-  &__divider {
-    margin: 8px 0 28px;
-    color: $bsc-color-black;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1;
+    padding-top: 0;
   }
 
   &__copy {
+    width: min(100%, 630px);
     max-width: 630px;
-    margin: 0 auto 30px;
-    color: #4c4c4c;
-    font-family: $font-stack;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0;
-    line-height: 1.55;
-
-    strong {
-      color: $bsc-color-black;
-      font-weight: 800;
-    }
+    margin-bottom: 30px;
   }
 
   & &__button {
     width: auto;
-    min-width: 264px;
-    min-height: 44px;
-    padding: 13px 28px;
-    border-radius: 24px;
+    min-width: 160px;
+    height: auto;
+    min-height: 0;
+    padding: 12px 24px;
+    border: 0;
+    border-radius: 30px;
     background: $bsc-color-black;
     color: #fff;
-    font-size: 16px;
-    letter-spacing: 0;
-    line-height: 1.1;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    line-height: 1.15;
+    white-space: nowrap;
 
     &:hover,
     &:focus-visible {
@@ -813,16 +815,10 @@ $bsc-error-border: #f5c2c7;
       max-width: 76vw;
     }
 
-    &__copy {
-      max-width: 34rem;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
     & &__button {
-      width: 100%;
-      max-width: 320px;
-      min-width: 0;
+      width: auto;
+      max-width: 100%;
+      min-width: 160px;
     }
   }
 }

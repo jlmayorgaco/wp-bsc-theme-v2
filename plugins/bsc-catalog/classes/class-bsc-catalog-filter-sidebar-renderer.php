@@ -2,6 +2,7 @@
 
 class BSC_Catalog_Filter_Sidebar_Renderer {
 	private BSC_Catalog_Filter_Config $config;
+	private array $available_term_ids_by_category = array();
 
 	public function __construct( ?BSC_Catalog_Filter_Config $config = null ) {
 		$this->config = $config ?: new BSC_Catalog_Filter_Config();
@@ -33,10 +34,7 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		echo '</div>';
 
 		echo '<form id="bscFiltersForm" class="bsc__filters">';
-		echo '<div class="bsc__filters-mobile-header">';
-		echo '<strong class="bsc__filters-mobile-title">Filtros</strong>';
 		echo '<button type="button" class="bsc__filters-mobile-close" aria-label="Cerrar filtros">&times;</button>';
-		echo '</div>';
 		$this->render_hidden_inputs( $context );
 		$this->render_sort_group( $context );
 
@@ -80,6 +78,20 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 			return;
 		}
 
+		$available_term_ids = $this->get_available_term_ids( $context );
+		$children           = array_values(
+			array_filter(
+				$children,
+				static function ( $child ) use ( $available_term_ids ): bool {
+					return $child instanceof WP_Term && in_array( $child->term_id, $available_term_ids, true );
+				}
+			)
+		);
+
+		if (empty( $children )) {
+			return;
+		}
+
 		$field_name      = (string) $filter['name'];
 		$selected_values = $context->get_selected_values( $field_name );
 		$is_multiple     = !empty( $filter['multiple'] );
@@ -116,6 +128,100 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 
 		echo '</div>';
 		echo '</details>';
+	}
+
+	private function get_available_term_ids( BSC_Catalog_Request_Context $context ): array {
+		$base_category = $context->get_category();
+		if ('' === $base_category) {
+			$base_category = $context->get_subgroup();
+		}
+		if ('' === $base_category) {
+			$base_category = $context->get_group();
+		}
+
+		if ('' === $base_category) {
+			return array();
+		}
+
+		if (isset( $this->available_term_ids_by_category[ $base_category ] )) {
+			return $this->available_term_ids_by_category[ $base_category ];
+		}
+
+		$base_term = get_term_by( 'slug', $base_category, 'product_cat' );
+		if (!$base_term instanceof WP_Term) {
+			$this->available_term_ids_by_category[ $base_category ] = array();
+			return array();
+		}
+
+		$available_term_ids = array();
+		$batch_size         = 250;
+		$page               = 1;
+
+		do {
+			$args = array(
+				'post_type'              => 'product',
+				'post_status'            => 'publish',
+				'fields'                 => 'ids',
+				'posts_per_page'         => $batch_size,
+				'paged'                  => $page,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'orderby'                => 'ID',
+				'order'                  => 'ASC',
+				'tax_query'              => array(
+					array(
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => array( $base_term->term_id ),
+						'include_children' => true,
+					),
+				),
+			);
+
+			if (class_exists( 'BSC_Stock' )) {
+				$args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
+			}
+
+			if (function_exists( 'bsc_apply_public_product_query_constraints' )) {
+				$args = bsc_apply_public_product_query_constraints( $args );
+			}
+
+			$query       = new WP_Query( $args );
+			$product_ids = array_values( array_filter( array_map( 'absint', $query->posts ) ) );
+
+			if (empty( $product_ids )) {
+				break;
+			}
+
+			$term_ids = wp_get_object_terms(
+				$product_ids,
+				'product_cat',
+				array(
+					'fields' => 'ids',
+				)
+			);
+
+			if (is_array( $term_ids ) && !is_wp_error( $term_ids )) {
+				foreach ($term_ids as $term_id) {
+					$term_id = absint( $term_id );
+					if ($term_id <= 0) {
+						continue;
+					}
+
+					$available_term_ids[ $term_id ] = true;
+					foreach (get_ancestors( $term_id, 'product_cat', 'taxonomy' ) as $ancestor_id) {
+						$available_term_ids[ absint( $ancestor_id ) ] = true;
+					}
+				}
+			}
+
+			++$page;
+		} while (count( $product_ids ) === $batch_size);
+
+		$this->available_term_ids_by_category[ $base_category ] = array_map( 'absint', array_keys( $available_term_ids ) );
+
+		return $this->available_term_ids_by_category[ $base_category ];
 	}
 
 	private function render_price_group( BSC_Catalog_Request_Context $context ): void {

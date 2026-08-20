@@ -372,6 +372,11 @@ $checkout-cart-btn-gap: 10px;
             span {
               font-size: 20px;
             }
+
+            &.decrease span{position: relative !important; top:-1px; left: 1px}
+            &.increase span{position: relative !important; top:-1px; left: 1px}
+            &.delete-btn span{position: relative !important; top:-1px; left: 1px}
+
           }
 
           .delete-btn span {

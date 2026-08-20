@@ -29,19 +29,6 @@ $contact-placeholder: bsc.$text-muted;
     margin: 0 auto 31px;
   }
 
-  .bsc__contact-hero h1 {
-    margin: 0;
-    color: $contact-text;
-    font-size: 25px;
-    font-weight: 400;
-    line-height: 1.2;
-    letter-spacing: 4px;
-
-    strong {
-      font-weight: 700;
-    }
-  }
-
   .bsc__contact-wave {
     display: block;
     width: 58px;
@@ -384,7 +371,6 @@ $contact-placeholder: bsc.$text-muted;
       margin-bottom: 27px;
     }
 
-    .bsc__contact-hero h1,
     .bsc__contact-form-heading h2 {
       font-size: 23px;
       letter-spacing: 2.4px;
@@ -395,8 +381,16 @@ $contact-placeholder: bsc.$text-muted;
     }
     .bsc__contact-hero p,
     .bsc__contact-form-heading p {
-      font-size: 16px;
-      line-height: 1.35;
+             margin-bottom: 30px;
+        font-size: 14px;
+        line-height: 1.625;
+        font-weight: 100;
+        text-rendering: optimizeLegibility;
+        width: calc(100vw - 4em);
+    max-width: 1000px;
+    margin: 0 auto;
+    color: var(--color--text);
+    font-family: "Helvetica", sans-serif;
     }
 
     .bsc__contact-channels {

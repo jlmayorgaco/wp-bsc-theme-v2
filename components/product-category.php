@@ -344,18 +344,18 @@ class BSCShopPage {
 			printf(
 				'<a href="%s">%s</a> → ',
 				esc_url( get_term_link( $grandparent ) ),
-				esc_html( $grandparent->name )
+				esc_html( bsc_get_product_category_display_name( $grandparent ) )
 			);
 		}
 		if ($showParent) {
 			printf(
 				'<a href="%s">%s</a> → ',
 				esc_url( get_term_link( $parent ) ),
-				esc_html( $parent->name )
+				esc_html( bsc_get_product_category_display_name( $parent ) )
 			);
 		}
 		if ($current) {
-			printf( '<a class="active">%s</a>', esc_html( $current->name ) );
+			printf( '<a class="active">%s</a>', esc_html( bsc_get_product_category_display_name( $current ) ) );
 		}
 		echo '</nav>';
 	}
@@ -498,7 +498,7 @@ class BSCShopPage {
 
 		$this->renderBreadcrumbs( null, null, $cat );
 
-		echo "<h2 class='bsc__title bsc-hero__subtitle bsc__title--subcategory'>" . esc_html( $cat->name ) . '</h2>';
+		echo "<h2 class='bsc__title bsc-hero__subtitle bsc__title--subcategory'>" . esc_html( bsc_get_product_category_display_name( $cat ) ) . '</h2>';
 
 		if (!empty( $cat->description )) {
 			echo "<p class='bsc__description bsc__description--description-category'>" . wp_kses_post( $cat->description ) . '</p>';
@@ -535,6 +535,17 @@ class BSCShopPage {
 				'update_term_meta_cache' => false,
 			)
 		);
+
+		if (is_array( $subsubcats ) && !is_wp_error( $subsubcats )) {
+			$subsubcats = array_values(
+				array_filter(
+					$subsubcats,
+					function ( $term ): bool {
+						return $term instanceof WP_Term && $this->termHasVisibleProducts( $term );
+					}
+				)
+			);
+		}
 
 		// Para la lógica de filtrado, queremos todos los descendientes
 		$descendants = get_terms(
@@ -755,7 +766,7 @@ class BSCShopPage {
 		$this->renderBreadcrumbs( $this->grandparent, $this->parent, $cat );
 
 		echo "<div class='shop__header'>";
-		echo "<h1 class='bsc__title'><strong>" . esc_html( $cat->name ) . '</strong></h1>';
+		echo "<h1 class='bsc__title'><strong>" . esc_html( bsc_get_product_category_display_name( $cat ) ) . '</strong></h1>';
 		if (!empty( $cat->description )) {
 			$description = html_entity_decode( (string) $cat->description, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 			echo "<p class='bsc__description'>" . wp_kses_post( $description ) . '</p>';
@@ -778,7 +789,7 @@ class BSCShopPage {
 		// Pagination — only show if more than 1 page
 		if ($products_query->max_num_pages > 1) {
 			$paged = max( 1, get_query_var( 'paged' ) );
-			echo "<div class='shop__pagination'>";
+			echo '<nav class="shop__pagination" aria-label="' . esc_attr__( 'Paginación de productos', 'bsc-2-0' ) . '">';
 			echo wp_kses_post(
 				paginate_links(
 					array(
@@ -791,7 +802,7 @@ class BSCShopPage {
 					)
 				)
 			);
-			echo '</div>';
+			echo '</nav>';
 		}
 
 		if ( function_exists( 'bsc_seo_render_product_category_content' ) ) {

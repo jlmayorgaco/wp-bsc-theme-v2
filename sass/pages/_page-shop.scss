@@ -179,8 +179,98 @@ $container-width: bsc.$container-wide;
   }
 
   .shop__pagination {
-    margin-top: $spacing-xl;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-sm;
+    width: 100%;
+    margin: $spacing-xl 0;
+    font-family: bsc.$font-main;
     text-align: center;
+
+    .page-numbers {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 14px;
+      border: 1px solid bsc.$border-muted;
+      border-radius: bsc.$radius-pill;
+      background-color: bsc.$surface;
+      color: $color-text;
+      font-size: $font-size-base;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 1px;
+      text-decoration: none;
+      transition:
+        transform var(--motion--base) var(--motion--ease-out),
+        box-shadow var(--motion--base) var(--motion--ease),
+        background-color var(--motion--base) var(--motion--ease),
+        border-color var(--motion--base) var(--motion--ease),
+        color var(--motion--base) var(--motion--ease);
+    }
+
+    a.page-numbers {
+      &:visited {
+        color: $color-text;
+      }
+
+      &:hover {
+        border-color: $color-primary;
+        background-color: $color-primary;
+        color: $color-text;
+        box-shadow: var(--shadow--interactive);
+        transform: translateY(-2px);
+      }
+
+      &:focus-visible {
+        outline: 0;
+        border-color: $color-text;
+        box-shadow: var(--shadow--focus), var(--shadow--interactive);
+      }
+
+      &:active {
+        box-shadow: none;
+        transform: translateY(0) scale(0.985);
+      }
+    }
+
+    .current {
+      border-color: $color-text;
+      background-color: $color-text;
+      color: bsc.$surface;
+      cursor: default;
+    }
+
+    .prev,
+    .next {
+      min-width: auto;
+      padding-inline: 18px;
+    }
+
+    .dots {
+      min-width: 32px;
+      padding: 0;
+      border-color: transparent;
+      background-color: transparent;
+    }
+
+    @include bsc.media-max("phone-sm") {
+      gap: 6px;
+
+      .page-numbers {
+        padding-inline: 12px;
+      }
+
+      .prev,
+      .next {
+        padding-inline: 14px;
+      }
+    }
   }
 
   &.bsc__search-page {

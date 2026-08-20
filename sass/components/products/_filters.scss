@@ -31,7 +31,7 @@ $font-weight-bold: 600;
 // Filters Sidebar Component
 // ========================================================================
 .bsc__filters-mobile-toolbar,
-.bsc__filters-mobile-header {
+.bsc__filters-mobile-close {
   display: none;
 }
 
@@ -374,6 +374,7 @@ $font-weight-bold: 600;
   }
 
   .bsc__filters {
+    position: relative;
     width: 100%;
     max-height: min(70dvh, 560px);
     margin-top: $spacing-sm;
@@ -399,35 +400,17 @@ $font-weight-bold: 600;
     }
   }
 
-  .bsc__filters-mobile-header {
-    position: sticky;
-    top: 0;
+  .bsc__filters > .bsc__filters-mobile-close {
+    position: absolute;
+    top: $spacing-xs;
+    right: $spacing-sm;
     z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    min-height: 48px;
-    padding: 0 $spacing-md;
-    border-bottom: 1px solid #d8d8d8;
-    background: $color-surface;
-  }
-
-  .bsc__filters-mobile-title {
-    display: none;
-    color: $color-text-primary;
-    font-family: $font-family-base;
-    font-size: $font-size-xs;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-  }
-
-  .bsc__filters-mobile-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
-    margin: 0 -0.5rem 0 0;
+    margin: 0;
     padding: 0;
     border: 0;
     background: transparent;
@@ -472,12 +455,22 @@ $font-weight-bold: 600;
     margin-left: $spacing-md;
     padding: $spacing-md 0;
     border-bottom-color: #333;
+
+    .bsc__filters-sort-label {
+      display: flex;
+      align-items: center;
+      min-height: 24px;
+      padding-right: 44px;
+    }
   }
 
   .bsc__filters-sort-select {
-    min-height: 52px;
+    // iOS Safari can collapse native select padding when only min-height is set.
+    height: 51px;
+    min-height: 51px;
     padding: 0.75rem 0.875rem;
     font-size: 1rem;
+    line-height: 1.4;
   }
 
   .bsc__filters-group--price {
