@@ -91,6 +91,118 @@
   margin-top: 28px;
 }
 
+.bsc-admin-monitoring__system-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.bsc-admin-monitoring__system-heading h2 {
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
+.bsc-admin-monitoring__health-summary {
+  align-items: center;
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+  border-left: 4px solid admin.$text-subtle;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 14px 0;
+  padding: 12px 16px;
+}
+
+.bsc-admin-monitoring__health-summary span {
+  color: admin.$text-subtle;
+  font-size: 12px;
+}
+
+.bsc-admin-monitoring__health-summary--ok {
+  border-left-color: admin.$success-accent;
+}
+
+.bsc-admin-monitoring__health-summary--warning {
+  border-left-color: admin.$warning-accent;
+}
+
+.bsc-admin-monitoring__health-summary--critical {
+  border-left-color: admin.$danger-accent;
+}
+
+.bsc-admin-monitoring__system-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.bsc-admin-monitoring__system-card {
+  background: admin.$surface;
+  border: 1px solid admin.$border-strong;
+  border-top: 4px solid admin.$text-subtle;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  min-height: 132px;
+  padding: 16px;
+}
+
+.bsc-admin-monitoring__system-card--ok {
+  border-top-color: admin.$success-accent;
+}
+
+.bsc-admin-monitoring__system-card--warning {
+  border-top-color: admin.$warning-accent;
+}
+
+.bsc-admin-monitoring__system-card--critical {
+  border-top-color: admin.$danger-accent;
+}
+
+.bsc-admin-monitoring__metric-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.bsc-admin-monitoring__metric-label {
+  color: admin.$text-subtle;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bsc-admin-monitoring__metric-value {
+  color: admin.$text;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.bsc-admin-monitoring__metric-meta {
+  color: admin.$text-subtle;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.bsc-admin-monitoring__progress {
+  accent-color: admin.$success-accent;
+  height: 8px;
+  width: 100%;
+}
+
+.bsc-admin-monitoring__system-card--warning .bsc-admin-monitoring__progress {
+  accent-color: admin.$warning-accent;
+}
+
+.bsc-admin-monitoring__system-card--critical .bsc-admin-monitoring__progress {
+  accent-color: admin.$danger-accent;
+}
+
 .bsc-admin-monitoring__checklist {
   background: admin.$surface;
   border: 1px solid admin.$border-strong;
@@ -123,5 +235,11 @@
   .bsc-admin-monitoring__owner,
   .bsc-admin-monitoring__settings-form {
     grid-template-columns: 1fr;
+  }
+
+  .bsc-admin-monitoring__system-heading,
+  .bsc-admin-monitoring__health-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
