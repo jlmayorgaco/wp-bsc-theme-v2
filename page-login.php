@@ -72,8 +72,8 @@ $lost_password_url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_
 			</label>
 			</div>
 
-			<div class="form__field form__field--submit">
-			<input type="submit" name="wp-submit" id="wp-submit" class="bsc__button bsc__button--auth-cta form__submit form__submit--auth-cta btn btn--primary" value="Iniciar sesi&oacute;n" />
+			<div class="form__field form__field--submit bsc">
+			<button type="submit" name="wp-submit" id="wp-submit" class="bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card" value="Iniciar sesi&oacute;n">Iniciar sesi&oacute;n</button>
 			<input type="hidden" name="redirect_to" value="<?php echo esc_url( home_url( '/mi-cuenta/' ) ); ?>" />
 			</div>
 
@@ -83,8 +83,8 @@ $lost_password_url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_
 
 			<hr class="form__divider">
 
-			<div class="form__field form__field--submit">
-			<a href="<?php echo esc_url( home_url( '/register/' ) ); ?>" class="bsc__button bsc__button--auth-cta form__submit form__submit--auth-cta btn btn--primary">Crear mi cuenta</a>
+			<div class="form__field form__field--submit bsc">
+			<a href="<?php echo esc_url( home_url( '/register/' ) ); ?>" class="bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card">Crear mi cuenta</a>
 			</div>
 
 			<div class="form__links">

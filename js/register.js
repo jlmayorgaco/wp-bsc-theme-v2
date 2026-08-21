@@ -98,7 +98,7 @@
     }
 
     function showError(input, errorId, message) {
-      input.classList.add('bsc__input--invalid');
+      input.classList.add('form__input--invalid');
 
       var errorDiv = document.getElementById(errorId);
 
@@ -111,7 +111,7 @@
     }
 
     function clearError(input, errorId) {
-      input.classList.remove('bsc__input--invalid');
+      input.classList.remove('form__input--invalid');
 
       var errorDiv = document.getElementById(errorId);
 

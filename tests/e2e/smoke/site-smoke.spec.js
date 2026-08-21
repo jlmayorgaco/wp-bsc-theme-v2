@@ -237,6 +237,34 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
+  test('product cards with multiple options show their lowest available price', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for product card pricing smoke');
+
+    await gotoAndStabilize(
+      page,
+      '/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos/',
+      { primePage: false, waitForImages: false }
+    );
+
+    const productCard = page
+      .locator('.bsc__product-card')
+      .filter({ hasText: 'AHA BHA PHA 30 Days Miracle Toner SOME BY MI' })
+      .first();
+    const cardPriceText = await productCard.locator('.card__price').innerText();
+
+    await expect(productCard).toBeVisible();
+    await productCard.locator('.bsc__button-add-to-cart--variable').click();
+
+    const optionPriceElements = page.locator('.bsc-product-options__option-price');
+    await expect.poll(() => optionPriceElements.count()).toBeGreaterThan(1);
+
+    const optionPrices = await optionPriceElements.allInnerTexts();
+    const parsePrice = (price) => Number(price.replace(/\D/g, ''));
+
+    expect(optionPrices.length).toBeGreaterThan(1);
+    expect(parsePrice(cardPriceText)).toBe(Math.min(...optionPrices.map(parsePrice)));
+  });
+
   test('mobile contact cards hide their external-link arrows', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for contact smoke');
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only contact presentation');
@@ -257,7 +285,7 @@ test.describe('BSC smoke', () => {
     }
   });
 
-  test('mobile filter removes the repeated title and enlarges the sort control', async ({ page }, testInfo) => {
+  test('mobile filter floats its close button beside the compact sort control', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for catalog filter smoke');
     test.skip(testInfo.project.name !== 'mobile', 'Mobile-only filter presentation');
 
@@ -266,20 +294,39 @@ test.describe('BSC smoke', () => {
       waitForImages: false,
     });
 
-    await page.locator('.bsc__filters-mobile-toggle').click();
+    const filterToggle = page.locator('.bsc__filters-mobile-toggle');
+    const filterForm = page.locator('#bscFiltersForm');
 
+    await filterToggle.click();
+
+    const filterHeader = page.locator('.bsc__filters-mobile-header');
     const filterTitle = page.locator('.bsc__filters-mobile-title');
     const closeButton = page.locator('.bsc__filters-mobile-close');
+    const sortLabel = page.locator('.bsc__filters-sort-label');
     const sortSelect = page.locator('.bsc__filters-sort-select');
 
-    await expect(filterTitle).toBeHidden();
+    await expect(filterHeader).toHaveCount(0);
+    await expect(filterTitle).toHaveCount(0);
     await expect(closeButton).toBeVisible();
+    expect(await closeButton.evaluate((button) => button.parentElement?.id)).toBe('bscFiltersForm');
     await expect(sortSelect).toBeVisible();
-    await expect(sortSelect).toHaveCSS('min-height', '52px');
+    await expect(sortSelect).toHaveCSS('min-height', '51px');
     await expect(sortSelect).toHaveCSS('font-size', '16px');
 
+    const closeBox = await closeButton.boundingBox();
+    const sortLabelBox = await sortLabel.boundingBox();
     const sortBox = await sortSelect.boundingBox();
-    expect(sortBox?.height || 0).toBeGreaterThanOrEqual(52);
+
+    const closeCenter = (closeBox?.y || 0) + (closeBox?.height || 0) / 2;
+    const labelCenter = (sortLabelBox?.y || 0) + (sortLabelBox?.height || 0) / 2;
+
+    expect(Math.abs(closeCenter - labelCenter)).toBeLessThanOrEqual(4);
+    expect((closeBox?.y || 0) + (closeBox?.height || 0)).toBeLessThanOrEqual((sortBox?.y || 0) + 1);
+    expect(sortBox?.height || 0).toBeGreaterThanOrEqual(51);
+
+    await closeButton.click();
+    await expect(filterForm).toBeHidden();
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'false');
   });
 
   test('mobile active filter badges remove without the pink interaction shadow', async ({ page }, testInfo) => {

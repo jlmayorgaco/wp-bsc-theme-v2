@@ -95,6 +95,10 @@ function bsc_disable_public_author_archives(): void {
 add_action(
 	'wp_login_failed',
 	function ( string $username ): void {
+		if ( 'local' === wp_get_environment_type() ) {
+			return;
+		}
+
 		$key   = 'bsc_lf_' . md5( bsc_get_request_ip() );
 		$fails = (int) get_transient( $key );
 		set_transient( $key, $fails + 1, 15 * MINUTE_IN_SECONDS );
@@ -104,6 +108,10 @@ add_action(
 add_filter(
 	'authenticate',
 	function ( $user, string $username, string $password ) {
+		if ( 'local' === wp_get_environment_type() ) {
+			return $user;
+		}
+
 		if ( empty( $username ) && empty( $password ) ) {
 			return $user;
 		}

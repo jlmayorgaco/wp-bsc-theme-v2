@@ -189,15 +189,21 @@
 
   function initAccountAddress() {
     var addressSummary = document.getElementById('account-address-summary');
+    var form = document.querySelector('form.bsc__shipping-address');
     var isMobileViewport = window.matchMedia
       && window.matchMedia('(max-width: 768px)').matches;
+    var scrollTarget = addressSummary;
 
-    if (addressSummary && isMobileViewport) {
+    if (form && form.classList.contains('bsc__account-address-v2--billing')) {
+      scrollTarget = form;
+    }
+
+    if (scrollTarget && isMobileViewport) {
       var reduceMotion = window.matchMedia
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       window.setTimeout(function () {
-        var top = addressSummary.getBoundingClientRect().top + window.scrollY - 80;
+        var top = scrollTarget.getBoundingClientRect().top + window.scrollY - 80;
 
         window.scrollTo({
           top: Math.max(0, top),
@@ -205,8 +211,6 @@
         });
       }, 150);
     }
-
-    var form = document.querySelector('form.bsc__shipping-address');
 
     if (!form) {
       return;

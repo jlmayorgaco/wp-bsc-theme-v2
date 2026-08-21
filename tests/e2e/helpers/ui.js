@@ -302,6 +302,7 @@ async function interactWithPrimaryCardAddToCart(page, projectName) {
   const controls = productCard.locator('.bsc__quantity-controls').first();
   await expect(controls).toBeVisible({ timeout: 15000 });
   await expect(controls.locator('.bsc__qty-value').first()).toHaveText('1');
+  await expect(addButton).toBeHidden();
 
   return {
     productCard,

@@ -113,7 +113,7 @@ function bsc_seo_get_current_title(): string {
 		$term = get_queried_object();
 		if ( $term instanceof WP_Term ) {
 			$seo_title = bsc_seo_get_term_meta_value( $term->term_id, 'bsc_seo_title' );
-			return '' !== $seo_title ? $seo_title : $term->name . ' | ' . get_bloginfo( 'name' );
+			return '' !== $seo_title ? $seo_title : bsc_get_product_category_display_name( $term ) . ' | ' . get_bloginfo( 'name' );
 		}
 	}
 

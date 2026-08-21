@@ -26,6 +26,11 @@ class BSC_Products_Card {
 		$this->title         = get_the_title( $product->get_id() );
 		$this->price         = $product->get_price_html();
 		$this->raw_price     = (float) wc_get_price_to_display( $product );
+		$lowest_option_price = $this->getLowestOptionDisplayPrice( $product );
+		if ( null !== $lowest_option_price ) {
+			$this->raw_price = $lowest_option_price;
+			$this->price     = wc_price( $lowest_option_price );
+		}
 		$this->sku           = (string) $product->get_sku();
 		$this->regular_price = wc_price( $product->get_regular_price() );
 		$this->sale_price    = wc_price( $product->get_sale_price() );
@@ -51,6 +56,47 @@ class BSC_Products_Card {
 		}
 
 		$this->setCategoryTerms( $terms );
+	}
+
+	private function getLowestOptionDisplayPrice( WC_Product $product ): ?float {
+		$option_prices = array();
+
+		if ( $product instanceof WC_Product_Variable ) {
+			$variation_prices = $product->get_variation_prices( true );
+			$visible_prices   = array_values( $variation_prices['price'] ?? array() );
+
+			if ( count( $visible_prices ) > 1 ) {
+				foreach ( $visible_prices as $variation_price ) {
+					if ( '' !== (string) $variation_price && is_numeric( $variation_price ) ) {
+						$option_prices[] = (float) $variation_price;
+					}
+				}
+			}
+		}
+
+		if ( function_exists( 'bsc_get_product_variant_matrix_public_data' ) ) {
+			$variants = bsc_get_product_variant_matrix_public_data( $product->get_id() );
+
+			if ( count( $variants ) > 1 ) {
+				foreach ( $variants as $variant ) {
+					$variant_price = (string) ( $variant['price'] ?? '' );
+					if ( '' === $variant_price ) {
+						$variant_price = (string) $product->get_price();
+					}
+
+					if ( '' === $variant_price || ! is_numeric( $variant_price ) ) {
+						continue;
+					}
+
+					$option_prices[] = (float) wc_get_price_to_display(
+						$product,
+						array( 'price' => (float) $variant_price )
+					);
+				}
+			}
+		}
+
+		return empty( $option_prices ) ? null : min( $option_prices );
 	}
 
 	private function setCategoryTerms( array $terms ): void {

@@ -50,6 +50,7 @@ require_once get_template_directory() . '/inc/header-menu-covers.php';
 require_once get_template_directory() . '/inc/home-brands.php';
 require_once get_template_directory() . '/inc/responsive-images.php';
 require_once get_template_directory() . '/inc/product/product-location-code.php';
+require_once get_template_directory() . '/inc/product-category-labels.php';
 require_once get_template_directory() . '/inc/seo/meta.php';
 require_once get_template_directory() . '/inc/seo/structured-data.php';
 require_once get_template_directory() . '/inc/analytics/ga4.php';

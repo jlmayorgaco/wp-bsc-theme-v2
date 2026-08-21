@@ -69,52 +69,55 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 get_header();
 ?>
 
-<main class="bsc__auth">
-	<div class="bsc__container">
-	<div class="bsc__form-image">
+<main class="login login--register">
+	<div class="login__container">
+	<div class="login__image">
 		<?php
 		bsc_responsive_theme_image(
 			'images/signin_signup/bsc_signup_cover.png',
 			'Imagen de fondo de registro',
 			array(
-				'loading' => 'eager',
+				'loading'       => 'eager',
+				'fetchpriority' => 'high',
 			),
 			'(max-width: 768px) 0px, 50vw'
 		);
 		?>
 	</div>
 
-	<div class="bsc__form-container">
-		<div class="bsc__form-logo">
+	<div class="login__form">
+		<div class="form__image">
 		<img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/images/signin_signup/bsc_signin_rainbow.png' ); ?>" alt="Decoraci&oacute;n arco&iacute;ris registro" />
 		</div>
 
-		<h1 class="bsc__form-title">&iexcl;Quiero ser parte de BSC!</h1>
+		<div class="form__title">
+		<h1 class="form__heading bsc__title">&iexcl;Quiero ser parte de BSC!</h1>
+		</div>
 
-		<div class="bsc__form-fields">
+		<div class="form__fields">
 		<?php if ( ! empty( $registration_error ) ) : ?>
-			<div class="bsc__error-global"><?php echo esc_html( html_entity_decode( $registration_error, ENT_QUOTES, 'UTF-8' ) ); ?></div>
+			<div class="form__error"><?php echo esc_html( html_entity_decode( $registration_error, ENT_QUOTES, 'UTF-8' ) ); ?></div>
 		<?php endif; ?>
 
 		<form name="registerform" id="registerform" method="post" class="form" novalidate>
 			<?php wp_nonce_field( 'bsc_register_action', 'bsc_register_nonce' ); ?>
 			<input type="text" name="bsc_company" value="" tabindex="-1" autocomplete="off" class="screen-reader-text" aria-hidden="true" />
-			<div class="bsc__form-field">
-			<label for="nombres" class="bsc__label"><strong>Nombres</strong> y Apellidos</label>
-			<input type="text" name="nombres" id="nombres" class="bsc__input" required />
-			<div class="bsc__error-msg" id="error_nombres"></div>
+			<div class="form__field">
+			<label for="nombres" class="form__label"><strong>Nombres</strong> y Apellidos</label>
+			<input type="text" name="nombres" id="nombres" class="form__input" required />
+			<div class="form__error-msg" id="error_nombres"></div>
 			</div>
 
-			<div class="bsc__form-field">
-			<label for="email" class="bsc__label"><strong>Correo</strong> electr&oacute;nico</label>
-			<input type="email" name="email" id="email" class="bsc__input" required />
-			<div class="bsc__error-msg" id="error_email"></div>
+			<div class="form__field">
+			<label for="email" class="form__label"><strong>Correo</strong> electr&oacute;nico</label>
+			<input type="email" name="email" id="email" class="form__input" required />
+			<div class="form__error-msg" id="error_email"></div>
 			</div>
 
-			<div class="bsc__form-field">
-			<label for="password" class="bsc__label"><strong>Contrase&ntilde;a</strong></label>
+			<div class="form__field">
+			<label for="password" class="form__label"><strong>Contrase&ntilde;a</strong></label>
 			<div class="bsc-password-field">
-			<input type="password" name="password" id="password" class="bsc__input" required />
+			<input type="password" name="password" id="password" class="form__input" required />
 			<button
 				type="button"
 				class="bsc-password-toggle"
@@ -125,23 +128,23 @@ get_header();
 				<span class="bsc-password-toggle__label">Mostrar contrase&ntilde;a</span>
 			</button>
 			</div>
-			<div class="bsc__error-msg" id="error_password"></div>
+			<div class="form__error-msg" id="error_password"></div>
 			</div>
 
-			<div class="bsc__form-field bsc__form-field--submit bsc__form-field--auth-offset">
-			<input type="submit" id="register-submit" class="bsc__button bsc__button--auth-cta" value="&iexcl;Unirme a Bubbles!" />
+			<div class="form__field form__field--submit bsc">
+			<button type="submit" id="register-submit" class="bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card">&iexcl;Unirme a Bubbles!</button>
 			</div>
 
-			<hr class="bsc__auth-divider">
+			<hr class="form__divider">
 
-			<div class="bsc__form-field bsc__form-field--submit">
-			<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="bsc__button bsc__button--auth-cta">
+			<div class="form__field form__field--submit bsc">
+			<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card">
 				&iexcl;Ingresar a mi cuenta!
 			</a>
 			</div>
 
-			<div class="bsc__form-links">
-			<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="bsc__form-link">&iquest;Ya tienes cuenta? Ingresa a BSC</a>
+			<div class="form__links">
+			<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>" class="form__link">&iquest;Ya tienes cuenta? Ingresa a BSC</a>
 			</div>
 		</form>
 		</div>
