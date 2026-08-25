@@ -89,6 +89,118 @@
   margin-top: 28px;
 }
 
+.bsc-admin-monitoring__system-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.bsc-admin-monitoring__system-heading h2 {
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
+.bsc-admin-monitoring__health-summary {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-left: 4px solid #646970;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 14px 0;
+  padding: 12px 16px;
+}
+
+.bsc-admin-monitoring__health-summary span {
+  color: #646970;
+  font-size: 12px;
+}
+
+.bsc-admin-monitoring__health-summary--ok {
+  border-left-color: #22c55e;
+}
+
+.bsc-admin-monitoring__health-summary--warning {
+  border-left-color: #f97316;
+}
+
+.bsc-admin-monitoring__health-summary--critical {
+  border-left-color: #dc2626;
+}
+
+.bsc-admin-monitoring__system-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.bsc-admin-monitoring__system-card {
+  background: #ffffff;
+  border: 1px solid #dcdcde;
+  border-top: 4px solid #646970;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  min-height: 132px;
+  padding: 16px;
+}
+
+.bsc-admin-monitoring__system-card--ok {
+  border-top-color: #22c55e;
+}
+
+.bsc-admin-monitoring__system-card--warning {
+  border-top-color: #f97316;
+}
+
+.bsc-admin-monitoring__system-card--critical {
+  border-top-color: #dc2626;
+}
+
+.bsc-admin-monitoring__metric-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.bsc-admin-monitoring__metric-label {
+  color: #646970;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bsc-admin-monitoring__metric-value {
+  color: #1d2327;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.bsc-admin-monitoring__metric-meta {
+  color: #646970;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.bsc-admin-monitoring__progress {
+  accent-color: #22c55e;
+  height: 8px;
+  width: 100%;
+}
+
+.bsc-admin-monitoring__system-card--warning .bsc-admin-monitoring__progress {
+  accent-color: #f97316;
+}
+
+.bsc-admin-monitoring__system-card--critical .bsc-admin-monitoring__progress {
+  accent-color: #dc2626;
+}
+
 .bsc-admin-monitoring__checklist {
   background: #ffffff;
   border: 1px solid #dcdcde;
@@ -121,6 +233,11 @@
   .bsc-admin-monitoring__owner,
   .bsc-admin-monitoring__settings-form {
     grid-template-columns: 1fr;
+  }
+  .bsc-admin-monitoring__system-heading,
+  .bsc-admin-monitoring__health-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

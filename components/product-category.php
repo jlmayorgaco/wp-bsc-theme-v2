@@ -563,7 +563,19 @@ class BSCShopPage {
 			$descendant_slugs = array_values( array_map( 'strval', $descendants ) );
 		}
 
-		echo "<section class='bsc__default-subsubcategory'>";
+		// Feature flag: mantiene disponible el filtro movil dinamico anterior.
+		// Cuando esta apagado, mobile usa la lista inline completa, igual que desktop.
+		$use_mobile_subsubcategory_modal = (bool) apply_filters(
+			'bsc_use_mobile_subsubcategory_modal',
+			false,
+			$cat->slug,
+			$defaultChild->slug
+		);
+		$subsubcategory_mobile_mode = $use_mobile_subsubcategory_modal
+			? 'bsc__default-subsubcategory--mobile-modal'
+			: 'bsc__default-subsubcategory--mobile-inline';
+
+		echo "<section class='bsc__default-subsubcategory " . esc_attr( $subsubcategory_mobile_mode ) . "'>";
 
 		if (is_array( $subsubcats ) && !empty( $subsubcats )) {
 			$filter_items = array(
@@ -591,45 +603,47 @@ class BSCShopPage {
 				);
 			}
 
-			$modal_id = 'bsc-subsubcategory-modal-' . $defaultChild->term_id;
+			if ( $use_mobile_subsubcategory_modal ) {
+				$modal_id = 'bsc-subsubcategory-modal-' . $defaultChild->term_id;
 
-			echo "<div class='bsc__subsubcategory-mobile-toolbar'>";
-			echo '<button type="button" class="bsc__subsubcategory-mobile-trigger" aria-haspopup="dialog" aria-controls="' . esc_attr( $modal_id ) . '" aria-expanded="false">';
-			echo '<span class="bsc__subsubcategory-mobile-trigger-label">Filter</span>';
-			echo '<span class="bsc__subsubcategory-mobile-count" hidden>1</span>';
-			echo '</button>';
-			echo '<button type="button" class="bsc__subsubcategory-chip" hidden aria-label="Limpiar filtro activo">';
-			echo '<span class="bsc__subsubcategory-chip-label"></span>';
-			echo '<span class="bsc__subsubcategory-chip-close" aria-hidden="true">x</span>';
-			echo '</button>';
-			echo '</div>';
+				echo "<div class='bsc__subsubcategory-mobile-toolbar'>";
+				echo '<button type="button" class="bsc__subsubcategory-mobile-trigger" aria-haspopup="dialog" aria-controls="' . esc_attr( $modal_id ) . '" aria-expanded="false">';
+				echo '<span class="bsc__subsubcategory-mobile-trigger-label">Filter</span>';
+				echo '<span class="bsc__subsubcategory-mobile-count" hidden>1</span>';
+				echo '</button>';
+				echo '<button type="button" class="bsc__subsubcategory-chip" hidden aria-label="Limpiar filtro activo">';
+				echo '<span class="bsc__subsubcategory-chip-label"></span>';
+				echo '<span class="bsc__subsubcategory-chip-close" aria-hidden="true">x</span>';
+				echo '</button>';
+				echo '</div>';
 
-			echo '<div class="bsc__subsubcategory-modal" id="' . esc_attr( $modal_id ) . '" hidden>';
-			echo '<button type="button" class="bsc__subsubcategory-modal-backdrop" data-filter-close="true" aria-label="Cerrar filtros"></button>';
-			echo '<div class="bsc__subsubcategory-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="' . esc_attr( $modal_id . '-title' ) . '">';
-			echo '<div class="bsc__subsubcategory-modal-header">';
-			echo '<h3 id="' . esc_attr( $modal_id . '-title' ) . '" class="bsc__subsubcategory-modal-title">Filtrar categoria</h3>';
-			echo '<div  class="bsc__subsubcategory-modal-close">';
-			echo '<button type="button" data-filter-close="true" aria-label="Cerrar">x</button>';
-			echo '</div>';
-			echo '</div>';
-			echo '<div class="bsc__subsubcategory-modal-options">';
+				echo '<div class="bsc__subsubcategory-modal" id="' . esc_attr( $modal_id ) . '" hidden>';
+				echo '<button type="button" class="bsc__subsubcategory-modal-backdrop" data-filter-close="true" aria-label="Cerrar filtros"></button>';
+				echo '<div class="bsc__subsubcategory-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="' . esc_attr( $modal_id . '-title' ) . '">';
+				echo '<div class="bsc__subsubcategory-modal-header">';
+				echo '<h3 id="' . esc_attr( $modal_id . '-title' ) . '" class="bsc__subsubcategory-modal-title">Filtrar categoria</h3>';
+				echo '<div  class="bsc__subsubcategory-modal-close">';
+				echo '<button type="button" data-filter-close="true" aria-label="Cerrar">x</button>';
+				echo '</div>';
+				echo '</div>';
+				echo '<div class="bsc__subsubcategory-modal-options">';
 
-			foreach ($filter_items as $item) {
-				$active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-modal-option--active' : '';
+				foreach ($filter_items as $item) {
+					$active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-modal-option--active' : '';
 
-				printf(
-					'<button type="button" class="bsc__subsubcategory-modal-option%s" data-filter="%s" data-filter-label="%s">%s</button>',
-					esc_attr( $active_class ),
-					esc_attr( $item['slug'] ),
-					esc_attr( $item['label'] ),
-					esc_html( $item['label'] )
-				);
+					printf(
+						'<button type="button" class="bsc__subsubcategory-modal-option%s" data-filter="%s" data-filter-label="%s">%s</button>',
+						esc_attr( $active_class ),
+						esc_attr( $item['slug'] ),
+						esc_attr( $item['label'] ),
+						esc_html( $item['label'] )
+					);
+				}
+
+				echo '</div>';
+				echo '</div>';
+				echo '</div>';
 			}
-
-			echo '</div>';
-			echo '</div>';
-			echo '</div>';
 
 			echo "<div class='bsc__subsubcategory-links'>";
 
