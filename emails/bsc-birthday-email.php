@@ -31,7 +31,7 @@ bsc_email_render_message(
 );
 ?>
 				<tr>
-					<td align="center" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:16px;font-weight:900;letter-spacing:.7px;line-height:22px;padding:0 44px 16px;">
+					<td align="center" class="bsc-email-section-title" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'section-title' ) ); ?>padding:0 44px 16px;">
 						Tienes un regalito de cumpleaños...
 					</td>
 				</tr>

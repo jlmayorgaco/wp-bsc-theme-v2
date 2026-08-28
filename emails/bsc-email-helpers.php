@@ -31,6 +31,97 @@ function bsc_get_email_headers( array $extra_headers = array() ): array {
 	return array_merge( $headers, $extra_headers );
 }
 
+/**
+ * Public site origin used for links and images in transactional emails.
+ *
+ * Email recipients cannot access a local WordPress domain, so local URLs are
+ * rewritten to the production site before rendering.
+ *
+ * @return string
+ */
+function bsc_get_email_public_base_url(): string {
+	$fallback   = 'https://bubblesskincare.com';
+	$configured = defined( 'BSC_EMAIL_PUBLIC_BASE_URL' ) ? (string) BSC_EMAIL_PUBLIC_BASE_URL : $fallback;
+	$configured = (string) apply_filters( 'bsc_email_public_base_url', $configured );
+	$configured = untrailingslashit( esc_url_raw( trim( $configured ) ) );
+	$scheme     = strtolower( (string) wp_parse_url( $configured, PHP_URL_SCHEME ) );
+	$host       = (string) wp_parse_url( $configured, PHP_URL_HOST );
+
+	if ( '' === $host || ! in_array( $scheme, array( 'http', 'https' ), true ) ) {
+		return $fallback;
+	}
+
+	return $configured;
+}
+
+/**
+ * Replace a local site origin with the public production origin.
+ *
+ * External URLs are intentionally left untouched.
+ *
+ * @param string $url URL to inspect.
+ * @return string
+ */
+function bsc_email_publicize_url( string $url ): string {
+	$url = trim( $url );
+	if ( '' === $url ) {
+		return '';
+	}
+
+	$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+	if ( '' === $host ) {
+		return $url;
+	}
+
+	$local_hosts = array( 'bsc.local', 'localhost', '127.0.0.1', '::1' ); // bsc-email-local-host-rewrite.
+	if ( function_exists( 'wp_get_environment_type' ) && 'local' === wp_get_environment_type() ) {
+		$local_hosts[] = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		$local_hosts[] = strtolower( (string) wp_parse_url( site_url( '/' ), PHP_URL_HOST ) );
+	}
+	$local_hosts = array_values( array_unique( array_filter( $local_hosts ) ) );
+
+	if ( ! in_array( $host, $local_hosts, true ) ) {
+		return $url;
+	}
+
+	$rewritten = preg_replace(
+		'~^(?:https?:)?//' . preg_quote( $host, '~' ) . '(?::\d+)?~i',
+		bsc_get_email_public_base_url(),
+		$url,
+		1
+	);
+
+	return is_string( $rewritten ) && '' !== $rewritten ? $rewritten : $url;
+}
+
+/**
+ * Backwards-compatible image-specific wrapper.
+ *
+ * @param string $url Image URL to inspect.
+ * @return string
+ */
+function bsc_email_publicize_image_url( string $url ): string {
+	return bsc_email_publicize_url( $url );
+}
+
+/**
+ * Return the official Instagram URL used in every BSC email.
+ *
+ * @return string
+ */
+function bsc_get_email_instagram_url(): string {
+	return 'https://www.instagram.com/bubbles.skincare?igsi=em1zNmw0Z2pjMDlu';
+}
+
+/**
+ * Return the official TikTok URL used in every BSC email.
+ *
+ * @return string
+ */
+function bsc_get_email_tiktok_url(): string {
+	return 'https://www.tiktok.com/@bubblesskincare?_r=1&_t=ZS-99BnmyXTB7C';
+}
+
 function bsc_get_smtp_string_setting( string $option_name, string $constant_name = '', string $default = '' ): string {
 	$value = get_option( $option_name, null );
 

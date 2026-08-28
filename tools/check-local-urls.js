@@ -37,6 +37,10 @@ const blockedPatterns = [
 ];
 const allowedReferences = new Map([
   [
+    'emails/bsc-email-helpers.php',
+    new Set(['bsc-email-local-host-rewrite']),
+  ],
+  [
     'inc/routing/frontend-routing.php',
     new Set(['bsc-local-host-exception']),
   ],
