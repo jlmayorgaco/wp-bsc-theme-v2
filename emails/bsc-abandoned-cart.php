@@ -36,31 +36,36 @@ bsc_email_render_message(
 ?>
 <?php if ( ! empty( $items ) ) : ?>
 				<tr>
-					<td align="center" style="padding:0 66px 20px;">
+					<td align="center" class="bsc-email-component-pad" style="padding:0 66px 20px;">
 						<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 							<?php foreach ( array_slice( $items, 0, 4 ) as $item ) : ?>
 								<?php
 								if ( ! is_array( $item ) ) {
 									continue; }
+
+								$image_url = (string) ( $item['image_url'] ?? '' );
+								if ( function_exists( 'bsc_email_publicize_image_url' ) ) {
+									$image_url = bsc_email_publicize_image_url( $image_url );
+								}
 								?>
 								<tr>
 									<td width="72" style="padding:0 14px 12px 0;">
-										<?php if ( ! empty( $item['image_url'] ) ) : ?>
-											<img src="<?php echo esc_url( (string) $item['image_url'] ); ?>" width="64" alt="" style="border:0;display:block;height:auto;width:64px;">
+										<?php if ( '' !== $image_url ) : ?>
+											<img src="<?php echo esc_url( $image_url ); ?>" width="64" alt="" style="border:0;display:block;height:auto;width:64px;">
 										<?php endif; ?>
 									</td>
-									<td align="left" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:14px;letter-spacing:.5px;line-height:19px;padding:0 0 12px;">
+									<td align="left" class="bsc-email-body-copy" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>letter-spacing:.5px;padding:0 0 12px;">
 										<strong><?php echo esc_html( (string) ( $item['name'] ?? '' ) ); ?></strong><br>
 										Cantidad: <?php echo esc_html( (string) ( $item['quantity'] ?? 1 ) ); ?>
 									</td>
-									<td align="right" style="color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:14px;font-weight:800;letter-spacing:.5px;line-height:19px;padding:0 0 12px;white-space:nowrap;">
+									<td align="right" class="bsc-email-body-copy" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>font-weight:800;letter-spacing:.5px;padding:0 0 12px;white-space:nowrap;">
 										<?php echo esc_html( (string) ( $item['price_html'] ?? '' ) ); ?>
 									</td>
 								</tr>
 							<?php endforeach; ?>
 							<?php if ( '' !== $total_html ) : ?>
 								<tr>
-									<td colspan="3" align="right" style="border-top:1px solid #303030;color:#303030;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;font-size:15px;font-weight:900;letter-spacing:.5px;line-height:21px;padding-top:14px;">
+									<td colspan="3" align="right" class="bsc-email-section-title" style="border-top:1px solid #303030;color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'section-title' ) ); ?>padding-top:14px;">
 										Total aproximado: <?php echo esc_html( $total_html ); ?>
 									</td>
 								</tr>

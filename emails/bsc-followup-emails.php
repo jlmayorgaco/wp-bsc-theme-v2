@@ -37,28 +37,34 @@ function bsc_is_password_reset_email_enabled(): bool {
 }
 
 function bsc_get_email_shop_url(): string {
+	$url = '';
+
 	if ( function_exists( 'wc_get_page_id' ) ) {
 		$shop_page_id = (int) wc_get_page_id( 'shop' );
 		if ( $shop_page_id > 0 ) {
-			$url = get_permalink( $shop_page_id );
-			if ( $url ) {
-				return $url;
-			}
+			$url = (string) get_permalink( $shop_page_id );
 		}
 	}
 
-	return home_url( '/shop/' );
+	if ( '' === $url ) {
+		$url = home_url( '/shop/' );
+	}
+
+	return function_exists( 'bsc_email_publicize_url' ) ? bsc_email_publicize_url( $url ) : $url;
 }
 
 function bsc_get_email_account_url(): string {
+	$url = '';
+
 	if ( function_exists( 'wc_get_page_permalink' ) ) {
-		$url = wc_get_page_permalink( 'myaccount' );
-		if ( $url ) {
-			return $url;
-		}
+		$url = (string) wc_get_page_permalink( 'myaccount' );
 	}
 
-	return home_url( '/mi-cuenta/' );
+	if ( '' === $url ) {
+		$url = home_url( '/mi-cuenta/' );
+	}
+
+	return function_exists( 'bsc_email_publicize_url' ) ? bsc_email_publicize_url( $url ) : $url;
 }
 
 function bsc_schedule_followup_email_jobs(): void {
