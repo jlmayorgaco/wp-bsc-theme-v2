@@ -1,6 +1,9 @@
 <?php
 
 class BSC_Products_Card {
+	private const IMAGE_SIZE  = 'bsc-card';
+	private const IMAGE_SIZES = '(max-width: 767px) calc((100vw - 64px) / 2), 200px';
+
 	private $id;
 	private $title;
 	private $price;
@@ -37,7 +40,7 @@ class BSC_Products_Card {
 		$this->stock_status  = $product->get_stock_status();
 
 		$this->image_id  = (int) $product->get_image_id();
-		$image_data      = wp_get_attachment_image_src( $this->image_id, 'woocommerce_thumbnail' );
+		$image_data      = wp_get_attachment_image_src( $this->image_id, self::IMAGE_SIZE );
 		$img_placeholder = esc_url( get_stylesheet_directory_uri() ) . '/images/bsc__placeholder_product.jpg';
 		$this->image     = is_array( $image_data ) ? $image_data[0] : $img_placeholder . '?query_photo_index=0';
 
@@ -132,7 +135,7 @@ class BSC_Products_Card {
 			'alt'      => $this->title,
 			'loading'  => $this->image_loading,
 			'decoding' => $this->image_loading === 'eager' ? 'sync' : 'async',
-			'sizes'    => '(max-width: 767px) calc(100vw - 76px), 200px',
+			'sizes'    => self::IMAGE_SIZES,
 		);
 
 		if ( $this->image_fetchpriority !== '' ) {
@@ -142,14 +145,14 @@ class BSC_Products_Card {
 		if ( $this->image_id > 0 ) {
 			echo wp_get_attachment_image(
 				$this->image_id,
-				'woocommerce_thumbnail',
+				self::IMAGE_SIZE,
 				false,
 				$image_attrs
 			);
 			return;
 		}
 
-		echo '<img class="card__image" src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->title ) . '" width="300" height="300" loading="' . esc_attr( $this->image_loading ) . '" decoding="' . esc_attr( $this->image_loading === 'eager' ? 'sync' : 'async' ) . '"' . ( $this->image_fetchpriority !== '' ? ' fetchpriority="' . esc_attr( $this->image_fetchpriority ) . '"' : '' ) . ' />';
+		echo '<img class="card__image" src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->title ) . '" width="400" height="400" loading="' . esc_attr( $this->image_loading ) . '" decoding="' . esc_attr( $this->image_loading === 'eager' ? 'sync' : 'async' ) . '" sizes="' . esc_attr( self::IMAGE_SIZES ) . '"' . ( $this->image_fetchpriority !== '' ? ' fetchpriority="' . esc_attr( $this->image_fetchpriority ) . '"' : '' ) . ' />';
 	}
 
 	public function render_rating(): void {

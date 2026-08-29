@@ -106,8 +106,9 @@ function bsc_get_responsive_theme_image_html( string $relative_path, string $alt
 		}
 	}
 
-	$attrs['src'] = bsc_get_theme_image_url( $relative_path );
-	$attrs['alt'] = $alt;
+	$attrs['src']   = bsc_get_theme_image_url( $relative_path );
+	$attrs['alt']   = $alt;
+	$attrs['sizes'] = $sizes;
 
 	$image_attrs = '';
 

@@ -20,8 +20,8 @@ function bsc_2_0_woocommerce_setup() {
 	add_theme_support(
 		'woocommerce',
 		array(
-			'thumbnail_image_width' => 150,
-			'single_image_width'    => 300,
+			'thumbnail_image_width' => 400,
+			'single_image_width'    => 900,
 			'product_grid'          => array(
 				'default_rows'    => 3,
 				'min_rows'        => 1,
@@ -1206,6 +1206,24 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 	add_filter( 'woocommerce_get_image_size_single', 'bsc_woocommerce_single_image_size' );
 
 	/**
+	 * Keep the WooCommerce thumbnail definition aligned with the 400px card source.
+	 *
+	 * The card still exposes the complete WordPress srcset, so browsers can select a
+	 * smaller candidate when the rendered slot and device pixel ratio allow it.
+	 *
+	 * @param array $size Image size config.
+	 * @return array
+	 */
+	function bsc_woocommerce_thumbnail_image_size( $size ) {
+		return array(
+			'width'  => 400,
+			'height' => 400,
+			'crop'   => 1,
+		);
+	}
+	add_filter( 'woocommerce_get_image_size_thumbnail', 'bsc_woocommerce_thumbnail_image_size' );
+
+	/**
 	 * BSC-089: Keep only the real PDP gallery main image eager for faster LCP.
 	 *
 	 * @param array        $attr          Image attributes.
@@ -1218,6 +1236,8 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		if ( ! is_product() ) {
 			return $attr;
 		}
+
+		$attr['sizes'] = '(max-width: 768px) calc(100vw - 48px), (max-width: 1376px) calc((100vw - 96px) / 2), 640px';
 
 		if ( $main_image ) {
 			$attr['loading']       = 'eager';
