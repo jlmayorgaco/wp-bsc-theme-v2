@@ -101,7 +101,9 @@ function bsc_email_publicize_url( string $url ): string {
  * @return string
  */
 function bsc_email_publicize_image_url( string $url ): string {
-	return bsc_email_publicize_url( $url );
+	$public_url = bsc_email_publicize_url( $url );
+
+	return (string) apply_filters( 'bsc_email_public_image_url', $public_url, $url );
 }
 
 /**

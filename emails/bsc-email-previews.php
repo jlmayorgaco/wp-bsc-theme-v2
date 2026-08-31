@@ -329,10 +329,16 @@ function bsc_render_email_preview_page(): void {
 		wp_die( esc_html__( 'Template de preview no encontrado.', 'bsc-2-0' ) );
 	}
 
+	$use_local_image_url = static function ( string $public_url, string $source_url ): string {
+		return $source_url;
+	};
+
+	add_filter( 'bsc_email_public_image_url', $use_local_image_url, 10, 2 );
 	$html = bsc_render_email_template(
 		$definitions[ $slug ]['template'],
 		bsc_get_email_preview_context( $slug )
 	);
+	remove_filter( 'bsc_email_public_image_url', $use_local_image_url, 10 );
 
 	if ( $html === '' ) {
 		wp_die( esc_html__( 'No se pudo renderizar el preview del email.', 'bsc-2-0' ) );

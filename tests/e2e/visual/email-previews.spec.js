@@ -240,6 +240,102 @@ test.describe('BSC visual baseline - email previews', () => {
         }
       }
 
+      if (previewCase.slug === 'birthday') {
+        const copyFrame = page.locator('.bsc-email-copy-frame');
+        const couponCard = page.locator('.bsc-email-coupon-card');
+        const couponCheck = page.locator('.bsc-email-coupon-check img');
+        const couponHeadline = page.locator('.bsc-email-coupon-headline');
+        const couponMeta = page.locator('.bsc-email-coupon-meta');
+        const cakeHero = page.locator('img[src*="bsc-email-hero-cake-complete.png"]');
+
+        await expect(copyFrame, 'birthday message must use a constrained copy frame').toHaveCount(1);
+        await expect(couponCard, 'birthday coupon card must render').toHaveCount(1);
+        await expect(couponCheck, 'birthday coupon check must render').toHaveCount(1);
+        await expect(couponHeadline, 'birthday coupon headline must render').toHaveCount(1);
+        await expect(couponMeta, 'birthday coupon secondary copy must render').toHaveCount(1);
+        await expect(cakeHero, 'complete birthday hero must render').toHaveCount(1);
+        const copyMetrics = await copyFrame.evaluate((node) => {
+          const bounds = node.getBoundingClientRect();
+          const parentBounds = node.parentElement.getBoundingClientRect();
+
+          return {
+            centerDelta: Math.abs(
+              bounds.left + bounds.width / 2 - (parentBounds.left + parentBounds.width / 2)
+            ),
+            width: Math.round(bounds.width),
+          };
+        });
+        const birthdayMetrics = await page.evaluate(() => {
+          const card = document.querySelector('.bsc-email-coupon-card');
+          const check = document.querySelector('.bsc-email-coupon-check img');
+          const hero = document.querySelector('img[src*="bsc-email-hero-cake-complete.png"]');
+
+          return {
+            borderWidth: getComputedStyle(card).borderTopWidth,
+            cardCenterDelta: Math.abs(
+              card.getBoundingClientRect().left + card.getBoundingClientRect().width / 2
+                - (card.parentElement.getBoundingClientRect().left + card.parentElement.getBoundingClientRect().width / 2)
+            ),
+            cardWidth: Math.round(card.getBoundingClientRect().width),
+            cardWidthPriority: card.style.getPropertyPriority('width'),
+            tableLayout: getComputedStyle(card).tableLayout,
+            checkWidth: Math.round(check.getBoundingClientRect().width),
+            heroNaturalHeight: hero.naturalHeight,
+            heroNaturalWidth: hero.naturalWidth,
+            heroWidth: Math.round(hero.getBoundingClientRect().width),
+            headlineFontSize: getComputedStyle(document.querySelector('.bsc-email-coupon-headline')).fontSize,
+            headlineFontWeight: getComputedStyle(document.querySelector('.bsc-email-coupon-headline')).fontWeight,
+            metaFontSize: getComputedStyle(document.querySelector('.bsc-email-coupon-meta')).fontSize,
+            metaFontWeight: getComputedStyle(document.querySelector('.bsc-email-coupon-meta')).fontWeight,
+          };
+        });
+
+        expect(copyMetrics.width, 'birthday message width must remain email-client safe').toBe(306);
+        expect(copyMetrics.centerDelta, 'birthday message must remain centered').toBeLessThanOrEqual(1);
+        expect(birthdayMetrics.borderWidth, 'birthday coupon border must match password card').toBe('1px');
+        expect(birthdayMetrics.cardWidth, 'birthday coupon card must keep its fixed width').toBe(345);
+        expect(birthdayMetrics.cardWidthPriority, 'birthday coupon width must override mobile fluid styles').toBe('important');
+        expect(birthdayMetrics.tableLayout, 'birthday coupon table must honor its fixed width').toBe('fixed');
+        expect(birthdayMetrics.cardCenterDelta, 'birthday coupon card must remain centered').toBeLessThanOrEqual(1);
+        expect(birthdayMetrics.checkWidth, 'birthday coupon check must match password card').toBe(53);
+        expect(birthdayMetrics.heroNaturalWidth, 'complete birthday hero must load').toBe(550);
+        expect(birthdayMetrics.heroNaturalHeight, 'complete birthday hero must load').toBe(305);
+        expect(birthdayMetrics.heroWidth, 'birthday hero must keep its intended email size').toBe(275);
+        expect(birthdayMetrics.headlineFontSize, 'birthday coupon title must use section-title size').toBe('18px');
+        expect(birthdayMetrics.headlineFontWeight, 'birthday coupon title must stay bold').toBe('900');
+        expect(birthdayMetrics.metaFontSize, 'birthday coupon secondary copy must use body size').toBe('12px');
+        expect(birthdayMetrics.metaFontWeight, 'birthday coupon secondary copy must stay regular').toBe('400');
+      }
+
+      if (previewCase.slug === 'order-shipped') {
+        const trackingMetrics = await page.evaluate(() => {
+          const card = document.querySelector('.bsc-email-tracking-card');
+          const content = document.querySelector('.bsc-email-tracking-content');
+          const button = document.querySelector('.bsc-email-tracking-button');
+          const cardBounds = card.getBoundingClientRect();
+          const buttonBounds = button.getBoundingClientRect();
+          const contentStyle = getComputedStyle(content);
+
+          return {
+            borderWidth: getComputedStyle(card).borderTopWidth,
+            buttonLeftGap: Math.round(buttonBounds.left - cardBounds.left),
+            buttonRightGap: Math.round(cardBounds.right - buttonBounds.right),
+            paddingLeft: contentStyle.paddingLeft,
+            paddingRight: contentStyle.paddingRight,
+            tableLayout: getComputedStyle(card).tableLayout,
+          };
+        });
+
+        expect(trackingMetrics.borderWidth, 'tracking card border must stay subtle').toBe('1px');
+        expect(trackingMetrics.paddingLeft, 'tracking content must keep left padding').toBe('18px');
+        expect(trackingMetrics.paddingRight, 'tracking content must keep right padding').toBe('18px');
+        expect(trackingMetrics.tableLayout, 'tracking card must not expand past the mobile shell').toBe(
+          testInfo.project.name === 'mobile' ? 'fixed' : 'auto'
+        );
+        expect(trackingMetrics.buttonLeftGap, 'tracking button must stay inside the left edge').toBeGreaterThanOrEqual(18);
+        expect(trackingMetrics.buttonRightGap, 'tracking button must stay inside the right edge').toBeGreaterThanOrEqual(18);
+      }
+
       const horizontalOverflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth
       );

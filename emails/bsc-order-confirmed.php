@@ -20,7 +20,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, recibimos tu pedido <strong>#%s</strong> y estamos preparándolo<br>para enviarlo lo antes posible. Te notificaremos cuando haya sido enviado<br>con su respectivo número de seguimiento :)',
+		'Hola <strong>%s</strong>, recibimos tu pedido <strong>#%s</strong> y estamos preparándolo para enviarlo lo antes posible. Te notificaremos cuando haya sido enviado con su respectivo número de seguimiento :)',
 		esc_html( $customer_name ),
 		esc_html( $order_number )
 	),

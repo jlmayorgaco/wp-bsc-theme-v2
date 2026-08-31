@@ -258,13 +258,27 @@ if ( ! function_exists( 'bsc_email_render_status_bar' ) ) {
 }
 
 if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
-	function bsc_email_render_coupon( string $code, string $headline, string $meta, string $accent = '#f4b5c7', string $graphic = 'smile' ): void {
-		$graphic_file  = 'heart' === $graphic ? 'bsc-email-coupon-heart-pink.png' : 'bsc-email-coupon-smile-pink.png';
-		$graphic_width = 'heart' === $graphic ? 136 : 104;
+	function bsc_email_render_coupon( string $code, string $headline, string $meta, string $accent = '#f4b5c7', string $graphic = 'smile', int $border_width = 2, int $check_width = 27, string $typography_variant = 'display', int $card_width = 382, bool $fixed_card_width = false ): void {
+		$graphic_file      = 'heart' === $graphic ? 'bsc-email-coupon-heart-pink.png' : 'bsc-email-coupon-smile-pink.png';
+		$graphic_width     = 'heart' === $graphic ? 136 : 104;
+		$border_width      = max( 1, min( 4, $border_width ) );
+		$check_width       = max( 20, min( 80, $check_width ) );
+		$check_cell_width  = max( 30, $check_width );
+		$is_standard_type  = 'standard' === $typography_variant;
+		$headline_class    = $is_standard_type ? 'bsc-email-section-title' : 'bsc-email-display';
+		$headline_role     = $is_standard_type ? 'section-title' : 'display';
+		$meta_class        = $is_standard_type ? 'bsc-email-body-copy' : 'bsc-email-caption-strong';
+		$meta_role         = $is_standard_type ? 'body' : 'caption-strong';
+		$card_width        = max( 280, min( 600, $card_width ) );
+		$card_class        = $fixed_card_width ? 'bsc-email-coupon-card bsc-email-coupon-card--fixed' : 'bsc-email-fluid bsc-email-coupon-card';
+		$card_pad_class    = $fixed_card_width ? ' bsc-email-fixed-card-pad' : '';
+		$important         = $fixed_card_width ? '!important' : '';
+		$fixed_layout      = $fixed_card_width ? 'table-layout:fixed!important;' : '';
+		$card_width_style  = sprintf( 'max-width:%1$dpx%2$s;width:%1$dpx%2$s;%3$s', $card_width, $important, $fixed_layout );
 		?>
 		<tr>
-			<td align="center" class="bsc-email-component-pad" style="padding:0 52px 26px;">
-				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" class="bsc-email-fluid" style="border:2px solid #303030;border-radius:7px;max-width:382px;width:382px;">
+			<td align="center" class="bsc-email-component-pad<?php echo esc_attr( $card_pad_class ); ?>" style="padding:0 52px 26px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="<?php echo esc_attr( $card_width ); ?>" class="<?php echo esc_attr( $card_class ); ?>" style="border:<?php echo esc_attr( $border_width ); ?>px solid #303030;border-radius:7px;<?php echo esc_attr( $card_width_style ); ?>">
 					<tr>
 						<td style="padding:16px 16px 15px 18px;">
 							<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -272,8 +286,8 @@ if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 									<td style="padding:0;">
 										<table role="presentation" cellpadding="0" cellspacing="0" border="0">
 											<tr>
-												<td width="30" style="padding:0 8px 0 0;">
-													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', 27, '' ); ?>
+												<td width="<?php echo esc_attr( $check_cell_width ); ?>" class="bsc-email-coupon-check" style="padding:0 8px 0 0;">
+													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', $check_width, '' ); ?>
 												</td>
 												<td class="bsc-email-section-title" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'section-title' ) ); ?>white-space:nowrap;">
 													<?php echo esc_html( $code ); ?>
@@ -286,12 +300,12 @@ if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 									</td>
 								</tr>
 								<tr>
-									<td class="bsc-email-display" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'display' ) ); ?>padding-top:3px;">
+									<td class="<?php echo esc_attr( $headline_class ); ?> bsc-email-coupon-headline" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( $headline_role ) ); ?>padding-top:3px;">
 										<?php echo esc_html( $headline ); ?>
 									</td>
 								</tr>
 								<tr>
-									<td class="bsc-email-caption-strong" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'caption-strong' ) ); ?>padding-top:10px;">
+									<td class="<?php echo esc_attr( $meta_class ); ?> bsc-email-coupon-meta" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( $meta_role ) ); ?>padding-top:10px;">
 										<span style="background:<?php echo esc_attr( $accent ); ?>;border:1px solid #303030;border-radius:10px;display:inline-block;padding:3px 9px;">Activo</span>
 										<?php echo esc_html( $meta ); ?>
 									</td>
@@ -319,9 +333,9 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 		?>
 		<tr>
 			<td align="center" class="bsc-email-component-pad" style="padding:2px 54px 30px;">
-				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" class="bsc-email-fluid" style="border:2px solid #303030;border-radius:7px;max-width:382px;width:382px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" class="bsc-email-fluid bsc-email-tracking-card" style="border:1px solid #303030;border-radius:7px;max-width:382px;width:382px;">
 					<tr>
-						<td width="218" style="padding:16px 0 16px 18px;">
+						<td width="218" class="bsc-email-tracking-content" style="padding:16px 18px;">
 							<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 								<tr>
 									<td style="padding:0;">
@@ -343,8 +357,8 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 									</td>
 								</tr>
 								<tr>
-									<td style="padding-top:6px;">
-										<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button" style="background:#f4b5c7;border:1px solid #303030;border-radius:14px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>padding:6px 14px;text-decoration:none;">Rastrear mi pedido</a>
+									<td style="padding:6px 5px 0 0;">
+										<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button bsc-email-tracking-button" style="background:#f4b5c7;border:1px solid #303030;border-radius:14px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>padding:6px 14px;text-decoration:none;">Rastrear mi pedido</a>
 									</td>
 								</tr>
 							</table>
