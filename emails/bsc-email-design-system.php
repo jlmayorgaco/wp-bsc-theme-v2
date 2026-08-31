@@ -259,8 +259,11 @@ if ( ! function_exists( 'bsc_email_render_status_bar' ) ) {
 
 if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 	function bsc_email_render_coupon( string $code, string $headline, string $meta, string $accent = '#f4b5c7', string $graphic = 'smile', int $border_width = 2, int $check_width = 27, string $typography_variant = 'display', int $card_width = 382, bool $fixed_card_width = false ): void {
-		$graphic_file      = 'heart' === $graphic ? 'bsc-email-coupon-heart-pink.png' : 'bsc-email-coupon-smile-pink.png';
-		$graphic_width     = 'heart' === $graphic ? 136 : 104;
+		$graphic_file         = 'heart' === $graphic ? 'bsc-email-coupon-heart-pink.png' : 'bsc-email-coupon-smile-pink.png';
+		$graphic_width        = 'heart' === $graphic ? 136 : 104;
+		$graphic_mobile_class = 'heart' === $graphic ? ' bsc-email-coupon-graphic--mobile' : '';
+		$graphic_rowspan      = 'heart' === $graphic ? 2 : 3;
+		$meta_colspan         = 'heart' === $graphic ? 2 : 1;
 		$border_width      = max( 1, min( 4, $border_width ) );
 		$check_width       = max( 20, min( 80, $check_width ) );
 		$check_cell_width  = max( 30, $check_width );
@@ -271,7 +274,8 @@ if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 		$meta_role         = $is_standard_type ? 'body' : 'caption-strong';
 		$card_width        = max( 280, min( 600, $card_width ) );
 		$card_class        = $fixed_card_width ? 'bsc-email-coupon-card bsc-email-coupon-card--fixed' : 'bsc-email-fluid bsc-email-coupon-card';
-		$card_pad_class    = $fixed_card_width ? ' bsc-email-fixed-card-pad' : '';
+		$card_class       .= 'heart' === $graphic ? ' bsc-email-coupon-card--mobile-graphic' : '';
+		$card_pad_class    = $fixed_card_width || 'heart' === $graphic ? ' bsc-email-fixed-card-pad' : '';
 		$important         = $fixed_card_width ? '!important' : '';
 		$fixed_layout      = $fixed_card_width ? 'table-layout:fixed!important;' : '';
 		$card_width_style  = sprintf( 'max-width:%1$dpx%2$s;width:%1$dpx%2$s;%3$s', $card_width, $important, $fixed_layout );
@@ -295,7 +299,7 @@ if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 											</tr>
 										</table>
 									</td>
-									<td rowspan="3" align="right" valign="middle" width="132" class="bsc-email-coupon-graphic" style="font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;padding-left:8px;">
+									<td rowspan="<?php echo esc_attr( $graphic_rowspan ); ?>" align="right" valign="middle" width="132" class="bsc-email-coupon-graphic<?php echo esc_attr( $graphic_mobile_class ); ?>" style="font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;padding-left:8px;">
 										<?php bsc_email_render_asset_img( $graphic_file, $graphic_width, '' ); ?>
 									</td>
 								</tr>
@@ -305,7 +309,7 @@ if ( ! function_exists( 'bsc_email_render_coupon' ) ) {
 									</td>
 								</tr>
 								<tr>
-									<td class="<?php echo esc_attr( $meta_class ); ?> bsc-email-coupon-meta" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( $meta_role ) ); ?>padding-top:10px;">
+									<td colspan="<?php echo esc_attr( $meta_colspan ); ?>" class="<?php echo esc_attr( $meta_class ); ?> bsc-email-coupon-meta" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( $meta_role ) ); ?>padding-top:10px;">
 										<span style="background:<?php echo esc_attr( $accent ); ?>;border:1px solid #303030;border-radius:10px;display:inline-block;padding:3px 9px;">Activo</span>
 										<?php echo esc_html( $meta ); ?>
 									</td>

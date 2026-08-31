@@ -21,7 +21,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> fue cancelado.<br>Si crees que fue un error o deseas ayuda para finalizar tu compra,<br>nuestro equipo estará feliz de ayudarte :)',
+		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> fue cancelado.Si crees que fue un error o deseas ayuda para finalizar tu compra, nuestro equipo estará feliz de ayudarte :)',
 		esc_html( $customer_name ),
 		esc_html( $order_number )
 	),
