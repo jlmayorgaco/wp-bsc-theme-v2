@@ -307,6 +307,35 @@ test.describe('BSC visual baseline - email previews', () => {
         expect(birthdayMetrics.metaFontWeight, 'birthday coupon secondary copy must stay regular').toBe('400');
       }
 
+      if (previewCase.slug === 'order-shipped') {
+        const trackingMetrics = await page.evaluate(() => {
+          const card = document.querySelector('.bsc-email-tracking-card');
+          const content = document.querySelector('.bsc-email-tracking-content');
+          const button = document.querySelector('.bsc-email-tracking-button');
+          const cardBounds = card.getBoundingClientRect();
+          const buttonBounds = button.getBoundingClientRect();
+          const contentStyle = getComputedStyle(content);
+
+          return {
+            borderWidth: getComputedStyle(card).borderTopWidth,
+            buttonLeftGap: Math.round(buttonBounds.left - cardBounds.left),
+            buttonRightGap: Math.round(cardBounds.right - buttonBounds.right),
+            paddingLeft: contentStyle.paddingLeft,
+            paddingRight: contentStyle.paddingRight,
+            tableLayout: getComputedStyle(card).tableLayout,
+          };
+        });
+
+        expect(trackingMetrics.borderWidth, 'tracking card border must stay subtle').toBe('1px');
+        expect(trackingMetrics.paddingLeft, 'tracking content must keep left padding').toBe('18px');
+        expect(trackingMetrics.paddingRight, 'tracking content must keep right padding').toBe('18px');
+        expect(trackingMetrics.tableLayout, 'tracking card must not expand past the mobile shell').toBe(
+          testInfo.project.name === 'mobile' ? 'fixed' : 'auto'
+        );
+        expect(trackingMetrics.buttonLeftGap, 'tracking button must stay inside the left edge').toBeGreaterThanOrEqual(18);
+        expect(trackingMetrics.buttonRightGap, 'tracking button must stay inside the right edge').toBeGreaterThanOrEqual(18);
+      }
+
       const horizontalOverflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth
       );

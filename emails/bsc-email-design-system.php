@@ -333,9 +333,9 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 		?>
 		<tr>
 			<td align="center" class="bsc-email-component-pad" style="padding:2px 54px 30px;">
-				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" class="bsc-email-fluid" style="border:2px solid #303030;border-radius:7px;max-width:382px;width:382px;">
+				<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="382" class="bsc-email-fluid bsc-email-tracking-card" style="border:1px solid #303030;border-radius:7px;max-width:382px;width:382px;">
 					<tr>
-						<td width="218" style="padding:16px 0 16px 18px;">
+						<td width="218" class="bsc-email-tracking-content" style="padding:16px 18px;">
 							<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 								<tr>
 									<td style="padding:0;">
@@ -357,8 +357,8 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 									</td>
 								</tr>
 								<tr>
-									<td style="padding-top:6px;">
-										<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button" style="background:#f4b5c7;border:1px solid #303030;border-radius:14px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>padding:6px 14px;text-decoration:none;">Rastrear mi pedido</a>
+									<td style="padding:6px 5px 0 0;">
+										<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button bsc-email-tracking-button" style="background:#f4b5c7;border:1px solid #303030;border-radius:14px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>padding:6px 14px;text-decoration:none;">Rastrear mi pedido</a>
 									</td>
 								</tr>
 							</table>
