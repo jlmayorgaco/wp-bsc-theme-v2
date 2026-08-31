@@ -204,6 +204,7 @@ test.describe('BSC visual baseline - email previews', () => {
       if (previewCase.slug === 'password-changed') {
         const passwordCard = page.locator('.bsc-email-password-card');
         const passwordCardIcon = page.locator('.bsc-email-password-card-icon img');
+        const copyFrames = page.locator('.bsc-email-copy-frame');
         const cardMetrics = await passwordCard.evaluate((node) => ({
           borderWidth: getComputedStyle(node).borderTopWidth,
           width: Math.round(node.getBoundingClientRect().width),
@@ -217,6 +218,26 @@ test.describe('BSC visual baseline - email previews', () => {
           testInfo.project.name === 'mobile' ? 320 : 468
         );
         expect(iconWidth, 'password card icon must stay prominent').toBe(53);
+
+        await expect(copyFrames, 'password messages must use constrained copy frames').toHaveCount(2);
+        const copyFrameMetrics = await copyFrames.evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const bounds = node.getBoundingClientRect();
+            const parentBounds = node.parentElement.getBoundingClientRect();
+
+            return {
+              centerDelta: Math.abs(
+                bounds.left + bounds.width / 2 - (parentBounds.left + parentBounds.width / 2)
+              ),
+              width: Math.round(bounds.width),
+            };
+          })
+        );
+
+        for (const metrics of copyFrameMetrics) {
+          expect(metrics.width, 'password message width must remain email-client safe').toBe(283);
+          expect(metrics.centerDelta, 'password message must remain centered').toBeLessThanOrEqual(1);
+        }
       }
 
       const horizontalOverflow = await page.evaluate(

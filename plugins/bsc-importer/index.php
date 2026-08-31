@@ -20,7 +20,7 @@ if (!defined( 'BSC_THEME_IMPORTER_URL' )) {
 }
 
 if (!defined( 'BSC_THEME_IMPORTER_VERSION' )) {
-	define( 'BSC_THEME_IMPORTER_VERSION', defined( 'BSC_THEME_VERSION' ) ? BSC_THEME_VERSION : '2.1.0' );
+	define( 'BSC_THEME_IMPORTER_VERSION', defined( 'BSC_THEME_VERSION' ) ? BSC_THEME_VERSION : '2.1.3' );
 }
 
 if (is_admin()) {

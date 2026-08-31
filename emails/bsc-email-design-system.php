@@ -189,14 +189,25 @@ if ( ! function_exists( 'bsc_email_render_button_row' ) ) {
 }
 
 if ( ! function_exists( 'bsc_email_render_message' ) ) {
-	function bsc_email_render_message( string $message, int $padding_top = 20, int $padding_bottom = 24, int $padding_horizontal = 0 ): void {
+	function bsc_email_render_message( string $message, int $padding_top = 20, int $padding_bottom = 24, int $padding_horizontal = 0, int $max_width = 0 ): void {
 		$padding_horizontal = max( 0, $padding_horizontal );
+		$max_width          = max( 0, $max_width );
 		?>
 		<tr>
 			<td align="center" style="padding:<?php echo esc_attr( $padding_top ); ?>px <?php echo esc_attr( $padding_horizontal ); ?>px <?php echo esc_attr( $padding_bottom ); ?>px;">
-				<div class="bsc-email-body-copy" style="color:#363636;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>text-align:center;">
-					<?php echo wp_kses_post( bsc_email_supported_html( $message ) ); ?>
-				</div>
+				<?php if ( $max_width > 0 ) : ?>
+					<table role="presentation" width="<?php echo esc_attr( $max_width ); ?>" cellpadding="0" cellspacing="0" border="0" align="center" class="bsc-email-copy-frame" style="border-collapse:collapse;margin:0 auto;max-width:<?php echo esc_attr( $max_width ); ?>px;width:<?php echo esc_attr( $max_width ); ?>px;">
+						<tr>
+							<td align="center" class="bsc-email-body-copy" style="color:#363636;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>text-align:center;">
+								<?php echo wp_kses_post( bsc_email_supported_html( $message ) ); ?>
+							</td>
+						</tr>
+					</table>
+				<?php else : ?>
+					<div class="bsc-email-body-copy" style="color:#363636;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>text-align:center;">
+						<?php echo wp_kses_post( bsc_email_supported_html( $message ) ); ?>
+					</div>
+				<?php endif; ?>
 			</td>
 		</tr>
 		<?php

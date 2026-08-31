@@ -42,7 +42,7 @@ add_action( 'after_setup_theme', 'bsc_2_0_woocommerce_setup' );
  * @return void
  */
 function bsc_2_0_woocommerce_scripts() {
-	wp_enqueue_style( 'bsc-2-0-woocommerce-style', get_template_directory_uri() . '/woocommerce.css', array(), _S_VERSION );
+	wp_enqueue_style( 'bsc-2-0-woocommerce-style', get_template_directory_uri() . '/woocommerce.css', array(), bsc_get_asset_version( 'woocommerce.css' ) );
 
 	$font_path   = WC()->plugin_url() . '/assets/fonts/';
 	$inline_font = '@font-face {

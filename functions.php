@@ -9,17 +9,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! defined( '_S_VERSION' ) ) {
-	define( '_S_VERSION', (string) filemtime( get_template_directory() . '/style.css' ) );
+if ( ! defined( 'BSC_THEME_VERSION' ) ) {
+	define( 'BSC_THEME_VERSION', '2.1.3' );
 }
 
-if ( ! defined( 'BSC_THEME_VERSION' ) ) {
-	define(
-		'BSC_THEME_VERSION',
-		( defined( 'WP_DEBUG' ) && WP_DEBUG )
-			? (string) filemtime( get_template_directory() . '/style.css' )
-			: '2.1.2'
-	);
+require_once get_template_directory() . '/inc/asset-version.php';
+
+if ( ! defined( '_S_VERSION' ) ) {
+	define( '_S_VERSION', bsc_get_asset_version( 'style.css' ) );
 }
 
 if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {

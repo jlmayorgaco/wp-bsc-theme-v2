@@ -186,7 +186,7 @@ class BSC_Catalog_Legacy_Shortcodes {
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
 			array( 'jquery' ),
-			defined( 'BSC_THEME_VERSION' ) ? BSC_THEME_VERSION : null,
+			function_exists( 'bsc_get_asset_version' ) ? bsc_get_asset_version( 'js/tabs.js' ) : null,
 			true
 		);
 	}
