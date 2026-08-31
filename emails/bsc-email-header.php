@@ -31,6 +31,7 @@ $email_preheader   = (string) ( $email_preheader ?? $email_title );
 	.bsc-email-shell { width: 100% !important; }
 	.bsc-email-mobile-pad { padding-left: 24px !important; padding-right: 24px !important; }
 	.bsc-email-component-pad { padding-left: 24px !important; padding-right: 24px !important; }
+	.bsc-email-component-pad.bsc-email-fixed-card-pad { padding-left: 15px !important; padding-right: 15px !important; }
 	.bsc-email-fluid { width: 100% !important; max-width: 100% !important; }
 	.bsc-email-button-row { padding-left: 24px !important; padding-right: 24px !important; }
 	.bsc-email-button-table { width: 100% !important; }
