@@ -336,6 +336,69 @@ test.describe('BSC visual baseline - email previews', () => {
         expect(trackingMetrics.buttonRightGap, 'tracking button must stay inside the right edge').toBeGreaterThanOrEqual(18);
       }
 
+      if (previewCase.slug === 'followup-inactive') {
+        const inactiveMetrics = await page.evaluate(() => {
+          const card = document.querySelector('.bsc-email-coupon-card');
+          const check = document.querySelector('.bsc-email-coupon-check img');
+          const code = document.querySelector('.bsc-email-coupon-check').nextElementSibling;
+          const headline = document.querySelector('.bsc-email-coupon-headline');
+          const meta = document.querySelector('.bsc-email-coupon-meta');
+          const badge = meta.querySelector('span');
+          const graphic = document.querySelector('.bsc-email-coupon-graphic--mobile');
+          const graphicImage = graphic.querySelector('img');
+          const typography = (node) => {
+            const computed = getComputedStyle(node);
+            return {
+              fontSize: computed.fontSize,
+              fontWeight: computed.fontWeight,
+            };
+          };
+
+          return {
+            badge: typography(badge),
+            borderWidth: getComputedStyle(card).borderTopWidth,
+            cardWidth: Math.round(card.getBoundingClientRect().width),
+            checkWidth: Math.round(check.getBoundingClientRect().width),
+            code: typography(code),
+            graphicBottom: Math.round(graphic.getBoundingClientRect().bottom),
+            graphicDisplay: getComputedStyle(graphic).display,
+            graphicWidth: Math.round(graphicImage.getBoundingClientRect().width),
+            headline: typography(headline),
+            meta: typography(meta),
+            metaTop: Math.round(meta.getBoundingClientRect().top),
+          };
+        });
+
+        expect(inactiveMetrics.borderWidth, 'inactive coupon border must stay subtle').toBe('1px');
+        if (testInfo.project.name === 'mobile') {
+          expect(inactiveMetrics.cardWidth, 'inactive coupon card must fit the mobile shell').toBe(342);
+        }
+        expect(inactiveMetrics.checkWidth, 'inactive coupon check must match other emails').toBe(53);
+        expect(inactiveMetrics.graphicDisplay, 'inactive coupon heart must stay visible').not.toBe('none');
+        expect(inactiveMetrics.graphicWidth, 'inactive coupon heart must use the responsive size').toBe(
+          testInfo.project.name === 'mobile' ? 92 : 136
+        );
+        expect(inactiveMetrics.metaTop, 'inactive coupon details must sit below the heart rows').toBeGreaterThanOrEqual(
+          inactiveMetrics.graphicBottom - 1
+        );
+        expect(inactiveMetrics.code, 'inactive coupon code must use title typography').toEqual({
+          fontSize: '18px',
+          fontWeight: '900',
+        });
+        expect(inactiveMetrics.headline, 'inactive coupon headline must use title typography').toEqual({
+          fontSize: '18px',
+          fontWeight: '900',
+        });
+        expect(inactiveMetrics.meta, 'inactive coupon details must use secondary typography').toEqual({
+          fontSize: '12px',
+          fontWeight: '400',
+        });
+        expect(inactiveMetrics.badge, 'inactive coupon badge must use secondary typography').toEqual({
+          fontSize: '12px',
+          fontWeight: '400',
+        });
+      }
+
       const horizontalOverflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth
       );

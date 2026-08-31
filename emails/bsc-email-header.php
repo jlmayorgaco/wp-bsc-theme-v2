@@ -33,6 +33,7 @@ $email_preheader   = (string) ( $email_preheader ?? $email_title );
 	.bsc-email-component-pad { padding-left: 24px !important; padding-right: 24px !important; }
 	.bsc-email-component-pad.bsc-email-fixed-card-pad { padding-left: 15px !important; padding-right: 15px !important; }
 	.bsc-email-fluid { width: 100% !important; max-width: 100% !important; }
+	.bsc-email-coupon-card--mobile-graphic { max-width: 342px !important; table-layout: fixed !important; width: 342px !important; }
 	.bsc-email-tracking-card { table-layout: fixed !important; }
 	.bsc-email-button-row { padding-left: 24px !important; padding-right: 24px !important; }
 	.bsc-email-button-table { width: 100% !important; }
@@ -40,6 +41,8 @@ $email_preheader   = (string) ( $email_preheader ?? $email_title );
 	.bsc-email-button { box-sizing: border-box !important; min-width: 0 !important; width: 100% !important; }
 	.bsc-email-coupon-graphic,
 	.bsc-email-ticket-graphic { display: none !important; padding: 0 !important; width: 0 !important; }
+	.bsc-email-coupon-graphic.bsc-email-coupon-graphic--mobile { display: table-cell !important; padding: 0 !important; width: 94px !important; }
+	.bsc-email-coupon-graphic.bsc-email-coupon-graphic--mobile img { max-width: 92px !important; width: 92px !important; }
 	.bsc-email-product-cell { display: block !important; padding-left: 0 !important; padding-right: 0 !important; width: 100% !important; }
 	.bsc-email-display { font-size: 28px !important; letter-spacing: .4px !important; line-height: 34px !important; }
 }

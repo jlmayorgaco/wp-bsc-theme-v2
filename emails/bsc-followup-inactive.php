@@ -24,7 +24,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, hora de volver al glow coreano! :)<br>¿Se te acabó algún paso? ¿Necesitas re-stock de tus favoritos?<br>¿O quieres descubrir nuevos productos coreanos de entrega inmediata?<br><strong>¡Encuentra los mejores productos coreanos en Bubbles!</strong>',
+		'Hola <strong>%s</strong>, hora de volver al glow coreano! :)¿Se te acabó algún paso? ¿Necesitas re-stock de tus favoritos?¿O quieres descubrir nuevos productos coreanos de entrega inmediata?<strong>¡Encuentra los mejores productos coreanos en Bubbles!</strong>',
 		esc_html( $customer_name )
 	),
 	24,
@@ -37,7 +37,7 @@ bsc_email_render_message(
 					</td>
 				</tr>
 <?php
-bsc_email_render_coupon( $coupon_code, 'Envío gratis!', 'Válido por 1 mes | Usos restantes: 1', '#f4b5c7', 'heart' );
+bsc_email_render_coupon( $coupon_code, 'Envío gratis!', 'Válido por 1 mes | Usos restantes: 1', '#f4b5c7', 'heart', 1, 53, 'standard' );
 bsc_email_render_button_row(
 	array(
 		array(

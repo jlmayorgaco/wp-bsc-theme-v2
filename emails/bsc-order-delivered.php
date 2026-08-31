@@ -20,7 +20,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> fue marcado como entregado.<br>Esperamos que ames tus nuevos productos K-Beauty tanto como nosotras<br>y que sigan acompañando tu rutina coreana :)',
+		'Hola <strong>%s</strong>, tu pedido <strong>#%s</strong> fue marcado como entregado.Esperamos que ames tus nuevos productos K-Beauty tanto como nosotras y que sigan acompañando tu rutina coreana :)',
 		esc_html( $customer_name ),
 		esc_html( $order_number )
 	),
