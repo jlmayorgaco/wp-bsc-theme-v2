@@ -12,7 +12,7 @@ add_action(
 );
 
 function bsc_2_0_scripts() {
-	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), _S_VERSION );
+	wp_enqueue_style( 'bsc-2-0-style', get_stylesheet_uri(), array(), bsc_get_asset_version( 'style.css' ) );
 	wp_style_add_data( 'bsc-2-0-style', 'rtl', 'replace' );
 
 	$checkout_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );
@@ -22,7 +22,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-navigation',
 		get_template_directory_uri() . '/js/navigation.js',
 		array(),
-		BSC_THEME_VERSION,
+		bsc_get_asset_version( 'js/navigation.js' ),
 		true
 	);
 
@@ -43,7 +43,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-mobile-menu',
 		get_template_directory_uri() . '/js/mobile-menu.js',
 		array(),
-		(string) filemtime( get_template_directory() . '/js/mobile-menu.js' ),
+		bsc_get_asset_version( 'js/mobile-menu.js' ),
 		true
 	);
 
@@ -51,7 +51,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-search',
 		get_template_directory_uri() . '/js/search.js',
 		array(),
-		(string) filemtime( get_template_directory() . '/js/search.js' ),
+		bsc_get_asset_version( 'js/search.js' ),
 		true
 	);
 
@@ -70,7 +70,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-analytics',
 		get_template_directory_uri() . '/js/analytics.js',
 		array( 'jquery' ),
-		BSC_THEME_VERSION,
+		bsc_get_asset_version( 'js/analytics.js' ),
 		true
 	);
 
@@ -96,7 +96,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-add-to-cart',
 			get_template_directory_uri() . '/js/cart.js',
 			array( 'jquery' ),
-			(string) filemtime( get_template_directory() . '/js/cart.js' ),
+			bsc_get_asset_version( 'js/cart.js' ),
 			true
 		);
 	}
@@ -106,7 +106,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-slider-mobile-hint',
 		get_template_directory_uri() . '/js/bsc-slider-mobile-hint.js',
 		array(),
-		BSC_THEME_VERSION,
+		bsc_get_asset_version( 'js/bsc-slider-mobile-hint.js' ),
 		true
 	);
 
@@ -114,7 +114,7 @@ function bsc_2_0_scripts() {
 		'bsc-2-0-product-slider-progress',
 		get_template_directory_uri() . '/js/product-slider-progress.js',
 		array(),
-		(string) filemtime( get_template_directory() . '/js/product-slider-progress.js' ),
+		bsc_get_asset_version( 'js/product-slider-progress.js' ),
 		true
 	);
 
@@ -125,7 +125,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-tabs',
 			get_template_directory_uri() . '/js/tabs.js',
 			array( 'jquery' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/tabs.js' ),
 			true
 		);
 
@@ -134,7 +134,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-newsletter',
 			get_template_directory_uri() . '/js/newsletter.js',
 			array( 'jquery' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/newsletter.js' ),
 			true
 		);
 
@@ -143,7 +143,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-swiper-init',
 			get_template_directory_uri() . '/js/swiper-init.js',
 			array( 'swiper-js' ),
-			(string) filemtime( get_template_directory() . '/js/swiper-init.js' ),
+			bsc_get_asset_version( 'js/swiper-init.js' ),
 			true
 		);
 	}
@@ -155,7 +155,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-products-filters',
 			get_template_directory_uri() . '/js/filters.js',
 			array( 'jquery', 'bsc-2-0-add-to-cart' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/filters.js' ),
 			true
 		);
 
@@ -174,7 +174,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-category-filter',
 			get_template_directory_uri() . '/js/category-filter.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/category-filter.js' ),
 			true
 		);
 	}
@@ -185,7 +185,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-checkout',
 			get_template_directory_uri() . '/js/checkout.js',
 			array( 'jquery' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/checkout.js' ),
 			true
 		);
 
@@ -193,7 +193,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-abandoned-cart',
 			get_template_directory_uri() . '/js/abandoned-cart.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/abandoned-cart.js' ),
 			true
 		);
 	}
@@ -204,7 +204,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-contact',
 			get_template_directory_uri() . '/js/contact.js',
 			array( 'jquery', 'bsc-2-0-navigation' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/contact.js' ),
 			true
 		);
 	}
@@ -215,7 +215,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-creator-apply',
 			get_template_directory_uri() . '/js/creator-apply.js',
 			array( 'jquery', 'bsc-2-0-navigation' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/creator-apply.js' ),
 			true
 		);
 	}
@@ -225,7 +225,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-login',
 			get_template_directory_uri() . '/js/login.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/login.js' ),
 			true
 		);
 	}
@@ -235,7 +235,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-register',
 			get_template_directory_uri() . '/js/register.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/register.js' ),
 			true
 		);
 	}
@@ -245,7 +245,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-account-page',
 			get_template_directory_uri() . '/js/account-page.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/account-page.js' ),
 			true
 		);
 	}
@@ -255,7 +255,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-account-address',
 			get_template_directory_uri() . '/js/account-address.js',
 			array(),
-			(string) filemtime( get_template_directory() . '/js/account-address.js' ),
+			bsc_get_asset_version( 'js/account-address.js' ),
 			true
 		);
 	}
@@ -266,7 +266,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-coupons',
 			get_template_directory_uri() . '/js/coupons.js',
 			array( 'jquery' ),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/coupons.js' ),
 			true
 		);
 	}
@@ -276,7 +276,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-account-edit',
 			get_template_directory_uri() . '/js/account-edit.js',
 			array(),
-			(string) filemtime( get_template_directory() . '/js/account-edit.js' ),
+			bsc_get_asset_version( 'js/account-edit.js' ),
 			true
 		);
 	}
@@ -286,7 +286,7 @@ function bsc_2_0_scripts() {
 			'bsc-2-0-account-view-order',
 			get_template_directory_uri() . '/js/account-view-order.js',
 			array(),
-			BSC_THEME_VERSION,
+			bsc_get_asset_version( 'js/account-view-order.js' ),
 			true
 		);
 	}

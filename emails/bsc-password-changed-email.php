@@ -32,7 +32,8 @@ bsc_email_render_message(
 	),
 	24,
 	22,
-	0
+	0,
+	283
 );
 ?>
 				<tr>
@@ -66,7 +67,8 @@ bsc_email_render_message(
 	),
 	0,
 	20,
-	0
+	0,
+	283
 );
 
 bsc_email_render_button_row(

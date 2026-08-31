@@ -22,7 +22,7 @@ if ( ! defined( 'WPMU_PLUGIN_DIR' ) ) {
 }
 
 if ( ! defined( 'BSC_THEME_VERSION' ) ) {
-	define( 'BSC_THEME_VERSION', '2.1.0' );
+	define( 'BSC_THEME_VERSION', '2.1.3' );
 }
 
 if ( ! class_exists( 'WC_Product' ) ) {
