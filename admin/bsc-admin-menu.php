@@ -78,15 +78,15 @@ function bsc_dashboard_get_range(): array {
 		$range_key = 'today';
 	}
 
-	$now        = current_time( 'timestamp' );
-	$today      = wp_date( 'Y-m-d', $now );
+	$now        = current_datetime();
+	$today      = $now->format( 'Y-m-d' );
 	$start_date = $today;
 	$end_date   = $today;
 
 	if ( '7d' === $range_key ) {
-		$start_date = wp_date( 'Y-m-d', strtotime( '-6 days', $now ) );
+		$start_date = $now->modify( '-6 days' )->format( 'Y-m-d' );
 	} elseif ( '30d' === $range_key ) {
-		$start_date = wp_date( 'Y-m-d', strtotime( '-29 days', $now ) );
+		$start_date = $now->modify( '-29 days' )->format( 'Y-m-d' );
 	} elseif ( 'custom' === $range_key ) {
         // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only dashboard date filters.
 		$custom_start = isset( $_GET['dashboard_start'] ) ? bsc_dashboard_parse_date_input( sanitize_text_field( wp_unslash( $_GET['dashboard_start'] ) ) ) : '';

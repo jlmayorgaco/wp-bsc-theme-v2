@@ -464,9 +464,10 @@ function bsc_process_birthday_followup_emails(): int {
 		return 0;
 	}
 
-	$today_month  = wp_date( 'm', current_time( 'timestamp' ), wp_timezone() );
-	$today_day    = wp_date( 'd', current_time( 'timestamp' ), wp_timezone() );
-	$current_year = wp_date( 'Y', current_time( 'timestamp' ), wp_timezone() );
+	$today        = current_datetime();
+	$today_month  = $today->format( 'm' );
+	$today_day    = $today->format( 'd' );
+	$current_year = $today->format( 'Y' );
 	$sent_count   = 0;
 
 	$user_ids = get_users(
@@ -523,7 +524,7 @@ function bsc_process_inactivity_followup_emails(): int {
 	}
 
 	$threshold_days = max( 1, (int) bsc_get_followup_email_setting( 'bsc_inactive_email_days' ) );
-	$cutoff         = current_time( 'timestamp' ) - ( $threshold_days * DAY_IN_SECONDS );
+	$cutoff         = time() - ( $threshold_days * DAY_IN_SECONDS );
 	$latest_orders  = array();
 	$sent_count     = 0;
 
@@ -583,7 +584,7 @@ function bsc_process_repurchase_followup_emails(): int {
 		return 0;
 	}
 
-	$now              = current_time( 'timestamp' );
+	$now              = time();
 	$latest_purchases = array();
 	$grouped_payloads = array();
 	$sent_count       = 0;

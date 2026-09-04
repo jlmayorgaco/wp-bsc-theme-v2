@@ -59,7 +59,7 @@ class BSC_Theme_Importer_PPU_Init {
 	 * Log a message to the specified file.
 	 */
 	public static function log( $message, $logFile ) {
-		$timestamp = date( '[Y-m-d H:i:s]' );
+		$timestamp = wp_date( '[Y-m-d H:i:s]' );
 		file_put_contents( $logFile, "$timestamp $message" . PHP_EOL, FILE_APPEND );
 	}
 }

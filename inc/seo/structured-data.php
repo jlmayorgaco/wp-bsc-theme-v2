@@ -122,7 +122,7 @@ function bsc_seo_get_product_schema( WC_Product $product ): array {
 			'price'           => wc_format_decimal( wc_get_price_to_display( $product ), wc_get_price_decimals() ),
 			'availability'    => bsc_seo_get_availability_url( $product ),
 			'itemCondition'   => 'https://schema.org/NewCondition',
-			'priceValidUntil' => gmdate( 'Y-m-d', strtotime( '+1 year' ) ),
+			'priceValidUntil' => current_datetime()->modify( '+1 year' )->format( 'Y-m-d' ),
 			'seller'          => array(
 				'@type' => 'Organization',
 				'name'  => get_bloginfo( 'name' ),

@@ -780,7 +780,7 @@ function bsc_export_orders_csv( array $order_ids ): void {
 	$bom = "\xEF\xBB\xBF";
 
 	header( 'Content-Type: text/csv; charset=UTF-8' );
-	header( 'Content-Disposition: attachment; filename="pedidos-' . gmdate( 'Y-m-d' ) . '.csv"' );
+	header( 'Content-Disposition: attachment; filename="pedidos-' . wp_date( 'Y-m-d' ) . '.csv"' );
 	header( 'Pragma: no-cache' );
 	header( 'Expires: 0' );
 
@@ -808,7 +808,9 @@ function bsc_export_orders_csv( array $order_ids ): void {
 			bsc_csv_safe_row(
 				array(
 					$order->get_order_number(),
-					$order->get_date_created() ? $order->get_date_created()->date( 'd/m/Y H:i' ) : '',
+					$order->get_date_created()
+						? wp_date( 'd/m/Y H:i', $order->get_date_created()->getTimestamp(), wp_timezone() )
+						: '',
 					trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
 					$order->get_billing_email(),
 					$order->get_billing_phone(),
@@ -867,7 +869,7 @@ function bsc_render_packing_view( array $order_ids ): void {
 			<button type="button" id="bsc-packing-print">Imprimir</button>
 			<button type="button" id="bsc-packing-close">Cerrar</button>
 		</div>
-		<h1>Vista de Empaque - <?php echo esc_html( gmdate( 'd/m/Y' ) ); ?></h1>
+		<h1>Vista de Empaque - <?php echo esc_html( wp_date( 'd/m/Y' ) ); ?></h1>
 
 		<?php
 		foreach ( $order_ids as $id ) :
@@ -890,7 +892,10 @@ function bsc_render_packing_view( array $order_ids ): void {
 				<div><strong>Cliente:</strong> <?php echo esc_html( $name ); ?></div>
 				<div><strong>Teléfono:</strong> <?php echo esc_html( $order->get_billing_phone() ); ?></div>
 				<div><strong>Ciudad:</strong> <?php echo esc_html( $city ); ?></div>
-				<div><strong>Fecha:</strong> <?php echo esc_html( $order->get_date_created() ? $order->get_date_created()->date( 'd/m/Y' ) : '' ); ?></div>
+				<div>
+					<strong>Fecha:</strong>
+					<?php echo esc_html( $order->get_date_created() ? wp_date( 'd/m/Y', $order->get_date_created()->getTimestamp(), wp_timezone() ) : '' ); ?>
+				</div>
 				<div class="bsc-packing-view__details-row--full"><strong>Dirección:</strong> <?php echo esc_html( $address ); ?></div>
 			</div>
 			<table>

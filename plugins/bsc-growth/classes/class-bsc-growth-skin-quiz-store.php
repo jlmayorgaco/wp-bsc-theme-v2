@@ -393,7 +393,10 @@ class BSC_Growth_Skin_Quiz_Store {
 		global $wpdb;
 
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( 'SELECT id, image_path FROM ' . self::runs_table() . ' WHERE expires_at < %s', current_time( 'mysql' ) ),
+			$wpdb->prepare(
+				'SELECT id, image_path FROM ' . self::runs_table() . ' WHERE expires_at < %s',
+				current_time( 'mysql', true )
+			),
 			ARRAY_A
 		);
 

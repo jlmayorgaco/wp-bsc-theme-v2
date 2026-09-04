@@ -2137,7 +2137,7 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 			return;
 		}
 
-		$order->update_meta_data( '_bsc_archived_at', gmdate( 'Y-m-d H:i:s' ) );
+		$order->update_meta_data( '_bsc_archived_at', current_time( 'mysql', true ) );
 		$order->update_meta_data( '_bsc_archive_bucket', $bucket );
 		$order->save_meta_data();
 		$order->add_order_note( sprintf( 'Auto-archivado tras %d dias en estado %s.', $days, $bucket ) );
@@ -2148,8 +2148,9 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		$days_shipped   = max( 1, (int) apply_filters( 'bsc_auto_archive_days_shipped', $default_days ) );
 		$days_cancelled = max( 1, (int) apply_filters( 'bsc_auto_archive_days_cancelled', $default_days ) );
 
-		$cutoff_shipped   = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_shipped} days" ) );
-		$cutoff_cancelled = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_cancelled} days" ) );
+		$now              = current_datetime();
+		$cutoff_shipped   = $now->modify( "-{$days_shipped} days" )->format( 'Y-m-d H:i:s' );
+		$cutoff_cancelled = $now->modify( "-{$days_cancelled} days" )->format( 'Y-m-d H:i:s' );
 
 		bsc_archive_orders_batch( array( 'shipped', 'completed' ), $cutoff_shipped, 'shipped', $days_shipped );
 		bsc_archive_orders_batch( array( 'cancelled', 'failed', 'refunded' ), $cutoff_cancelled, 'cancelled', $days_cancelled );
