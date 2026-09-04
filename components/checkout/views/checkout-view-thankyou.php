@@ -26,23 +26,34 @@ $order_view->set_logo(
 	get_template_directory_uri() . '/images/bsc_rainbow.png',
 	'Bubble Skin Care'
 );
+$confirmation_copy = bsc_get_order_confirmation_copy( $order->get_status(), (string) $order->get_order_number() );
 $order_view->set_heading(
-	html_entity_decode( '&#161;Gracias por tu compra! &#127881;', ENT_QUOTES, 'UTF-8' ),
-	'Tu orden <strong>#' . esc_html( $order->get_order_number() ) . '</strong> ha sido recibida correctamente.'
+	$confirmation_copy['title'],
+	$confirmation_copy['message']
 );
-$order_view->set_actions(
+$order_actions = array(
 	array(
-		array(
-			'label' => 'Volver al inicio',
-			'url'   => home_url( '/' ),
-		),
-		array(
-			'label'     => 'Ver mis pedidos',
-			'url'       => function_exists( 'wc_get_endpoint_url' )
-				? wc_get_endpoint_url( 'orders', '', wc_get_page_permalink( 'myaccount' ) )
-				: home_url( '/mi-cuenta/orders/' ),
-			'secondary' => true,
-		),
-	)
+		'label' => 'Volver al inicio',
+		'url'   => home_url( '/' ),
+	),
+	array(
+		'label'     => 'Ver mis pedidos',
+		'url'       => function_exists( 'wc_get_endpoint_url' )
+			? wc_get_endpoint_url( 'orders', '', wc_get_page_permalink( 'myaccount' ) )
+			: home_url( '/mi-cuenta/orders/' ),
+		'secondary' => true,
+	),
 );
+
+if ( $order->needs_payment() ) {
+	array_unshift(
+		$order_actions,
+		array(
+			'label' => 'Completar pago',
+			'url'   => $order->get_checkout_payment_url(),
+		)
+	);
+}
+
+$order_view->set_actions( $order_actions );
 $order_view->render();

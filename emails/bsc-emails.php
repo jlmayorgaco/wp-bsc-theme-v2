@@ -150,7 +150,7 @@ add_action( 'woocommerce_payment_complete_order_status_completed', 'bsc_handle_p
 
 function bsc_handle_payment_complete_order_email( int $order_id, string $transaction_id = '' ): void {
 	$order = wc_get_order( $order_id );
-	if ( ! $order || $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) ) {
+	if ( ! $order || ! $order->has_status( array( 'processing', 'preparing', 'shipped', 'completed' ) ) ) {
 		return;
 	}
 

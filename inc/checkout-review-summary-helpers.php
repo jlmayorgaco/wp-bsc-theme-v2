@@ -73,7 +73,7 @@ if ( ! function_exists( 'bsc_get_checkout_summary_payload' ) ) {
 			'subtotal_html'            => wc_price( $cart->get_subtotal() ),
 			'subtotal_discounted_html' => wc_price( $subtotal_discounted ),
 			'shipping_total_html'      => $shipping_text,
-			'cart_total_html'          => $cart->get_cart_total(),
+			'cart_total_html'          => $cart->get_total(),
 		);
 	}
 }

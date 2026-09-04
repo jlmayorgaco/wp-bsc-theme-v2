@@ -55,6 +55,59 @@ if (!function_exists( 'bsc_update_product_price_values' )) {
 	}
 }
 
+add_action( 'wp_ajax_bsc_update_product_status', 'bsc_ajax_update_product_status' );
+function bsc_ajax_update_product_status(): void {
+	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
+
+	$product_id = absint( wp_unslash( $_POST['product_id'] ?? 0 ) );
+	$status     = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( $_POST['status'] ) ) : '';
+
+	if ( ! $product_id || 'product' !== get_post_type( $product_id ) ) {
+		wp_send_json_error( array( 'message' => 'Producto inválido.' ), 400 );
+	}
+
+	if ( ! current_user_can( 'edit_post', $product_id ) || ! current_user_can( 'publish_products' ) ) {
+		wp_send_json_error( array( 'message' => 'No tienes permisos para cambiar la publicación de este producto.' ), 403 );
+	}
+
+	if ( ! in_array( $status, array( 'publish', 'draft' ), true ) ) {
+		wp_send_json_error( array( 'message' => 'Selecciona Publicado o Borrador.' ), 400 );
+	}
+
+	$product = wc_get_product( $product_id );
+	if ( ! $product instanceof WC_Product ) {
+		wp_send_json_error( array( 'message' => 'Producto inválido.' ), 400 );
+	}
+
+	if (
+		! in_array( $product->get_status(), array( 'publish', 'draft' ), true )
+		|| 'hidden' === $product->get_catalog_visibility()
+		|| '1' === (string) get_post_meta( $product_id, '_bsc_product_archived', true )
+	) {
+		wp_send_json_error( array( 'message' => 'El estado de este producto cambió. Abre Editar para revisarlo.' ), 409 );
+	}
+
+	try {
+		$product->set_status( $status );
+		$product->save();
+		wc_delete_product_transients( $product_id );
+	} catch ( Exception ) {
+		wp_send_json_error( array( 'message' => 'No se pudo guardar el estado. Intenta de nuevo.' ), 500 );
+	}
+
+	$counts = wp_count_posts( 'product' );
+	wp_send_json_success(
+		array(
+			'status'    => $product->get_status(),
+			'permalink' => get_permalink( $product_id ),
+			'counts'    => array(
+				'publish' => number_format_i18n( (int) ( $counts->publish ?? 0 ) ),
+				'draft'   => number_format_i18n( (int) ( $counts->draft ?? 0 ) ),
+			),
+		)
+	);
+}
+
 add_action( 'wp_ajax_bsc_update_product_stock', 'bsc_ajax_update_product_stock' );
 function bsc_ajax_update_product_stock(): void {
 	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
@@ -481,6 +534,12 @@ function bsc_enqueue_products_page_assets( string $hook ): void {
 				'loadError'              => 'No se pudo cargar el historial.',
 				'saved'                  => 'Cambios guardados.',
 				'saveError'              => 'No se pudieron guardar los cambios.',
+				'statusPublished'        => 'Publicado',
+				'statusDraft'            => 'Borrador',
+				'statusSaving'           => 'Guardando…',
+				'statusPublishedSaved'   => 'Producto publicado.',
+				'statusDraftSaved'       => 'Producto guardado como borrador.',
+				'statusSaveError'        => 'No se pudo guardar el estado. Intenta de nuevo.',
 				'priceError'             => 'Revisa los precios antes de guardar.',
 				'salePriceError'         => 'El precio de oferta no puede superar el precio regular.',
 				'locationCodeError'       => 'Location code invalido. Usa el formato COD-M4-E1.',
@@ -557,12 +616,12 @@ function bsc_render_products_page(): void {
 			</div>
 			<div class="bsc-admin-stat-card">
 				<span class="bsc-admin-stat-card__label">Publicados</span>
-				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $counts->publish ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="publish"><?php echo esc_html( number_format_i18n( (int) ( $counts->publish ?? 0 ) ) ); ?></span>
 				<span class="bsc-admin-stat-card__help">Disponibles en tienda.</span>
 			</div>
 			<div class="bsc-admin-stat-card">
 				<span class="bsc-admin-stat-card__label">Borradores</span>
-				<span class="bsc-admin-stat-card__value"><?php echo esc_html( number_format_i18n( (int) ( $counts->draft ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="draft"><?php echo esc_html( number_format_i18n( (int) ( $counts->draft ?? 0 ) ) ); ?></span>
 				<span class="bsc-admin-stat-card__help">Pendientes de publicar.</span>
 			</div>
 			<div class="bsc-admin-stat-card<?php echo esc_attr( ! empty( $low_ids ) ? ' bsc-admin-stat-card--warning' : '' ); ?>">
@@ -783,10 +842,18 @@ function bsc_render_products_page(): void {
 								<span class="bsc-admin-badge bsc-admin-badge--locked">Archivado</span>
 							<?php elseif ($is_hidden) : ?>
 								<span class="bsc-admin-badge bsc-admin-badge--warning">Oculto</span>
-							<?php elseif ($post->post_status === 'publish') : ?>
-								<span class="bsc-admin-badge bsc-admin-badge--success">Publicado</span>
 							<?php else : ?>
-								<span class="bsc-admin-badge bsc-admin-badge--muted">Borrador</span>
+								<button
+									type="button"
+									class="bsc-admin-products__status-switch"
+									role="switch"
+									aria-checked="<?php echo 'publish' === $post->post_status ? 'true' : 'false'; ?>"
+									aria-label="<?php echo esc_attr( sprintf( 'Publicar %s', $post->post_title ) ); ?>"
+									<?php disabled( ! current_user_can( 'edit_post', $post->ID ) || ! current_user_can( 'publish_products' ) ); ?>
+								>
+									<span class="bsc-admin-products__status-track" aria-hidden="true"></span>
+									<span data-role="status-label" aria-hidden="true"><?php echo 'publish' === $post->post_status ? 'Publicado' : 'Borrador'; ?></span>
+								</button>
 							<?php endif; ?>
 						</td>
 						<td>
@@ -795,7 +862,7 @@ function bsc_render_products_page(): void {
 								<details class="bsc-admin-products__more-actions">
 									<summary class="button button-small bsc-admin-products__more-summary">Mas</summary>
 									<div class="bsc-admin-products__more-menu">
-										<a href="<?php echo esc_url( $view_url ); ?>" class="button button-small" target="_blank" rel="noopener noreferrer">Ver tienda</a>
+										<a href="<?php echo esc_url( $view_url ); ?>" class="button button-small" data-role="view-product" target="_blank" rel="noopener noreferrer">Ver tienda</a>
 										<button
 											type="button"
 											class="button button-small bsc-stock-history-btn"
