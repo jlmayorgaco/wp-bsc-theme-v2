@@ -113,7 +113,7 @@ $checkout_aria_label  = sprintf(
 		</div>
 		<div class="footer__copyright">
 		<p class="footer__copyright-text">
-			<strong>© 2020 - <?php echo esc_html( date( 'Y' ) ); ?> BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
+			<strong>© 2020 - <?php echo esc_html( wp_date( 'Y' ) ); ?> BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
 		</p>
 		</div>
 		</div>

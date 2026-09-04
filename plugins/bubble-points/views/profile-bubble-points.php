@@ -37,7 +37,7 @@ $points_by_user = BSC_Bubble_Points::get( $user_id );
 			<h2><?php echo esc_html( html_entity_decode( '&#161;En BSC todas tus compras suman Bubble Points que se convierten en K-Beauty GRATISSS!', ENT_QUOTES, 'UTF-8' ) ); ?></h2>
 			<p>
 				<?php echo esc_html( html_entity_decode( 'Entre m&aacute;s compras, &#161;m&aacute;s ahorras! Cada $1.000 COP en productos coreanos equivale a 1 Bubble Point. Tus puntos tienen una vigencia de 2 a&ntilde;os, ya que el programa se actualiza cada enero.', ENT_QUOTES, 'UTF-8' ) ); ?>
-				<strong><?php echo esc_html( html_entity_decode( 'Pr&oacute;xima actualizaci&oacute;n: Enero ', ENT_QUOTES, 'UTF-8' ) . ( date( 'Y' ) + 2 ) . ' :)' ); ?></strong>
+				<strong><?php echo esc_html( html_entity_decode( 'Pr&oacute;xima actualizaci&oacute;n: Enero ', ENT_QUOTES, 'UTF-8' ) . ( (int) wp_date( 'Y' ) + 2 ) . ' :)' ); ?></strong>
 			</p>
 		</div>
 

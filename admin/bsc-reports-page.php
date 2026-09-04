@@ -75,8 +75,9 @@ add_action(
 			wp_die( 'Nonce inválido.' );
 		}
 
-		$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? gmdate( 'Y-m-01' ) ) );
-		$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? gmdate( 'Y-m-d' ) ) );
+		$now        = current_datetime();
+		$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? $now->format( 'Y-m-01' ) ) );
+		$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? $now->format( 'Y-m-d' ) ) );
 		$statuses   = bsc_reports_get_statuses();
 
 		$orders_args = array(
@@ -103,7 +104,9 @@ add_action(
 					$out,
 					bsc_csv_safe_row(
 						array(
-							$order->get_date_created()?->date( 'Y-m-d H:i' ) ?? '',
+							$order->get_date_created()
+								? wp_date( 'Y-m-d H:i', $order->get_date_created()->getTimestamp(), wp_timezone() )
+								: '',
 							'#' . $order->get_order_number(),
 							$order->get_formatted_billing_full_name(),
 							$order->get_billing_email(),
@@ -237,30 +240,32 @@ function bsc_render_reports_page(): void {
 // Tab: Ventas
 function bsc_reports_tab_ventas(): void {
     // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only sales report filters.
-	$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? gmdate( 'Y-m-01' ) ) );
-	$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? gmdate( 'Y-m-d' ) ) );
+	$now        = current_datetime();
+	$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? $now->format( 'Y-m-01' ) ) );
+	$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? $now->format( 'Y-m-d' ) ) );
 	$statuses   = bsc_reports_get_statuses();
 
 	if ( isset( $_GET['preset'] ) ) {
 		switch ( sanitize_key( wp_unslash( $_GET['preset'] ) ) ) {
 			case 'hoy':
-				$date_start = $date_end = gmdate( 'Y-m-d' );
+				$date_start = $date_end = $now->format( 'Y-m-d' );
 				break;
 			case 'semana':
-				$date_start = gmdate( 'Y-m-d', strtotime( 'monday this week' ) );
-				$date_end   = gmdate( 'Y-m-d' );
+				$date_start = $now->modify( 'monday this week' )->format( 'Y-m-d' );
+				$date_end   = $now->format( 'Y-m-d' );
 				break;
 			case 'mes':
-				$date_start = gmdate( 'Y-m-01' );
-				$date_end   = gmdate( 'Y-m-d' );
+				$date_start = $now->format( 'Y-m-01' );
+				$date_end   = $now->format( 'Y-m-d' );
 				break;
 			case 'mes_ant':
-				$date_start = gmdate( 'Y-m-01', strtotime( 'first day of last month' ) );
-				$date_end   = gmdate( 'Y-m-t', strtotime( 'last month' ) );
+				$last_month = $now->modify( 'first day of last month' );
+				$date_start = $last_month->format( 'Y-m-01' );
+				$date_end   = $last_month->format( 'Y-m-t' );
 				break;
 			case 'anno':
-				$date_start = gmdate( 'Y-01-01' );
-				$date_end   = gmdate( 'Y-m-d' );
+				$date_start = $now->format( 'Y-01-01' );
+				$date_end   = $now->format( 'Y-m-d' );
 				break;
 		}
 	}

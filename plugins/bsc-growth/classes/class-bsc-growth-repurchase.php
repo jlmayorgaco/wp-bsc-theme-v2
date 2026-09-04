@@ -86,7 +86,7 @@ class BSC_Growth_Repurchase {
 		}
 
 		$items = array();
-		$now   = current_time( 'timestamp' );
+		$now   = time();
 
 		foreach ( $latest as $product_id => $ordered_at ) {
 			$product = wc_get_product( $product_id );

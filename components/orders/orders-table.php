@@ -161,7 +161,7 @@ class BSC_Orders_Table {
 			'December'  => 'diciembre',
 		);
 
-		$fecha_en = date( 'j F Y', $timestamp );
+		$fecha_en = wp_date( 'j F Y', $timestamp, wp_timezone() );
 
 		return strtr( $fecha_en, $meses );
 	}

@@ -122,7 +122,7 @@ function bsc_monitoring_count_orders( array $statuses, int $hours ): int {
 		return 0;
 	}
 
-	$after = wp_date( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $hours * HOUR_IN_SECONDS ) );
+	$after = current_datetime()->modify( '-' . $hours . ' hours' )->format( 'Y-m-d H:i:s' );
 
 	$result = wc_get_orders(
 		array(
@@ -151,13 +151,13 @@ function bsc_monitoring_hours_since_mysql( string $mysql_datetime ): ?float {
 		return null;
 	}
 
-	$timestamp = strtotime( $mysql_datetime );
+	$datetime = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $mysql_datetime, wp_timezone() );
 
-	if ( false === $timestamp ) {
+	if ( false === $datetime ) {
 		return null;
 	}
 
-	return max( 0, ( current_time( 'timestamp' ) - $timestamp ) / HOUR_IN_SECONDS );
+	return max( 0, ( time() - $datetime->getTimestamp() ) / HOUR_IN_SECONDS );
 }
 
 function bsc_monitoring_rate_limit_blocks_since( int $hours ): int {
@@ -500,7 +500,7 @@ function bsc_monitoring_build_system_metrics(): array {
 	);
 
 	$metrics = array(
-		'generated_at'  => current_time( 'timestamp' ),
+		'generated_at'  => time(),
 		'health_status' => $health_status,
 		'health_copy'   => $health_copy[ $health_status ],
 		'cards'         => $cards,

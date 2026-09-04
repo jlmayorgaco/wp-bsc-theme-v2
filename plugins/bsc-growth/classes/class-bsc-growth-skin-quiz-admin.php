@@ -247,14 +247,14 @@ class BSC_Growth_Skin_Quiz_Admin {
 			$key = '7d';
 		}
 
-		$now   = current_time( 'timestamp' );
-		$today = wp_date( 'Y-m-d', $now );
+		$now   = current_datetime();
+		$today = $now->format( 'Y-m-d' );
 		$start = $today;
 
 		if ( '7d' === $key ) {
-			$start = wp_date( 'Y-m-d', strtotime( '-6 days', $now ) );
+			$start = $now->modify( '-6 days' )->format( 'Y-m-d' );
 		} elseif ( '30d' === $key ) {
-			$start = wp_date( 'Y-m-d', strtotime( '-29 days', $now ) );
+			$start = $now->modify( '-29 days' )->format( 'Y-m-d' );
 		}
 
 		return array(

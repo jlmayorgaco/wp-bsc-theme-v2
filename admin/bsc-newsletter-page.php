@@ -112,7 +112,7 @@ function bsc_newsletter_export_csv(): void {
 	}
 
 	header( 'Content-Type: text/csv; charset=UTF-8' );
-	header( 'Content-Disposition: attachment; filename="newsletter-leads-' . gmdate( 'Y-m-d' ) . '.csv"' );
+	header( 'Content-Disposition: attachment; filename="newsletter-leads-' . wp_date( 'Y-m-d' ) . '.csv"' );
 	header( 'Pragma: no-cache' );
 	header( 'Expires: 0' );
 
