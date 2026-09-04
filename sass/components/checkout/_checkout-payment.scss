@@ -79,6 +79,20 @@
   display: none;
 }
 
+form.checkout #payment {
+  // A sole redirect gateway needs no visible selector. Keep its checked input
+  // in the form, and retain the selector whenever there are choices or fields.
+  > .wc_payment_methods:has(> :is(.payment_method_wompi, .payment_method_wompi_wwp):only-child):not(:has(.payment_box)) {
+    display: none;
+  }
+
+  // WooCommerce adds an inline white overlay while updating totals. Keep its
+  // interaction lock in place without washing out the payment area and button.
+  > .blockUI.blockOverlay {
+    background: transparent !important;
+  }
+}
+
 #place_order{
     font-family: "Helvetica", sans-serif;
   font-size: 15px;

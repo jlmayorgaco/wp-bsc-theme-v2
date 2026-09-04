@@ -57,8 +57,8 @@ $totals = $order->get_order_item_totals(); // phpcs:ignore WordPress.WP.GlobalVa
 		</tbody>
 		<tfoot>
 			<?php if ( $totals ) : ?>
-				<?php foreach ( $totals as $total ) : ?>
-					<tr>
+				<?php foreach ( $totals as $total_key => $total ) : ?>
+					<tr class="<?php echo esc_attr( sanitize_html_class( $total_key ) ); ?>">
 						<th scope="row" colspan="2"><?php echo $total['label']; ?></th><?php // @codingStandardsIgnoreLine ?>
 						<td class="product-total"><?php echo $total['value']; ?></td><?php // @codingStandardsIgnoreLine ?>
 					</tr>

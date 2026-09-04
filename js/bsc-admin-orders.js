@@ -81,8 +81,8 @@
     var $badge = $row.find('.bsc-order-badge').first();
     var cleanStatus = String(status || '').replace(/^wc-/, '');
     var labelMap = {
-      pending: 'Recibido',
-      'on-hold': 'Recibido',
+      pending: 'Pendiente de pago',
+      'on-hold': 'Pago por confirmar',
       processing: 'Recibido',
       preparing: 'Recibido',
       shipped: 'Enviado',

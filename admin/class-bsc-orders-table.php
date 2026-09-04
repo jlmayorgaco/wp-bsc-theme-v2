@@ -16,10 +16,12 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 	private array $query_args;
 
 	public const STATUS_OPTIONS = array(
+		'wc-pending'    => 'Pendiente de pago',
+		'wc-on-hold'    => 'Pago por confirmar',
 		'wc-processing' => 'Recibido',
 		'wc-shipped'    => 'Enviado',
 		'wc-cancelled'  => 'Cancelado',
-		'bsc-archived' => 'Archivado',
+		'bsc-archived'  => 'Archivado',
 	);
 
 	public function __construct( array $query_args = array() ) {
@@ -186,6 +188,10 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 		$html .= '<div class="bsc-status-control" data-order-id="' . esc_attr( $item->get_id() ) . '">';
 		$html .= '<select class="bsc-status-select bsc-status-select--inline" data-order-id="' . esc_attr( $item->get_id() ) . '" data-original-status="' . esc_attr( $current ) . '">';
 
+		if ( ! isset( self::STATUS_OPTIONS[ $current ] ) ) {
+			$html .= '<option value="' . esc_attr( $current ) . '" selected disabled>Estado desconocido</option>';
+		}
+
 		foreach ( self::STATUS_OPTIONS as $key => $label ) {
 			$html .= sprintf(
 				'<option value="%s"%s>%s</option>',
@@ -256,36 +262,9 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 	}
 
 	private function simplified_status_for_order( WC_Order $order ): array {
-		if ( $order->get_meta( '_bsc_archived_at', true ) ) {
-			return array(
-				'key'   => 'bsc-archived',
-				'label' => 'Archivado',
-				'class' => 'bsc-archived',
-			);
-		}
-
-		$status = $order->get_status();
-
-		if ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
-			return array(
-				'key'   => 'wc-shipped',
-				'label' => 'Enviado',
-				'class' => 'shipped',
-			);
-		}
-
-		if ( in_array( $status, array( 'cancelled', 'failed', 'refunded' ), true ) ) {
-			return array(
-				'key'   => 'wc-cancelled',
-				'label' => 'Cancelado',
-				'class' => 'cancelled',
-			);
-		}
-
-		return array(
-			'key'   => 'wc-processing',
-			'label' => 'Recibido',
-			'class' => 'processing',
+		return bsc_get_order_status_display(
+			$order->get_status(),
+			(bool) $order->get_meta( '_bsc_archived_at', true )
 		);
 	}
 

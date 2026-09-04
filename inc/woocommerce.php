@@ -2123,34 +2123,6 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		}
 	);
 
-	// ── BSC: Unified WC status → BSC progress bar state map ──────────────
-	function bsc_map_order_status_to_bar( string $wc_status ): string {
-		require_once get_template_directory() . '/components/orders/order-progress-bar.php';
-		$map = array(
-			'processing' => BSC_Order_Progress_Bar::RECEIVED,
-			'on-hold'    => BSC_Order_Progress_Bar::RECEIVED,
-			'pending'    => BSC_Order_Progress_Bar::RECEIVED,
-			'preparing'  => BSC_Order_Progress_Bar::RECEIVED,
-			'shipped'    => BSC_Order_Progress_Bar::SHIPPED,
-			'completed'  => BSC_Order_Progress_Bar::SHIPPED,
-			'refunded'   => BSC_Order_Progress_Bar::CANCELLED,
-			'cancelled'  => BSC_Order_Progress_Bar::CANCELLED,
-			'failed'     => BSC_Order_Progress_Bar::CANCELLED,
-			'bsc-archived' => BSC_Order_Progress_Bar::ARCHIVED,
-		);
-		return $map[ $wc_status ] ?? BSC_Order_Progress_Bar::CANCELLED;
-	}
-
-	function bsc_map_order_to_bar( WC_Order $order ): string {
-		require_once get_template_directory() . '/components/orders/order-progress-bar.php';
-
-		if ( $order->get_meta( '_bsc_archived_at', true ) ) {
-			return BSC_Order_Progress_Bar::ARCHIVED;
-		}
-
-		return bsc_map_order_status_to_bar( $order->get_status() );
-	}
-
 	// ── BSC: Auto-archive orders after N days (daily WP cron) ────────────
 	add_action( 'init', 'bsc_schedule_order_archiver' );
 	function bsc_schedule_order_archiver(): void {

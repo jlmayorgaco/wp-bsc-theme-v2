@@ -91,6 +91,70 @@
   width: 92px;
 }
 
+.bsc-admin-products__status-switch {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: admin.$radius-sm;
+  color: admin.$text-neutral;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  font: inherit;
+  font-size: 11px;
+  gap: 5px;
+  line-height: 1.3;
+  min-height: 52px;
+  min-width: 84px;
+  padding: 4px;
+
+  &:focus-visible {
+    outline: 2px solid admin.$wp-blue;
+    outline-offset: 2px;
+  }
+
+  &[aria-checked="true"] {
+    color: admin.$success;
+  }
+
+  &[aria-disabled="true"],
+  &:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.bsc-admin-products__status-track {
+  background: admin.$text-subtle;
+  border-radius: admin.$radius-pill;
+  box-sizing: border-box;
+  display: block;
+  height: 24px;
+  padding: 3px;
+  width: 42px;
+
+  &::before {
+    background: admin.$surface;
+    border-radius: 50%;
+    content: "";
+    display: block;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+.bsc-admin-products__status-switch[aria-checked="true"] .bsc-admin-products__status-track {
+  background: admin.$success;
+
+  &::before {
+    transform: translateX(18px);
+  }
+}
+
 .bsc-admin-products__col-actions {
   width: 230px;
 }

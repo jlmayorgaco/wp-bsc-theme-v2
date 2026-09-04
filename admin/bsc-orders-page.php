@@ -156,7 +156,15 @@ function bsc_orders_status_tabs(): array {
 		),
 		'wc-processing' => array(
 			'label'    => 'Recibido',
-			'statuses' => array( 'pending', 'on-hold', 'processing', 'preparing' ),
+			'statuses' => array( 'processing', 'preparing' ),
+		),
+		'wc-pending'    => array(
+			'label'    => 'Pendiente de pago',
+			'statuses' => array( 'pending' ),
+		),
+		'wc-on-hold'    => array(
+			'label'    => 'Pago por confirmar',
+			'statuses' => array( 'on-hold' ),
 		),
 		'wc-shipped'    => array(
 			'label'    => 'Enviado',
@@ -276,21 +284,12 @@ function bsc_count_archived_orders(): int {
 }
 
 function bsc_simplified_order_status_label( WC_Order $order ): string {
-	if ( $order->get_meta( '_bsc_archived_at', true ) ) {
-		return 'Archivado';
-	}
+	$display = bsc_get_order_status_display(
+		$order->get_status(),
+		(bool) $order->get_meta( '_bsc_archived_at', true )
+	);
 
-	$status = $order->get_status();
-
-	if ( in_array( $status, array( 'shipped', 'completed' ), true ) ) {
-		return 'Enviado';
-	}
-
-	if ( in_array( $status, array( 'cancelled', 'failed', 'refunded' ), true ) ) {
-		return 'Cancelado';
-	}
-
-	return 'Recibido';
+	return $display['label'];
 }
 
 // Page render

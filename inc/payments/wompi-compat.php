@@ -260,6 +260,9 @@ function bsc_get_wompi_widget_inline_script(): string {
 
 		checkout.open(function (result) {
 			var transaction = result && result.transaction;
+			if (!transaction || !transaction.id) {
+				return;
+			}
 			var redirectUrl = (transaction && transaction.redirectUrl) || data.redirectUrl;
 
 			if (redirectUrl) {

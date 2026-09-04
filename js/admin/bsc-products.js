@@ -348,6 +348,55 @@
       });
   }
 
+  function toggleProductStatus($button) {
+    if ($button.prop('disabled') || $button.attr('aria-disabled') === 'true') {
+      return;
+    }
+
+    var $row = getRow($button);
+    var $label = $button.find('[data-role="status-label"]');
+    var published = $button.attr('aria-checked') === 'true';
+    var publishedLabel = strings.statusPublished || 'Publicado';
+    var draftLabel = strings.statusDraft || 'Borrador';
+    var errorMessage = strings.statusSaveError || 'No se pudo guardar el estado. Intenta de nuevo.';
+
+    $button.attr({ 'aria-disabled': 'true', 'aria-busy': 'true' });
+    $label.text(strings.statusSaving || 'Guardando…');
+
+    $.post(ajaxUrl, {
+      action: 'bsc_update_product_status',
+      nonce: nonce,
+      product_id: $row.data('product-id'),
+      status: published ? 'draft' : 'publish'
+    }).done(function (response) {
+      if (!response || !response.success || !response.data ||
+          ['publish', 'draft'].indexOf(response.data.status) === -1) {
+        showToast((response && response.data && response.data.message) || errorMessage, 'error');
+        return;
+      }
+
+      published = response.data.status === 'publish';
+      $button.attr('aria-checked', published ? 'true' : 'false');
+      if (response.data.permalink) {
+        $row.find('[data-role="view-product"]').attr('href', response.data.permalink);
+      }
+      if (response.data.counts) {
+        ['publish', 'draft'].forEach(function (status) {
+          $('[data-bsc-product-count="' + status + '"]').text(response.data.counts[status]);
+        });
+      }
+      showToast(published
+        ? strings.statusPublishedSaved || 'Producto publicado.'
+        : strings.statusDraftSaved || 'Producto guardado como borrador.', 'success');
+    }).fail(function (xhr) {
+      var message = xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message;
+      showToast(message || errorMessage, 'error');
+    }).always(function () {
+      $label.text(published ? publishedLabel : draftLabel);
+      $button.removeAttr('aria-disabled aria-busy');
+    });
+  }
+
   function setDiscountMode(enabled) {
     productTable().toggleClass('is-discount-mode', enabled);
     discountControls().prop('hidden', !enabled);
@@ -625,6 +674,10 @@
 
   $(document).on('click', '.bsc-product-row-save', function () {
     saveRow(getRow($(this)));
+  });
+
+  $(document).on('click', '.bsc-admin-products__status-switch', function () {
+    toggleProductStatus($(this));
   });
 
   $(document).on('click', '#bsc-discount-mode-toggle', function () {

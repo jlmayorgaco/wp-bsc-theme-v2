@@ -1,6 +1,8 @@
 <?php
 
 class BSC_Order_Progress_Bar {
+	public const PENDING          = 'pending';
+	public const ON_HOLD          = 'on-hold';
 	public const RECEIVED         = 'received';
 	public const SHIPPED          = 'shipped';
 	public const DONE             = 'done';
@@ -25,7 +27,7 @@ class BSC_Order_Progress_Bar {
 			default        => $status,
 		};
 
-		$valid        = array( self::RECEIVED, self::SHIPPED, self::CANCELLED, self::ARCHIVED );
+		$valid        = array( self::PENDING, self::ON_HOLD, self::RECEIVED, self::SHIPPED, self::CANCELLED, self::ARCHIVED );
 		$this->status = in_array( $status, $valid, true ) ? $status : self::CANCELLED;
 	}
 
@@ -35,8 +37,14 @@ class BSC_Order_Progress_Bar {
 	}
 
 	public function render(): void {
-		if ($this->status === self::CANCELLED || $this->status === self::ARCHIVED) {
-			$single_label = $this->status === self::ARCHIVED ? 'Archivado' : 'Cancelado';
+		if ( in_array( $this->status, array( self::PENDING, self::ON_HOLD, self::CANCELLED, self::ARCHIVED ), true ) ) {
+			$single_labels = array(
+				self::PENDING   => 'Pendiente de pago',
+				self::ON_HOLD   => 'Pago por confirmar',
+				self::CANCELLED => 'Cancelado',
+				self::ARCHIVED  => 'Archivado',
+			);
+			$single_label = $single_labels[ $this->status ];
 			$aria_label   = 'Estado del pedido: ' . $single_label;
 			$width_class  = 'level--100%';
 			?>
