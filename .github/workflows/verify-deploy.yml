@@ -1,0 +1,56 @@
+name: Verificar deploy en produccion
+
+# El webhook de GitHub dispara el deploy (cicd/deploy.php). Este workflow no
+# despliega: comprueba que produccion quedo realmente en el commit que se empujo.
+# Si el deploy no corrio, fallo o hizo rollback, este check queda en rojo y
+# GitHub avisa por correo, sin necesidad de entrar al VPS.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: verify-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Produccion esta en este commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SITE: https://bubblesskincare.com
+
+    steps:
+      - name: Esperar a que produccion reporte este commit
+        run: |
+          echo "Commit esperado: $GITHUB_SHA"
+          live=""
+          for attempt in $(seq 1 36); do
+            live=$(curl -fsS --max-time 10 "$SITE/deploy-version.txt?cb=$GITHUB_RUN_ID-$attempt" 2>/dev/null | tr -d '[:space:]' || true)
+
+            if [ "$live" = "$GITHUB_SHA" ]; then
+              echo "OK: produccion esta en $live (intento $attempt, ~$((attempt * 5))s)"
+              exit 0
+            fi
+
+            echo "intento $attempt/36 - produccion reporta: ${live:-<sin respuesta>}"
+            sleep 5
+          done
+
+          echo "::error::Produccion reporta '${live:-<sin respuesta>}' y se esperaba $GITHUB_SHA."
+          echo "Revisa Settings > Webhooks > Recent Deliveries, o /var/www/bsc-deploy.log en el VPS."
+          exit 1
+
+      - name: La tienda responde
+        run: |
+          for page in "/" "/shop/" "/cart/"; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE$page?cb=$GITHUB_RUN_ID")
+            echo "$page -> $status"
+
+            case "$status" in
+              2*|3*) ;;
+              *) echo "::error::$page respondio $status"; exit 1 ;;
+            esac
+          done
