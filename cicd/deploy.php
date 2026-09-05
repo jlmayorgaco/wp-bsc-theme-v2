@@ -33,14 +33,31 @@ function bsc_deploy_env( string $key, string $default = '' ): string {
 	return false === $value ? $default : (string) $value;
 }
 
+/**
+ * Append a line to the deploy log. Logging must never break a deploy.
+ *
+ * @param string $log_file Absolute log path.
+ * @param string $message  Message to append.
+ */
+function bsc_deploy_log( string $log_file, string $message ): void {
+	if ( '' === $log_file ) {
+		return;
+	}
+
+	// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- An unwritable log must not abort the deploy.
+	@file_put_contents( $log_file, '[' . gmdate( 'Y-m-d H:i:s' ) . '] ' . $message . "\n", FILE_APPEND );
+}
+
 $secret   = bsc_deploy_env( 'GITHUB_WEBHOOK_SECRET' );
 $web_root = bsc_deploy_env( 'BSC_DEPLOY_WEB_ROOT', '/var/www/bubblesskincare.com/htdocs' );
 $repo_dir = bsc_deploy_env( 'BSC_DEPLOY_REPO_DIR', $web_root . '/wp-content/themes/wp-bsc-theme-v2' );
+$log_file = bsc_deploy_env( 'BSC_DEPLOY_LOG', '/var/www/bsc-deploy.log' );
 $enabled  = strtolower( bsc_deploy_env( 'BSC_DEPLOY_WEBHOOK_ENABLED' ) );
 
 header( 'Content-Type: text/plain; charset=UTF-8' );
 
 if ( ! in_array( $enabled, array( '1', 'true', 'yes' ), true ) ) {
+	bsc_deploy_log( $log_file, 'REJECTED: BSC_DEPLOY_WEBHOOK_ENABLED is not 1/true/yes.' );
 	http_response_code( 404 );
 	exit( 'Not found' );
 }
@@ -53,6 +70,7 @@ if ( 'POST' !== $request_method ) {
 }
 
 if ( '' === $secret ) {
+	bsc_deploy_log( $log_file, 'REJECTED: GITHUB_WEBHOOK_SECRET is empty.' );
 	http_response_code( 500 );
 	exit( 'Webhook secret is not configured' );
 }
@@ -64,6 +82,7 @@ $signature = 'sha256=' . hash_hmac( 'sha256', $payload, $secret );
 $webhook_signature = filter_input( INPUT_SERVER, 'HTTP_X_HUB_SIGNATURE_256', FILTER_UNSAFE_RAW );
 $webhook_signature = is_string( $webhook_signature ) ? $webhook_signature : '';
 if ( ! hash_equals( $signature, $webhook_signature ) ) {
+	bsc_deploy_log( $log_file, 'REJECTED: invalid X-Hub-Signature-256.' );
 	http_response_code( 403 );
 	exit( 'Invalid signature' );
 }
@@ -71,27 +90,52 @@ if ( ! hash_equals( $signature, $webhook_signature ) ) {
 $github_event = filter_input( INPUT_SERVER, 'HTTP_X_GITHUB_EVENT', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 $github_event = is_string( $github_event ) ? $github_event : '';
 if ( 'push' !== $github_event ) {
+	bsc_deploy_log( $log_file, 'IGNORED: event "' . $github_event . '" is not a push.' );
 	http_response_code( 202 );
 	exit( 'Ignored event' );
 }
 
 $decoded_payload = json_decode( $payload, true );
-$allowed_ref     = bsc_deploy_env( 'BSC_DEPLOY_REF', 'refs/heads/MVP2' );
-if ( ! is_array( $decoded_payload ) || ( $decoded_payload['ref'] ?? '' ) !== $allowed_ref ) {
+$pushed_ref      = is_array( $decoded_payload ) ? (string) ( $decoded_payload['ref'] ?? '' ) : '';
+
+/*
+ * Branches this endpoint deploys. A comma separated list so the same endpoint
+ * can serve the integration branch and the release branch, which is what the
+ * repo actually does: work lands on MVP2 and is merged into main by PR.
+ */
+$allowed_refs = array_values(
+	array_filter(
+		array_map( 'trim', explode( ',', bsc_deploy_env( 'BSC_DEPLOY_REF', 'refs/heads/main,refs/heads/MVP2' ) ) )
+	)
+);
+
+if ( ! in_array( $pushed_ref, $allowed_refs, true ) ) {
+	bsc_deploy_log( $log_file, 'IGNORED: ref "' . $pushed_ref . '" not in [' . implode( ', ', $allowed_refs ) . '].' );
 	http_response_code( 202 );
 	exit( 'Ignored ref' );
+}
+
+$branch = substr( $pushed_ref, strlen( 'refs/heads/' ) );
+if ( '' === $branch || ! preg_match( '{^[A-Za-z0-9._/-]+$}', $branch ) ) {
+	bsc_deploy_log( $log_file, 'REJECTED: unusable branch name from ref "' . $pushed_ref . '".' );
+	http_response_code( 400 );
+	exit( 'Invalid ref' );
 }
 
 /**
  * Run a deploy command inside the theme repo.
  *
- * @param string $repo_dir Theme repository directory.
- * @param string $command  Command to run.
+ * @param string $repo_dir  Theme repository directory.
+ * @param string $command   Command to run.
+ * @param int    $exit_code Command exit code, by reference.
  */
-function bsc_deploy_run_git_command( string $repo_dir, string $command ): string {
+function bsc_deploy_run_git_command( string $repo_dir, string $command, int &$exit_code = 0 ): string {
 	$full_command = 'cd ' . escapeshellarg( $repo_dir ) . ' && ' . $command . ' 2>&1';
+	$output       = array();
 
-	return (string) shell_exec( $full_command );
+	exec( $full_command, $output, $exit_code );
+
+	return implode( "\n", $output ) . "\n";
 }
 
 /**
@@ -129,6 +173,12 @@ function bsc_deploy_delete_path( string $path ): void {
 /**
  * Remove development-only files from the public theme directory.
  *
+ * Never list `cicd` here: it holds this endpoint, so deleting it makes every
+ * later webhook delivery 404. Never list `vendor` either: Font Awesome, Swiper
+ * and the webfonts are enqueued from it at runtime (see scripts/script_init.php),
+ * and .gitignore already limits what ships. Same for `.gitignore` itself, which
+ * the next `git clean` needs in order to know what to keep.
+ *
  * @param string $repo_dir Theme repository directory.
  */
 function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
@@ -141,13 +191,11 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 	$paths            = array(
 		'.github',
 		'.gitattributes',
-		'.gitignore',
 		'.stylelintrc.json',
 		'README.md',
 		'ROADMAP_BSC.md',
 		'composer.json',
 		'composer.lock',
-		'cicd',
 		'node_modules',
 		'package.json',
 		'package-lock.json',
@@ -161,7 +209,6 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 		'test-results',
 		'tests',
 		'tools',
-		'vendor',
 		'Videos',
 		'admin.zip',
 		'admin2.zip',
@@ -209,16 +256,59 @@ function bsc_deploy_write_robots_txt( string $web_root ): bool {
 	return false !== file_put_contents( rtrim( $web_root, '/' ) . '/robots.txt', $robots );
 }
 
-$log  = bsc_deploy_run_git_command( $repo_dir, 'git reset --hard HEAD' );
-$log .= bsc_deploy_run_git_command( $repo_dir, 'git clean -fd' );
-$log .= bsc_deploy_run_git_command( $repo_dir, 'git pull --ff-only' );
+/*
+ * Sync to the branch that was actually pushed. A bare `git pull --ff-only`
+ * depends on whichever branch happens to be checked out on the server, and it
+ * cannot fast-forward once the cleanup step has deleted tracked files.
+ */
+$log      = '';
+$failed   = false;
+$commands = array(
+	'git fetch --prune origin',
+	'git checkout -B ' . escapeshellarg( $branch ) . ' ' . escapeshellarg( 'origin/' . $branch ),
+	'git reset --hard ' . escapeshellarg( 'origin/' . $branch ),
+	'git clean -fd',
+);
 
-$removed       = bsc_deploy_cleanup_public_theme( $repo_dir );
-$robots_status = bsc_deploy_write_robots_txt( $web_root ) ? 'updated' : 'failed';
+foreach ( $commands as $command ) {
+	$exit_code = 0;
+	$log      .= '$ ' . $command . "\n" . bsc_deploy_run_git_command( $repo_dir, $command, $exit_code );
+
+	if ( 0 !== $exit_code ) {
+		$failed = true;
+		$log   .= 'FAILED with exit code ' . $exit_code . "\n";
+		break;
+	}
+}
+
+$head          = $failed ? '' : trim( bsc_deploy_run_git_command( $repo_dir, 'git rev-parse HEAD' ) );
+$removed       = $failed ? array() : bsc_deploy_cleanup_public_theme( $repo_dir );
+$robots_status = $failed ? 'skipped' : ( bsc_deploy_write_robots_txt( $web_root ) ? 'updated' : 'failed' );
+
+// Without this, PHP keeps serving the previous bytecode when opcache runs with validate_timestamps=0.
+$opcache_status = 'unavailable';
+if ( function_exists( 'opcache_reset' ) ) {
+	$opcache_status = opcache_reset() ? 'reset' : 'reset failed';
+}
+
+$summary = sprintf(
+	'branch=%s head=%s status=%s removed=%s robots=%s opcache=%s',
+	$branch,
+	'' === $head ? 'n/a' : $head,
+	$failed ? 'FAILED' : 'ok',
+	implode( '|', $removed ),
+	$robots_status,
+	$opcache_status
+);
+
+bsc_deploy_log( $log_file, $summary . "\n" . $log );
+
+// A failed sync must show up red in the GitHub webhook delivery list.
+if ( $failed ) {
+	http_response_code( 500 );
+}
 
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Standalone webhook returns sanitized text/plain deploy log.
 echo "Deployed theme:\n" . htmlspecialchars( $log, ENT_NOQUOTES, 'UTF-8' );
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Standalone webhook returns sanitized text/plain deploy log.
-echo "\nRemoved public artifacts: " . htmlspecialchars( implode( ', ', $removed ), ENT_NOQUOTES, 'UTF-8' );
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Standalone webhook returns sanitized text/plain deploy log.
-echo "\nrobots.txt: " . htmlspecialchars( $robots_status, ENT_NOQUOTES, 'UTF-8' ) . "\n";
+echo "\n" . htmlspecialchars( $summary, ENT_NOQUOTES, 'UTF-8' ) . "\n";
