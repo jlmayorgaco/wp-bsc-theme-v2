@@ -95,7 +95,7 @@ class BSC_Growth_Repurchase {
 				continue;
 			}
 
-			$days      = self::get_product_repurchase_days( $product_id );
+			$days      = self::get_repurchase_days();
 			$due_at    = $ordered_at + ( $days * DAY_IN_SECONDS );
 			$days_left = (int) ceil( ( $due_at - $now ) / DAY_IN_SECONDS );
 
@@ -126,14 +126,15 @@ class BSC_Growth_Repurchase {
 		return array_slice( $items, 0, $limit );
 	}
 
-	private static function get_product_repurchase_days( int $product_id ): int {
-		if ( function_exists( 'bsc_get_product_repurchase_days' ) ) {
-			return max( 1, (int) bsc_get_product_repurchase_days( $product_id ) );
+	/**
+	 * Return the global inactivity threshold shared with the email campaign.
+	 */
+	private static function get_repurchase_days(): int {
+		if ( function_exists( 'bsc_get_repurchase_inactivity_days' ) ) {
+			return bsc_get_repurchase_inactivity_days();
 		}
 
-		$days = (int) get_post_meta( $product_id, '_bsc_repurchase_days', true );
-
-		return $days > 0 ? $days : 45;
+		return 90;
 	}
 
 	private static function format_due_message( int $days_left ): string {

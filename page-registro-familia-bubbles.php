@@ -38,7 +38,7 @@ if ( function_exists( 'bsc_get_email_shop_url' ) ) {
 		<p class="bsc-register-welcome__copy bsc__description">
 			Ahora podr&aacute;s disfrutar de todos los beneficios que tenemos para ti, como
 			<strong>acumular puntos</strong> con cada compra que hagas en
-			<strong>bubbleskincare.com</strong>, tener un
+			<strong>bubblesskincare.com</strong>, tener un
 			<strong>registro de tus pedidos</strong> y ser el/la primero/a en conocer
 			<strong>nuestras promociones, nuevos productos y tendencias</strong> en el
 			mundo del k-beauty !!!

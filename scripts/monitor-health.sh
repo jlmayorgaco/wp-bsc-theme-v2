@@ -3,9 +3,9 @@
 # Usage: bash scripts/monitor-health.sh
 # Cron: */15 * * * * /path/to/scripts/monitor-health.sh
 
-SITE_URL="https://bubbleskincare.co"
-SITE_HOST="bubbleskincare.co"
-ADMIN_EMAIL="admin@bubbleskincare.co"
+SITE_URL="https://bubblesskincare.com"
+SITE_HOST="bubblesskincare.com"
+ADMIN_EMAIL="admin@bubblesskincare.com"
 LOG_FILE="/var/log/bsc-monitor.log"
 DISK_THRESHOLD=80    # alert when disk > 80%
 SSL_WARN_DAYS=30     # alert when SSL expires in < 30 days
@@ -44,7 +44,7 @@ check_backup_freshness() {
 HTTP_CODE=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 10 "$SITE_URL" 2>/dev/null)
 if [ "$HTTP_CODE" != "200" ]; then
     send_alert "BSC Site Down - HTTP $HTTP_CODE" \
-        "bubbleskincare.co returned HTTP $HTTP_CODE at $(date). Check server immediately."
+        "bubblesskincare.com returned HTTP $HTTP_CODE at $(date). Check server immediately."
 else
     echo "[$(date)] OK  HTTP $HTTP_CODE $SITE_URL" >> "$LOG_FILE"
 fi

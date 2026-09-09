@@ -1,0 +1,158 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - link "Skip to content" [ref=f5e161] [cursor=pointer]:
+      - /url: "#primary"
+    - banner [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - link [ref=f5e162] [cursor=pointer]:
+          - /url: https://bsc.local/
+          - img "Bubbles Skin Care" [ref=f5e163]
+        - navigation [ref=f5e9]:
+          - button "SKIN CARE" [ref=f5e164] [cursor=pointer]:
+            - generic [ref=f5e12]:
+              - generic [aria-hidden] [ref=f5e13]: 
+              - generic [aria-hidden] [ref=f5e14]: 
+          - button "HAIR CARE" [ref=f5e165] [cursor=pointer]:
+            - generic [ref=f5e17]:
+              - generic [aria-hidden] [ref=f5e18]: 
+              - generic [aria-hidden] [ref=f5e19]: 
+          - button "MAKE UP" [ref=f5e166] [cursor=pointer]:
+            - generic [ref=f5e22]:
+              - generic [aria-hidden] [ref=f5e23]: 
+              - generic [aria-hidden] [ref=f5e24]: 
+          - link "CONTACTO" [ref=f5e167] [cursor=pointer]:
+            - /url: https://bsc.local/contact-us/
+        - list [ref=f5e28]:
+          - listitem [ref=f5e29]:
+            - button "Buscar productos" [ref=f5e168] [cursor=pointer]
+          - listitem [ref=f5e34]:
+            - link "Iniciar sesion" [ref=f5e169] [cursor=pointer]:
+              - /url: https://bsc.local/login/
+              - generic [aria-hidden] [ref=f5e36]: 
+          - text: 
+    - generic:
+      - navigation
+    - text: 
+    - complementary [aria-hidden] [ref=f5e37]:
+      - generic [ref=f5e38]:
+        - navigation [ref=f5e39]:
+          - group [ref=f5e40]:
+            - generic [ref=f5e41] [cursor=pointer]: MI CUENTA
+          - group [ref=f5e43]:
+            - generic [ref=f5e44] [cursor=pointer]: SKIN CARE
+          - group [ref=f5e46]:
+            - generic [ref=f5e47] [cursor=pointer]: HAIR CARE
+          - group [ref=f5e49]:
+            - generic [ref=f5e50] [cursor=pointer]: MAKE UP
+          - link [ref=f5e52] [cursor=pointer]:
+            - /url: https://bsc.local/contact-us/
+            - generic [ref=f5e53]: CONTACTO
+        - link [ref=f5e54] [cursor=pointer]:
+          - /url: https://bsc.local/shop/
+          - text: ¡Ir a la tienda!
+        - list [ref=f5e57]:
+          - listitem [ref=f5e58]:
+            - link [ref=f5e59] [cursor=pointer]:
+              - /url: https://www.instagram.com/bubbles.skincare/
+              - generic [ref=f5e60]: 
+          - listitem [ref=f5e61]:
+            - link [ref=f5e62] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@bubblesskincare
+              - generic [ref=f5e63]: 
+        - generic [ref=f5e64]:
+          - heading [level=5] [ref=f5e65]: © 2020 - 2026 BSC | Bubbles Skin Care
+          - heading [level=4] [ref=f5e66]: Todos los derechos reservados
+    - main [ref=f5e67]:
+      - generic [ref=f5e68]:
+        - img "Bubble Skin Care" [ref=f5e170]
+        - heading [level=1] [ref=f5e171]:
+          - strong [ref=f5e71]: Completa
+          - text: tu pago
+        - generic [ref=f5e73]:
+          - heading "Resumen de tu pedido" [level=2] [ref=f5e172]
+          - list [ref=f5e75]:
+            - listitem [ref=f5e76]:
+              - generic [ref=f5e77]: Número de pedido
+              - strong [ref=f5e78]: "69097"
+            - listitem [ref=f5e79]:
+              - generic [ref=f5e80]: Fecha
+              - strong [ref=f5e81]: 8 de septiembre de 2026
+            - listitem [ref=f5e82]:
+              - generic [ref=f5e83]: Medio de pago
+              - strong [ref=f5e84]: Pago en linea
+            - listitem [ref=f5e85]:
+              - generic [ref=f5e86]: Total a pagar
+              - strong [ref=f5e87]:
+                - generic [ref=f5e88]: $ 288.800
+          - button "Pagar ahora" [ref=f5e173] [cursor=pointer]
+    - contentinfo [ref=f5e91]:
+      - generic [ref=f5e92]:
+        - generic [ref=f5e93]:
+          - generic [ref=f5e94]:
+            - heading [level=2] [ref=f5e174]:
+              - link "Bubbles Skin Care" [ref=f5e175] [cursor=pointer]:
+                - /url: https://bsc.local/
+            - list [ref=f5e98]:
+              - listitem [ref=f5e99]:
+                - link "Envíos y devoluciones" [ref=f5e176] [cursor=pointer]:
+                  - /url: https://bsc.local/shipping-returns/
+              - listitem [ref=f5e101]:
+                - link "Preguntas frecuentes" [ref=f5e177] [cursor=pointer]:
+                  - /url: https://bsc.local/faq/
+              - listitem [ref=f5e103]:
+                - link "Contacto" [ref=f5e178] [cursor=pointer]:
+                  - /url: https://bsc.local/contact-us/
+          - generic [ref=f5e105]:
+            - heading [level=2] [ref=f5e179]:
+              - link "K-Beauty" [ref=f5e180] [cursor=pointer]:
+                - /url: https://bsc.local/shop/
+            - list [ref=f5e109]:
+              - listitem [ref=f5e110]:
+                - link "Entrega inmediata" [ref=f5e181] [cursor=pointer]:
+                  - /url: https://bsc.local/product-category/
+              - listitem [ref=f5e112]:
+                - link "Encargos" [ref=f5e182] [cursor=pointer]:
+                  - /url: https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubble%20Skin%20Care%21%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97%20Quiero%20hacer%20un%20encargo.
+          - generic [ref=f5e114]:
+            - heading [level=2] [ref=f5e183]:
+              - link "Mi cuenta" [ref=f5e184] [cursor=pointer]:
+                - /url: https://bsc.local/my-account/orders/
+            - list [ref=f5e118]:
+              - listitem [ref=f5e119]:
+                - link "Mis puntos" [ref=f5e185] [cursor=pointer]:
+                  - /url: https://bsc.local/mi-cuenta/bubble-points/
+              - listitem [ref=f5e121]:
+                - link "Pedidos" [ref=f5e186] [cursor=pointer]:
+                  - /url: https://bsc.local/my-account/orders/
+          - generic [ref=f5e123]:
+            - heading "Programas" [level=2] [ref=f5e187]
+            - list [ref=f5e126]:
+              - listitem [ref=f5e127]:
+                - link "Bubble Creators" [ref=f5e188] [cursor=pointer]:
+                  - /url: https://bsc.local/bubble-creators/
+              - listitem [ref=f5e129]:
+                - link "Skin Quiz" [ref=f5e189] [cursor=pointer]:
+                  - /url: https://bsc.local/skin-quiz/
+        - generic [ref=f5e132]:
+          - link [ref=f5e190] [cursor=pointer]:
+            - /url: https://bsc.local/
+            - img "Logo de Bubbles Skin Care" [ref=f5e191]
+          - generic [ref=f5e136]:
+            - link "Instagram" [ref=f5e192] [cursor=pointer]:
+              - /url: https://www.instagram.com/bubbles.skincare/
+              - generic [ref=f5e138]: 
+            - link "TikTok" [ref=f5e193] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@bubblesskincare
+              - generic [ref=f5e140]: 
+          - paragraph [ref=f5e142]:
+            - strong [ref=f5e143]: © 2020 - 2026 BSC | Bubbles Skin Care
+            - text: Todos los derechos reservados
+        - link "Ir al checkout con 0 productos" [ref=f5e194] [cursor=pointer]:
+          - /url: https://bsc.local/checkout/
+          - generic [aria-hidden] [ref=f5e145]: 
+          - generic [ref=f5e146]: "0"
+        - link "Contactar por WhatsApp" [ref=f5e195] [cursor=pointer]:
+          - /url: https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubble%20Skin%20Care%21%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97%20Quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos.
+          - generic [aria-hidden] [ref=f5e148]: 
+          - generic [ref=f5e149]: WhatsApp
+  - status [ref=f5e160]

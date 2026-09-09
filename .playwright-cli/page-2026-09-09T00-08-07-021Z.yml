@@ -1,0 +1,408 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#primary"
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e6] [cursor=pointer]:
+          - /url: https://bsc.local/
+          - img "Bubbles Skin Care" [ref=e7]
+        - navigation [ref=e9]:
+          - button "SKIN CARE" [ref=e10] [cursor=pointer]:
+            - generic [ref=e12]:
+              - generic [aria-hidden] [ref=e13]: 
+              - generic [aria-hidden] [ref=e14]: 
+          - button "HAIR CARE" [ref=e15] [cursor=pointer]:
+            - generic [ref=e17]:
+              - generic [aria-hidden] [ref=e18]: 
+              - generic [aria-hidden] [ref=e19]: 
+          - button "MAKE UP" [ref=e20] [cursor=pointer]:
+            - generic [ref=e22]:
+              - generic [aria-hidden] [ref=e23]: 
+              - generic [aria-hidden] [ref=e24]: 
+          - link "CONTACTO" [ref=e25] [cursor=pointer]:
+            - /url: https://bsc.local/contact-us/
+        - list [ref=e28]:
+          - listitem [ref=e29]:
+            - button "Buscar productos" [ref=e30] [cursor=pointer]
+          - listitem [ref=e34]:
+            - link "Iniciar sesion" [ref=e35] [cursor=pointer]:
+              - /url: https://bsc.local/login/
+              - generic [aria-hidden] [ref=e36]: 
+          - text: 
+    - generic:
+      - navigation:
+        - generic:
+          - generic:
+            - generic:
+              - heading "Rutina coreana" [level=3]
+              - list:
+                - listitem:
+                  - link "1. Limpiadores Aceitosos":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s1-limpiadores-aceitosos/
+                - listitem:
+                  - link "2. Limpiadores Acuosos":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s2-limpiadores-acuosos/
+                - listitem:
+                  - link "3. Exfoliantes":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s3-exfoliantes/
+                - listitem:
+                  - link "4. Tónicos":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s4-tonicos/
+                - listitem:
+                  - link "5. Mascarillas":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s5-mascarillas-1/
+                - listitem:
+                  - link "6. Esencias":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s6-esencias/
+                - listitem:
+                  - link "7. Serums":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s7-serums/
+                - listitem:
+                  - link "8. Contornos de Ojos":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s8-contorno-de-ojos/
+                - listitem:
+                  - link "9. Hidratantes":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s9-hidratantes/
+                - listitem:
+                  - link "10. Protectores Solares":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s10-protectores-solares-crema/
+            - generic:
+              - heading "Complementos" [level=3]
+              - list:
+                - listitem:
+                  - link "1. Spot y patches":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s12-complemento-c2-spot/
+                - listitem:
+                  - link "2. Mist y Brumas":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s13-complemento-c4-mist-y-brumas/
+                - listitem:
+                  - link "3. Sticks":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s14-complemento-c5-sticks/
+                - listitem:
+                  - link "4. Labios":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s15-complemento-c6-labios/
+                - listitem:
+                  - link "5. Inner Beauty":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s16-complemento-c7-inner-beauty/
+                - listitem:
+                  - link "6. Accesorios":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s17-complemento-c8-accesorios/
+                - listitem:
+                  - link "7. Minis":
+                    - /url: https://bsc.local/product-category/group-skin-care/sk-rutina/sk-rutina-s18-complemento-c9-minis/
+            - link "SKIN CARE":
+              - /url: https://bsc.local/product-category/group-skin-care/
+              - img "SKIN CARE"
+        - generic:
+          - generic:
+            - generic:
+              - heading "Rutina Capilar Coreana" [level=3]
+              - list:
+                - listitem:
+                  - link "1. Shampoos":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s1-shampoo/
+                - listitem:
+                  - link "2. Acondicionadores":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s4-acondicionadores/
+                - listitem:
+                  - link "3. Mascarillas":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s3-mascarillas/
+                - listitem:
+                  - link "4. Esencias leave in":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s7-esencias-leave-in/
+            - generic:
+              - heading "Complementos" [level=3]
+              - list:
+                - listitem:
+                  - link "1. Exfoliantes":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s2-exfoliantes/
+                - listitem:
+                  - link "2. Aceites capilares":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-rutina/hc-rutina-s9-aceites/
+                - listitem:
+                  - link "3. Tónicos capilares":
+                    - /url: https://bsc.local/product-category/group-hair-care/hc-necesidades/hc-necesidad-cuero-cabelludo/
+            - link "HAIR CARE":
+              - /url: https://bsc.local/product-category/group-hair-care/
+              - img "HAIR CARE"
+        - generic:
+          - generic:
+            - generic:
+              - heading "Maquillaje coreano" [level=3]
+              - list:
+                - listitem:
+                  - link "1. BB Creams y Bases":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p1-bb-creams-y-bases/
+                - listitem:
+                  - link "2. Cushions y Refills":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p2-cushions-y-refills/
+                - listitem:
+                  - link "3. Sombras y Paletas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p3-sombras-y-paletas/
+                - listitem:
+                  - link "4. Delineadores":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p4-delineadores/
+                - listitem:
+                  - link "5. Pestañinas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p5-pestaninas/
+                - listitem:
+                  - link "6. Rubores":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p6-rubores/
+                - listitem:
+                  - link "7. Iluminadores":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p7-iluminadores/
+                - listitem:
+                  - link "8. Correctores":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p8-correctores/
+                - listitem:
+                  - link "9. Tintas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p9-tintas/
+                - listitem:
+                  - link "10. Labiales":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p10-labiales/
+                - listitem:
+                  - link "11. Polvos":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p11-polvos/
+            - generic:
+              - heading "Complementos" [level=3]
+              - list:
+                - listitem:
+                  - link "1. Cejas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p12-complementos-c1-cejas/
+                - listitem:
+                  - link "2. Primers":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p13-complementos-c2-primers/
+                - listitem:
+                  - link "3. Fijadores":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p14-complementos-c3-fijadores/
+                - listitem:
+                  - link "4. Brochas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p15-complementos-c4-brochas/
+                - listitem:
+                  - link "5. Pestañas":
+                    - /url: https://bsc.local/product-category/group-make-up/mk-productos/mk-rutina-p16-complementos-c5-pestanas/
+            - link "MAKE UP":
+              - /url: https://bsc.local/product-category/group-make-up/
+              - img "MAKE UP"
+    - text: 
+    - complementary [aria-hidden] [ref=e37]:
+      - generic [ref=e38]:
+        - navigation [ref=e39]:
+          - group [ref=e40]:
+            - generic [ref=e41] [cursor=pointer]: MI CUENTA
+          - group [ref=e43]:
+            - generic [ref=e44] [cursor=pointer]: SKIN CARE
+          - group [ref=e46]:
+            - generic [ref=e47] [cursor=pointer]: HAIR CARE
+          - group [ref=e49]:
+            - generic [ref=e50] [cursor=pointer]: MAKE UP
+          - link [ref=e52] [cursor=pointer]:
+            - /url: https://bsc.local/contact-us/
+            - generic [ref=e53]: CONTACTO
+        - link [ref=e54] [cursor=pointer]:
+          - /url: https://bsc.local/shop/
+          - text: ¡Ir a la tienda!
+        - list [ref=e57]:
+          - listitem [ref=e58]:
+            - link [ref=e59] [cursor=pointer]:
+              - /url: https://www.instagram.com/bubbles.skincare/
+              - generic [ref=e60]: 
+          - listitem [ref=e61]:
+            - link [ref=e62] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@bubblesskincare
+              - generic [ref=e63]: 
+        - generic [ref=e64]:
+          - heading [level=5] [ref=e65]: © 2020 - 2026 BSC | Bubbles Skin Care
+          - heading [level=4] [ref=e66]: Todos los derechos reservados
+    - main [ref=e67]:
+      - generic [ref=e68]:
+        - navigation [ref=e69]:
+          - navigation "Breadcrumb" [ref=e70]:
+            - link "Home" [ref=e71] [cursor=pointer]:
+              - /url: https://bsc.local/
+            - text: /
+            - link "Group Skin Care" [ref=e72] [cursor=pointer]:
+              - /url: https://bsc.local/product-category/group-skin-care/
+            - text: / PDRN Collagen Serum MIXSOON
+        - generic [ref=e73]:
+          - generic [ref=e75]:
+            - generic [ref=e77]:
+              - link [ref=e79] [cursor=pointer]:
+                - /url: https://bsc.local/wp-content/uploads/2026/06/1-copia-10hidratantes--scaled.webp
+                - img "PDRN Collagen Serum MIXSOON" [ref=e80]
+              - link [ref=e82] [cursor=pointer]:
+                - /url: https://bsc.local/wp-content/uploads/2026/06/2-copia-9hidratantes--scaled.webp
+                - img "PDRN Collagen Serum MIXSOON - Image 2" [ref=e83]
+            - list [ref=e84]:
+              - listitem [ref=e85]:
+                - img "PDRN Collagen Serum MIXSOON" [ref=e86]
+              - listitem [ref=e87]:
+                - img "PDRN Collagen Serum MIXSOON - Image 2" [ref=e88]
+          - generic [ref=e89]:
+            - heading [level=1] [ref=e90]:
+              - strong [ref=e91]: PDRN Collagen Serum MIXSOON
+            - paragraph [ref=e93]:
+              - generic [ref=e94]: $ 109.900
+            - generic [ref=e96]:
+              - paragraph [ref=e97]: Sérum reafirmante, antiedad e hidratante formulado con PDRN de origen vegetal derivado del arroz, colágeno de bajo peso molecular, péptidos, niacinamida y ácido hialurónico. Ayuda a hidratar profundamente, mejorar la elasticidad, fortalecer la barrera y aportar un aspecto más firme, terso y luminoso. El PDRN de arroz ayuda a mejorar la condición general de la piel, mientras el colágeno y los péptidos favorecen una apariencia más firme y elástica. Su textura de rápida absorción deja la piel jugosa, tersa y glowy sin sensación pegajosa. Ideal para pieles secas, deshidratadas, apagadas, maduras o con pérdida de firmeza. Clínicamente probado y dermatológicamente probado.
+              - paragraph [ref=e98]: "Acabado: Jugoso, hidratado y glowy, sin sensación pegajosa. Contenido: 30 ml."
+            - button "¡Lo quiero!" [ref=e100] [cursor=pointer]
+            - generic [ref=e102]:
+              - group [ref=e103]:
+                - generic "Tipo de Piel +" [ref=e104] [cursor=pointer]
+              - group [ref=e105]:
+                - generic "¿Cómo usar? +" [ref=e106] [cursor=pointer]
+              - group [ref=e107]:
+                - generic "Paso de la rutina +" [ref=e108] [cursor=pointer]
+        - generic [ref=e110]:
+          - heading [level=1] [ref=e111]:
+            - strong [ref=e112]: Recomendados
+            - text: para ti
+          - generic [ref=e113]:
+            - generic [ref=e114] [cursor=pointer]:
+              - link [ref=e115]:
+                - /url: https://bsc.local/product/advanced-snail-92-all-in-one-cream/
+                - img "Peel Shot Exfoliating White Rice Ampoule DR.MELAXIN" [ref=e116]
+              - generic [ref=e117]:
+                - generic [aria-hidden] [ref=e118]: 
+                - generic [aria-hidden] [ref=e119]: 
+                - generic [aria-hidden] [ref=e120]: 
+                - generic [aria-hidden] [ref=e121]: 
+                - generic [aria-hidden] [ref=e122]: 
+              - link "Peel Shot Exfoliating White Rice Ampoule DR.MELAXIN" [ref=e124]:
+                - /url: https://bsc.local/product/advanced-snail-92-all-in-one-cream/
+              - generic [ref=e125]: DR. MELAXIN
+              - generic [ref=e126]: $ 158.900
+              - button "¡Lo quiero!" [ref=e129]
+            - generic [ref=e130] [cursor=pointer]:
+              - link [ref=e131]:
+                - /url: https://bsc.local/product/4-8/
+                - img "Marine Care Algae + Peptide Eye Cream HEIMISH" [ref=e132]
+              - generic [ref=e133]:
+                - generic [aria-hidden] [ref=e134]: 
+                - generic [aria-hidden] [ref=e135]: 
+                - generic [aria-hidden] [ref=e136]: 
+                - generic [aria-hidden] [ref=e137]: 
+                - generic [aria-hidden] [ref=e138]: 
+              - link "Marine Care Algae + Peptide Eye Cream HEIMISH" [ref=e140]:
+                - /url: https://bsc.local/product/4-8/
+              - generic [ref=e141]: HEIMISH
+              - generic [ref=e142]: $ 125.900
+              - button "¡Lo quiero!" [ref=e145]
+            - generic [ref=e146] [cursor=pointer]:
+              - link [ref=e147]:
+                - /url: https://bsc.local/product/4-6/
+                - img "Madagascar Centella Light Cleansing Oil SKIN1004" [ref=e148]
+              - generic [ref=e149]:
+                - generic [aria-hidden] [ref=e150]: 
+                - generic [aria-hidden] [ref=e151]: 
+                - generic [aria-hidden] [ref=e152]: 
+                - generic [aria-hidden] [ref=e153]: 
+                - generic [aria-hidden] [ref=e154]: 
+              - link "Madagascar Centella Light Cleansing Oil SKIN1004" [ref=e156]:
+                - /url: https://bsc.local/product/4-6/
+              - generic [ref=e157]: SKIN1004
+              - generic [ref=e158]: $ 99.900
+              - button "¡Lo quiero!" [ref=e161]
+            - generic [ref=e162] [cursor=pointer]:
+              - link [ref=e163]:
+                - /url: https://bsc.local/product/1-9/
+                - img "Madagascar Centella Tea-Trica BHA Foam SKIN1004" [ref=e164]
+              - generic [ref=e165]:
+                - generic [aria-hidden] [ref=e166]: 
+                - generic [aria-hidden] [ref=e167]: 
+                - generic [aria-hidden] [ref=e168]: 
+                - generic [aria-hidden] [ref=e169]: 
+                - generic [aria-hidden] [ref=e170]: 
+              - link "Madagascar Centella Tea-Trica BHA Foam SKIN1004" [ref=e172]:
+                - /url: https://bsc.local/product/1-9/
+              - generic [ref=e173]: SKIN1004
+              - generic [ref=e174]: $ 78.900
+              - button "¡Lo quiero!" [ref=e177]
+            - generic [ref=e178] [cursor=pointer]:
+              - link [ref=e179]:
+                - /url: https://bsc.local/product/16/
+                - img "Madagascar Centella Poremizing Deep Cleansing Foam SKIN1004" [ref=e180]
+              - generic [ref=e181]:
+                - generic [aria-hidden] [ref=e182]: 
+                - generic [aria-hidden] [ref=e183]: 
+                - generic [aria-hidden] [ref=e184]: 
+                - generic [aria-hidden] [ref=e185]: 
+                - generic [aria-hidden] [ref=e186]: 
+              - link "Madagascar Centella Poremizing Deep Cleansing Foam SKIN1004" [ref=e188]:
+                - /url: https://bsc.local/product/16/
+              - generic [ref=e189]: SKIN1004
+              - generic [ref=e190]: $ 78.900
+              - button "¡Lo quiero!" [ref=e193]
+    - contentinfo [ref=e194]:
+      - generic [ref=e195]:
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - heading [level=2] [ref=e198]:
+              - link "Bubbles Skin Care" [ref=e199] [cursor=pointer]:
+                - /url: https://bsc.local/
+            - list [ref=e201]:
+              - listitem [ref=e202]:
+                - link "Envíos y devoluciones" [ref=e203] [cursor=pointer]:
+                  - /url: https://bsc.local/shipping-returns/
+              - listitem [ref=e204]:
+                - link "Preguntas frecuentes" [ref=e205] [cursor=pointer]:
+                  - /url: https://bsc.local/faq/
+              - listitem [ref=e206]:
+                - link "Contacto" [ref=e207] [cursor=pointer]:
+                  - /url: https://bsc.local/contact-us/
+          - generic [ref=e208]:
+            - heading [level=2] [ref=e209]:
+              - link "K-Beauty" [ref=e210] [cursor=pointer]:
+                - /url: https://bsc.local/shop/
+            - list [ref=e212]:
+              - listitem [ref=e213]:
+                - link "Entrega inmediata" [ref=e214] [cursor=pointer]:
+                  - /url: https://bsc.local/product-category/
+              - listitem [ref=e215]:
+                - link "Encargos" [ref=e216] [cursor=pointer]:
+                  - /url: https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubble%20Skin%20Care%21%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97%20Quiero%20hacer%20un%20encargo.
+          - generic [ref=e217]:
+            - heading [level=2] [ref=e218]:
+              - link "Mi cuenta" [ref=e219] [cursor=pointer]:
+                - /url: https://bsc.local/my-account/orders/
+            - list [ref=e221]:
+              - listitem [ref=e222]:
+                - link "Mis puntos" [ref=e223] [cursor=pointer]:
+                  - /url: https://bsc.local/mi-cuenta/bubble-points/
+              - listitem [ref=e224]:
+                - link "Pedidos" [ref=e225] [cursor=pointer]:
+                  - /url: https://bsc.local/my-account/orders/
+          - generic [ref=e226]:
+            - heading "Programas" [level=2] [ref=e227]
+            - list [ref=e229]:
+              - listitem [ref=e230]:
+                - link "Bubble Creators" [ref=e231] [cursor=pointer]:
+                  - /url: https://bsc.local/bubble-creators/
+              - listitem [ref=e232]:
+                - link "Skin Quiz" [ref=e233] [cursor=pointer]:
+                  - /url: https://bsc.local/skin-quiz/
+        - generic [ref=e235]:
+          - link [ref=e237] [cursor=pointer]:
+            - /url: https://bsc.local/
+            - img "Logo de Bubbles Skin Care" [ref=e238]
+          - generic [ref=e239]:
+            - link "Instagram" [ref=e240] [cursor=pointer]:
+              - /url: https://www.instagram.com/bubbles.skincare/
+              - generic [ref=e241]: 
+            - link "TikTok" [ref=e242] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@bubblesskincare
+              - generic [ref=e243]: 
+          - paragraph [ref=e245]:
+            - strong [ref=e246]: © 2020 - 2026 BSC | Bubbles Skin Care
+            - text: Todos los derechos reservados
+        - link "Ir al checkout con 0 productos" [ref=e247] [cursor=pointer]:
+          - /url: https://bsc.local/checkout/
+          - generic [aria-hidden] [ref=e248]: 
+          - generic [ref=e249]: "0"
+        - link "Contactar por WhatsApp" [ref=e250] [cursor=pointer]:
+          - /url: https://api.whatsapp.com/send?phone=573156922859&text=%C2%A1Hola%20Bubble%20Skin%20Care%21%20%F0%9F%8C%88%E2%9C%A8%F0%9F%92%97%20Quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos.
+          - generic [aria-hidden] [ref=e251]: 
+          - generic [ref=e252]: WhatsApp
+  - status [ref=e253]

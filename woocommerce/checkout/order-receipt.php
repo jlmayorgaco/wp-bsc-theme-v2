@@ -28,7 +28,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</li>
 	<li class="date">
 		<span><?php esc_html_e( 'Fecha', 'bsc-2-0' ); ?></span>
-		<strong><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></strong>
+		<?php $bsc_order_date = $order->get_date_created(); ?>
+		<strong><?php echo esc_html( $bsc_order_date ? bsc_format_date_es( $bsc_order_date ) : '' ); ?></strong>
 	</li>
 	<?php if ( $order->get_payment_method_title() ) : ?>
 	<li class="method">

@@ -21,7 +21,7 @@ $footer-colors: (
   whatsapp-bg: #bae5f1,
   whatsapp-border: #bae5f1,
   whatsapp-hover: #fff3c2,
-  cart-bg: #ffffff
+  cart-bg: var(--color--main)
 );
 
 $footer-layout: (
@@ -386,7 +386,7 @@ $breakpoints: (
       width: footer-floating(cart-badge-size);
       height: footer-floating(cart-badge-size);
       border-radius: 50%;
-      background: var(--color--main);
+      background: #ffffff;
       color: var(--color--text);
       font-size: 12px;
       line-height: footer-floating(cart-badge-size);

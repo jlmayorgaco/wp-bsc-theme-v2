@@ -8,13 +8,13 @@ DB_USER="bsc_user"
 DB_PASS="secure_password_here"
 
 SITE_NAME="Bubble Skin Care"
-SITE_URL="https://bubbleskincare.co"
+SITE_URL="https://bubblesskincare.com"
 
 WP_ROOT="/var/www/html"
 BACKUP_LOCAL="/backups/bsc"
 REMOTE_DEST="user@backup-server:/backups/bsc"
 LOG_FILE="/var/log/bsc-backup.log"
-ADMIN_EMAIL="admin@bubbleskincare.co"
+ADMIN_EMAIL="admin@bubblesskincare.com"
 
 # Default retention. Can be overridden per backup class below.
 RETENTION_DAYS=30

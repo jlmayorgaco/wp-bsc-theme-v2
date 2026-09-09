@@ -27,7 +27,7 @@ require __DIR__ . '/bsc-email-header.php';
 
 bsc_email_render_message(
 	sprintf(
-		'Hola <strong>%s</strong>, guardamos los productos que estabas mirando<br>para que puedas terminar tu compra cuando quieras.<br>Tu rutina coreana todavía puede llegar a casa :)',
+		'Hola <strong>%s</strong>, guardamos los productos que estabas mirando para que puedas terminar tu compra cuando quieras. Tu rutina coreana todavía puede llegar a casa :)',
 		esc_html( $customer_name )
 	),
 	24,

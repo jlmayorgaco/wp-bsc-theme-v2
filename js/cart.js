@@ -539,6 +539,51 @@ jQuery(function ($) {
     $btn.addClass('bsc__button-add-to-cart--hidden');
   }
 
+  function showAddToCartToast($controls) {
+    const $productCart = $controls.closest('.bsc__product-cart');
+
+    if (!$productCart.closest('.bsc__product--page').length) return;
+
+    let $toast = $productCart.find('.bsc__add-to-cart-toast').first();
+
+    if (!$toast.length) {
+      $toast = $('<div>', {
+        class: 'bsc__add-to-cart-toast',
+        role: 'status',
+        'aria-live': 'polite',
+        'aria-atomic': 'true',
+        'aria-hidden': 'true',
+      });
+
+      $('<span>', {
+        class: 'bsc__add-to-cart-toast__message',
+        text: 'Añadido a tu carrito.',
+      }).appendTo($toast);
+
+      $('<span>', {
+        class: 'bsc__add-to-cart-toast__progress',
+        'aria-hidden': 'true',
+      }).appendTo($toast);
+
+      $productCart.append($toast);
+    }
+
+    const previousTimer = $toast.data('bscHideTimer');
+    if (previousTimer) window.clearTimeout(previousTimer);
+
+    $toast.removeClass('is-visible').attr('aria-hidden', 'true');
+    void $toast[0].offsetWidth;
+    $productCart.addClass('has-add-to-cart-toast');
+    $toast.addClass('is-visible').attr('aria-hidden', 'false');
+
+    const hideTimer = window.setTimeout(() => {
+      $toast.removeClass('is-visible').attr('aria-hidden', 'true');
+      $productCart.removeClass('has-add-to-cart-toast');
+    }, 2000);
+
+    $toast.data('bscHideTimer', hideTimer);
+  }
+
   function syncSelectedVariantCartState($options, variant) {
     if (!variantAvailable(variant)) return;
 
@@ -779,6 +824,7 @@ jQuery(function ($) {
 
     if (hasVariantOptions) {
       showQuantityControls($btn);
+      showAddToCartToast($btn.siblings(SELECTORS.quantityControls).first());
 
       if (safeFragments['a.cart-contents']) {
         $('a.cart-contents').replaceWith(safeFragments['a.cart-contents']);
@@ -803,6 +849,7 @@ jQuery(function ($) {
     if ($btn.siblings(SELECTORS.quantityControls).length) return;
 
     showQuantityControls($btn);
+    showAddToCartToast($btn.siblings(SELECTORS.quantityControls).first());
 
     // a.cart-contents is not rendered in the BSC header; replaceWith is a no-op
     // but kept for forward-compatibility if header ever adds the fragment

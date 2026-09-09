@@ -345,11 +345,11 @@ if ( ! function_exists( 'bsc_email_render_tracking_ticket' ) ) {
 									<td style="padding:0;">
 										<table role="presentation" cellpadding="0" cellspacing="0" border="0">
 											<tr>
-												<td width="34" style="padding:0 8px 0 0;">
-													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', 30, '' ); ?>
+												<td width="53" class="bsc-email-coupon-check" style="padding:0 8px 0 0;">
+													<?php bsc_email_render_asset_img( 'bsc-email-coupon-check-pink.png', 53, '' ); ?>
 												</td>
 												<td class="bsc-email-section-title" style="color:#303030;<?php echo esc_attr( bsc_email_typography_style( 'section-title' ) ); ?>white-space:nowrap;">
-													Pedido enviado!
+													Copia y pega tu track:
 												</td>
 											</tr>
 										</table>
@@ -441,9 +441,10 @@ if ( ! function_exists( 'bsc_email_render_product_grid' ) ) {
 					<tr>
 						<?php foreach ( $products as $product ) : ?>
 							<?php
-							$name      = (string) ( $product['name'] ?? '' );
-							$url       = (string) ( $product['url'] ?? bsc_email_shop_url() );
-							$image_url = (string) ( $product['image_url'] ?? '' );
+							$name         = (string) ( $product['name'] ?? '' );
+							$url          = (string) ( $product['url'] ?? bsc_email_shop_url() );
+							$image_url    = (string) ( $product['image_url'] ?? '' );
+							$button_label = sanitize_text_field( (string) ( $product['button_label'] ?? 'Ver producto' ) );
 							if ( function_exists( 'bsc_email_publicize_url' ) ) {
 								$url = bsc_email_publicize_url( $url );
 							}
@@ -460,7 +461,7 @@ if ( ! function_exists( 'bsc_email_render_product_grid' ) ) {
 									<?php endif; ?>
 									<span class="bsc-email-body-copy" style="color:#303030;display:block;<?php echo esc_attr( bsc_email_typography_style( 'body' ) ); ?>font-weight:900;min-height:38px;text-align:center;"><?php echo esc_html( $name ); ?></span>
 								</a>
-								<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button" style="background:#cceff7;border-radius:18px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>margin-top:14px;padding:8px 28px;text-align:center;text-decoration:none;white-space:nowrap;">¡ Re stock !</a>
+								<a href="<?php echo esc_url( $url ); ?>" class="bsc-email-button" style="background:#cceff7;border-radius:18px;color:#303030;display:inline-block;<?php echo esc_attr( bsc_email_typography_style( 'button' ) ); ?>margin-top:14px;padding:8px 28px;text-align:center;text-decoration:none;white-space:nowrap;"><?php echo esc_html( $button_label ); ?></a>
 							</td>
 						<?php endforeach; ?>
 					</tr>

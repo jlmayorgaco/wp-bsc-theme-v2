@@ -309,8 +309,8 @@ Pre-flight:
 - Ejecutar search-replace dry-run para detectar URLs locales en DB antes de deploy:
 
 ```bash
-wp search-replace 'http://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
-wp search-replace 'https://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'http://bsc.local' 'https://bubblesskincare.com' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'https://bsc.local' 'https://bubblesskincare.com' --all-tables --precise --dry-run --path=/var/www/html
 ```
 
 - Confirmar en `BSC > Configuracion`: email de contacto, email Bubble Creators, nombre/email remitente y retencion de formularios.
@@ -390,8 +390,8 @@ Pre-deploy servidor:
 ```bash
 wp option get home --path=/var/www/html
 wp option get siteurl --path=/var/www/html
-wp search-replace 'http://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
-wp search-replace 'https://bsc.local' 'https://bubbleskincare.co' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'http://bsc.local' 'https://bubblesskincare.com' --all-tables --precise --dry-run --path=/var/www/html
+wp search-replace 'https://bsc.local' 'https://bubblesskincare.com' --all-tables --precise --dry-run --path=/var/www/html
 ```
 
 Si el dry-run reporta cambios en tablas de contenido, coordinar ventana de mantenimiento y ejecutar search-replace real despues del backup.
@@ -569,7 +569,7 @@ Media:
 
 Monitoreo externo:
 
-- UptimeRobot o equivalente cada 5 minutos para `https://bubbleskincare.co`.
+- UptimeRobot o equivalente cada 5 minutos para `https://bubblesskincare.com`.
 - Alertas por email del equipo.
 - Panel interno: `BSC > Monitoreo` (`/wp-admin/admin.php?page=bsc-monitoring`) para checklist diario, owner, procedimiento, pedidos fallidos, emails, cron y rate limits.
 
