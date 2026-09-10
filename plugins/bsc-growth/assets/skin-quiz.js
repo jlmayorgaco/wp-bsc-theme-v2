@@ -3816,7 +3816,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ctx.fillStyle = '#1a1a1a';
     ctx.font = '800 24px Helvetica, Arial, sans-serif';
-    ctx.fillText('bubbleskincare.com/skin-quiz', 60, previewY + previewHeight + 50);
+    ctx.fillText('bubblesskincare.com/skin-quiz', 60, previewY + previewHeight + 50);
 
     ctx.fillStyle = '#8a7a80';
     ctx.font = '700 16px Helvetica, Arial, sans-serif';

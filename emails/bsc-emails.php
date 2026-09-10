@@ -90,7 +90,7 @@ function bsc_send_order_email( int $order_id, string $status, array $extra = arr
 		? bsc_get_email_headers()
 		: array(
 			'Content-Type: text/html; charset=UTF-8',
-			'From: Bubble Skin Care <noreply@bubbleskincare.co>',
+			'From: Bubble Skin Care <noreply@bubblesskincare.com>',
 		);
 
 	$sent = wp_mail( $to, $subject, $body, $headers );

@@ -880,6 +880,10 @@ function bsc_render_followup_emails_page(): void {
 
 		if ( isset( $_POST['bsc_save_followup_emails'] ) ) {
 			bsc_save_email_transport_settings_from_post();
+			$previous_inactivity_months = bsc_get_inactivity_followup_months();
+			$previous_repurchase_days   = bsc_get_repurchase_inactivity_days();
+			$inactivity_months          = max( 1, absint( wp_unslash( $_POST['bsc_inactive_email_months'] ?? $defaults['bsc_inactive_email_months'] ) ) );
+			$repurchase_days            = max( 1, absint( wp_unslash( $_POST['bsc_repurchase_inactivity_days'] ?? $defaults['bsc_repurchase_inactivity_days'] ) ) );
 
 			update_option( 'bsc_followup_emails_enabled', isset( $_POST['bsc_followup_emails_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_welcome_email_enabled', isset( $_POST['bsc_welcome_email_enabled'] ) ? 1 : 0 );
@@ -887,9 +891,13 @@ function bsc_render_followup_emails_page(): void {
 			update_option( 'bsc_password_changed_email_enabled', isset( $_POST['bsc_password_changed_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_birthday_email_enabled', isset( $_POST['bsc_birthday_email_enabled'] ) ? 1 : 0 );
 			update_option( 'bsc_inactive_email_enabled', isset( $_POST['bsc_inactive_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_inactive_email_days', max( 1, absint( wp_unslash( $_POST['bsc_inactive_email_days'] ?? $defaults['bsc_inactive_email_days'] ) ) ) );
+			update_option( 'bsc_inactive_email_months', $inactivity_months );
 			update_option( 'bsc_repurchase_email_enabled', isset( $_POST['bsc_repurchase_email_enabled'] ) ? 1 : 0 );
-			update_option( 'bsc_default_repurchase_days', max( 1, absint( wp_unslash( $_POST['bsc_default_repurchase_days'] ?? $defaults['bsc_default_repurchase_days'] ) ) ) );
+			update_option( 'bsc_repurchase_inactivity_days', $repurchase_days );
+
+			if ( $previous_inactivity_months !== $inactivity_months || $previous_repurchase_days !== $repurchase_days ) {
+				bsc_reschedule_pending_followup_states();
+			}
 
 			$notice = 'Configuración guardada.';
 		}
@@ -1347,30 +1355,31 @@ function bsc_render_followup_emails_page(): void {
 					</td>
 				</tr>
 				<tr>
-					<th>Hace mucho no compras</th>
+					<th>Te extrañamos en Bubbles</th>
 					<td>
 						<label>
 							<input type="checkbox" name="bsc_inactive_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_inactive_email_enabled' ), 1 ); ?>>
-							Activar recordatorio por inactividad
+							Enviar si el cliente continúa sin comprar
 						</label>
 						<p class="bsc-admin-followup__inline-setting">
-							<input type="number" min="1" step="1" name="bsc_inactive_email_days" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_inactive_email_days' ) ); ?>" class="small-text">
-							días desde la última compra
+							<input type="number" min="1" step="1" name="bsc_inactive_email_months" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_inactive_email_months' ) ); ?>" class="small-text">
+							meses desde la última compra
 						</p>
+						<p class="description">Segundo seguimiento después del correo de recomendaciones de los 90 días.</p>
 					</td>
 				</tr>
 				<tr>
-					<th>Se te acabó el producto</th>
+					<th>Complementa tu rutina coreana</th>
 					<td>
 						<label>
 							<input type="checkbox" name="bsc_repurchase_email_enabled" value="1" <?php checked( (int) bsc_get_followup_email_setting( 'bsc_repurchase_email_enabled' ), 1 ); ?>>
-							Activar recordatorio de recompra
+							Enviar recomendaciones según la última compra y el stock actual
 						</label>
 						<p class="bsc-admin-followup__inline-setting">
-							<input type="number" min="1" step="1" name="bsc_default_repurchase_days" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' ) ); ?>" class="small-text">
-							días por defecto para productos sin override
+							<input type="number" min="1" step="1" name="bsc_repurchase_inactivity_days" value="<?php echo esc_attr( (string) bsc_get_followup_email_setting( 'bsc_repurchase_inactivity_days' ) ); ?>" class="small-text">
+							días sin una nueva compra
 						</p>
-						<p class="description">Cada producto puede sobreescribir este timeout desde el editor BSC.</p>
+						<p class="description">Se envía una vez por la última orden y recomienda hasta tres productos en stock de categorías similares.</p>
 					</td>
 				</tr>
 			</table>
@@ -1385,7 +1394,9 @@ function bsc_render_followup_emails_page(): void {
 					Ejecutado: <?php echo esc_html( $run_now_summary['ran_at'] ?? '' ); ?> |
 					Cumpleaños: <?php echo esc_html( (string) ( $run_now_summary['birthday'] ?? 0 ) ); ?> |
 					Inactividad: <?php echo esc_html( (string) ( $run_now_summary['inactive'] ?? 0 ) ); ?> |
-					Recompra: <?php echo esc_html( (string) ( $run_now_summary['repurchase'] ?? 0 ) ); ?>
+					Recompra: <?php echo esc_html( (string) ( $run_now_summary['repurchase'] ?? 0 ) ); ?> |
+					Órdenes migradas: <?php echo esc_html( (string) ( $run_now_summary['backfill_orders'] ?? 0 ) ); ?>
+					(<?php echo ! empty( $run_now_summary['backfill_complete'] ) ? 'completa' : 'en progreso'; ?>)
 				</p>
 			</div>
 		<?php endif; ?>
@@ -1397,7 +1408,9 @@ function bsc_render_followup_emails_page(): void {
 					Fecha: <strong><?php echo esc_html( (string) ( $last_run['ran_at'] ?? '' ) ); ?></strong><br>
 					Cumpleaños: <?php echo esc_html( (string) ( $last_run['birthday'] ?? 0 ) ); ?><br>
 					Inactividad: <?php echo esc_html( (string) ( $last_run['inactive'] ?? 0 ) ); ?><br>
-					Recompra: <?php echo esc_html( (string) ( $last_run['repurchase'] ?? 0 ) ); ?>
+					Recompra: <?php echo esc_html( (string) ( $last_run['repurchase'] ?? 0 ) ); ?><br>
+					Migración de órdenes: <?php echo ! empty( $last_run['backfill_complete'] ) ? 'completa' : 'en progreso'; ?>
+					(<?php echo esc_html( (string) ( $last_run['backfill_orders'] ?? 0 ) ); ?> procesadas en esta ejecución)
 				</p>
 			<?php else : ?>
 				<p>No hay ejecuciones registradas todavía.</p>

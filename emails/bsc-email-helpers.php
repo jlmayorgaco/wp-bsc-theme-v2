@@ -480,14 +480,14 @@ function bsc_get_email_template_manifest(): array {
 		),
 		array(
 			'slug'    => 'followup-inactive',
-			'label'   => 'Hace mucho no compras',
-			'trigger' => 'Cron diario segun ultima compra',
+			'label'   => 'Te extrañamos en Bubbles',
+			'trigger' => 'Cron diario tras 5 meses sin comprar',
 			'file'    => 'bsc-followup-inactive.php',
 		),
 		array(
 			'slug'    => 'followup-repurchase',
-			'label'   => 'Se te acabo el producto',
-			'trigger' => 'Cron diario segun timeout por producto',
+			'label'   => 'Complementa tu rutina coreana',
+			'trigger' => 'Cron diario segun inactividad desde la ultima compra',
 			'file'    => 'bsc-followup-repurchase.php',
 		),
 		array(

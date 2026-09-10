@@ -20,7 +20,7 @@ if ( ! defined( '_S_VERSION' ) ) {
 }
 
 if ( ! defined( 'BSC_CONTACT_EMAIL' ) ) {
-	define( 'BSC_CONTACT_EMAIL', 'contacto@bubbleskincare.co' );
+	define( 'BSC_CONTACT_EMAIL', 'contacto@bubblesskincare.com' );
 }
 
 // Setup.

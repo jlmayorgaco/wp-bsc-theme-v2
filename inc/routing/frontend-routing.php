@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Redirect anonymous account-page visitors to the custom login page.
+ * Check whether the current request is a WooCommerce password reset.
  */
 function bsc_is_account_password_reset_request(): bool {
 	global $wp;
@@ -20,6 +20,9 @@ function bsc_is_account_password_reset_request(): bool {
 	return isset( $wp->query_vars['lost-password'] );
 }
 
+/**
+ * Redirect anonymous account-page visitors to the custom login page.
+ */
 function bsc_redirect_my_account_guests() {
 	if (
 		function_exists( 'is_account_page' )
@@ -47,7 +50,7 @@ function bsc_is_local_storefront_request(): bool {
 	$raw_host = isset( $_SERVER['HTTP_HOST'] ) ? (string) wp_unslash( $_SERVER['HTTP_HOST'] ) : '';
 	$host     = wp_parse_url( 'http://' . $raw_host, PHP_URL_HOST );
 
-	return is_string( $host ) && 'bsc.local' === strtolower( rtrim( $host, '.' ) ); // bsc-local-host-exception
+	return is_string( $host ) && 'bsc.local' === strtolower( rtrim( $host, '.' ) ); // bsc-local-host-exception.
 }
 
 /**
@@ -72,12 +75,37 @@ function bsc_is_parking_page_enabled(): bool {
 }
 
 /**
+ * Purge page caches whenever the BSC parking mode changes.
+ *
+ * WordOps can otherwise keep serving the previous storefront state from its
+ * Nginx FastCGI cache even after the WordPress option has been updated.
+ */
+function bsc_purge_parking_page_cache(): void {
+	wp_cache_flush();
+
+	/**
+	 * Ask Nginx Helper (used by WordOps FastCGI cache) to purge every cached URL.
+	 * The action is harmless when Nginx Helper is not installed.
+	 */
+	do_action( 'rt_nginx_helper_purge_all' );
+}
+add_action( 'update_option_bsc_parking_page_enabled', 'bsc_purge_parking_page_cache', 10, 0 );
+
+/**
+ * Prevent the temporary parking response from entering a page cache.
+ */
+function bsc_send_parking_page_nocache_headers(): void {
+	nocache_headers();
+	header( 'X-Accel-Expires: 0' );
+}
+
+/**
  * Check whether the current request must stay accessible while parking is enabled.
  */
 function bsc_is_parking_page_auth_request(): bool {
 	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Normalized for path comparison only.
-	$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
-	$request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+	$request_uri   = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$request_path  = wp_parse_url( $request_uri, PHP_URL_PATH );
 	$request_query = wp_parse_url( $request_uri, PHP_URL_QUERY );
 
 	if ( ! is_string( $request_path ) ) {
@@ -179,6 +207,7 @@ function bsc_maybe_render_parking_page(): void {
 	$template = get_stylesheet_directory() . '/woocommerce/coming-soon.php';
 
 	if ( file_exists( $template ) ) {
+		bsc_send_parking_page_nocache_headers();
 		include $template;
 		exit;
 	}

@@ -814,16 +814,6 @@ function bsc_render_product_edit_page(): void {
 
 		update_post_meta( $product_id, '_envio_tipo', $envio_tipo );
 
-		$repurchase_days_raw = isset( $_POST['_bsc_repurchase_days'] )
-			? trim( (string) sanitize_text_field( wp_unslash( $_POST['_bsc_repurchase_days'] ) ) )
-			: '';
-
-		if ($repurchase_days_raw === '') {
-			delete_post_meta( $product_id, '_bsc_repurchase_days' );
-		} else {
-			update_post_meta( $product_id, '_bsc_repurchase_days', max( 1, intval( $repurchase_days_raw ) ) );
-		}
-
 		wp_safe_redirect( admin_url( 'admin.php?page=bsc-products&saved=1' ) );
 		exit;
 	}
@@ -844,7 +834,6 @@ function bsc_render_product_edit_page(): void {
 	$gallery                 = $product->get_gallery_image_ids();
 	$thumbnail_id            = get_post_thumbnail_id( $product_id );
 	$thumbnail_src           = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'medium' ) : '';
-	$repurchase_days         = (string) get_post_meta( $product_id, '_bsc_repurchase_days', true );
 	$color_variants_enabled  = '1' === (string) get_post_meta( $product_id, '_bsc_color_variants_enabled', true );
 	$color_variants          = bsc_product_edit_get_color_variants( $product_id );
 	$size_variants_enabled   = '1' === (string) get_post_meta( $product_id, '_bsc_size_variants_enabled', true );
@@ -897,9 +886,6 @@ function bsc_render_product_edit_page(): void {
 				'enabled'       => true,
 			),
 		) );
-	$default_repurchase_days = function_exists( 'bsc_get_followup_email_setting' )
-		? (int) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' )
-		: 30;
 	$all_tags                = wp_get_object_terms( $product_id, 'product_tag', array( 'fields' => 'names' ) );
 
 	$cover_fields = array(
@@ -1325,26 +1311,6 @@ function bsc_render_product_edit_page(): void {
 								</select>
 							</label>
 						</div>
-					</div>
-
-					<div class="postbox bsc-admin-product-edit__card">
-						<h2 class="bsc-admin-product-edit__section-title">Emails de seguimiento</h2>
-
-						<label class="bsc-admin-product-edit__field">
-							<span class="bsc-admin-product-edit__field-label">Dias para recompra</span>
-							<input
-								type="number"
-								min="1"
-								step="1"
-								name="_bsc_repurchase_days"
-								value="<?php echo esc_attr( $repurchase_days ); ?>"
-								placeholder="<?php echo esc_attr( (string) $default_repurchase_days ); ?>"
-								class="bsc-admin-product-edit__number-input bsc-admin-product-edit__number-input--wide"
-							>
-							<span class="bsc-admin-product-edit__field-note">
-								Dejalo vacio para usar el valor global del modulo Emails: <?php echo esc_html( (string) $default_repurchase_days ); ?> dias.
-							</span>
-						</label>
 					</div>
 
 					<div class="postbox bsc-admin-product-edit__card">

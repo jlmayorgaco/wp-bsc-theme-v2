@@ -13,21 +13,10 @@
 
   .bsc__checkout-logo {
     display: block;
-    width: 240px;
+    width: 288px;
     max-width: 100%;
     height: auto;
     margin: 0 auto 24px;
-  }
-
-  .bsc__title {
-    padding: 0;
-    margin-bottom: 32px;
-    font-size: clamp(23px, 3vw, 30px);
-    line-height: 1.3;
-
-    &::after {
-      margin-top: 20px;
-    }
   }
 
   .bsc__order-pay-form {
@@ -261,7 +250,7 @@
     padding: 32px 16px 48px;
 
     .bsc__checkout-logo {
-      width: 200px;
+      width: 240px;
     }
 
     .bsc__order-pay-form {

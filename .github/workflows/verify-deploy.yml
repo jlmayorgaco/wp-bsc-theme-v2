@@ -35,8 +35,8 @@ jobs:
               exit 0
             fi
 
-            # Bootstrap: the previous deploy.php did not publish this file.
-            # Confirm the first hotfix by its no-cache response contract.
+            # Compatibilidad mientras deploy-version.txt no este publicado:
+            # confirmar al menos el contrato no-cache de la tienda actualizada.
             if [ -z "$live" ]; then
               curl -fsS --max-time 20 -o /dev/null "$SITE/purge/" || true
               headers=$(mktemp)

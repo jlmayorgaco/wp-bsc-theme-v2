@@ -7,12 +7,12 @@
     "WooCommerce",
     "Bubble Skin Care"
   ],
-  "homepage": "https://bubbleskincare.co",
+  "homepage": "https://bubblesskincare.com",
   "license": "GPL-2.0-or-later",
   "authors": [
     {
       "name": "Bubble Skin Care",
-      "homepage": "https://bubbleskincare.co"
+      "homepage": "https://bubblesskincare.com"
     }
   ],
   "require": {

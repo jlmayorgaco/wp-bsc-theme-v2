@@ -1,6 +1,6 @@
 const { expect, test } = require('@playwright/test');
 const { fixture } = require('../helpers/env');
-const { gotoAndStabilize, loginToWpAdmin } = require('../helpers/ui');
+const { gotoAndStabilize, loginToWpAdmin, watchConsoleErrors } = require('../helpers/ui');
 
 const previewCases = [
   { slug: 'welcome', expected: 'Bienvenido Bubble Lover' },
@@ -13,7 +13,7 @@ const previewCases = [
   { slug: 'order-delivered', expected: 'Tu pedido fue entregado' },
   { slug: 'order-cancelled', expected: 'Tu pedido fue cancelado' },
   { slug: 'followup-inactive', expected: 'Te extra' },
-  { slug: 'followup-repurchase', expected: 'Tu rutina puede estar por acabarse' },
+  { slug: 'followup-repurchase', expected: 'Tenemos nuevas opciones para tu rutina' },
   { slug: 'abandoned-cart', expected: 'Tu carrito BSC te espera' },
 ];
 
@@ -165,6 +165,9 @@ test.describe('BSC visual baseline - email previews', () => {
 
   for (const previewCase of previewCases) {
     test(`${previewCase.slug} preview`, async ({ page }, testInfo) => {
+      const consoleWatcher = previewCase.slug === 'order-shipped'
+        ? watchConsoleErrors(page)
+        : null;
       const adminFixture =
         fixture?.adminVariants?.[testInfo.project.name] || fixture?.admin || null;
 
@@ -308,9 +311,23 @@ test.describe('BSC visual baseline - email previews', () => {
       }
 
       if (previewCase.slug === 'order-shipped') {
+        const previewUrl = new URL(page.url());
+        expect(previewUrl.pathname, 'tracking preview must use the admin preview endpoint').toBe(
+          '/wp-admin/admin-post.php'
+        );
+        expect(previewUrl.searchParams.get('action')).toBe('bsc_preview_email');
+        expect(previewUrl.searchParams.get('template')).toBe('order-shipped');
+        await expect(page).toHaveTitle(/Tu pedido esta en camino/i);
+        await expect(page.locator('body')).toContainText('Copia y pega tu track:');
+        await expect(
+          page.locator('#vite-error-overlay, [data-nextjs-dialog-overlay], nextjs-portal')
+        ).toHaveCount(0);
+
         const trackingMetrics = await page.evaluate(() => {
           const card = document.querySelector('.bsc-email-tracking-card');
+          const check = document.querySelector('.bsc-email-tracking-card .bsc-email-coupon-check img');
           const content = document.querySelector('.bsc-email-tracking-content');
+          const headline = document.querySelector('.bsc-email-tracking-card .bsc-email-section-title');
           const button = document.querySelector('.bsc-email-tracking-button');
           const cardBounds = card.getBoundingClientRect();
           const buttonBounds = button.getBoundingClientRect();
@@ -320,6 +337,9 @@ test.describe('BSC visual baseline - email previews', () => {
             borderWidth: getComputedStyle(card).borderTopWidth,
             buttonLeftGap: Math.round(buttonBounds.left - cardBounds.left),
             buttonRightGap: Math.round(cardBounds.right - buttonBounds.right),
+            checkFile: new URL(check.src).pathname.split('/').pop(),
+            checkWidth: Math.round(check.getBoundingClientRect().width),
+            headline: headline.textContent.trim(),
             paddingLeft: contentStyle.paddingLeft,
             paddingRight: contentStyle.paddingRight,
             tableLayout: getComputedStyle(card).tableLayout,
@@ -327,6 +347,13 @@ test.describe('BSC visual baseline - email previews', () => {
         });
 
         expect(trackingMetrics.borderWidth, 'tracking card border must stay subtle').toBe('1px');
+        expect(trackingMetrics.checkFile, 'tracking must use the shared pink coupon check').toBe(
+          'bsc-email-coupon-check-pink.png'
+        );
+        expect(trackingMetrics.checkWidth, 'tracking check must match the birthday card').toBe(53);
+        expect(trackingMetrics.headline, 'tracking instructions must use the requested copy').toBe(
+          'Copia y pega tu track:'
+        );
         expect(trackingMetrics.paddingLeft, 'tracking content must keep left padding').toBe('18px');
         expect(trackingMetrics.paddingRight, 'tracking content must keep right padding').toBe('18px');
         expect(trackingMetrics.tableLayout, 'tracking card must not expand past the mobile shell').toBe(
@@ -408,6 +435,13 @@ test.describe('BSC visual baseline - email previews', () => {
         animations: 'disabled',
         fullPage: true,
       });
+
+      if (previewCase.slug === 'order-shipped') {
+        const trackingButton = page.locator('.bsc-email-tracking-button');
+        await trackingButton.focus();
+        await expect(trackingButton, 'tracking control must accept keyboard focus').toBeFocused();
+        consoleWatcher.assertNoErrors();
+      }
     });
   }
 });

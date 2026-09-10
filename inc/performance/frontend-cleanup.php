@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Prevent public HTML responses from being stored with short-lived AJAX nonces.
+ * Prevent public HTML responses with short-lived AJAX nonces from being stored.
  *
  * Static assets are served directly by Nginx, so their browser caching remains
  * available. X-Accel-Expires is understood by the WordOps FastCGI cache.

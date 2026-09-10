@@ -19,6 +19,70 @@ function assertMatches(source, pattern, message) {
   }
 }
 
+function collectDomainFiles(dir, files = []) {
+  const ignoredDirs = new Set([
+    '.git',
+    'node_modules',
+    'vendor',
+    'php-vendor',
+    'test-results',
+    'playwright-report',
+  ]);
+  const extensions = new Set([
+    '.css',
+    '.html',
+    '.js',
+    '.json',
+    '.md',
+    '.php',
+    '.scss',
+    '.sh',
+    '.svg',
+    '.txt',
+    '.yaml',
+    '.yml',
+  ]);
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!ignoredDirs.has(entry.name)) {
+        collectDomainFiles(path.join(dir, entry.name), files);
+      }
+      continue;
+    }
+
+    if (entry.isFile() && extensions.has(path.extname(entry.name))) {
+      files.push(path.join(dir, entry.name));
+    }
+  }
+
+  return files;
+}
+
+const domainGuardFile = path.join(rootDir, 'tools', 'test-domain-guards.js');
+const wrongSingleSDomain = new RegExp(`\\b${'bubble' + 'skincare'}\\.(?:co|com)\\b`, 'i');
+const wrongCountryDomain = new RegExp(`\\b${'bubbles' + 'skincare'}\\.co\\b`, 'i');
+const wrongDomainFindings = [];
+
+for (const file of collectDomainFiles(rootDir)) {
+  if (file === domainGuardFile) {
+    continue;
+  }
+
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  lines.forEach((line, index) => {
+    if (wrongSingleSDomain.test(line) || wrongCountryDomain.test(line)) {
+      wrongDomainFindings.push(`${path.relative(rootDir, file)}:${index + 1}`);
+    }
+  });
+}
+
+if (wrongDomainFindings.length) {
+  throw new Error(
+    `Only bubblesskincare.com is allowed as the production domain. Found legacy references at: ${wrongDomainFindings.join(', ')}`,
+  );
+}
+
 const stockSource = read('includes/class-bsc-stock.php');
 assertIncludes(
   stockSource,
@@ -80,4 +144,4 @@ assertIncludes(
   'Bubble Points redemption must write through the ledger.'
 );
 
-console.log('Domain guard tests passed: stock and Bubble Points contracts are intact.');
+console.log('Domain guard tests passed: canonical domain, stock, and Bubble Points contracts are intact.');

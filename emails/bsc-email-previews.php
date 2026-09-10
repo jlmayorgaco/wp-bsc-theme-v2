@@ -45,11 +45,11 @@ function bsc_get_email_preview_definitions(): array {
 			'template' => 'bsc-order-cancelled.php',
 		),
 		'followup-inactive'   => array(
-			'label'    => 'Hace mucho no compras',
+			'label'    => 'Te extrañamos en Bubbles',
 			'template' => 'bsc-followup-inactive.php',
 		),
 		'followup-repurchase' => array(
-			'label'    => 'Se te acabo el producto',
+			'label'    => 'Complementa tu rutina coreana',
 			'template' => 'bsc-followup-repurchase.php',
 		),
 		'abandoned-cart'      => array(
@@ -268,21 +268,27 @@ function bsc_get_email_preview_context( string $slug ): array {
 			);
 
 		case 'followup-repurchase':
-			$preview_products = array();
-			foreach ( array( '15 de enero de 2026', '18 de enero de 2026', '21 de enero de 2026' ) as $ordered_at ) {
+			$preview_products = function_exists( 'bsc_get_repurchase_recommendations_for_order' )
+				? bsc_get_repurchase_recommendations_for_order( $order, 3 )
+				: array();
+
+			if ( empty( $preview_products ) ) {
 				$preview_products[] = array(
-					'name'       => $product->get_name(),
-					'ordered_at' => $ordered_at,
-					'url'        => get_permalink( $product->get_id() ),
-					'image_url'  => $image_url,
+					'id'           => $product->get_id(),
+					'name'         => $product->get_name(),
+					'url'          => get_permalink( $product->get_id() ),
+					'image_url'    => $image_url,
+					'button_label' => 'Ver producto',
 				);
 			}
 
 			return array(
-				'customer_name' => 'Preview Customer',
-				'products'      => $preview_products,
-				'shop_url'      => $shop_url,
-				'account_url'   => $account_url,
+				'customer_name'   => 'Preview Customer',
+				'products'        => $preview_products,
+				'inactivity_days' => 90,
+				'shop_url'        => $shop_url,
+				'account_url'     => $account_url,
+				'order'           => $order,
 			);
 
 		case 'abandoned-cart':

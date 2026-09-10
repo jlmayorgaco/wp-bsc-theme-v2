@@ -32,7 +32,7 @@ load_backup_config() {
     : "${LOG_FILE:?LOG_FILE is required}"
 
     SITE_NAME="${SITE_NAME:-Bubble Skin Care}"
-    SITE_URL="${SITE_URL:-https://bubbleskincare.co}"
+    SITE_URL="${SITE_URL:-https://bubblesskincare.com}"
     RETENTION_DAYS="${RETENTION_DAYS:-30}"
     DB_RETENTION_DAYS="${DB_RETENTION_DAYS:-$RETENTION_DAYS}"
     FULL_RETENTION_DAYS="${FULL_RETENTION_DAYS:-$RETENTION_DAYS}"

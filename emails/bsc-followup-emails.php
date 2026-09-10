@@ -12,9 +12,9 @@ function bsc_get_followup_email_defaults(): array {
 		'bsc_password_changed_email_enabled' => 1,
 		'bsc_birthday_email_enabled'         => 1,
 		'bsc_inactive_email_enabled'         => 1,
-		'bsc_inactive_email_days'            => 60,
+		'bsc_inactive_email_months'          => 5,
 		'bsc_repurchase_email_enabled'       => 1,
-		'bsc_default_repurchase_days'        => 30,
+		'bsc_repurchase_inactivity_days'     => 90,
 	);
 }
 
@@ -68,58 +68,27 @@ function bsc_get_email_account_url(): string {
 }
 
 function bsc_schedule_followup_email_jobs(): void {
+	$schedule_version = '3';
+	if ( get_option( 'bsc_followup_email_schedule_version' ) !== $schedule_version ) {
+		wp_clear_scheduled_hook( 'bsc_run_daily_followup_emails' );
+		update_option( 'bsc_followup_email_schedule_version', $schedule_version, false );
+	}
+
 	if ( ! wp_next_scheduled( 'bsc_run_daily_followup_emails' ) ) {
-		wp_schedule_event( time(), 'daily', 'bsc_run_daily_followup_emails' );
+		$timezone = new DateTimeZone( 'America/Bogota' );
+		$now      = new DateTimeImmutable( 'now', $timezone );
+		$next_run = $now->setTime( 2, 15 );
+		if ( $next_run <= $now ) {
+			$next_run = $next_run->modify( '+1 day' );
+		}
+
+		wp_schedule_event( $next_run->getTimestamp(), 'daily', 'bsc_run_daily_followup_emails' );
 	}
 }
 add_action( 'init', 'bsc_schedule_followup_email_jobs' );
 
 function bsc_get_followup_paid_statuses(): array {
 	return array( 'processing', 'preparing', 'shipped', 'completed' );
-}
-
-function bsc_get_followup_orders_desc(): array {
-	if ( ! class_exists( 'WooCommerce' ) ) {
-		return array();
-	}
-
-	$orders     = array();
-	$page       = 1;
-	$max_pages  = 1;
-	$per_page   = 100;
-	$query_args = array(
-		'status'   => bsc_get_followup_paid_statuses(),
-		'orderby'  => 'date',
-		'order'    => 'DESC',
-		'limit'    => $per_page,
-		'paginate' => true,
-	);
-
-	do {
-		$query_result = wc_get_orders(
-			array_merge(
-				$query_args,
-				array(
-					'page' => $page,
-				)
-			)
-		);
-
-		$page_orders = is_object( $query_result ) && isset( $query_result->orders ) && is_array( $query_result->orders )
-			? $query_result->orders
-			: array();
-
-		foreach ( $page_orders as $order ) {
-			if ( $order instanceof WC_Order ) {
-				$orders[] = $order;
-			}
-		}
-
-		$max_pages = max( 1, (int) ( $query_result->max_num_pages ?? 1 ) );
-		++$page;
-	} while ( $page <= $max_pages );
-
-	return $orders;
 }
 
 function bsc_get_followup_contact_key( WC_Order $order ): string {
@@ -130,6 +99,11 @@ function bsc_get_followup_contact_key( WC_Order $order ): string {
 
 	$email = strtolower( trim( (string) $order->get_billing_email() ) );
 	if ( $email !== '' ) {
+		$user = get_user_by( 'email', $email );
+		if ( $user instanceof WP_User ) {
+			return 'user:' . $user->ID;
+		}
+
 		return 'email:' . md5( $email );
 	}
 
@@ -167,16 +141,49 @@ function bsc_get_followup_date_label( int $timestamp ): string {
 	return wp_date( 'j \\d\\e F \\d\\e Y', $timestamp, wp_timezone() );
 }
 
-function bsc_get_product_repurchase_days( int $product_id ): int {
-	$raw  = get_post_meta( $product_id, '_bsc_repurchase_days', true );
-	$days = (int) $raw;
-
-	if ( $days > 0 ) {
-		return $days;
-	}
-
-	return max( 1, (int) bsc_get_followup_email_setting( 'bsc_default_repurchase_days' ) );
+/**
+ * Return the inactivity threshold used by the recommendation email.
+ *
+ * @return int
+ */
+function bsc_get_repurchase_inactivity_days(): int {
+	return max( 1, (int) bsc_get_followup_email_setting( 'bsc_repurchase_inactivity_days' ) );
 }
+
+/**
+ * Return the calendar-month threshold used by the inactivity email.
+ *
+ * @return int
+ */
+function bsc_get_inactivity_followup_months(): int {
+	return max( 1, (int) bsc_get_followup_email_setting( 'bsc_inactive_email_months' ) );
+}
+
+/**
+ * Calculate a calendar-month due date while keeping end-of-month purchases valid.
+ *
+ * @param int $purchase_timestamp Purchase timestamp.
+ * @param int $months             Number of calendar months to add.
+ * @return int
+ */
+function bsc_get_inactivity_due_timestamp( int $purchase_timestamp, int $months ): int {
+	$purchase_date = ( new DateTimeImmutable( '@' . $purchase_timestamp ) )->setTimezone( wp_timezone() );
+	$target_month  = $purchase_date
+		->modify( 'first day of this month' )
+		->modify( '+' . max( 1, $months ) . ' months' );
+	$target_day    = min( (int) $purchase_date->format( 'j' ), (int) $target_month->format( 't' ) );
+	$due_date      = $target_month
+		->setDate( (int) $target_month->format( 'Y' ), (int) $target_month->format( 'n' ), $target_day )
+		->setTime(
+			(int) $purchase_date->format( 'G' ),
+			(int) $purchase_date->format( 'i' ),
+			(int) $purchase_date->format( 's' )
+		);
+
+	return $due_date->getTimestamp();
+}
+
+require_once __DIR__ . '/bsc-followup-state.php';
 
 function bsc_parse_birthday_month_day( string $raw ): array {
 	$raw = trim( $raw );
@@ -523,58 +530,209 @@ function bsc_process_inactivity_followup_emails(): int {
 		return 0;
 	}
 
-	$threshold_days = max( 1, (int) bsc_get_followup_email_setting( 'bsc_inactive_email_days' ) );
-	$cutoff         = time() - ( $threshold_days * DAY_IN_SECONDS );
-	$latest_orders  = array();
-	$sent_count     = 0;
+	$sent_count = 0;
+	$states     = bsc_get_due_followup_states( 'inactive', bsc_get_followup_email_batch_size() );
 
-	foreach ( bsc_get_followup_orders_desc() as $order ) {
-		$contact_key = bsc_get_followup_contact_key( $order );
-		if ( isset( $latest_orders[ $contact_key ] ) ) {
-			continue;
-		}
-
-		$latest_orders[ $contact_key ] = $order;
-	}
-
-	foreach ( $latest_orders as $order ) {
-		$date_created = $order->get_date_created();
-		if ( ! $date_created || $date_created->getTimestamp() > $cutoff ) {
-			continue;
-		}
-
-		if ( $order->get_meta( '_bsc_inactivity_email_sent_at', true ) ) {
+	foreach ( $states as $state ) {
+		$contact_key = (string) ( $state['contact_key'] ?? '' );
+		$order       = bsc_get_valid_followup_state_order( $state );
+		if ( ! is_object( $order ) ) {
 			continue;
 		}
 
 		$recipient = bsc_get_followup_order_recipient( $order );
 		if ( $recipient['email'] === '' ) {
+			bsc_delay_followup_state_retry( $contact_key, 'inactive' );
 			continue;
 		}
 
+		$date_created = $order->get_date_created();
+
 		$sent = bsc_send_email_from_template(
 			$recipient['email'],
-			'Te extrañamos en Bubble Skin Care',
+			'Te extrañamos en Bubbles',
 			'bsc-followup-inactive.php',
 			array(
 				'customer_name'   => $recipient['name'],
 				'order'           => $order,
-				'last_order_date' => bsc_get_followup_date_label( $date_created->getTimestamp() ),
+				'last_order_date' => $date_created ? bsc_get_followup_date_label( $date_created->getTimestamp() ) : '',
 				'shop_url'        => bsc_get_email_shop_url(),
 				'account_url'     => bsc_get_email_account_url(),
 			)
 		);
 
 		if ( $sent ) {
-			$order->update_meta_data( '_bsc_inactivity_email_sent_at', current_time( 'mysql' ) );
-			$order->save_meta_data();
+			bsc_mark_followup_state_sent( $contact_key, 'inactive', $order );
 			++$sent_count;
+		} else {
+			bsc_delay_followup_state_retry( $contact_key, 'inactive' );
 		}
 	}
 
 	return $sent_count;
 }
 
+/**
+ * Return the distinct product IDs purchased in an order.
+ *
+ * @param object $order Order to inspect.
+ * @return int[]
+ */
+function bsc_get_order_product_ids( $order ): array {
+	$product_ids = array();
+	if ( ! is_callable( array( $order, 'get_items' ) ) ) {
+		return $product_ids;
+	}
+
+	foreach ( call_user_func( array( $order, 'get_items' ), 'line_item' ) as $item ) {
+		$product_id = (int) $item->get_product_id();
+		if ( $product_id > 0 ) {
+			$product_ids[] = $product_id;
+		}
+	}
+
+	return array_values( array_unique( $product_ids ) );
+}
+
+/**
+ * Return the product-category slugs shared by a collection of products.
+ *
+ * @param int[] $product_ids Product IDs to inspect.
+ * @return string[]
+ */
+function bsc_get_product_category_slugs( array $product_ids ): array {
+	$category_slugs = array();
+
+	foreach ( array_unique( array_map( 'absint', $product_ids ) ) as $product_id ) {
+		$slugs = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'slugs' ) );
+		if ( ! is_wp_error( $slugs ) ) {
+			$category_slugs = array_merge( $category_slugs, $slugs );
+		}
+	}
+
+	return array_values( array_unique( array_filter( $category_slugs ) ) );
+}
+
+/**
+ * Check that a recommendation is public, purchasable, and currently in stock.
+ *
+ * @param WC_Product|null $product     Candidate product.
+ * @param int[]           $exclude_ids Product IDs from the source order.
+ * @return bool
+ */
+function bsc_repurchase_recommendation_is_eligible( ?WC_Product $product, array $exclude_ids = array() ): bool {
+	if ( ! $product instanceof WC_Product ) {
+		return false;
+	}
+
+	$product_id = $product->get_id();
+	if ( in_array( $product_id, array_map( 'absint', $exclude_ids ), true ) ) {
+		return false;
+	}
+
+	$is_publicly_listable = function_exists( 'bsc_product_is_publicly_listable' )
+		? bsc_product_is_publicly_listable( $product )
+		: 'publish' === $product->get_status();
+
+	if ( ! $is_publicly_listable || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		return false;
+	}
+
+	if ( class_exists( 'BSC_Stock' ) && BSC_Stock::has_dual_stock( $product_id ) ) {
+		return BSC_Stock::get_total_stock( $product_id ) > 0;
+	}
+
+	return true;
+}
+
+/**
+ * Build category-based, in-stock recommendations for an order.
+ *
+ * @param object $order Source order.
+ * @param int    $limit Maximum recommendation count.
+ * @return array<int, array{id: int, name: string, url: string, image_url: string, button_label: string}>
+ */
+function bsc_get_repurchase_recommendations_for_order( $order, int $limit = 3 ): array {
+	$limit                 = max( 1, $limit );
+	$purchased_product_ids = bsc_get_order_product_ids( $order );
+	$category_slugs        = bsc_get_product_category_slugs( $purchased_product_ids );
+
+	if ( empty( $purchased_product_ids ) || empty( $category_slugs ) ) {
+		return array();
+	}
+
+	$candidate_ids = BSC_Growth_Plugin::products(
+		array(
+			'status'       => 'publish',
+			'stock_status' => 'instock',
+			'category'     => $category_slugs,
+			'exclude'      => $purchased_product_ids,
+			'limit'        => max( 24, $limit * 8 ),
+			'orderby'      => 'popularity',
+			'order'        => 'DESC',
+			'return'       => 'ids',
+		)
+	);
+
+	$ranked_candidates = array();
+
+	foreach ( array_map( 'absint', $candidate_ids ) as $candidate_id ) {
+		$product = wc_get_product( $candidate_id );
+		if ( ! bsc_repurchase_recommendation_is_eligible( $product, $purchased_product_ids ) ) {
+			continue;
+		}
+
+		$shared_categories = array_intersect(
+			$category_slugs,
+			bsc_get_product_category_slugs( array( $candidate_id ) )
+		);
+		if ( empty( $shared_categories ) ) {
+			continue;
+		}
+
+		$image_id            = $product->get_image_id();
+		$ranked_candidates[] = array(
+			'id'           => $candidate_id,
+			'name'         => wp_strip_all_tags( $product->get_name() ),
+			'url'          => get_permalink( $candidate_id ),
+			'image_url'    => $image_id ? wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '',
+			'button_label' => 'Ver producto',
+			'shared_count' => count( $shared_categories ),
+			'total_sales'  => (int) $product->get_total_sales(),
+		);
+	}
+
+	usort(
+		$ranked_candidates,
+		static function ( array $left, array $right ): int {
+			$shared_comparison = $right['shared_count'] <=> $left['shared_count'];
+			if ( 0 !== $shared_comparison ) {
+				return $shared_comparison;
+			}
+
+			$sales_comparison = $right['total_sales'] <=> $left['total_sales'];
+			if ( 0 !== $sales_comparison ) {
+				return $sales_comparison;
+			}
+
+			return $right['id'] <=> $left['id'];
+		}
+	);
+
+	$recommendations = array();
+	foreach ( array_slice( $ranked_candidates, 0, $limit ) as $ranked_candidate ) {
+		unset( $ranked_candidate['shared_count'], $ranked_candidate['total_sales'] );
+		$recommendations[] = $ranked_candidate;
+	}
+
+	return $recommendations;
+}
+
+/**
+ * Send one recommendation email when the latest purchase reaches the threshold.
+ *
+ * @return int Number of emails accepted by wp_mail().
+ */
 function bsc_process_repurchase_followup_emails(): int {
 	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_repurchase_email_enabled' ) ) {
 		return 0;
@@ -584,115 +742,54 @@ function bsc_process_repurchase_followup_emails(): int {
 		return 0;
 	}
 
-	$now              = time();
-	$latest_purchases = array();
-	$grouped_payloads = array();
-	$sent_count       = 0;
+	$days       = bsc_get_repurchase_inactivity_days();
+	$sent_count = 0;
+	$states     = bsc_get_due_followup_states( 'repurchase', bsc_get_followup_email_batch_size() );
 
-	foreach ( bsc_get_followup_orders_desc() as $order ) {
-		$contact_key = bsc_get_followup_contact_key( $order );
-		$ordered_at  = $order->get_date_created();
-
-		if ( ! $ordered_at ) {
+	foreach ( $states as $state ) {
+		$contact_key = (string) ( $state['contact_key'] ?? '' );
+		$order       = bsc_get_valid_followup_state_order( $state );
+		if ( ! is_object( $order ) ) {
 			continue;
 		}
 
-		foreach ( $order->get_items( 'line_item' ) as $item ) {
-			$product_id = (int) $item->get_product_id();
-			if ( $product_id <= 0 ) {
-				continue;
-			}
-
-			$record_key = $contact_key . ':' . $product_id;
-			if ( isset( $latest_purchases[ $record_key ] ) ) {
-				continue;
-			}
-
-			$latest_purchases[ $record_key ] = array(
-				'contact_key' => $contact_key,
-				'order'       => $order,
-				'product_id'  => $product_id,
-				'ordered_at'  => $ordered_at->getTimestamp(),
-				'recipient'   => bsc_get_followup_order_recipient( $order ),
-			);
-		}
-	}
-
-	foreach ( $latest_purchases as $purchase ) {
-		$product_id = (int) $purchase['product_id'];
-		$order      = $purchase['order'];
-		$days       = bsc_get_product_repurchase_days( $product_id );
-
-		if ( ( $purchase['ordered_at'] + ( $days * DAY_IN_SECONDS ) ) > $now ) {
+		$recipient = bsc_get_followup_order_recipient( $order );
+		if ( '' === $recipient['email'] ) {
+			bsc_delay_followup_state_retry( $contact_key, 'repurchase' );
 			continue;
 		}
 
-		$reminded_products = array_map( 'intval', (array) $order->get_meta( '_bsc_repurchase_reminded_products', true ) );
-		if ( in_array( $product_id, $reminded_products, true ) ) {
+		$recommendations = bsc_get_repurchase_recommendations_for_order( $order, 3 );
+		if ( empty( $recommendations ) ) {
+			bsc_delay_followup_state_retry( $contact_key, 'repurchase' );
 			continue;
 		}
 
-		$product = wc_get_product( $product_id );
-		if ( ! $product ) {
-			continue;
-		}
-
-		$recipient = $purchase['recipient'];
-		if ( $recipient['email'] === '' ) {
-			continue;
-		}
-
-		$contact_key = (string) $purchase['contact_key'];
-		if ( ! isset( $grouped_payloads[ $contact_key ] ) ) {
-			$grouped_payloads[ $contact_key ] = array(
-				'email'    => $recipient['email'],
-				'name'     => $recipient['name'],
-				'products' => array(),
-				'marks'    => array(),
-			);
-		}
-
-		$grouped_payloads[ $contact_key ]['products'][ $product_id ] = array(
-			'id'         => $product_id,
-			'name'       => $product->get_name(),
-			'url'        => get_permalink( $product_id ),
-			'image_url'  => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
-			'ordered_at' => bsc_get_followup_date_label( (int) $purchase['ordered_at'] ),
-			'days'       => $days,
-		);
-
-		$grouped_payloads[ $contact_key ]['marks'][ $order->get_id() ][] = $product_id;
-	}
-
-	foreach ( $grouped_payloads as $payload ) {
 		$sent = bsc_send_email_from_template(
-			$payload['email'],
-			'Es momento de reponer tu rutina BSC',
+			$recipient['email'],
+			'Complementa tu rutina coreana',
 			'bsc-followup-repurchase.php',
 			array(
-				'customer_name' => $payload['name'],
-				'products'      => array_values( $payload['products'] ),
-				'shop_url'      => bsc_get_email_shop_url(),
-				'account_url'   => bsc_get_email_account_url(),
+				'customer_name'   => $recipient['name'],
+				'products'        => $recommendations,
+				'inactivity_days' => $days,
+				'shop_url'        => bsc_get_email_shop_url(),
+				'account_url'     => bsc_get_email_account_url(),
+				'order'           => $order,
 			)
 		);
 
 		if ( ! $sent ) {
+			bsc_delay_followup_state_retry( $contact_key, 'repurchase' );
 			continue;
 		}
 
-		foreach ( $payload['marks'] as $order_id => $product_ids ) {
-			$order = wc_get_order( (int) $order_id );
-			if ( ! $order ) {
-				continue;
-			}
-
-			$existing = array_map( 'intval', (array) $order->get_meta( '_bsc_repurchase_reminded_products', true ) );
-			$updated  = array_values( array_unique( array_merge( $existing, array_map( 'intval', $product_ids ) ) ) );
-			$order->update_meta_data( '_bsc_repurchase_reminded_products', $updated );
-			$order->save_meta_data();
-		}
-
+		bsc_mark_followup_state_sent(
+			$contact_key,
+			'repurchase',
+			$order,
+			array_values( array_map( 'absint', wp_list_pluck( $recommendations, 'id' ) ) )
+		);
 		++$sent_count;
 	}
 
@@ -701,11 +798,14 @@ function bsc_process_repurchase_followup_emails(): int {
 
 function bsc_run_followup_email_jobs(): array {
 	$summary = array(
-		'ran_at'     => current_time( 'mysql' ),
-		'birthday'   => 0,
-		'inactive'   => 0,
-		'repurchase' => 0,
-		'module_on'  => bsc_is_followup_emails_enabled() ? 1 : 0,
+		'ran_at'            => current_time( 'mysql' ),
+		'birthday'          => 0,
+		'inactive'          => 0,
+		'repurchase'        => 0,
+		'backfill_orders'   => 0,
+		'backfill_complete' => (bool) get_option( 'bsc_followup_state_backfill_complete', false ),
+		'locked'            => 0,
+		'module_on'         => bsc_is_followup_emails_enabled() ? 1 : 0,
 	);
 
 	if ( ! bsc_is_followup_emails_enabled() ) {
@@ -713,9 +813,23 @@ function bsc_run_followup_email_jobs(): array {
 		return $summary;
 	}
 
-	$summary['birthday']   = bsc_process_birthday_followup_emails();
-	$summary['inactive']   = bsc_process_inactivity_followup_emails();
-	$summary['repurchase'] = bsc_process_repurchase_followup_emails();
+	$summary['birthday'] = bsc_process_birthday_followup_emails();
+
+	if ( ! bsc_acquire_followup_state_lock() ) {
+		$summary['locked'] = 1;
+		update_option( 'bsc_followup_email_last_run_summary', $summary, false );
+		return $summary;
+	}
+
+	try {
+		$backfill                         = bsc_backfill_followup_state_batch( 100 );
+		$summary['backfill_orders']       = $backfill['processed'];
+		$summary['backfill_complete']     = $backfill['complete'];
+		$summary['repurchase']            = bsc_process_repurchase_followup_emails();
+		$summary['inactive']              = bsc_process_inactivity_followup_emails();
+	} finally {
+		bsc_release_followup_state_lock();
+	}
 
 	update_option( 'bsc_followup_email_last_run_summary', $summary, false );
 
