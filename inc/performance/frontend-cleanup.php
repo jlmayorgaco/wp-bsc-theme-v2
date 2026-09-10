@@ -7,6 +7,38 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Prevent public HTML responses from being stored with short-lived AJAX nonces.
+ *
+ * Static assets are served directly by Nginx, so their browser caching remains
+ * available. X-Accel-Expires is understood by the WordOps FastCGI cache.
+ *
+ * @param array<string, string> $headers Response headers prepared by WordPress.
+ * @return array<string, string>
+ */
+function bsc_disable_frontend_page_cache_headers( array $headers ): array {
+	$headers['Cache-Control']   = 'no-store, no-cache, must-revalidate, max-age=0';
+	$headers['Pragma']          = 'no-cache';
+	$headers['Expires']         = 'Wed, 11 Jan 1984 05:00:00 GMT';
+	$headers['X-Accel-Expires'] = '0';
+
+	return $headers;
+}
+add_filter( 'wp_headers', 'bsc_disable_frontend_page_cache_headers', PHP_INT_MAX );
+
+/**
+ * Keep WordPress cache plugins and reverse proxies from storing public pages.
+ */
+function bsc_disable_frontend_page_cache(): void {
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+
+	nocache_headers();
+	header( 'X-Accel-Expires: 0' );
+}
+add_action( 'template_redirect', 'bsc_disable_frontend_page_cache', -100 );
+
 remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 remove_action( 'wp_print_styles', 'print_emoji_styles' );
 remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );

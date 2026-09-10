@@ -12,7 +12,7 @@ on:
 
 concurrency:
   group: verify-deploy
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -35,6 +35,21 @@ jobs:
               exit 0
             fi
 
+            # Bootstrap: the previous deploy.php did not publish this file.
+            # Confirm the first hotfix by its no-cache response contract.
+            if [ -z "$live" ]; then
+              curl -fsS --max-time 20 -o /dev/null "$SITE/purge/" || true
+              headers=$(mktemp)
+              status=$(curl -sS -D "$headers" -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/?cb=$GITHUB_RUN_ID-$attempt" || true)
+
+              if echo "$status" | grep -Eq '^[23]' && grep -Eiq '^cache-control:.*(no-store|no-cache)' "$headers"; then
+                echo "::notice::Primer deploy verificado por el nuevo contrato no-cache."
+                exit 0
+              fi
+
+              rm -f "$headers"
+            fi
+
             echo "intento $attempt/36 - produccion reporta: ${live:-<sin respuesta>}"
             sleep 5
           done
@@ -43,14 +58,25 @@ jobs:
           echo "Revisa Settings > Webhooks > Recent Deliveries, o /var/www/bsc-deploy.log en el VPS."
           exit 1
 
+      - name: Purgar cache HTML anterior
+        run: |
+          curl -fsS --max-time 20 -o /dev/null "$SITE/purge/"
+
       - name: La tienda responde
         run: |
           for page in "/" "/shop/" "/cart/"; do
-            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE$page?cb=$GITHUB_RUN_ID")
+            headers=$(mktemp)
+            status=$(curl -sS -D "$headers" -o /dev/null -w '%{http_code}' --max-time 20 "$SITE$page?cb=$GITHUB_RUN_ID")
             echo "$page -> $status"
 
             case "$status" in
               2*|3*) ;;
               *) echo "::error::$page respondio $status"; exit 1 ;;
             esac
+
+            if ! grep -Eiq '^cache-control:.*(no-store|no-cache)' "$headers"; then
+              echo "::error::$page no envio Cache-Control no-store/no-cache"
+              cat "$headers"
+              exit 1
+            fi
           done

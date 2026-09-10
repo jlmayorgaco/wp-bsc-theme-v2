@@ -109,16 +109,8 @@ if ( 'push' !== $github_event ) {
 $decoded_payload = json_decode( $payload, true );
 $pushed_ref      = is_array( $decoded_payload ) ? (string) ( $decoded_payload['ref'] ?? '' ) : '';
 
-/*
- * Branches this endpoint deploys. A comma separated list so the same endpoint
- * can serve the integration branch and the release branch, which is what the
- * repo actually does: work lands on MVP2 and is merged into main by PR.
- */
-$allowed_refs = array_values(
-	array_filter(
-		array_map( 'trim', explode( ',', bsc_deploy_env( 'BSC_DEPLOY_REF', 'refs/heads/main,refs/heads/MVP2' ) ) )
-	)
-);
+// Production follows main only. Feature and integration branches must not deploy here.
+$allowed_refs = array( 'refs/heads/main' );
 
 if ( ! in_array( $pushed_ref, $allowed_refs, true ) ) {
 	bsc_deploy_log( $log_file, 'IGNORED: ref "' . $pushed_ref . '" not in [' . implode( ', ', $allowed_refs ) . '].' );
@@ -325,6 +317,31 @@ function bsc_deploy_purge_page_cache( string $cache_dir ): string {
 }
 
 /**
+ * Ask the WordOps/Nginx Helper purge endpoint to clear every cached URL.
+ *
+ * This is the fallback when the webhook user cannot delete Nginx-owned cache
+ * files directly.
+ *
+ * @param string $site_url Public site URL.
+ */
+function bsc_deploy_purge_page_cache_url( string $site_url ): string {
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Standalone webhook runs before WordPress is loaded.
+	$parts = parse_url( $site_url );
+	if ( ! is_array( $parts ) || empty( $parts['scheme'] ) || empty( $parts['host'] ) ) {
+		return 'invalid site URL';
+	}
+
+	$origin = $parts['scheme'] . '://' . $parts['host'];
+	if ( isset( $parts['port'] ) ) {
+		$origin .= ':' . (int) $parts['port'];
+	}
+
+	$status = bsc_deploy_http_status( $origin . '/purge/' );
+
+	return $status >= 200 && $status < 400 ? 'purged (HTTP ' . $status . ')' : 'failed (HTTP ' . $status . ')';
+}
+
+/**
  * Request the site and return the HTTP status, or 0 when unreachable.
  *
  * @param string $url Absolute URL to request.
@@ -418,13 +435,15 @@ if ( $failed ) {
 $deployed_sha  = trim( bsc_deploy_run_git_command( $repo_dir, 'git rev-parse HEAD' ) );
 $removed       = bsc_deploy_cleanup_public_theme( $repo_dir );
 $robots_status = bsc_deploy_write_robots_txt( $web_root ) ? 'updated' : 'failed';
-$cache_status  = bsc_deploy_purge_page_cache( $cache_dir );
 
 // Without this, FPM keeps serving the previous bytecode when opcache runs with validate_timestamps=0.
 $opcache_status = 'unavailable';
 if ( function_exists( 'opcache_reset' ) ) {
 	$opcache_status = opcache_reset() ? 'reset' : 'reset failed';
 }
+
+$cache_status     = bsc_deploy_purge_page_cache( $cache_dir );
+$cache_url_status = bsc_deploy_purge_page_cache_url( $smoke_url );
 
 $smoke_status = 0;
 $smoke_ok     = bsc_deploy_smoke_passes( $smoke_url, 3, $smoke_status );
@@ -438,6 +457,7 @@ if ( ! $smoke_ok && '' !== $previous_sha && preg_match( '{^[0-9a-f]{40}$}', $pre
 		opcache_reset();
 	}
 	bsc_deploy_purge_page_cache( $cache_dir );
+	bsc_deploy_purge_page_cache_url( $smoke_url );
 
 	$recovered_status = 0;
 	$recovered        = bsc_deploy_smoke_passes( $smoke_url, 3, $recovered_status );
@@ -451,7 +471,7 @@ if ( ! $smoke_ok && '' !== $previous_sha && preg_match( '{^[0-9a-f]{40}$}', $pre
 $version_status = bsc_deploy_write_version_file( $web_root, $deployed_sha ) ? 'written' : 'failed';
 
 $summary = sprintf(
-	'branch=%s head=%s status=%s smoke=%d rollback=%s removed=%s robots=%s version=%s cache=%s opcache=%s',
+	'branch=%s head=%s status=%s smoke=%d rollback=%s removed=%s robots=%s version=%s cache=%s cache_url=%s opcache=%s',
 	$branch,
 	$deployed_sha,
 	$smoke_ok ? 'ok' : 'SMOKE_FAILED',
@@ -461,6 +481,7 @@ $summary = sprintf(
 	$robots_status,
 	$version_status,
 	$cache_status,
+	$cache_url_status,
 	$opcache_status
 );
 
