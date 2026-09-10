@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Prevent public HTML responses from being stored by WordPress or reverse proxies.
+ * Prevent public HTML responses with short-lived AJAX nonces from being stored.
  *
  * Static assets are served directly by Nginx, so their browser caching remains
  * available. X-Accel-Expires is understood by the WordOps FastCGI cache.
@@ -27,7 +27,7 @@ function bsc_disable_frontend_page_cache_headers( array $headers ): array {
 add_filter( 'wp_headers', 'bsc_disable_frontend_page_cache_headers', PHP_INT_MAX );
 
 /**
- * Keep plugin caches from storing the current public page response.
+ * Keep WordPress cache plugins and reverse proxies from storing public pages.
  */
 function bsc_disable_frontend_page_cache(): void {
 	if ( ! defined( 'DONOTCACHEPAGE' ) ) {

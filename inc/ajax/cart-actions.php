@@ -4,6 +4,32 @@ defined( 'ABSPATH' ) || exit;
 require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
 
 
+// ── Refresh public AJAX nonce ──────────────────────────────────────────────
+add_action( 'wp_ajax_bsc_refresh_ajax_nonce', 'bsc_refresh_ajax_nonce' );
+add_action( 'wp_ajax_nopriv_bsc_refresh_ajax_nonce', 'bsc_refresh_ajax_nonce' );
+
+/**
+ * Return a fresh nonce from the uncached admin-ajax endpoint.
+ *
+ * Public storefront HTML can remain open in a browser after its embedded nonce
+ * expires. The client uses this endpoint only after WordPress answers 403/-1,
+ * then retries the original cart request once.
+ */
+function bsc_refresh_ajax_nonce(): void {
+	nocache_headers();
+
+	if ( function_exists( 'bsc_rate_limit' ) ) {
+		bsc_rate_limit( 'ajax_nonce_refresh', 30, MINUTE_IN_SECONDS );
+	}
+
+	wp_send_json_success(
+		array(
+			'nonce' => wp_create_nonce( 'bsc_ajax_action' ),
+		)
+	);
+}
+
+
 // ── Add to cart ────────────────────────────────────────────────────────────
 add_action( 'wp_ajax_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler' );
 add_action( 'wp_ajax_nopriv_bsc_add_to_cart', 'bsc_ajax_add_to_cart_handler' );

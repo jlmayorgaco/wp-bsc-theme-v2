@@ -607,10 +607,78 @@ jQuery(function ($) {
     showQuantityControls($button);
   }
 
+  let cartNonceRefreshRequest = null;
+
+  function isExpiredCartNonce(error) {
+    return Number(error?.status) === 403 && String(error?.responseText || '').trim() === '-1';
+  }
+
+  function rejectedCartRequest(error) {
+    const deferred = $.Deferred();
+    deferred.reject(error);
+    return deferred.promise();
+  }
+
+  function refreshCartNonce() {
+    if (cartNonceRefreshRequest) return cartNonceRefreshRequest;
+
+    cartNonceRefreshRequest = $.post(bsc_ajax.ajax_url, {
+      action: 'bsc_refresh_ajax_nonce',
+    }).then((response) => {
+      const nonce = response?.data?.nonce;
+
+      if (response?.success !== true || typeof nonce !== 'string' || !nonce.trim()) {
+        throw new Error('Invalid nonce refresh response');
+      }
+
+      bsc_ajax.nonce = nonce;
+      if (window.bsc_search) window.bsc_search.nonce = nonce;
+
+      return nonce;
+    });
+
+    cartNonceRefreshRequest.always(() => {
+      cartNonceRefreshRequest = null;
+    });
+
+    return cartNonceRefreshRequest;
+  }
+
+  function postCartAction(payload, canRefreshNonce = true) {
+    return $.post(bsc_ajax.ajax_url, {
+      ...payload,
+      nonce: bsc_ajax.nonce,
+    }).then(undefined, (error) => {
+      if (!canRefreshNonce || !isExpiredCartNonce(error)) {
+        return rejectedCartRequest(error);
+      }
+
+      return refreshCartNonce().then(
+        () => postCartAction(payload, false),
+        () => rejectedCartRequest(error)
+      );
+    });
+  }
+
   function cartErrorMessage(error) {
     const response = error?.responseJSON || error || {};
+    const candidates = [
+      response?.data?.error,
+      response?.data?.message,
+      response?.error,
+      response?.message,
+      error?.responseText,
+    ];
+    const message = candidates.find((value) => (
+      typeof value === 'string' && value.trim() && value.trim() !== '-1'
+    ));
 
-    return response?.data?.error || response?.data?.message || response?.error || response?.message || '';
+    if (message) return message.trim();
+    if (isExpiredCartNonce(error)) {
+      return 'Tu sesión de compra venció. Recarga la página e intenta nuevamente.';
+    }
+
+    return '';
   }
 
   function markSelectedVariantOutOfStock($btn) {
@@ -618,9 +686,8 @@ jQuery(function ($) {
     const variant = findSelectedVariant($options, true);
     if (!$options.length || !variant) return;
 
-    $.post(bsc_ajax.ajax_url, {
+    postCartAction({
       action: 'bsc_get_cart_quantities',
-      nonce: bsc_ajax.nonce,
     }).done(function (response) {
       if (response?.success) {
         applyCartItemSnapshot(response.data);
@@ -673,9 +740,8 @@ jQuery(function ($) {
       updateProductPrice($(this));
     });
 
-    $.post(bsc_ajax.ajax_url, {
+    postCartAction({
       action: 'bsc_get_cart_quantities',
-      nonce: bsc_ajax.nonce,
     }).done(function (response) {
       if (response?.success) {
         applyCartItemSnapshot(response.data);
@@ -773,11 +839,10 @@ jQuery(function ($) {
     const productId = $btn.data('product_id');
     const quantity = $btn.data('quantity') || 1;
 
-    $.post(bsc_ajax.ajax_url, {
+    postCartAction({
       action: 'bsc_add_to_cart',
       product_id: productId,
       quantity: quantity,
-      nonce: bsc_ajax.nonce,
       ...getProductOptionPayload($btn),
     }).done((response) => {
       const addedItem = response?.bsc_cart_item;
@@ -903,7 +968,7 @@ jQuery(function ($) {
       $(SELECTORS.footerCount).text(cleanCount);
       $(SELECTORS.footerCart).attr('aria-label', `Shopping Cart with ${cleanCount} items`);
 
-      $.post(bsc_ajax.ajax_url, { action: 'bsc_get_cart_quantities', nonce: bsc_ajax.nonce })
+      postCartAction({ action: 'bsc_get_cart_quantities' })
         .done(function (res) {
           if (res.success && Array.isArray(res.data)) {
             applyCartItemSnapshot(res.data);
@@ -943,12 +1008,11 @@ jQuery(function ($) {
     $control.data('processing', true);
     setControlBusy($control, true);
 
-    $.post(bsc_ajax.ajax_url, {
+    postCartAction({
       action: 'update_cart_quantity',
       product_id: productId,
       cart_item_key: cartItemKey,
       quantity: isPlus ? 1 : -1,
-      nonce: bsc_ajax.nonce,
     }).done((response) => {
       if (!response?.success) {
         $value.text(current);
@@ -1039,10 +1103,9 @@ jQuery(function ($) {
 
     $btn.prop('disabled', true).addClass('loading');
 
-    $.post(bsc_ajax.ajax_url, {
+    postCartAction({
       action: 'bsc_remove_cart_item',
       cart_item_key: key,
-      nonce: bsc_ajax.nonce,
     }).done((res) => {
       // I-1: check server success BEFORE touching the DOM.
       // bsc_remove_cart_item sends wp_send_json_error({success:false}) on failure,

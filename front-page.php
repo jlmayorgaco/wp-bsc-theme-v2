@@ -157,13 +157,13 @@
 			'slug'  => 'group-hair-care',
 			'title' => 'HAIR CARE',
 			'image' => 'images/shop/2PAG_INTERNAR_IMAGENES_WEB.jpg',
-			'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !',
+			'text'  => 'Nutre, fortalece y dale brillo a <strong>cada hebra capilar</strong> con fórmulas coreanas con máxima tecnologia, desde un cuero cabelludo sano hasta las puntas !',
 		),
 		array(
 			'slug'  => 'group-make-up',
 			'title' => 'MAKE UP',
 			'image' => 'images/shop/3PAG_INTERNAR_IMAGENES_WEB.jpg',
-			'text'  => 'Tu rutina <strong>coreana empieza aquí</strong>: limpiadores, esencias, serums, contornos, mascarillas y más para una piel saludable todos los días !',
+			'text'  => 'Maquillaje coreano que cuida no solo cubre tu piel, <strong>tambien tiene activos de skin care</strong>. Cushions, BB Creams, tintas y más con diferentes acabados !',
 
 		),
 		/*

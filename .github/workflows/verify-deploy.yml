@@ -35,16 +35,15 @@ jobs:
               exit 0
             fi
 
-            # Bootstrap: el deploy.php anterior no escribia deploy-version.txt.
-            # La primera entrega se confirma por el contrato no-cache que nace
-            # en este mismo release; las siguientes siempre comparan el SHA.
+            # Compatibilidad mientras deploy-version.txt no este publicado:
+            # confirmar al menos el contrato no-cache de la tienda actualizada.
             if [ -z "$live" ]; then
               curl -fsS --max-time 20 -o /dev/null "$SITE/purge/" || true
               headers=$(mktemp)
               status=$(curl -sS -D "$headers" -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/?cb=$GITHUB_RUN_ID-$attempt" || true)
 
               if echo "$status" | grep -Eq '^[23]' && grep -Eiq '^cache-control:.*(no-store|no-cache)' "$headers"; then
-                echo "::notice::Primer deploy verificado por el nuevo contrato no-cache; el proximo ya publicara deploy-version.txt."
+                echo "::notice::Primer deploy verificado por el nuevo contrato no-cache."
                 exit 0
               fi
 
@@ -61,7 +60,13 @@ jobs:
 
       - name: Purgar cache HTML anterior
         run: |
-          curl -fsS --max-time 20 -o /dev/null "$SITE/purge/"
+          status=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "$SITE/purge/" || true)
+          echo "/purge/ -> $status"
+
+          case "$status" in
+            2*|3*|412) ;;
+            *) echo "::warning::La purga HTTP no estuvo disponible; se validaran igualmente las cabeceras no-cache." ;;
+          esac
 
       - name: La tienda responde
         run: |
