@@ -144,10 +144,17 @@ document.addEventListener('DOMContentLoaded', () => {
       name.textContent = product.name || '';
       info.appendChild(name);
 
-      if (product.price) {
+      if (product.price_html || product.price) {
         const price = document.createElement('span');
         price.classList.add('search-result-price');
-        price.textContent = decodeHtmlEntities(product.price);
+
+        if (product.price_html) {
+          // The same-origin AJAX endpoint returns WooCommerce price markup sanitized with wp_kses_post().
+          price.innerHTML = product.price_html;
+        } else {
+          price.textContent = decodeHtmlEntities(product.price);
+        }
+
         info.appendChild(price);
       }
 

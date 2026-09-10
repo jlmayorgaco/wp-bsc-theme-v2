@@ -46,7 +46,10 @@
 					<?php else : ?>
 					<li class="menu__icon icon--profile">
 						<a id="profile-button" href="<?php echo esc_url( $login_url ); ?>" aria-label="Iniciar sesion" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
-						<i aria-hidden="true" class="dlicon users_single-03"></i>
+							<div class="image__icon-hoverable">
+								<img class="image__icon icon--normal" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
+								<img class="image__icon icon--hover" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_header__profile-icon--hover.png" aria-hidden="true">
+							</div>
 						</a>
 						<div id="profile-dropdown" class="bsc__profile-dropdown">
 						<ul>

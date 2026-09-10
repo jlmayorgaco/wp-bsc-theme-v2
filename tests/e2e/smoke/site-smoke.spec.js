@@ -130,7 +130,8 @@ test.describe('BSC smoke', () => {
               products: [{
                 name: 'Protector solar',
                 brand: 'TOCOBO',
-                price: '$85.000',
+                price: '$100.000 $85.000',
+                price_html: '<del aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>$&nbsp;100.000</bdi></span></del><span class="screen-reader-text">Original price was: $&nbsp;100.000.</span><ins aria-hidden="true"><span class="woocommerce-Price-amount amount"><bdi>$&nbsp;85.000</bdi></span></ins><span class="screen-reader-text">Current price is: $&nbsp;85.000.</span>',
                 permalink: '/producto/protector-solar/',
               }],
               suggestions: [],
@@ -163,7 +164,10 @@ test.describe('BSC smoke', () => {
 
     const productResult = results.locator('.search-result-item:not(.search-result-item--all)').first();
     await expect(productResult.locator('.search-result-name')).toHaveText('Protector solar');
-    await expect(productResult.locator('.search-result-price')).toHaveText('$85.000');
+    await expect(productResult.loc('.search-result-price del')).toHaveText('$100.000');
+    await expect(productResult.loc('.search-result-price ins')).toHaveText('$85.000');
+    await expect(productResult.loc('.search-result-price .screen-reader-text')).toHaveCount(2);
+    await expect(productResult.loc('.search-result-price .screen-reader-text').first()).toBeHidden();
     await expect(productResult.locator('.search-result-brand')).toHaveCount(0);
     await expect(productResult).not.toContainText('TOCOBO');
   });
