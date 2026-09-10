@@ -60,7 +60,13 @@ jobs:
 
       - name: Purgar cache HTML anterior
         run: |
-          curl -fsS --max-time 20 -o /dev/null "$SITE/purge/"
+          status=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' "$SITE/purge/" || true)
+          echo "/purge/ -> $status"
+
+          case "$status" in
+            2*|3*|412) ;;
+            *) echo "::warning::La purga HTTP no estuvo disponible; se validaran igualmente las cabeceras no-cache." ;;
+          esac
 
       - name: La tienda responde
         run: |
