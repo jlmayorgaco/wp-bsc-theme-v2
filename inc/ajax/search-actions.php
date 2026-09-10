@@ -143,7 +143,7 @@ function bsc_search_products() {
 	}
 
 	// ── Transient cache (15 min per unique search term) ────────────────────
-	$cache_key = 'bsc_search_schema2_v' . bsc_get_search_cache_version() . '_' . md5( $query );
+	$cache_key = 'bsc_search_schema3_v' . bsc_get_search_cache_version() . '_' . md5( $query );
 	$cached    = get_transient( $cache_key );
 	if ( $cached !== false ) {
 		$cached_products    = isset( $cached['products'] ) && is_array( $cached['products'] ) ? $cached['products'] : (array) $cached;
@@ -320,13 +320,16 @@ function bsc_search_products() {
 			$img_url = $img_src ? $img_src[0] : '';
 		}
 
+		$price_html = $product->get_price_html();
+
 		$results[] = array(
 			'id'           => $pid,
 			'name'         => wp_strip_all_tags( $product->get_name() ),
 			'permalink'    => esc_url_raw( get_permalink( $pid ) ),
 			'image'        => esc_url_raw( $img_url ),
 			'brand'        => wp_strip_all_tags( $brand ),
-			'price'        => strip_tags( $product->get_price_html() ),
+			'price'        => wp_strip_all_tags( $price_html ),
+			'price_html'   => wp_kses_post( $price_html ),
 			'sku'          => sanitize_text_field( $product->get_sku() ),
 			'availability' => 'instock',
 		);

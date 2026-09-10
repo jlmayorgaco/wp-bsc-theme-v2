@@ -10,6 +10,7 @@ class BSC_Products_Card {
 	private $raw_price = 0.0;
 	private $regular_price;
 	private $sale_price;
+	private $discount_percent = 0;
 	private $stock_status;
 	private $sku = '';
 	private $image;
@@ -37,6 +38,7 @@ class BSC_Products_Card {
 		$this->sku           = (string) $product->get_sku();
 		$this->regular_price = wc_price( $product->get_regular_price() );
 		$this->sale_price    = wc_price( $product->get_sale_price() );
+		$this->discount_percent = $this->getDiscountPercent( $product );
 		$this->stock_status  = $product->get_stock_status();
 
 		$this->image_id  = (int) $product->get_image_id();
@@ -59,6 +61,17 @@ class BSC_Products_Card {
 		}
 
 		$this->setCategoryTerms( $terms );
+	}
+
+	private function getDiscountPercent( WC_Product $product ): int {
+		$regular_price = (float) $product->get_regular_price();
+		$sale_price    = (float) $product->get_sale_price();
+
+		if ( ! $product->is_on_sale() || $regular_price <= 0 || $sale_price <= 0 || $sale_price >= $regular_price ) {
+			return 0;
+		}
+
+		return max( 1, (int) round( ( 1 - ( $sale_price / $regular_price ) ) * 100 ) );
 	}
 
 	private function getLowestOptionDisplayPrice( WC_Product $product ): ?float {
@@ -153,6 +166,17 @@ class BSC_Products_Card {
 		}
 
 		echo '<img class="card__image" src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->title ) . '" width="400" height="400" loading="' . esc_attr( $this->image_loading ) . '" decoding="' . esc_attr( $this->image_loading === 'eager' ? 'sync' : 'async' ) . '" sizes="' . esc_attr( self::IMAGE_SIZES ) . '"' . ( $this->image_fetchpriority !== '' ? ' fetchpriority="' . esc_attr( $this->image_fetchpriority ) . '"' : '' ) . ' />';
+	}
+
+	public function render_discount_badge(): void {
+		if ( $this->discount_percent <= 0 ) {
+			return;
+		}
+
+		echo '<span class="card__discount-badge">';
+		echo '<span class="card__discount-badge-off">OFF</span>';
+		echo '<span class="card__discount-badge-value">' . esc_html( $this->discount_percent ) . '%</span>';
+		echo '</span>';
 	}
 
 	public function render_rating(): void {
@@ -279,6 +303,7 @@ class BSC_Products_Card {
 
 		echo '<a class="card__images" href="' . esc_url( $this->link ) . '">';
 		$this->render_images();
+		$this->render_discount_badge();
 		echo '</a>';
 
 		echo '<div class="card__rating">';
