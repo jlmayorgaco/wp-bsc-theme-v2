@@ -312,7 +312,17 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_contact_page'
 	);
 
-	// 11. Newsletter leads - admin / shop manager
+	// 11. Customer directory - administrator only because it contains profile data.
+	add_submenu_page(
+		'bsc-dashboard',
+		__( 'Clientes BSC', 'bsc-2-0' ),
+		__( 'Clientes', 'bsc-2-0' ),
+		'manage_options',
+		'bsc-customers',
+		'bsc_render_customers_page'
+	);
+
+	// 12. Newsletter leads - admin / shop manager
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Newsletter BSC', 'bsc-2-0' ),
@@ -322,7 +332,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_newsletter_page'
 	);
 
-	// 12. Emails - admin only
+	// 13. Emails - admin only
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Emails BSC', 'bsc-2-0' ),
@@ -332,7 +342,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_followup_emails_page'
 	);
 
-	// 13. Monitoreo post-launch - admin only
+	// 14. Monitoreo post-launch - admin only
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Monitoreo BSC', 'bsc-2-0' ),
@@ -342,7 +352,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_monitoring_page'
 	);
 
-	// 14. Control de Acceso - role x page matrix
+	// 15. Control de Acceso - role x page matrix
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Control de Acceso', 'bsc-2-0' ),
@@ -352,7 +362,7 @@ function bsc_add_admin_menu(): void {
 		'bsc_render_access_page'
 	);
 
-	// 15. Configuracion - admin only (always last)
+	// 16. Configuracion - admin only (always last)
 	add_submenu_page(
 		'bsc-dashboard',
 		__( 'Configuración BSC', 'bsc-2-0' ),
@@ -434,6 +444,7 @@ require_once get_template_directory() . '/admin/bsc-coupons-page.php';       // 
 require_once get_template_directory() . '/admin/bsc-header-menus-page.php';
 require_once get_template_directory() . '/admin/bsc-creators-page.php';
 require_once get_template_directory() . '/admin/bsc-contact-page.php';
+require_once get_template_directory() . '/admin/bsc-customers-page.php';
 require_once get_template_directory() . '/admin/bsc-newsletter-page.php';
 require_once get_template_directory() . '/admin/bsc-followup-emails-page.php'; // BSC-082
 require_once get_template_directory() . '/admin/bsc-monitoring-page.php';

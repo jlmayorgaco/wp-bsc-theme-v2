@@ -143,7 +143,7 @@ function bsc_search_products() {
 	}
 
 	// ── Transient cache (15 min per unique search term) ────────────────────
-	$cache_key = 'bsc_search_schema3_v' . bsc_get_search_cache_version() . '_' . md5( $query );
+	$cache_key = 'bsc_search_schema4_v' . bsc_get_search_cache_version() . '_' . md5( $query );
 	$cached    = get_transient( $cache_key );
 	if ( $cached !== false ) {
 		$cached_products    = isset( $cached['products'] ) && is_array( $cached['products'] ) ? $cached['products'] : (array) $cached;
@@ -320,7 +320,9 @@ function bsc_search_products() {
 			$img_url = $img_src ? $img_src[0] : '';
 		}
 
-		$price_html = $product->get_price_html();
+		$price_html = function_exists( 'bsc_get_product_available_price_html' )
+			? bsc_get_product_available_price_html( $product )
+			: $product->get_price_html();
 
 		$results[] = array(
 			'id'           => $pid,
@@ -386,6 +388,11 @@ function bsc_maybe_bump_search_cache_version_for_product_meta( $meta_id, $object
 		'_stock_tienda',
 		'_stock_status',
 		'_bsc_product_archived',
+		'_bsc_variant_matrix',
+		'_bsc_color_variants',
+		'_bsc_color_variants_enabled',
+		'_bsc_size_variants',
+		'_bsc_size_variants_enabled',
 	);
 
 	if ( in_array( (string) $meta_key, $cache_sensitive_meta_keys, true ) ) {
