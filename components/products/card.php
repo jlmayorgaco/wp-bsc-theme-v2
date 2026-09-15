@@ -30,15 +30,23 @@ class BSC_Products_Card {
 		$this->title         = get_the_title( $product->get_id() );
 		$this->price         = $product->get_price_html();
 		$this->raw_price     = (float) wc_get_price_to_display( $product );
-		$lowest_option_price = $this->getLowestOptionDisplayPrice( $product );
-		if ( null !== $lowest_option_price ) {
-			$this->raw_price = $lowest_option_price;
-			$this->price     = wc_price( $lowest_option_price );
-		}
 		$this->sku           = (string) $product->get_sku();
 		$this->regular_price = wc_price( $product->get_regular_price() );
 		$this->sale_price    = wc_price( $product->get_sale_price() );
 		$this->discount_percent = $this->getDiscountPercent( $product );
+		$lowest_option_price = function_exists( 'bsc_get_product_lowest_available_price' )
+			? bsc_get_product_lowest_available_price( $product )
+			: null;
+		if ( null !== $lowest_option_price ) {
+			$this->raw_price        = $lowest_option_price['price'];
+			$this->regular_price    = wc_price( $lowest_option_price['regular_price'] );
+			$this->sale_price       = wc_price( $lowest_option_price['sale_price'] );
+			$this->discount_percent = $this->getDiscountPercentFromPrices(
+				$lowest_option_price['regular_price'],
+				$lowest_option_price['sale_price']
+			);
+			$this->price            = bsc_format_product_available_price_html( $lowest_option_price );
+		}
 		$this->stock_status  = $product->get_stock_status();
 
 		$this->image_id  = (int) $product->get_image_id();
@@ -64,55 +72,22 @@ class BSC_Products_Card {
 	}
 
 	private function getDiscountPercent( WC_Product $product ): int {
-		$regular_price = (float) $product->get_regular_price();
-		$sale_price    = (float) $product->get_sale_price();
+		if ( ! $product->is_on_sale() ) {
+			return 0;
+		}
 
-		if ( ! $product->is_on_sale() || $regular_price <= 0 || $sale_price <= 0 || $sale_price >= $regular_price ) {
+		return $this->getDiscountPercentFromPrices(
+			(float) $product->get_regular_price(),
+			(float) $product->get_sale_price()
+		);
+	}
+
+	private function getDiscountPercentFromPrices( float $regular_price, float $sale_price ): int {
+		if ( $regular_price <= 0 || $sale_price <= 0 || $sale_price >= $regular_price ) {
 			return 0;
 		}
 
 		return max( 1, (int) round( ( 1 - ( $sale_price / $regular_price ) ) * 100 ) );
-	}
-
-	private function getLowestOptionDisplayPrice( WC_Product $product ): ?float {
-		$option_prices = array();
-
-		if ( $product instanceof WC_Product_Variable ) {
-			$variation_prices = $product->get_variation_prices( true );
-			$visible_prices   = array_values( $variation_prices['price'] ?? array() );
-
-			if ( count( $visible_prices ) > 1 ) {
-				foreach ( $visible_prices as $variation_price ) {
-					if ( '' !== (string) $variation_price && is_numeric( $variation_price ) ) {
-						$option_prices[] = (float) $variation_price;
-					}
-				}
-			}
-		}
-
-		if ( function_exists( 'bsc_get_product_variant_matrix_public_data' ) ) {
-			$variants = bsc_get_product_variant_matrix_public_data( $product->get_id() );
-
-			if ( count( $variants ) > 1 ) {
-				foreach ( $variants as $variant ) {
-					$variant_price = (string) ( $variant['price'] ?? '' );
-					if ( '' === $variant_price ) {
-						$variant_price = (string) $product->get_price();
-					}
-
-					if ( '' === $variant_price || ! is_numeric( $variant_price ) ) {
-						continue;
-					}
-
-					$option_prices[] = (float) wc_get_price_to_display(
-						$product,
-						array( 'price' => (float) $variant_price )
-					);
-				}
-			}
-		}
-
-		return empty( $option_prices ) ? null : min( $option_prices );
 	}
 
 	private function setCategoryTerms( array $terms ): void {
@@ -229,10 +204,15 @@ class BSC_Products_Card {
 		}
 
 		$formatted_price = wc_format_decimal( $this->raw_price, wc_get_price_decimals() );
-		$quantity = self::getCartQuantityForProduct( (int) $product_id );
-		$in_cart  = $quantity > 0 && ! $has_bsc_options;
+		$cart_state      = self::getCartStateForProduct( (int) $product_id );
+		$quantity        = $cart_state['quantity'];
+		$in_cart         = $quantity > 0 && ! $has_bsc_options;
 
 		if ( $in_cart ) {
+			$stock_total         = $cart_state['stock_total'];
+			$reached_stock_limit = null !== $stock_total && $quantity >= $stock_total;
+			$plus_label          = $reached_stock_limit ? 'Stock máximo alcanzado' : 'Aumentar cantidad';
+
 			echo '<button
                 type="button"
                 class="bsc__button bsc__button--product-card bsc__button-add-to-cart bsc__button-add-to-cart--hidden"
@@ -245,10 +225,14 @@ class BSC_Products_Card {
                 aria-label="' . esc_attr( $label ) . '"
             ><span>' . esc_html( $label ) . '</span></button>';
 
-			echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr( $product_id ) . '">';
-			echo '<button class="bsc__qty-minus">&minus;</button>';
-			echo '<span class="bsc__qty-value">' . esc_html( $quantity ) . '</span>';
-			echo '<button class="bsc__qty-plus">+</button>';
+			echo '<div class="bsc__quantity-controls" data-min="-1" data-product_id="' . esc_attr( $product_id ) . '" data-item-key="' . esc_attr( $cart_state['key'] ) . '" data-variant-key="" data-stock-total="' . esc_attr( null === $stock_total ? '' : (string) $stock_total ) . '">';
+			echo '<button type="button" class="bsc__qty-minus" aria-label="Disminuir cantidad">&minus;</button>';
+			echo '<span class="bsc__qty-value" aria-live="polite">' . esc_html( $quantity ) . '</span>';
+			echo '<button type="button" class="bsc__qty-plus" aria-label="' . esc_attr( $plus_label ) . '"';
+			if ( $reached_stock_limit ) {
+				echo ' disabled title="Stock máximo alcanzado"';
+			}
+			echo '>+</button>';
 			echo '</div>';
 			return;
 		}
@@ -277,25 +261,49 @@ class BSC_Products_Card {
         ><span>' . esc_html( $label ) . '</span></button>';
 	}
 
-	private static function getCartQuantityForProduct( int $product_id ): int {
-		static $cart_quantities = null;
+	/**
+	 * Return the current cart quantity and stock metadata for a product card.
+	 *
+	 * @return array{quantity: int, key: string, stock_total: int|null}
+	 */
+	private static function getCartStateForProduct( int $product_id ): array {
+		static $cart_states = null;
 
-		if ( null === $cart_quantities ) {
-			$cart_quantities = array();
+		if ( null === $cart_states ) {
+			$cart_states = array();
 
 			if ( function_exists( 'WC' ) && WC()->cart ) {
-				foreach ( WC()->cart->get_cart() as $cart_item ) {
+				foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 					$cart_product_id = (int) ( $cart_item['product_id'] ?? 0 );
 					if ( $cart_product_id <= 0 ) {
 						continue;
 					}
 
-					$cart_quantities[ $cart_product_id ] = (int) ( $cart_quantities[ $cart_product_id ] ?? 0 ) + (int) ( $cart_item['quantity'] ?? 0 );
+					if ( ! isset( $cart_states[ $cart_product_id ] ) ) {
+						$cart_states[ $cart_product_id ] = array(
+							'quantity'    => 0,
+							'key'         => (string) $cart_item_key,
+							'stock_total' => null,
+						);
+					}
+
+					$cart_states[ $cart_product_id ]['quantity'] += max( 0, (int) ( $cart_item['quantity'] ?? 0 ) );
+
+					if ( function_exists( 'bsc_cart_item_stock_total' ) ) {
+						$item_stock_total = bsc_cart_item_stock_total( $cart_item );
+						if ( null !== $item_stock_total ) {
+							$cart_states[ $cart_product_id ]['stock_total'] = max( 0, (int) $item_stock_total );
+						}
+					}
 				}
 			}
 		}
 
-		return (int) ( $cart_quantities[ $product_id ] ?? 0 );
+		return $cart_states[ $product_id ] ?? array(
+			'quantity'    => 0,
+			'key'         => '',
+			'stock_total' => null,
+		);
 	}
 
 	public function render(): void {

@@ -46,7 +46,9 @@ $color_variants = function_exists( 'bsc_get_product_color_variants' )
 $size_variants = function_exists( 'bsc_get_product_size_variants' )
 	? bsc_get_product_size_variants( (int) $product_id )
 	: array();
-$base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc_get_price_decimals() );
+$base_price_html = function_exists( 'bsc_get_product_available_price_html' )
+	? bsc_get_product_available_price_html( $product )
+	: $product->get_price_html();
 ?>
 
 <main class="bsc bsc__product--page">
@@ -88,7 +90,36 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 
 	<div class="bsc__product-layout">
 		<div class="bsc__product-gallery">
-		<?php woocommerce_show_product_images(); ?>
+		<?php
+		$main_image_id            = (int) $product->get_image_id();
+		$discount_badge_rendered = false;
+		$discount_badge_filter   = static function ( string $html, int $attachment_id ) use ( $card, $main_image_id, &$discount_badge_rendered ): string {
+			if ( $discount_badge_rendered || $main_image_id <= 0 || $attachment_id !== $main_image_id ) {
+				return $html;
+			}
+
+			ob_start();
+			$card->render_discount_badge();
+			$discount_badge = (string) ob_get_clean();
+
+			if ( $discount_badge === '' ) {
+				return $html;
+			}
+
+			$closing_div_position = strrpos( $html, '</div>' );
+			if ( $closing_div_position === false ) {
+				return $html;
+			}
+
+			$discount_badge_rendered = true;
+
+			return substr_replace( $html, $discount_badge, $closing_div_position, 0 );
+		};
+
+		add_filter( 'woocommerce_single_product_image_thumbnail_html', $discount_badge_filter, 10, 2 );
+		woocommerce_show_product_images();
+		remove_filter( 'woocommerce_single_product_image_thumbnail_html', $discount_badge_filter, 10 );
+		?>
 		</div>
 
 		<div class="bsc__product-info">
@@ -97,7 +128,7 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 		</h1>
 
 		<div class="bsc__product-price bsc__price">
-			<?php woocommerce_template_single_price(); ?>
+			<?php $card->render_price(); ?>
 		</div>
 
 		<div class="bsc__product-shortdesc">
@@ -105,7 +136,7 @@ $base_display_price = wc_format_decimal( wc_get_price_to_display( $product ), wc
 		</div>
 
 		<?php if ( ! empty( $color_variants ) || ! empty( $size_variants ) ) : ?>
-		<div class="bsc-product-options" data-bsc-product-options data-base-price="<?php echo esc_attr( $base_display_price ); ?>">
+		<div class="bsc-product-options" data-bsc-product-options data-base-price-html="<?php echo esc_attr( $base_price_html ); ?>">
 			<input type="hidden" data-bsc-selected-color-name value="" />
 			<input type="hidden" data-bsc-selected-color-hex value="" />
 			<input type="hidden" data-bsc-selected-size-name value="" />

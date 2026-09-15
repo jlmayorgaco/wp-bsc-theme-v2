@@ -33,12 +33,16 @@ class BSC_Checkout_Cart {
 		$name     = $_product->get_name();
 		$quantity = $item['quantity'];
 		// I-7: use wc_get_price_to_display() to respect sale prices and tax settings
-		$variant_price = $item['bsc_product_variant_price'] ?? ( $item['bsc_product_options']['price'] ?? '' );
-		$unit_price    = $variant_price !== '' ? (float) $variant_price : (float) wc_get_price_to_display( $_product );
-		$price       = wc_price( $unit_price );
-		$price_total = wc_price( $quantity * $unit_price );
-		$image       = $_product->get_image( 'woocommerce_thumbnail' );
-		$item_data   = function_exists( 'wc_get_formatted_cart_item_data' ) ? wc_get_formatted_cart_item_data( $item ) : '';
+		$variant_price  = $item['bsc_product_variant_price'] ?? ( $item['bsc_product_options']['price'] ?? '' );
+		$unit_price     = '' !== $variant_price ? (float) $variant_price : (float) wc_get_price_to_display( $_product );
+		$price          = wc_price( $unit_price );
+		$price_total    = wc_price( $quantity * $unit_price );
+		$image          = $_product->get_image( 'woocommerce_thumbnail' );
+		$item_data      = function_exists( 'wc_get_formatted_cart_item_data' ) ? wc_get_formatted_cart_item_data( $item ) : '';
+		$stock_total    = function_exists( 'bsc_cart_item_stock_total' ) ? bsc_cart_item_stock_total( $item ) : null;
+		$variant_key    = sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) );
+		$at_stock_limit = null !== $stock_total && (int) $quantity >= $stock_total;
+		$plus_label     = $at_stock_limit ? 'Stock máximo alcanzado' : 'Aumentar cantidad';
 
 		$link = get_permalink( $_product->get_id() );
 
@@ -72,10 +76,16 @@ class BSC_Checkout_Cart {
 						<h5 class="item__total"><?php echo wp_kses_post( $price_total ); ?></h5>
 					</div>
 				</div>
-				<div class="row row_action_buttons bsc-checkout-cart--controls" data-product_id="<?php echo esc_attr( $_product->get_id() ); ?>" data-item-key="<?php echo esc_attr( $key ); ?>">
-					<button type="button" class="bsc__qty-minus quantity-btn decrease"><span>-</span></button>
-					<button type="button" class="bsc__qty-plus quantity-btn increase"><span>+</span></button>
-					<button type="button" class="delete-btn"><span>x</span></button>
+				<div
+					class="row row_action_buttons bsc-checkout-cart--controls"
+					data-product_id="<?php echo esc_attr( $_product->get_id() ); ?>"
+					data-item-key="<?php echo esc_attr( $key ); ?>"
+					data-variant-key="<?php echo esc_attr( $variant_key ); ?>"
+					data-stock-total="<?php echo esc_attr( null === $stock_total ? '' : (string) $stock_total ); ?>"
+				>
+					<button type="button" class="bsc__qty-minus quantity-btn decrease" aria-label="Disminuir cantidad"><span>-</span></button>
+					<button type="button" class="bsc__qty-plus quantity-btn increase" aria-label="<?php echo esc_attr( $plus_label ); ?>" title="<?php echo esc_attr( $at_stock_limit ? $plus_label : '' ); ?>" <?php disabled( $at_stock_limit ); ?>><span>+</span></button>
+					<button type="button" class="delete-btn" aria-label="Eliminar producto"><span>x</span></button>
 					<span class="bsc__qty-value bsc__qty-value--hidden"><?php echo esc_html( $quantity ); ?></span>
 				</div>
 			</div>

@@ -471,7 +471,7 @@ function bsc_process_birthday_followup_emails(): int {
 		return 0;
 	}
 
-	$today        = current_datetime();
+	$today        = new DateTimeImmutable( 'now', new DateTimeZone( 'America/Bogota' ) );
 	$today_month  = $today->format( 'm' );
 	$today_day    = $today->format( 'd' );
 	$current_year = $today->format( 'Y' );
@@ -479,9 +479,21 @@ function bsc_process_birthday_followup_emails(): int {
 
 	$user_ids = get_users(
 		array(
-			'fields'       => 'ids',
-			'meta_key'     => 'bsc_birthday',
-			'meta_compare' => 'EXISTS',
+			'fields'      => 'ids',
+			'count_total' => false,
+			'meta_query'  => array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'bsc_birthday',
+					'value'   => '-' . $today_month . '-' . $today_day,
+					'compare' => 'LIKE',
+				),
+				array(
+					'key'     => 'bsc_birthday',
+					'value'   => $today_day . '/' . $today_month . '/',
+					'compare' => 'LIKE',
+				),
+			),
 		)
 	);
 
@@ -813,8 +825,6 @@ function bsc_run_followup_email_jobs(): array {
 		return $summary;
 	}
 
-	$summary['birthday'] = bsc_process_birthday_followup_emails();
-
 	if ( ! bsc_acquire_followup_state_lock() ) {
 		$summary['locked'] = 1;
 		update_option( 'bsc_followup_email_last_run_summary', $summary, false );
@@ -822,11 +832,13 @@ function bsc_run_followup_email_jobs(): array {
 	}
 
 	try {
-		$backfill                         = bsc_backfill_followup_state_batch( 100 );
-		$summary['backfill_orders']       = $backfill['processed'];
-		$summary['backfill_complete']     = $backfill['complete'];
-		$summary['repurchase']            = bsc_process_repurchase_followup_emails();
-		$summary['inactive']              = bsc_process_inactivity_followup_emails();
+		$summary['birthday'] = bsc_process_birthday_followup_emails();
+
+		$backfill                     = bsc_backfill_followup_state_batch( 100 );
+		$summary['backfill_orders']   = $backfill['processed'];
+		$summary['backfill_complete'] = $backfill['complete'];
+		$summary['repurchase']        = bsc_process_repurchase_followup_emails();
+		$summary['inactive']          = bsc_process_inactivity_followup_emails();
 	} finally {
 		bsc_release_followup_state_lock();
 	}

@@ -3,6 +3,111 @@ defined( 'ABSPATH' ) || exit;
 
 require_once get_template_directory() . '/inc/checkout-review-summary-helpers.php';
 
+/**
+ * Return the stock limit that applies to a cart line.
+ *
+ * BSC products manage inventory in the warehouse/store meta fields, which are
+ * separate from WooCommerce's native stock value. Returning null for products
+ * without a managed quantity tells the client not to impose a false limit.
+ *
+ * @param array $cart_item WooCommerce cart item data.
+ * @return int|null
+ */
+function bsc_cart_item_stock_total( array $cart_item ): ?int {
+	$product_id  = (int) ( $cart_item['product_id'] ?? 0 );
+	$variant_key = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
+
+	if ( $product_id <= 0 ) {
+		return null;
+	}
+
+	if ( '' !== $variant_key && function_exists( 'bsc_find_product_variant_matrix_row' ) ) {
+		$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, '', '', '', false );
+		if ( is_array( $variant ) ) {
+			return bsc_product_variant_stock_total( $variant );
+		}
+	}
+
+	if ( class_exists( 'BSC_Stock' ) && BSC_Stock::has_dual_stock( $product_id ) ) {
+		return BSC_Stock::get_total_stock( $product_id );
+	}
+
+	$product = $cart_item['data'] ?? null;
+	if ( ! $product instanceof WC_Product || ! $product->managing_stock() ) {
+		return null;
+	}
+
+	$stock_quantity = $product->get_stock_quantity();
+	return is_numeric( $stock_quantity ) ? max( 0, (int) $stock_quantity ) : null;
+}
+
+/**
+ * Identify cart lines that draw from the same stock pool.
+ *
+ * @param array $cart_item WooCommerce cart item data.
+ * @return string
+ */
+function bsc_cart_item_stock_key( array $cart_item ): string {
+	$product_id   = (int) ( $cart_item['product_id'] ?? 0 );
+	$variation_id = (int) ( $cart_item['variation_id'] ?? 0 );
+	$variant_key  = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
+
+	if ( '' !== $variant_key ) {
+		return 'bsc-variant:' . $product_id . ':' . $variant_key;
+	}
+
+	$product = $cart_item['data'] ?? null;
+	if ( $product instanceof WC_Product ) {
+		$stock_managed_by_id = (int) $product->get_stock_managed_by_id();
+		if ( $stock_managed_by_id > 0 ) {
+			return 'product:' . $stock_managed_by_id;
+		}
+	}
+
+	return 'product:' . ( 0 !== $variation_id ? $variation_id : $product_id );
+}
+
+/**
+ * Return the total quantity that would consume the same stock pool.
+ *
+ * @param array  $cart_item              Cart item or prospective cart item.
+ * @param int    $line_quantity          Quantity requested for this line.
+ * @param string $excluded_cart_item_key Existing line to replace rather than add.
+ */
+function bsc_cart_item_requested_stock_quantity( array $cart_item, int $line_quantity, string $excluded_cart_item_key = '' ): int {
+	$requested_quantity = max( 0, $line_quantity );
+
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return $requested_quantity;
+	}
+
+	$stock_key = bsc_cart_item_stock_key( $cart_item );
+	foreach ( WC()->cart->get_cart() as $candidate_key => $candidate ) {
+		if ( $candidate_key === $excluded_cart_item_key || bsc_cart_item_stock_key( $candidate ) !== $stock_key ) {
+			continue;
+		}
+
+		$requested_quantity += max( 0, (int) ( $candidate['quantity'] ?? 0 ) );
+	}
+
+	return $requested_quantity;
+}
+
+/**
+ * Determine whether a requested cart-line quantity fits the shared stock pool.
+ *
+ * @param array  $cart_item              Cart item or prospective cart item.
+ * @param int    $line_quantity          Quantity requested for this line.
+ * @param string $excluded_cart_item_key Existing line to replace rather than add.
+ * @return bool
+ */
+function bsc_cart_item_has_enough_stock( array $cart_item, int $line_quantity, string $excluded_cart_item_key = '' ): bool {
+	$stock_total = bsc_cart_item_stock_total( $cart_item );
+
+	return null === $stock_total
+		|| bsc_cart_item_requested_stock_quantity( $cart_item, $line_quantity, $excluded_cart_item_key ) <= $stock_total;
+}
+
 
 // ── Refresh public AJAX nonce ──────────────────────────────────────────────
 add_action( 'wp_ajax_bsc_refresh_ajax_nonce', 'bsc_refresh_ajax_nonce' );
@@ -55,6 +160,32 @@ function bsc_ajax_add_to_cart_handler() {
 		wp_send_json_error( array( 'error' => $cart_item_data->get_error_message() ), 400 );
 	}
 
+	$product = wc_get_product( $product_id );
+	if ( ! $product instanceof WC_Product ) {
+		wp_send_json_error( array( 'error' => 'Producto no disponible.' ), 404 );
+	}
+
+	$prospective_cart_item = array_merge(
+		array(
+			'product_id'   => $product_id,
+			'variation_id' => 0,
+			'data'         => $product,
+		),
+		$cart_item_data
+	);
+	$stock_total           = bsc_cart_item_stock_total( $prospective_cart_item );
+
+	if ( ! bsc_cart_item_has_enough_stock( $prospective_cart_item, $quantity ) ) {
+		wp_send_json_error(
+			array(
+				'error'       => 'No hay stock suficiente para agregar esa cantidad.',
+				'message'     => 'No hay stock suficiente para agregar esa cantidad.',
+				'stock_total' => $stock_total,
+			),
+			409
+		);
+	}
+
 	$added = WC()->cart->add_to_cart( $product_id, $quantity, 0, array(), $cart_item_data );
 
 	if ($added) {
@@ -79,7 +210,7 @@ function bsc_ajax_add_to_cart_handler() {
 					'quantity'    => max( 1, (int) ( $cart_item['quantity'] ?? $quantity ) ),
 					'product_id'  => (int) ( $cart_item['product_id'] ?? $product_id ),
 					'variant_key' => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
-					'stock_total' => max( 0, (int) ( $cart_item['bsc_product_options']['stock_total'] ?? 0 ) ),
+					'stock_total' => bsc_cart_item_stock_total( $cart_item ),
 				),
 			)
 		);
@@ -135,15 +266,16 @@ function bsc_update_cart_quantity() {
 				);
 			}
 
-			$variant_key = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
-			if ($delta > 0 && $variant_key !== '' && function_exists( 'bsc_find_product_variant_matrix_row' )) {
-				$variant = bsc_find_product_variant_matrix_row( (int) $cart_item['product_id'], $variant_key, '', '', '', false );
-				$stock_total = is_array( $variant )
-					? max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) )
-					: 0;
-
-				if ($new_qty > $stock_total) {
-					wp_send_json_error( array( 'message' => 'No hay stock suficiente para esa variante.' ), 409 );
+			$stock_total = bsc_cart_item_stock_total( $cart_item );
+			if ( $delta > 0 && null !== $stock_total ) {
+				if ( ! bsc_cart_item_has_enough_stock( $cart_item, $new_qty, $cart_item_key ) ) {
+					wp_send_json_error(
+						array(
+							'message'     => 'No hay stock suficiente para agregar esa cantidad.',
+							'stock_total' => $stock_total,
+						),
+						409
+					);
 				}
 			}
 
@@ -162,6 +294,8 @@ function bsc_update_cart_quantity() {
 					'item_total'    => wc_price( $new_qty * $cart_item['data']->get_price() ),
 					'cart_item_key' => $cart_item_key,
 					'product_id'    => (int) $cart_item['product_id'],
+					'variant_key'   => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
+					'stock_total'   => $stock_total,
 				)
 			);
 		}
@@ -189,14 +323,7 @@ function bsc_get_cart_quantities() {
 	foreach ( WC()->cart->get_cart() as $key => $item ) {
 		$product_id  = (int) ( $item['product_id'] ?? 0 );
 		$variant_key = sanitize_key( (string) ( $item['bsc_product_variant_key'] ?? '' ) );
-		$stock_total = max( 0, (int) ( $item['bsc_product_options']['stock_total'] ?? 0 ) );
-
-		if ( $variant_key !== '' && function_exists( 'bsc_find_product_variant_matrix_row' ) ) {
-			$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, '', '', '', false );
-			if ( is_array( $variant ) ) {
-				$stock_total = max( 0, (int) ( $variant['stock_bodega'] ?? 0 ) ) + max( 0, (int) ( $variant['stock_tienda'] ?? 0 ) );
-			}
-		}
+		$stock_total = bsc_cart_item_stock_total( $item );
 
 		$items[] = array(
 			'key'         => $key,

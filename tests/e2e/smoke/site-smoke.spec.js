@@ -254,10 +254,18 @@ test.describe('BSC smoke', () => {
       .locator('.bsc__product-card')
       .filter({ hasText: 'AHA BHA PHA 30 Days Miracle Toner SOME BY MI' })
       .first();
-    const cardPriceText = await productCard.locator('.card__price').innerText();
+    const salePrice = productCard.locator('.card__price ins').first();
+    const cardPriceText = await (await salePrice.count()
+      ? salePrice.innerText()
+      : productCard.locator('.card__price').innerText());
 
     await expect(productCard).toBeVisible();
-    await productCard.locator('.bsc__button-add-to-cart--variable').click();
+    const productHref = await productCard.locator('.bsc__button-add-to-cart--variable').getAttribute('href');
+    expect(productHref).toBeTruthy();
+    await gotoAndStabilize(page, productHref, {
+      primePage: false,
+      waitForImages: false,
+    });
 
     const optionPriceElements = page.locator('.bsc-product-options__option-price');
     await expect.poll(() => optionPriceElements.count()).toBeGreaterThan(1);
@@ -267,6 +275,71 @@ test.describe('BSC smoke', () => {
 
     expect(optionPrices.length).toBeGreaterThan(1);
     expect(parsePrice(cardPriceText)).toBe(Math.min(...optionPrices.map(parsePrice)));
+  });
+
+  test('product cards with one available option keep the same price in search and product detail', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for product card pricing smoke');
+
+    const productName = 'Madagascar Centella Poremizing Fresh Ampoule SKIN1004';
+    const parsePrice = (price) => Number(price.replace(/\D/g, ''));
+
+    await gotoAndStabilize(page, routes.groupCategory, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const productCard = page.locator('.bsc__product-card').filter({ hasText: productName }).first();
+    await expect(productCard).toBeVisible();
+
+    const cardSalePrice = productCard.locator('.card__price ins').first();
+    const cardPriceText = await (await cardSalePrice.count()
+      ? cardSalePrice.innerText()
+      : productCard.locator('.card__price').innerText());
+
+    const productHref = await productCard.locator('.bsc__button-add-to-cart--variable').getAttribute('href');
+    expect(productHref).toBeTruthy();
+    await gotoAndStabilize(page, productHref, {
+      primePage: false,
+      waitForImages: false,
+    });
+    await expect(page.locator('.bsc__title--product')).toContainText('Madagascar Centella Poremizing Fresh Ampoule');
+
+    const optionPrices = page.locator('.bsc-product-options__option-price');
+    await expect(optionPrices).toHaveCount(1);
+    expect(parsePrice(cardPriceText)).toBe(parsePrice(await optionPrices.first().innerText()));
+
+    const detailSalePrice = page.locator('.bsc__product-price ins').first();
+    const detailPriceText = await (await detailSalePrice.count()
+      ? detailSalePrice.innerText()
+      : page.locator('.bsc__product-price').innerText());
+    expect(parsePrice(detailPriceText)).toBe(parsePrice(cardPriceText));
+
+    const isDesktop = testInfo.project.name === 'desktop';
+    const toggle = page.locator(isDesktop ? '.bsc__header--desktop .btn-search-toggle' : '#mobile-search-btn').first();
+    const input = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .header-search-input'
+        : '.bsc-mobile-search-panel .header-search-input'
+    ).first();
+    const results = page.locator(
+      isDesktop
+        ? '.bsc__header--desktop .search-results'
+        : '.bsc-mobile-search-panel .search-results'
+    ).first();
+
+    await toggle.click();
+    await input.fill('poremizing');
+
+    const searchResult = results.locator('.search-result-item:not(.search-result-item--all)')
+      .filter({ hasText: 'Madagascar Centella Poremizing Fresh Ampoule' })
+      .first();
+    await expect(searchResult).toBeVisible();
+
+    const searchSalePrice = searchResult.locator('.search-result-price ins').first();
+    const searchPriceText = await (await searchSalePrice.count()
+      ? searchSalePrice.innerText()
+      : searchResult.locator('.search-result-price').innerText());
+    expect(parsePrice(searchPriceText)).toBe(parsePrice(cardPriceText));
   });
 
   test('mobile contact cards hide their external-link arrows', async ({ page }, testInfo) => {

@@ -1,0 +1,223 @@
+.bsc-customers__filters {
+  margin-bottom: 16px;
+}
+
+.bsc-customers__summary {
+  grid-template-columns: repeat(2, minmax(0, 220px));
+}
+
+.bsc-customers__table td {
+  vertical-align: middle;
+}
+
+.bsc-admin-customers h1,
+.bsc-admin-customers h2 {
+  text-wrap: balance;
+}
+
+.bsc-customers__table strong,
+.bsc-customers__email,
+.bsc-customers__login {
+  overflow-wrap: anywhere;
+}
+
+.bsc-customers__email,
+.bsc-customers__login,
+.bsc-customers__field-help {
+  color: #50575e;
+  display: block;
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+
+.bsc-customers__login {
+  color: #646970;
+}
+
+.bsc-customers__actions-column {
+  text-align: right;
+  white-space: nowrap;
+  width: 132px;
+}
+
+.bsc-customers__pagination {
+  margin-top: 16px;
+}
+
+.bsc-customers__pagination .page-numbers {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 8px;
+}
+
+.bsc-customers__pagination .page-numbers.current {
+  color: #1d2327;
+  font-weight: 700;
+}
+
+.bsc-customers__identity {
+  align-items: center;
+  background: #f6f7f7;
+  border-left: 4px solid #ffb6c1;
+  color: #3c434a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 16px 0;
+  padding: 12px 14px;
+}
+
+.bsc-customers__identity span {
+  overflow-wrap: anywhere;
+}
+
+.bsc-customers__form {
+  display: grid;
+  gap: 16px;
+  max-width: 1120px;
+}
+
+.bsc-customers__form .bsc-admin-panel {
+  padding: 20px;
+}
+
+.bsc-customers__field-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bsc-customers__field-grid--needs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bsc-customers__field-grid input,
+.bsc-customers__field-grid select {
+  min-height: 40px;
+  scroll-margin-bottom: 120px;
+  width: 100%;
+}
+
+.bsc-customers__field-grid [aria-invalid="true"] {
+  border-color: #b32d2e;
+  box-shadow: 0 0 0 1px #b32d2e;
+}
+
+.bsc-customers__field-error {
+  color: #8a2424;
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.bsc-customers__notice--error {
+  background: #fcf0f1;
+  border-color: #d63638;
+  color: #691c1e;
+}
+
+.bsc-customers__birthday-status {
+  background: #f6f7f7;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  grid-column: 1 / -1;
+  padding: 14px;
+}
+
+.bsc-customers__birthday-status > p {
+  color: #50575e;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+.bsc-customers__reset-option {
+  align-items: flex-start;
+  border-top: 1px solid #dcdcde;
+  display: flex;
+  gap: 8px;
+  line-height: 1.45;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.bsc-customers__reset-option input {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.bsc-customers__reset-option span {
+  color: #50575e;
+  font-size: 12px;
+}
+
+.bsc-customers__reset-option strong {
+  color: #1d2327;
+  display: block;
+}
+
+.bsc-customers__summary .bsc-admin-stat-card__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.bsc-customers__save-help {
+  color: #50575e;
+  flex: 1 1 300px;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 650px;
+}
+
+@media (max-width: 782px) {
+  .bsc-customers__summary,
+  .bsc-customers__field-grid,
+  .bsc-customers__field-grid--needs {
+    grid-template-columns: 1fr;
+  }
+
+  .bsc-customers__summary {
+    display: grid;
+  }
+
+  .bsc-customers__actions-column {
+    text-align: left;
+    white-space: normal;
+    width: auto;
+  }
+
+  .bsc-customers__identity {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bsc-customers__form .bsc-admin-panel {
+    padding: 16px;
+  }
+
+  .bsc-customers__form .bsc-admin-sticky-submit {
+    align-items: stretch;
+    box-shadow: none;
+    flex-direction: column;
+    position: static;
+  }
+
+  .bsc-customers__save-help {
+    flex: 0 1 auto;
+  }
+
+  .bsc-customers__form .bsc-admin-sticky-submit .button {
+    min-height: 44px;
+    text-align: center;
+  }
+
+  .bsc-customers__filters .button,
+  .bsc-customers__pagination .page-numbers {
+    min-height: 44px;
+  }
+}
