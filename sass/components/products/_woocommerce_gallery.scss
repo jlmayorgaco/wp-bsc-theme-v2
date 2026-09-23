@@ -34,9 +34,20 @@
 }
 
 .bsc__product-gallery .card__discount-badge {
-  bottom: clamp(2rem, 5vw, 2.5rem);
-  left: clamp(1.5rem, 4vw, 2rem);
+  bottom: 16%;
+  left: 22%;
   align-items: center;
+}
+
+.bsc__product-gallery .card__discount-badge-off {
+  font-size: 1.1rem;
+}
+
+.bsc__product-gallery .card__discount-badge-value {
+  min-width: 4rem;
+  min-height: 2.1rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 1.3rem;
 }
 
 .woocommerce-product-gallery .flex-viewport {
@@ -180,20 +191,6 @@
 
 
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-
-  .bsc__product-gallery .card__discount-badge-off {
-    margin: 0 0 0.13rem;
-    font-size: 0.7rem;
-  }
-
-  .bsc__product-gallery .card__discount-badge-value {
-    min-width: 2.75rem;
-    min-height: 1.5rem;
-    padding: 0.1rem 0.4rem;
-    border-width: 1px;
-    font-size: 0.9rem;
-  }
-
   .woocommerce-product-gallery {
     flex-direction: row !important;
     flex-wrap: wrap !important;

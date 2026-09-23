@@ -247,8 +247,10 @@ function bsc_get_email_preview_context( string $slug ): array {
 
 		case 'birthday':
 			return array(
-				'user'     => $user,
-				'shop_url' => $shop_url,
+				'user'              => $user,
+				'shop_url'          => $shop_url,
+				'coupon_code'       => 'CUMPLE-PRUEBA',
+				'coupon_is_preview' => true,
 			);
 
 		case 'order-shipped':
@@ -260,11 +262,13 @@ function bsc_get_email_preview_context( string $slug ): array {
 
 		case 'followup-inactive':
 			return array(
-				'customer_name'   => 'Preview Customer',
-				'order'           => $order,
-				'last_order_date' => '15 de enero de 2026',
-				'shop_url'        => $shop_url,
-				'account_url'     => $account_url,
+				'customer_name'     => 'Preview Customer',
+				'order'             => $order,
+				'last_order_date'   => '15 de enero de 2026',
+				'shop_url'          => $shop_url,
+				'account_url'       => $account_url,
+				'coupon_code'       => 'ENVIO-PRUEBA',
+				'coupon_is_preview' => true,
 			);
 
 		case 'followup-repurchase':

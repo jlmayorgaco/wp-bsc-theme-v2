@@ -24,41 +24,13 @@ $bc-placeholder: bsc.$text-muted;
   }
 
   .bc__intro-logo {
-    position: relative;
-    width: 218px;
-    height: 174px;
+    width: 240px;
     margin: 0 auto 30px;
 
     img {
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-      width: 190px;
-      max-width: none;
-      transform: translateX(-50%);
-    }
-  }
-
-  .bc__intro-logo-text {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    left: 50%;
-    width: 190px;
-    height: 74px;
-    overflow: visible;
-    transform: translateX(-50%);
-
-    path {
-      fill: none;
-    }
-
-    text {
-      fill: $bc-text;
-      font-family: $bc-font;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 2px;
+      display: block;
+      width: 100%;
+      height: auto;
     }
   }
 
@@ -101,17 +73,20 @@ $bc-placeholder: bsc.$text-muted;
 
   .bc__benefit-icon {
     display: block;
-    margin: 0 auto 0px;
+    width: 156px;
+    height: 156px;
+    margin: 0 auto;
     object-fit: contain;
   }
 
-  .bc__benefit-icon--rainbow {
-    width: 156px;
+  .bc__benefit-icon--stars,
+  .bc__benefit-icon--heart {
+    transform: scale(1.25);
   }
 
   .bc__benefit-card h2 {
     position: relative;
-    z-index: 2;
+    z-index: 1;
     width: fit-content;
     min-width: 270px;
     max-width: 100%;
@@ -338,10 +313,8 @@ $bc-placeholder: bsc.$text-muted;
     .bc__form-success-face {
       display: block;
       width: min(220px, 68vw);
+      height: auto;
       margin: 0 auto 18px;
-      padding: 18px;
-      border-radius: 999px;
-      background: #f5c1d0;
     }
 
     p {
@@ -380,24 +353,8 @@ $bc-placeholder: bsc.$text-muted;
     }
 
     .bc__intro-logo {
-      width: 174px;
-      height: 142px;
+      width: 190px;
       margin-bottom: 26px;
-
-      img {
-        width: 154px;
-      }
-    }
-
-    .bc__intro-logo-text {
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%) scale(0.82);
-
-      text {
-        font-size: 19px;
-        letter-spacing: 1.7px;
-      }
     }
 
     .bc__intro-copy,
@@ -416,8 +373,9 @@ $bc-placeholder: bsc.$text-muted;
       gap: 0px;
     }
 
-    .bc__benefit-icon--rainbow {
+    .bc__benefit-icon {
       width: 142px;
+      height: 142px;
       margin-bottom: 8px;
     }
 

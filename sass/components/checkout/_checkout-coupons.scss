@@ -15,21 +15,37 @@
 
   &-field {
     width: 100%;
-    border: 1px solid var(--color--text);
-    background-color: #fff;
+    border: 0;
+    background-color: transparent;
   }
 
-  &-input {
+  &-field .bsc__coupon-input {
     width: 100%;
-    border: none;
+    border: 0;
+    background-color: transparent;
+    color: #333;
+    letter-spacing: 1px;
+    outline: 1px solid #333;
+    outline-offset: 2px;
+
+    &:focus,
+    &:focus-visible {
+      outline: 1px solid #333;
+      outline-offset: 2px;
+    }
+  }
+
+  &-field .bsc__label--floating {
+    top: calc(0px - var(--space--sm));
+    transform: translateY(-100%) translateX(-18px);
+    font-size: 13px;
     color: #333;
     letter-spacing: 1px;
   }
 
-  &-field .bsc__label--floating {
-    font-size: 14px;
-    color: #050505;
-    letter-spacing: 1px;
+  &-field .bsc__coupon-input:focus + .bsc__label--floating,
+  &-field .bsc__coupon-input:not(:placeholder-shown) + .bsc__label--floating {
+    font-size: 13px;
   }
 
   &-row {
@@ -274,5 +290,3 @@
     font-size: 13px;
   }
 }
-
-

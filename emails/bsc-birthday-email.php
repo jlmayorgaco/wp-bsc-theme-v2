@@ -5,19 +5,22 @@
  * Variables:
  * - $user (WP_User)
  * - $shop_url (string)
- * - $coupon_code (string optional)
+ * - $coupon_code (string)
+ * - $coupon_is_preview (bool optional)
  */
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/bsc-email-design-system.php';
 
-$display_name     = bsc_email_name_from_user( $user ?? null, 'Bubble Lover' );
-$shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
-$coupon_code      = sanitize_text_field( (string) ( $coupon_code ?? get_option( 'bsc_birthday_coupon_code', 'BSC_SC5RBW2D' ) ) );
-$email_title      = '¡ Feliz cumpleañooos !';
-$email_hero       = 'bsc-email-hero-cake-complete.png';
-$email_hero_width = 275;
-$email_preheader  = 'Tienes un regalito de cumpleaños en BSC.';
+$display_name      = bsc_email_name_from_user( $user ?? null, 'Bubble Lover' );
+$shop_url          = (string) ( $shop_url ?? bsc_email_shop_url() );
+$coupon_code       = sanitize_text_field( (string) ( $coupon_code ?? '' ) );
+$coupon_is_preview = ! empty( $coupon_is_preview );
+$coupon_meta       = $coupon_is_preview ? 'Código de prueba | No canjeable' : 'Válido por 1 semana | Usos restantes: 1';
+$email_title       = '¡ Feliz cumpleañooos !';
+$email_hero        = 'bsc-email-hero-cake-complete.png';
+$email_hero_width  = 275;
+$email_preheader   = 'Tienes un regalito de cumpleaños en BSC.';
 
 require __DIR__ . '/bsc-email-header.php';
 
@@ -38,7 +41,7 @@ bsc_email_render_message(
 					</td>
 				</tr>
 <?php
-bsc_email_render_coupon( $coupon_code, '10% OFF en BSC', 'Válido por 1 semana | Usos restantes: 1', '#f4b5c7', 'smile', 1, 53, 'standard', 345, true );
+bsc_email_render_coupon( $coupon_code, '10% OFF en BSC', $coupon_meta, '#f4b5c7', 'smile', 1, 53, 'standard', 345, true );
 bsc_email_render_button_row(
 	array(
 		array(

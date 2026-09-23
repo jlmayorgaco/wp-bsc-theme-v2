@@ -27,6 +27,9 @@ if (!function_exists('wc_create_order')) {
 
 const BSC_PLAYWRIGHT_FIXTURE_META_KEY = '_bsc_playwright_fixture';
 const BSC_PLAYWRIGHT_FIXTURE_META_VALUE = 'auth_visual';
+const BSC_PLAYWRIGHT_PAGINATION_FIXTURE_META_VALUE = 'orders_pagination';
+const BSC_PLAYWRIGHT_PAGINATION_ORDER_COUNT = 13;
+const BSC_PLAYWRIGHT_PAGINATION_PER_PAGE = 5;
 const BSC_PLAYWRIGHT_PUBLIC_VISUAL_CATEGORY_SLUG = 'qa-visual-rutina';
 
 function bsc_playwright_fixture_email(): string {
@@ -35,6 +38,14 @@ function bsc_playwright_fixture_email(): string {
 
 function bsc_playwright_fixture_password(): string {
     return getenv('PW_ACCOUNT_PASSWORD') ?: 'Visual#2026BSC';
+}
+
+function bsc_playwright_fixture_pagination_email(): string {
+    return getenv('PW_PAGINATION_EMAIL') ?: 'qa.pagination@bsc.local';
+}
+
+function bsc_playwright_fixture_pagination_password(): string {
+    return getenv('PW_PAGINATION_PASSWORD') ?: 'Pagination#2026BSC';
 }
 
 function bsc_playwright_fixture_admin_username(): string {
@@ -353,6 +364,15 @@ function bsc_playwright_fixture_get_or_create_customer(string $email, string $pa
     return $user;
 }
 
+function bsc_playwright_fixture_get_or_create_pagination_customer(): WP_User {
+    $user = bsc_playwright_fixture_get_or_create_customer(
+        bsc_playwright_fixture_pagination_email(),
+        bsc_playwright_fixture_pagination_password()
+    );
+
+    return $user;
+}
+
 function bsc_playwright_fixture_get_or_create_admin(string $username, string $email, string $password): WP_User {
     $user = get_user_by('login', $username);
 
@@ -638,6 +658,37 @@ function bsc_playwright_fixture_get_or_create_order(int $user_id): WC_Order {
     return bsc_playwright_fixture_create_order($user_id);
 }
 
+function bsc_playwright_fixture_existing_pagination_orders(int $user_id): array {
+    return wc_get_orders([
+        'customer_id' => $user_id,
+        'limit'       => BSC_PLAYWRIGHT_PAGINATION_ORDER_COUNT,
+        'orderby'     => 'date',
+        'order'       => 'DESC',
+        'meta_key'    => BSC_PLAYWRIGHT_FIXTURE_META_KEY,
+        'meta_value'  => BSC_PLAYWRIGHT_PAGINATION_FIXTURE_META_VALUE,
+        'return'      => 'objects',
+        'status'      => array_keys(wc_get_order_statuses()),
+    ]);
+}
+
+function bsc_playwright_fixture_seed_order_pagination(int $user_id): array {
+    $orders = bsc_playwright_fixture_existing_pagination_orders($user_id);
+
+    for ($index = count($orders); $index < BSC_PLAYWRIGHT_PAGINATION_ORDER_COUNT; ++$index) {
+        $order = bsc_playwright_fixture_create_order($user_id);
+        $order->update_meta_data(BSC_PLAYWRIGHT_FIXTURE_META_KEY, BSC_PLAYWRIGHT_PAGINATION_FIXTURE_META_VALUE);
+        $order->set_date_created(
+            new WC_DateTime(
+                sprintf('2026-01-%02d 10:00:00', 15 + $index),
+                new DateTimeZone('America/Bogota')
+            )
+        );
+        $order->save();
+    }
+
+    return bsc_playwright_fixture_existing_pagination_orders($user_id);
+}
+
 function bsc_playwright_fixture_email_preview_routes(): array {
     $routes = [];
 
@@ -659,8 +710,10 @@ $admin_email = bsc_playwright_fixture_admin_email();
 $admin_password = bsc_playwright_fixture_admin_password();
 $role_password = bsc_playwright_fixture_role_password();
 $user = bsc_playwright_fixture_get_or_create_customer($email, $password);
+$pagination_user = bsc_playwright_fixture_get_or_create_pagination_customer();
 $admin_user = bsc_playwright_fixture_get_or_create_admin($admin_username, $admin_email, $admin_password);
 $order = bsc_playwright_fixture_get_or_create_order((int) $user->ID);
+$pagination_orders = bsc_playwright_fixture_seed_order_pagination((int) $pagination_user->ID);
 $public_catalog = bsc_playwright_fixture_seed_public_visual_catalog();
 $public_category = $public_catalog['category'];
 $public_product = $public_catalog['product'];
@@ -698,6 +751,23 @@ $payload = [
         'id'     => $order->get_id(),
         'number' => $order->get_order_number(),
         'status' => $order->get_status(),
+    ],
+    'pagination' => [
+        'auth' => [
+            'email'    => $pagination_user->user_email,
+            'username' => $pagination_user->user_login,
+            'password' => bsc_playwright_fixture_pagination_password(),
+        ],
+        'orders' => array_map(
+            static fn (WC_Order $pagination_order): array => [
+                'id'     => $pagination_order->get_id(),
+                'number' => $pagination_order->get_order_number(),
+            ],
+            $pagination_orders
+        ),
+        'perPage'  => BSC_PLAYWRIGHT_PAGINATION_PER_PAGE,
+        'total'    => count($pagination_orders),
+        'maxPages' => (int) ceil(BSC_PLAYWRIGHT_PAGINATION_ORDER_COUNT / BSC_PLAYWRIGHT_PAGINATION_PER_PAGE),
     ],
     'coupons' => $coupons,
 ];

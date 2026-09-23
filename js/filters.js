@@ -208,39 +208,99 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-jQuery(document).ready(function($) {
-    $('#bscFiltersForm').on('change', 'input, select', function(e) {
-        const form = $('#bscFiltersForm');
-        const data = form.serialize();
+(() => {
+  const PUBLIC_URL_EXCLUDED_NAMES = new Set([
+    'group',
+    'subgroup',
+    'category',
+    'action',
+    'nonce',
+    '_wpnonce',
+    'paged',
+  ]);
 
-        $.ajax({
-            type: 'GET',
-            url: bsc_ajax.ajax_url,
-            data: data + '&action=bsc_filter_products&nonce=' + encodeURIComponent(bsc_ajax.nonce),
-            beforeSend: function () {
-              $('#bscProductsContainer').html(`
-                <div class="bsc__loading">
-                  <div class="bsc__spinner"></div>
-                  <p class="bsc__loading-text">Cargando productos...</p>
-                </div>
-              `);
-            },
-            success: function(response) {
-                if (response.success) {
-                  setTimeout(() => {
-                    Object.entries(response.data).forEach((entry => {
-                      const key = entry[0];
-                      const value = entry[1];
-                      $(key).html(value);   
-                    }));
-                  }, 500)
-                } else {
-                    $('#bscProductsContainer').html(bsc_filters.empty_products_html);
-                }
-            },
-            error: function() {
-                $('#bscProductsContainer').html('<p>Error al cargar productos.</p>');
-            }
-        });
+  const getPageOnePath = (pathname) => pathname.replace(/\/page\/\d+\/?$/, '/');
+
+  const buildCatalogPublicUrl = (form) => {
+    const params = new URLSearchParams();
+
+    for (const [name, value] of new FormData(form).entries()) {
+      if (!name || PUBLIC_URL_EXCLUDED_NAMES.has(name) || value === '') {
+        continue;
+      }
+
+      params.append(name, value);
+    }
+
+    const path = getPageOnePath(window.location.pathname);
+    const query = params.toString();
+
+    return `${path}${query ? `?${query}` : ''}${window.location.hash}`;
+  };
+
+  window.bscBuildCatalogPublicUrl = buildCatalogPublicUrl;
+
+  jQuery(document).ready(function ($) {
+    const $form = $('#bscFiltersForm');
+
+    if (!$form.length || typeof bsc_ajax === 'undefined') {
+      return;
+    }
+
+    let activeRequest = null;
+
+    $form.on('change', 'input, select', function () {
+      const form = $form[0];
+      const publicUrl = buildCatalogPublicUrl(form);
+      const ajaxData = $form.serializeArray();
+
+      ajaxData.push(
+        { name: 'action', value: 'bsc_filter_products' },
+        { name: 'nonce', value: bsc_ajax.nonce }
+      );
+
+      window.history.replaceState(window.history.state, '', publicUrl);
+
+      if (activeRequest) {
+        activeRequest.abort();
+      }
+
+      activeRequest = $.ajax({
+        type: 'GET',
+        url: bsc_ajax.ajax_url,
+        data: ajaxData,
+        beforeSend: function () {
+          $('#bscProductsContainer').html(`
+            <div class="bsc__loading">
+              <div class="bsc__spinner"></div>
+              <p class="bsc__loading-text">Cargando productos...</p>
+            </div>
+          `);
+        },
+        success: function (response) {
+          if (response.success) {
+            Object.entries(response.data).forEach(([selector, value]) => {
+              $(selector).html(value);
+            });
+          } else {
+            $('#bscProductsContainer').html(
+              typeof bsc_filters !== 'undefined' ? bsc_filters.empty_products_html : ''
+            );
+            $('#bscPaginationContainer').empty();
+          }
+        },
+        error: function (_jqXHR, textStatus) {
+          if (textStatus === 'abort') {
+            return;
+          }
+
+          $('#bscProductsContainer').html('<p>Error al cargar productos.</p>');
+          $('#bscPaginationContainer').empty();
+        },
+        complete: function () {
+          activeRequest = null;
+        },
+      });
     });
-});
+  });
+})();

@@ -6,19 +6,22 @@
  * - $customer_name (string)
  * - $shop_url (string)
  * - $account_url (string)
- * - $coupon_code (string optional)
+ * - $coupon_code (string)
+ * - $coupon_is_preview (bool optional)
  */
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/bsc-email-design-system.php';
 
-$customer_name    = sanitize_text_field( (string) ( $customer_name ?? 'Bubble Lover' ) );
-$shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );
-$coupon_code      = sanitize_text_field( (string) ( $coupon_code ?? get_option( 'bsc_inactive_coupon_code', 'BSC_SC5RBW2D' ) ) );
-$email_title      = '¡ Te extrañamooos !';
-$email_hero       = 'bsc-email-hero-smile-pink.png';
-$email_hero_width = 225;
-$email_preheader  = 'Tenemos un regalito especial para volver al glow coreano.';
+$customer_name     = sanitize_text_field( (string) ( $customer_name ?? 'Bubble Lover' ) );
+$shop_url          = (string) ( $shop_url ?? bsc_email_shop_url() );
+$coupon_code       = sanitize_text_field( (string) ( $coupon_code ?? '' ) );
+$coupon_is_preview = ! empty( $coupon_is_preview );
+$coupon_meta       = $coupon_is_preview ? 'Código de prueba | No canjeable' : 'Válido por 1 mes | Usos restantes: 1';
+$email_title       = '¡ Te extrañamooos !';
+$email_hero        = 'bsc-email-hero-smile-pink.png';
+$email_hero_width  = 225;
+$email_preheader   = 'Tenemos un regalito especial para volver al glow coreano.';
 
 require __DIR__ . '/bsc-email-header.php';
 
@@ -37,7 +40,7 @@ bsc_email_render_message(
 					</td>
 				</tr>
 <?php
-bsc_email_render_coupon( $coupon_code, 'Envío gratis!', 'Válido por 1 mes | Usos restantes: 1', '#f4b5c7', 'heart', 1, 53, 'standard' );
+bsc_email_render_coupon( $coupon_code, 'Envío gratis!', $coupon_meta, '#f4b5c7', 'heart', 1, 53, 'standard' );
 bsc_email_render_button_row(
 	array(
 		array(

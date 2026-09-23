@@ -466,6 +466,96 @@ function bsc_customize_password_changed_email( array $pass_change_email, array $
 }
 add_filter( 'password_change_email', 'bsc_customize_password_changed_email', 10, 3 );
 
+/**
+ * Create a unique WooCommerce coupon for a promotional follow-up email.
+ *
+ * @param array<string,mixed> $args Coupon definition.
+ * @return WC_Coupon|WP_Error
+ */
+function bsc_create_followup_coupon( array $args ) {
+	if ( ! class_exists( 'WC_Coupon' ) || ! function_exists( 'wc_format_coupon_code' ) || ! function_exists( 'wc_get_coupon_id_by_code' ) ) {
+		return new WP_Error( 'bsc_followup_coupon_api_unavailable', 'WooCommerce coupon APIs are unavailable.' );
+	}
+
+	$prefix        = strtoupper( (string) preg_replace( '/[^A-Z0-9]+/', '-', strtoupper( (string) ( $args['prefix'] ?? '' ) ) ) );
+	$prefix        = trim( $prefix, '-' );
+	$recipient     = sanitize_email( (string) ( $args['email'] ?? '' ) );
+	$discount_type = sanitize_key( (string) ( $args['discount_type'] ?? '' ) );
+	$amount        = (string) ( $args['amount'] ?? '' );
+	$expires_at    = $args['expires_at'] ?? null;
+	$usage_limit   = absint( $args['usage_limit'] ?? 0 );
+	$per_user      = absint( $args['usage_limit_per_user'] ?? 0 );
+	$source        = sanitize_key( (string) ( $args['source'] ?? '' ) );
+
+	if ( '' === $prefix || ! is_email( $recipient ) || ! in_array( $discount_type, array( 'percent', 'fixed_cart', 'fixed_product' ), true ) || ! is_numeric( $amount ) || ! ( $expires_at instanceof DateTimeImmutable ) || $usage_limit < 1 || $per_user < 1 || ! in_array( $source, array( 'birthday', 'inactive' ), true ) ) {
+		return new WP_Error( 'bsc_followup_coupon_invalid_definition', 'The follow-up coupon definition is invalid.' );
+	}
+
+	$code = '';
+	for ( $attempt = 0; $attempt < 5; $attempt++ ) {
+		$suffix    = (string) preg_replace( '/[^A-Z0-9]/', '', strtoupper( wp_generate_password( 8, false, false ) ) );
+		$candidate = wc_format_coupon_code( sprintf( '%s-%s', $prefix, $suffix ) );
+
+		if ( 8 === strlen( $suffix ) && '' !== $candidate && ! wc_get_coupon_id_by_code( $candidate ) ) {
+			$code = $candidate;
+			break;
+		}
+	}
+
+	if ( '' === $code ) {
+		return new WP_Error( 'bsc_followup_coupon_code_unavailable', 'A unique follow-up coupon code could not be generated.' );
+	}
+
+	$timezone   = new DateTimeZone( 'America/Bogota' );
+	$expires_at = $expires_at->setTimezone( $timezone );
+	$created_at = new DateTimeImmutable( 'now', $timezone );
+	$coupon     = null;
+
+	try {
+		$coupon = new WC_Coupon();
+		$coupon->set_code( $code );
+		$coupon->set_description( sanitize_text_field( (string) ( $args['description'] ?? '' ) ) );
+		$coupon->set_discount_type( $discount_type );
+		$coupon->set_amount( $amount );
+		$coupon->set_individual_use( false );
+		$coupon->set_free_shipping( ! empty( $args['free_shipping'] ) );
+		$coupon->set_usage_limit( $usage_limit );
+		$coupon->set_usage_limit_per_user( $per_user );
+		$coupon->set_email_restrictions( array( $recipient ) );
+		$coupon->set_date_expires( $expires_at->format( DATE_ATOM ) );
+		$coupon->update_meta_data( '_bsc_email_coupon_source', $source );
+		$coupon->update_meta_data( '_bsc_email_coupon_created_at', $created_at->format( DATE_ATOM ) );
+
+		$user_id  = absint( $args['user_id'] ?? 0 );
+		$order_id = absint( $args['order_id'] ?? 0 );
+		if ( $user_id > 0 ) {
+			$coupon->update_meta_data( '_bsc_email_coupon_user_id', $user_id );
+		}
+
+		if ( $order_id > 0 ) {
+			$coupon->update_meta_data( '_bsc_email_coupon_order_id', $order_id );
+		}
+
+		$coupon->save();
+	} catch ( Throwable $error ) {
+		if ( $coupon instanceof WC_Coupon && (int) $coupon->get_id() > 0 ) {
+			$coupon->delete( true );
+		}
+
+		return new WP_Error( 'bsc_followup_coupon_save_failed', sprintf( 'WooCommerce could not save the follow-up coupon (%s).', get_class( $error ) ) );
+	}
+
+	if ( ! $coupon instanceof WC_Coupon || (int) $coupon->get_id() < 1 || '' === (string) $coupon->get_code() ) {
+		if ( $coupon instanceof WC_Coupon && (int) $coupon->get_id() > 0 ) {
+			$coupon->delete( true );
+		}
+
+		return new WP_Error( 'bsc_followup_coupon_save_failed', 'WooCommerce returned an invalid follow-up coupon.' );
+	}
+
+	return $coupon;
+}
+
 function bsc_process_birthday_followup_emails(): int {
 	if ( ! bsc_is_followup_emails_enabled() || ! (bool) bsc_get_followup_email_setting( 'bsc_birthday_email_enabled' ) ) {
 		return 0;
@@ -510,24 +600,67 @@ function bsc_process_birthday_followup_emails(): int {
 		}
 
 		$user = get_user_by( 'id', (int) $user_id );
-		if ( ! ( $user instanceof WP_User ) || ! is_email( $user->user_email ) ) {
+		if ( ! ( $user instanceof WP_User ) ) {
+			continue;
+		}
+
+		$user_email = sanitize_email( (string) $user->user_email );
+		if ( ! is_email( $user_email ) ) {
+			continue;
+		}
+
+		$coupon = bsc_create_followup_coupon(
+			array(
+				'prefix'               => 'CUMPLE',
+				'email'                => $user_email,
+				'discount_type'        => 'percent',
+				'amount'               => '10',
+				'free_shipping'        => false,
+				'expires_at'           => $today->modify( '+7 days' ),
+				'usage_limit'          => 1,
+				'usage_limit_per_user' => 1,
+				'description'          => sprintf( 'Beneficio cumpleaños %s - usuario #%d', $current_year, (int) $user->ID ),
+				'source'               => 'birthday',
+				'user_id'              => (int) $user->ID,
+			)
+		);
+		if ( is_wp_error( $coupon ) ) {
+			error_log( sprintf( 'BSC birthday coupon creation failed for user #%d: %s - %s', (int) $user_id, $coupon->get_error_code(), $coupon->get_error_message() ) );
+			continue;
+		}
+
+		$coupon_code = (string) $coupon->get_code();
+		if ( '' === $coupon_code ) {
+			$coupon->delete( true );
+			error_log( sprintf( 'BSC birthday coupon creation failed for user #%d: coupon code was empty.', (int) $user_id ) );
 			continue;
 		}
 
 		$sent = bsc_send_email_from_template(
-			(string) $user->user_email,
+			$user_email,
 			'Feliz cumpleaños de parte de BSC',
 			'bsc-birthday-email.php',
 			array(
-				'user'     => $user,
-				'shop_url' => bsc_get_email_shop_url(),
+				'user'        => $user,
+				'shop_url'    => bsc_get_email_shop_url(),
+				'coupon_code' => $coupon_code,
 			)
 		);
 
-		if ( $sent ) {
-			update_user_meta( (int) $user_id, '_bsc_birthday_email_year', $current_year );
-			++$sent_count;
+		if ( ! $sent ) {
+			$coupon_id = (int) $coupon->get_id();
+			if ( $coupon_id > 0 ) {
+				$deleted = $coupon->delete( true );
+				error_log( sprintf( 'BSC birthday email failed for user #%d; coupon #%d rollback %s.', (int) $user_id, $coupon_id, $deleted ? 'completed' : 'failed' ) );
+			}
+			continue;
 		}
+
+		update_user_meta( (int) $user_id, '_bsc_birthday_email_year', $current_year );
+		update_user_meta( (int) $user_id, '_bsc_birthday_coupon_id', (int) $coupon->get_id() );
+		update_user_meta( (int) $user_id, '_bsc_birthday_coupon_code', $coupon_code );
+		update_user_meta( (int) $user_id, '_bsc_birthday_coupon_year', $current_year );
+		++$sent_count;
 	}
 
 	return $sent_count;
@@ -558,6 +691,37 @@ function bsc_process_inactivity_followup_emails(): int {
 			continue;
 		}
 
+		$now      = new DateTimeImmutable( 'now', new DateTimeZone( 'America/Bogota' ) );
+		$order_id = (int) $order->get_id();
+		$coupon   = bsc_create_followup_coupon(
+			array(
+				'prefix'               => 'VUELVE',
+				'email'                => $recipient['email'],
+				'discount_type'        => 'fixed_cart',
+				'amount'               => '0',
+				'free_shipping'        => true,
+				'expires_at'           => $now->modify( '+1 month' ),
+				'usage_limit'          => 1,
+				'usage_limit_per_user' => 1,
+				'description'          => sprintf( 'Beneficio de reactivación - pedido #%d', $order_id ),
+				'source'               => 'inactive',
+				'order_id'             => $order_id,
+			)
+		);
+		if ( is_wp_error( $coupon ) ) {
+			error_log( sprintf( 'BSC inactivity coupon creation failed for order #%d: %s - %s', $order_id, $coupon->get_error_code(), $coupon->get_error_message() ) );
+			bsc_delay_followup_state_retry( $contact_key, 'inactive' );
+			continue;
+		}
+
+		$coupon_code = (string) $coupon->get_code();
+		if ( '' === $coupon_code ) {
+			$coupon->delete( true );
+			error_log( sprintf( 'BSC inactivity coupon creation failed for order #%d: coupon code was empty.', $order_id ) );
+			bsc_delay_followup_state_retry( $contact_key, 'inactive' );
+			continue;
+		}
+
 		$date_created = $order->get_date_created();
 
 		$sent = bsc_send_email_from_template(
@@ -570,13 +734,25 @@ function bsc_process_inactivity_followup_emails(): int {
 				'last_order_date' => $date_created ? bsc_get_followup_date_label( $date_created->getTimestamp() ) : '',
 				'shop_url'        => bsc_get_email_shop_url(),
 				'account_url'     => bsc_get_email_account_url(),
+				'coupon_code'     => $coupon_code,
 			)
 		);
 
 		if ( $sent ) {
+			try {
+				$order->update_meta_data( '_bsc_inactivity_coupon_id', (int) $coupon->get_id() );
+				$order->update_meta_data( '_bsc_inactivity_coupon_code', $coupon_code );
+				$order->save();
+			} catch ( Throwable $error ) {
+				error_log( sprintf( 'BSC inactivity coupon metadata could not be saved for order #%d.', $order_id ) );
+			}
+
 			bsc_mark_followup_state_sent( $contact_key, 'inactive', $order );
 			++$sent_count;
 		} else {
+			$coupon_id = (int) $coupon->get_id();
+			$deleted   = $coupon->delete( true );
+			error_log( sprintf( 'BSC inactivity email failed for order #%d; coupon #%d rollback %s.', $order_id, $coupon_id, $deleted ? 'completed' : 'failed' ) );
 			bsc_delay_followup_state_retry( $contact_key, 'inactive' );
 		}
 	}

@@ -2181,3 +2181,16 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 			++$page;
 		} while ( count( $ids ) === $limit );
 	}
+
+	/**
+	 * Show five orders per page in My Account.
+	 *
+	 * @param array $query_args My Account orders query arguments.
+	 * @return array
+	 */
+	function bsc_my_account_orders_query_limit( array $query_args ): array {
+		$query_args['limit'] = 5;
+
+		return $query_args;
+	}
+	add_filter( 'woocommerce_my_account_my_orders_query', 'bsc_my_account_orders_query_limit' );

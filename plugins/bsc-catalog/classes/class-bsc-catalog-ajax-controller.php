@@ -26,12 +26,19 @@ class BSC_Catalog_Ajax_Controller {
 		}
 
 		try {
-			$query = ( new BSC_Catalog_Product_Query( $config ) )->get_query( $context );
-			$html  = ( new BSC_Catalog_Product_Renderer() )->render_query_results( $query );
+			$query_args = array(
+				'posts_per_page' => 24,
+				'paged'          => 1,
+				'no_found_rows'  => false,
+			);
+			$query    = ( new BSC_Catalog_Product_Query( $config ) )->get_query( $context, $query_args );
+			$renderer = new BSC_Catalog_Product_Renderer();
+			$html     = $renderer->render_query_results( $query );
 
 			wp_send_json_success(
 				array(
-					'#bscProductsContainer' => $html,
+					'#bscProductsContainer'   => $html,
+					'#bscPaginationContainer' => $renderer->render_pagination( $query, $context, 1 ),
 				)
 			);
 		} catch (Throwable $exception) {

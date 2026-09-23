@@ -142,6 +142,47 @@ class BSC_Catalog_Request_Context {
 		return array_values( array_unique( $selected ) );
 	}
 
+	/**
+	 * Return only the catalog state that is safe and useful to expose publicly.
+	 *
+	 * The request also contains routing and AJAX fields, but those are already
+	 * represented by the category permalink or are private transport details.
+	 *
+	 * @param BSC_Catalog_Filter_Config $config Catalog filter configuration.
+	 *
+	 * @return array<string, string|string[]>
+	 */
+	public function get_public_query_args( BSC_Catalog_Filter_Config $config ): array {
+		$public_args = array();
+
+		foreach ( $config->get_group_field_names( $this->group ) as $field_name ) {
+			if ( ! array_key_exists( $field_name, $this->params ) ) {
+				continue;
+			}
+
+			$values = $this->get_selected_values( $field_name );
+			if ( empty( $values ) ) {
+				continue;
+			}
+
+			$public_args[ $field_name ] = count( $values ) > 1 ? $values : $values[0];
+		}
+
+		if ( $this->has_min_price ) {
+			$public_args['min_price'] = $this->min_price;
+		}
+
+		if ( $this->has_max_price ) {
+			$public_args['max_price'] = $this->max_price;
+		}
+
+		if ( array_key_exists( 'orderby', $this->params ) ) {
+			$public_args['orderby'] = $this->orderby;
+		}
+
+		return $public_args;
+	}
+
 	private static function sanitize_scalar( $value ): string {
 		return sanitize_text_field( (string) $value );
 	}
