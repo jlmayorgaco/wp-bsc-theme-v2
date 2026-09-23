@@ -113,25 +113,48 @@ class BSC_Orders_Table {
 			</div>
 
 			<?php if ($this->customer_orders->max_num_pages > 1) : ?>
-				<div class="bsc__orders-pagination">
-					<?php if ($this->current_page > 1) : ?>
-						<a
-							class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-prev"
-							href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $this->current_page - 1 ) ); ?>"
-						>
-							<?php esc_html_e( 'Anterior', 'woocommerce' ); ?>
-						</a>
-					<?php endif; ?>
+				<nav class="bsc__orders-pagination" aria-label="<?php esc_attr_e( 'Paginación de pedidos', 'woocommerce' ); ?>">
+					<div class="bsc__orders-pagination-side bsc__orders-pagination-side--previous">
+						<?php if ($this->current_page > 1) : ?>
+							<a
+								class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-pagination-control bsc__orders-prev"
+								href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $this->current_page - 1 ) ); ?>"
+							>
+								<?php esc_html_e( 'Anterior', 'woocommerce' ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
 
-					<?php if ($this->current_page < $this->customer_orders->max_num_pages) : ?>
-						<a
-							class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-next"
-							href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $this->current_page + 1 ) ); ?>"
-						>
-							<?php esc_html_e( 'Siguiente', 'woocommerce' ); ?>
-						</a>
-					<?php endif; ?>
-				</div>
+					<ol class="bsc__orders-pagination-pages">
+						<?php for ($page = 1; $page <= $this->customer_orders->max_num_pages; ++$page) : ?>
+							<li>
+								<?php if ($page === $this->current_page) : ?>
+									<span class="bsc__orders-pagination-page is-current" aria-current="page">
+										<?php echo esc_html( $page ); ?>
+									</span>
+								<?php else : ?>
+									<a
+										class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-pagination-page"
+										href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $page ) ); ?>"
+									>
+										<span class="screen-reader-text"><?php esc_html_e( 'Página', 'woocommerce' ); ?> </span><?php echo esc_html( $page ); ?>
+									</a>
+								<?php endif; ?>
+							</li>
+						<?php endfor; ?>
+					</ol>
+
+					<div class="bsc__orders-pagination-side bsc__orders-pagination-side--next">
+						<?php if ($this->current_page < $this->customer_orders->max_num_pages) : ?>
+							<a
+								class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-pagination-control bsc__orders-next"
+								href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $this->current_page + 1 ) ); ?>"
+							>
+								<?php esc_html_e( 'Siguiente', 'woocommerce' ); ?>
+							</a>
+						<?php endif; ?>
+					</div>
+				</nav>
 			<?php endif; ?>
 		</div>
 		<?php

@@ -17,6 +17,8 @@ class BSCShopPage {
 	private ?WP_Term $grandparent;
 	private bool $showFilters;
 	private int $urlDepth; // NEW: depth after "product-category" in the URL
+	/** @var BSC_Catalog_Request_Context|null */
+	private ?BSC_Catalog_Request_Context $catalog_context = null;
 
 	// ------------------------------
 	// CONSTRUCTOR & CONTEXT
@@ -141,18 +143,6 @@ class BSCShopPage {
 		$thumb    = get_term_meta( $term->term_id, 'thumbnail_id', true );
 		$fallback = get_template_directory_uri() . '/images/bsc_default_category.jpeg';
 		return $thumb ? wp_get_attachment_url( $thumb ) : $fallback;
-	}
-
-	private function addAvailableStockConstraint( array $args ): array {
-		if (function_exists( 'bsc_apply_public_product_query_constraints' )) {
-			$args = bsc_apply_public_product_query_constraints( $args );
-		}
-
-		if (class_exists( 'BSC_Stock' )) {
-			$args['meta_query'][] = BSC_Stock::get_available_stock_meta_query();
-		}
-
-		return $args;
 	}
 
 	private function termHasVisibleProducts( WP_Term $term ): bool {
@@ -800,24 +790,16 @@ class BSCShopPage {
 		$products_query = $this->renderProducts( $cat );
 		echo '</div>';
 
-		// Pagination — only show if more than 1 page
-		if ($products_query->max_num_pages > 1) {
-			$paged = max( 1, get_query_var( 'paged' ) );
-			echo '<nav class="shop__pagination" aria-label="' . esc_attr__( 'Paginación de productos', 'bsc-2-0' ) . '">';
-			echo wp_kses_post(
-				paginate_links(
-					array(
-						'base'      => str_replace( 999999999, '%#%', esc_url( get_pagenum_link( 999999999 ) ) ),
-						'format'    => '?paged=%#%',
-						'current'   => $paged,
-						'total'     => $products_query->max_num_pages,
-						'prev_text' => '&laquo; Anterior',
-						'next_text' => 'Siguiente &raquo;',
-					)
-				)
+		echo '<div id="bscPaginationContainer">';
+		if ( $this->catalog_context instanceof BSC_Catalog_Request_Context && class_exists( 'BSC_Catalog_Product_Renderer' ) ) {
+			$pagination_html = ( new BSC_Catalog_Product_Renderer() )->render_pagination(
+				$products_query,
+				$this->catalog_context,
+				max( 1, get_query_var( 'paged' ) )
 			);
-			echo '</nav>';
+			echo wp_kses_post( $pagination_html );
 		}
+		echo '</div>';
 
 		if ( function_exists( 'bsc_seo_render_product_category_content' ) ) {
 			bsc_seo_render_product_category_content( $cat );
@@ -828,15 +810,34 @@ class BSCShopPage {
 
 	private function renderProducts( WP_Term $category ): WP_Query {
 		$paged = max( 1, get_query_var( 'paged' ) );
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only product ordering filter.
-		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'menu_order';
+		$this->catalog_context = null;
 
-		$args = $this->addAvailableStockConstraint(
-			array(
+		if (class_exists( 'BSC_Catalog_Filter_Config' ) && class_exists( 'BSC_Catalog_Product_Query' )) {
+			$config = new BSC_Catalog_Filter_Config();
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only catalog filter query.
+			$request_params                = BSC_Catalog_Request_Context::sanitize_request_array( $_GET );
+			$request_params['group']       = $this->grandparent instanceof WP_Term ? $this->grandparent->slug : '';
+			$request_params['category']    = $category->slug;
+			$context                       = BSC_Catalog_Request_Context::from_request(
+				$request_params,
+				$config
+			);
+			$this->catalog_context       = $context;
+			$args                       = ( new BSC_Catalog_Product_Query( $config ) )->get_query_args(
+				$context,
+				array(
+					'posts_per_page' => 24,
+					'paged'          => $paged,
+					'no_found_rows'  => false,
+				)
+			);
+		} else {
+			$args = array(
 				'post_type'              => 'product',
 				'post_status'            => 'publish',
 				'posts_per_page'         => 24,
 				'paged'                  => $paged,
+				'no_found_rows'          => false,
 				'update_post_meta_cache' => true,
 				'update_post_term_cache' => true,
 				'tax_query'              => array(
@@ -846,26 +847,7 @@ class BSCShopPage {
 						'terms'    => $category->slug,
 					),
 				),
-			)
-		);
-
-		if (class_exists( 'BSC_Catalog_Filter_Config' ) && class_exists( 'BSC_Catalog_Product_Query' )) {
-			$config = new BSC_Catalog_Filter_Config();
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only catalog filter query.
-			$request_params = BSC_Catalog_Request_Context::sanitize_request_array( $_GET );
-			$context        = BSC_Catalog_Request_Context::from_request(
-				array_merge(
-					$request_params,
-					array(
-						'group'    => $this->grandparent instanceof WP_Term ? $this->grandparent->slug : '',
-						'category' => $category->slug,
-						'orderby'  => $orderby,
-					)
-				),
-				$config
 			);
-			$catalog_args   = ( new BSC_Catalog_Product_Query( $config ) )->get_query_args( $context );
-			$args           = array_merge( $args, array_intersect_key( $catalog_args, array_flip( array( 'orderby', 'order', 'meta_key' ) ) ) );
 		}
 
 		$query = new WP_Query( $args );

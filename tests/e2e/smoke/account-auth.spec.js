@@ -19,6 +19,10 @@ function accountBillingAddressRoute() {
   return `${base.replace(/\/+$/, '')}/billing/`;
 }
 
+async function accountOrderHrefs(page) {
+  return page.locator('.bsc__orders-cell-order-number a').evaluateAll((links) => links.map((link) => link.href));
+}
+
 test.describe('BSC smoke - auth and account', () => {
   test('login page validates empty required fields', async ({ page }) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for auth smoke');
@@ -132,6 +136,85 @@ test.describe('BSC smoke - auth and account', () => {
     }
 
     await expect(page.locator('.bsc__orders-row, .bsc__orders-card').first()).toBeAttached();
+  });
+
+  test('account orders pagination shows five orders per page', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for account smoke');
+    const pagination = fixture?.pagination;
+    test.skip(!pagination?.auth?.password, 'The pagination auth fixture is required.');
+
+    const { auth: paginationAuth, maxPages, perPage, total } = pagination;
+    const baseUrl = process.env.PW_BASE_URL || 'http://bsc.local';
+    const ordersUrl = new URL(routes.accountOrders, baseUrl);
+    const loginUrl = new URL('/wp-login.php', baseUrl);
+    loginUrl.searchParams.set('redirect_to', ordersUrl.href);
+
+    await page.goto(loginUrl.href, { waitUntil: 'domcontentloaded' });
+
+    const usernameField = page.locator('#user_login');
+    if (await usernameField.count()) {
+      await usernameField.fill(paginationAuth.username || paginationAuth.email);
+      await page.locator('#user_pass').fill(paginationAuth.password);
+      await Promise.all([
+        page.waitForURL((url) => url.pathname === ordersUrl.pathname, { timeout: 15_000 }),
+        page.locator('#wp-submit').click(),
+      ]);
+    }
+
+    await expect(page).toHaveURL((url) => url.pathname === ordersUrl.pathname);
+    expect(maxPages).toBe(Math.ceil(total / perPage));
+    expect(maxPages).toBeGreaterThanOrEqual(3);
+    await expect(page.locator('.bsc__orders-prev')).toHaveCount(0);
+    await expect(page.locator('.bsc__orders-next')).toBeVisible();
+    await expect(page.locator('.bsc__orders-pagination-page')).toHaveCount(maxPages);
+    await expect(page.locator('.bsc__orders-pagination-page[aria-current="page"]')).toHaveText('1');
+
+    const orderPages = [await accountOrderHrefs(page)];
+    expect(orderPages[0]).toHaveLength(perPage);
+
+    for (let currentPage = 2; currentPage <= maxPages; ++currentPage) {
+      const nextButton = page.locator('.bsc__orders-next').first();
+      const nextHref = await nextButton.getAttribute('href');
+      expect(nextHref).toBeTruthy();
+
+      await Promise.all([
+        page.waitForURL((url) => new RegExp(`/orders/${currentPage}/?$`).test(url.pathname)),
+        nextButton.click(),
+      ]);
+
+      await expect(page.locator('.bsc__orders-prev')).toBeVisible();
+      await expect(page.locator('.bsc__orders-pagination-page[aria-current="page"]')).toHaveText(
+        String(currentPage)
+      );
+      const currentPageOrders = await accountOrderHrefs(page);
+      expect(currentPageOrders).not.toEqual(orderPages[currentPage - 2]);
+      expect(currentPageOrders.some((href) => orderPages.flat().includes(href))).toBe(false);
+      orderPages.push(currentPageOrders);
+
+      if (currentPage === maxPages) {
+        expect(currentPageOrders).toHaveLength(total - perPage * (maxPages - 1));
+        await expect(page.locator('.bsc__orders-next')).toHaveCount(0);
+      } else {
+        expect(currentPageOrders).toHaveLength(perPage);
+        await expect(page.locator('.bsc__orders-next')).toBeVisible();
+      }
+    }
+
+    for (let currentPage = maxPages - 1; currentPage >= 1; --currentPage) {
+      const previousButton = page.locator('.bsc__orders-prev').first();
+      const previousHref = await previousButton.getAttribute('href');
+      expect(previousHref).toBeTruthy();
+
+      await Promise.all([
+        page.waitForURL((url) => new RegExp(`/orders/${currentPage}/?$`).test(url.pathname)),
+        previousButton.click(),
+      ]);
+
+      expect(await accountOrderHrefs(page)).toEqual(orderPages[currentPage - 1]);
+    }
+
+    await expect(page.locator('.bsc__orders-prev')).toHaveCount(0);
+    await expect(page.locator('.bsc__orders-next')).toBeVisible();
   });
 
   test('billing address form uses checkout-style fields', async ({ page }) => {

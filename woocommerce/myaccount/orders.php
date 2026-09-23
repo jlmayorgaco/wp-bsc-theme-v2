@@ -28,15 +28,8 @@ do_action( 'woocommerce_before_account_orders', $has_orders ); ?>
 	<?php
 		require_once get_template_directory() . '/components/orders/orders-table.php';
 		$ordersTable = new BSC_Orders_Table();
-		$ordersTable->set_customer_orders(
-			wc_get_orders(
-				array(
-					'customer_id' => get_current_user_id(),
-					'paginate'    => true,
-					'paged'       => 1,
-				)
-			)
-		);
+		$ordersTable->set_customer_orders( $customer_orders );
+		$ordersTable->set_current_page( $current_page );
 		$ordersTable->set_button_class( 'bsc__button' );
 		$ordersTable->render();
 	?>

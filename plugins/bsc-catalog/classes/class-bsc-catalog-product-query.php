@@ -7,11 +7,11 @@ class BSC_Catalog_Product_Query {
 		$this->config = $config ?: new BSC_Catalog_Filter_Config();
 	}
 
-	public function get_query( BSC_Catalog_Request_Context $context ): WP_Query {
-		return new WP_Query( $this->get_query_args( $context ) );
+	public function get_query( BSC_Catalog_Request_Context $context, array $overrides = array() ): WP_Query {
+		return new WP_Query( $this->get_query_args( $context, $overrides ) );
 	}
 
-	public function get_query_args( BSC_Catalog_Request_Context $context ): array {
+	public function get_query_args( BSC_Catalog_Request_Context $context, array $overrides = array() ): array {
 		$base_category     = $context->get_category();
 		$filter_categories = array();
 
@@ -81,7 +81,7 @@ class BSC_Catalog_Product_Query {
 			$args = bsc_apply_public_product_query_constraints( $args );
 		}
 
-		return $args;
+		return array_replace( $args, $overrides );
 	}
 
 	private function apply_ordering( array $args, string $orderby ): array {

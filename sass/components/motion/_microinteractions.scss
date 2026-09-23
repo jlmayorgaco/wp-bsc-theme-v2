@@ -234,7 +234,7 @@
     transform: scale(1.06);
   }
 
-  :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__orders-table tr, .bsc__order-progress-step) {
+  :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__order-progress-step) {
     transition:
       transform var(--motion--base) var(--motion--ease-out),
       background-color var(--motion--base) var(--motion--ease),
@@ -242,7 +242,7 @@
       box-shadow var(--motion--base) var(--motion--ease);
   }
 
-  :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+  :where(.checkout-summary__item, .bsc-checkout-trust__item):where(:hover, :focus-within) {
     transform: translateX(3px);
     background-color: rgba(244, 166, 191, 0.06);
   }
@@ -274,7 +274,7 @@
 @media (hover: none) and (pointer: coarse) {
   .bsc {
     :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc-bp-coupon):where(:hover, :focus-within),
-    :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+    :where(.checkout-summary__item, .bsc-checkout-trust__item):where(:hover, :focus-within) {
       transform: none;
       box-shadow: none;
     }

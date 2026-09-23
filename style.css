@@ -12675,6 +12675,9 @@ textarea:focus-visible {
   .bsc__product--page .price {
     text-align: center;
   }
+  .bsc__product--page .bsc__product-price {
+    text-align: center;
+  }
   .bsc__product--page {
     padding: 1rem !important;
     /**
@@ -12887,38 +12890,13 @@ textarea:focus-visible {
   text-align: center;
 }
 .page-bubble-creators .bc__intro-logo {
-  position: relative;
-  width: 218px;
-  height: 174px;
+  width: 240px;
   margin: 0 auto 30px;
 }
 .page-bubble-creators .bc__intro-logo img {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: 190px;
-  max-width: none;
-  transform: translateX(-50%);
-}
-.page-bubble-creators .bc__intro-logo-text {
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  left: 50%;
-  width: 190px;
-  height: 74px;
-  overflow: visible;
-  transform: translateX(-50%);
-}
-.page-bubble-creators .bc__intro-logo-text path {
-  fill: none;
-}
-.page-bubble-creators .bc__intro-logo-text text {
-  fill: var(--color--text, #333333);
-  font-family: "Helvetica", "Helvetica Neue", Arial, sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .page-bubble-creators .bc__intro-copy {
   max-width: 706px;
@@ -12954,15 +12932,18 @@ textarea:focus-visible {
 }
 .page-bubble-creators .bc__benefit-icon {
   display: block;
-  margin: 0 auto 0px;
+  width: 156px;
+  height: 156px;
+  margin: 0 auto;
   object-fit: contain;
 }
-.page-bubble-creators .bc__benefit-icon--rainbow {
-  width: 156px;
+.page-bubble-creators .bc__benefit-icon--stars,
+.page-bubble-creators .bc__benefit-icon--heart {
+  transform: scale(1.25);
 }
 .page-bubble-creators .bc__benefit-card h2 {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   width: fit-content;
   min-width: 270px;
   max-width: 100%;
@@ -13160,10 +13141,8 @@ textarea:focus-visible {
 .page-bubble-creators .bc__form-success-inner .bc__form-success-face {
   display: block;
   width: min(220px, 68vw);
+  height: auto;
   margin: 0 auto 18px;
-  padding: 18px;
-  border-radius: 999px;
-  background: #f5c1d0;
 }
 .page-bubble-creators .bc__form-success-inner p {
   margin: 0;
@@ -13193,21 +13172,8 @@ textarea:focus-visible {
     padding-top: 42px;
   }
   .page-bubble-creators .bc__intro-logo {
-    width: 174px;
-    height: 142px;
+    width: 190px;
     margin-bottom: 26px;
-  }
-  .page-bubble-creators .bc__intro-logo img {
-    width: 154px;
-  }
-  .page-bubble-creators .bc__intro-logo-text {
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%) scale(0.82);
-  }
-  .page-bubble-creators .bc__intro-logo-text text {
-    font-size: 19px;
-    letter-spacing: 1.7px;
   }
   .page-bubble-creators .bc__intro-copy,
   .page-bubble-creators .bc__form-heading p {
@@ -13222,8 +13188,9 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
     gap: 0px;
   }
-  .page-bubble-creators .bc__benefit-icon--rainbow {
+  .page-bubble-creators .bc__benefit-icon {
     width: 142px;
+    height: 142px;
     margin-bottom: 8px;
   }
   .page-bubble-creators .bc__benefit-card h2 {
@@ -20162,8 +20129,8 @@ body.admin-bar .bsc__header--mobile {
 .card__discount-badge {
   position: absolute;
   z-index: 1;
-  bottom: 1.3rem;
-  left: 1.5rem;
+  bottom: 16%;
+  left: 18%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -20178,7 +20145,7 @@ body.admin-bar .bsc__header--mobile {
 .card__discount-badge-off {
   display: block;
   margin: 0 0 0.13rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
   letter-spacing: 0.04em;
 }
 
@@ -20186,14 +20153,14 @@ body.admin-bar .bsc__header--mobile {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 3rem;
-  min-height: 1.6rem;
-  padding: 0.13rem 0.45rem;
+  min-width: 3.5rem;
+  min-height: 1.85rem;
+  padding: 0.15rem 0.5rem;
   border: 1px solid #333333;
   border-radius: 999px;
   background-color: #fff2b8;
   box-shadow: 0 1px 0 rgba(51, 51, 51, 0.08);
-  font-size: 1rem;
+  font-size: 1.15rem;
   letter-spacing: -0.04em;
   line-height: 1;
   text-align: center;
@@ -20398,21 +20365,21 @@ body.admin-bar .bsc__header--mobile {
   }
   .bsc__slider .bsc__product-card .card__discount-badge,
   .shop__products .bsc__product-card .card__discount-badge {
-    bottom: 1rem;
-    left: 1rem;
+    bottom: 18%;
+    left: 20%;
   }
   .bsc__slider .bsc__product-card .card__discount-badge-off,
   .shop__products .bsc__product-card .card__discount-badge-off {
     margin: 0 0 0.13rem;
-    font-size: 0.7rem;
+    font-size: 0.9rem;
   }
   .bsc__slider .bsc__product-card .card__discount-badge-value,
   .shop__products .bsc__product-card .card__discount-badge-value {
-    min-width: 2.75rem;
-    min-height: 1.5rem;
-    padding: 0.1rem 0.4rem;
+    min-width: 3.35rem;
+    min-height: 1.75rem;
+    padding: 0.13rem 0.45rem;
     border-width: 1px;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
   }
   .bsc__slider .bsc__product-card .card__rating {
     gap: 3px;
@@ -20556,6 +20523,13 @@ body.admin-bar .bsc__header--mobile {
   }
   .bsc__slider--ultimos_lanzamientos {
     padding-top: 0px !important;
+  }
+  .bsc__slider--ultimos_lanzamientos .bsc__product-card .bsc__button-add-to-cart--variable {
+    padding: 0.45rem 0.25rem;
+    white-space: nowrap;
+  }
+  .bsc__slider--ultimos_lanzamientos .bsc__product-card .card__button:has(.bsc__button-add-to-cart--variable) {
+    width: 100%;
   }
 }
 .bsc__slider {
@@ -21160,9 +21134,20 @@ body.admin-bar .bsc__header--mobile {
 }
 
 .bsc__product-gallery .card__discount-badge {
-  bottom: clamp(2rem, 5vw, 2.5rem);
-  left: clamp(1.5rem, 4vw, 2rem);
+  bottom: 16%;
+  left: 22%;
   align-items: center;
+}
+
+.bsc__product-gallery .card__discount-badge-off {
+  font-size: 1.1rem;
+}
+
+.bsc__product-gallery .card__discount-badge-value {
+  min-width: 4rem;
+  min-height: 2.1rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 1.3rem;
 }
 
 .woocommerce-product-gallery .flex-viewport {
@@ -21286,17 +21271,6 @@ body.admin-bar .bsc__header--mobile {
 }
 
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  .bsc__product-gallery .card__discount-badge-off {
-    margin: 0 0 0.13rem;
-    font-size: 0.7rem;
-  }
-  .bsc__product-gallery .card__discount-badge-value {
-    min-width: 2.75rem;
-    min-height: 1.5rem;
-    padding: 0.1rem 0.4rem;
-    border-width: 1px;
-    font-size: 0.9rem;
-  }
   .woocommerce-product-gallery {
     flex-direction: row !important;
     flex-wrap: wrap !important;
@@ -21475,12 +21449,6 @@ body.admin-bar .bsc__header--mobile {
 .bsc__orders-table a:hover {
   text-decoration: underline;
 }
-.bsc__orders-table .bsc__orders-row.status-cancelled:hover,
-.bsc__orders-table .bsc__orders-row.status-cancelled:focus-within {
-  transform: none;
-  background-color: transparent;
-  box-shadow: none;
-}
 .bsc__orders-cards {
   display: none;
   width: 100%;
@@ -21535,21 +21503,53 @@ body.admin-bar .bsc__header--mobile {
   width: 100%;
 }
 .bsc__orders-pagination {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   gap: 1rem;
+  margin-top: 2rem;
   padding-top: 1.5rem;
+  border-top: 1px solid #eee;
 }
-.bsc__orders-pagination a {
+.bsc__orders-pagination-side--next {
+  text-align: right;
+}
+.bsc__orders-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.bsc__orders-pagination-control, .bsc__orders-pagination-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
-  background: var(--color-pink-light);
-  color: var(--color-black);
+  border: 1px solid #333;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
   font-weight: 600;
+  line-height: 1;
   text-decoration: none;
 }
-.bsc__orders-pagination a:hover {
-  background: var(--color-pink-dark);
+.bsc__orders-pagination-control:hover, .bsc__orders-pagination-control:focus-visible, .bsc__orders-pagination-page:hover, .bsc__orders-pagination-page:focus-visible {
+  border-color: #333;
+  background: #333;
+  color: #fff;
+  text-decoration: none;
+}
+.bsc__orders-pagination-page {
+  min-width: 42px;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+}
+.bsc__orders-pagination-page.is-current {
+  background: #333;
+  color: #fff;
 }
 .bsc__orders-empty {
   font-style: italic;
@@ -21588,10 +21588,11 @@ body.admin-bar .bsc__header--mobile {
     font-size: 0.9rem;
   }
   .bsc__orders-pagination {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    justify-items: center;
   }
-  .bsc__orders-pagination a {
+  .bsc__orders-pagination-side {
+    width: 100%;
     text-align: center;
   }
 }
@@ -23625,19 +23626,31 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__coupon-field {
   width: 100%;
-  border: 1px solid var(--color--text);
-  background-color: #fff;
+  border: 0;
+  background-color: transparent;
 }
-.bsc__coupon-input {
+.bsc__coupon-field .bsc__coupon-input {
   width: 100%;
-  border: none;
+  border: 0;
+  background-color: transparent;
+  color: #333;
+  letter-spacing: 1px;
+  outline: 1px solid #333;
+  outline-offset: 2px;
+}
+.bsc__coupon-field .bsc__coupon-input:focus, .bsc__coupon-field .bsc__coupon-input:focus-visible {
+  outline: 1px solid #333;
+  outline-offset: 2px;
+}
+.bsc__coupon-field .bsc__label--floating {
+  top: calc(0px - var(--space--sm));
+  transform: translateY(-100%) translateX(-18px);
+  font-size: 13px;
   color: #333;
   letter-spacing: 1px;
 }
-.bsc__coupon-field .bsc__label--floating {
-  font-size: 14px;
-  color: #050505;
-  letter-spacing: 1px;
+.bsc__coupon-field .bsc__coupon-input:focus + .bsc__label--floating, .bsc__coupon-field .bsc__coupon-input:not(:placeholder-shown) + .bsc__label--floating {
+  font-size: 13px;
 }
 .bsc__coupon-row {
   display: flex;
@@ -23917,13 +23930,14 @@ details[open] .bsc__product-detail-category > summary::after {
 }
 .bsc__review-summary .review-summary__shipping-progress {
   margin: 0 0 14px;
-  padding: 12px 0 14px;
-  border-bottom: 1px solid rgba(51, 51, 51, 0.14);
+  padding: 12px 14px;
+  border: 1px dashed #333;
+  background-color: #fff;
 }
 .bsc__review-summary .shipping-progress__label {
   margin-bottom: 8px;
   color: #333;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.35;
@@ -25459,10 +25473,10 @@ form.checkout #payment > .blockUI.blockOverlay {
 .bsc :where(.quantity button, .bsc__quantity-controls button, .row_action_buttons button, .swiper-button-prev, .swiper-button-next):where(:hover, :focus-visible) {
   transform: scale(1.06);
 }
-.bsc :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__orders-table tr, .bsc__order-progress-step) {
+.bsc :where(.checkout-summary__item, .checkout-summary__total, .bsc-checkout-trust__item, .bsc__order-progress-step) {
   transition: transform var(--motion--base) var(--motion--ease-out), background-color var(--motion--base) var(--motion--ease), border-color var(--motion--base) var(--motion--ease), box-shadow var(--motion--base) var(--motion--ease);
 }
-.bsc :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+.bsc :where(.checkout-summary__item, .bsc-checkout-trust__item):where(:hover, :focus-within) {
   transform: translateX(3px);
   background-color: rgba(244, 166, 191, 0.06);
 }
@@ -25485,7 +25499,7 @@ form.checkout #payment > .blockUI.blockOverlay {
 
 @media (hover: none) and (pointer: coarse) {
   .bsc :where(.bsc__product-card, .checkout-cart__item, .bsc-skin-quiz__bundle, .bsc-bp-coupon):where(:hover, :focus-within),
-  .bsc :where(.checkout-summary__item, .bsc-checkout-trust__item, .bsc__orders-table tr):where(:hover, :focus-within) {
+  .bsc :where(.checkout-summary__item, .bsc-checkout-trust__item):where(:hover, :focus-within) {
     transform: none;
     box-shadow: none;
   }

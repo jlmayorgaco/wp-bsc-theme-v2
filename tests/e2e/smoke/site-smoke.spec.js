@@ -11,6 +11,11 @@ const {
   selectCheckoutBillingDestination,
 } = require('../helpers/ui');
 
+const catalogFilterRoute =
+  process.env.PW_ROUTE_CATALOG_FILTER ||
+  '/product-category/group-skin-care/sk-rutina/sk-rutina-s7-serums/';
+const catalogFilterValue = process.env.PW_CATALOG_FILTER_VALUE || 'sk-tipo-piel-grasa';
+
 test.describe('BSC smoke', () => {
   test('home loads approved shell', async ({ page }, testInfo) => {
     await gotoAndStabilize(page, routes.home);
@@ -239,6 +244,67 @@ test.describe('BSC smoke', () => {
 
     await gotoAndStabilize(page, routes.groupCategory);
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
+  });
+
+  test('catalog filters persist from page 2 through AJAX and server pagination', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for catalog filter regression');
+
+    const pageTwoRoute = `${catalogFilterRoute.replace(/\/$/, '')}/page/2/`;
+    await gotoAndStabilize(page, pageTwoRoute, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const filterInput = page.locator(
+      `#bscFiltersForm input[name="piel"][value="${catalogFilterValue}"]`
+    );
+    const initialProducts = page.locator('#bscProductsContainer .bsc__product-card');
+    const initialNextLink = page.locator('#bscPaginationContainer a.next');
+
+    test.skip(!(await initialProducts.count()) || !(await initialNextLink.count()), 'Catalog fixture has no page 2');
+
+    await page.locator('summary:has-text("Tipo de Piel")').click();
+    await filterInput.check();
+
+    await expect(page).toHaveURL(new RegExp(`/${catalogFilterRoute.split('/').filter(Boolean).pop()}\\/\\?.*piel=${catalogFilterValue}`));
+    await expect(page).not.toHaveURL(/\/page\/2\//);
+    await expect(filterInput).toBeChecked();
+    await expect(page.locator('.bsc__active-filter-badge')).toContainText('Piel grasa');
+
+    await page.locator('select[name="orderby"]').selectOption('price');
+    await expect(page).toHaveURL(/orderby=price/);
+
+    const filteredNextLink = page.locator('#bscPaginationContainer a.next');
+    test.skip(!(await filteredNextLink.count()), 'Filtered fixture has no second page');
+    await expect(filteredNextLink).toHaveAttribute('href', new RegExp(`/page/2/\\?.*piel=${catalogFilterValue}`));
+    await expect(filteredNextLink).toHaveAttribute('href', /orderby=price/);
+
+    await filteredNextLink.click();
+    await expect(page).toHaveURL(new RegExp(`/page/2/\\?.*piel=${catalogFilterValue}`));
+    await expect(page).toHaveURL(/orderby=price/);
+    await expect(filterInput).toBeChecked();
+    await expect(page.locator('.bsc__active-filter-badge')).toContainText('Piel grasa');
+    await expect(page.locator('#bscProductsContainer .bsc__product-card').first()).toBeVisible();
+  });
+
+  test('catalog direct filter URL restores server-side state', async ({ page }) => {
+    test.skip(!expectsStorefront(), 'Storefront mode is required for catalog filter regression');
+
+    await gotoAndStabilize(page, `${catalogFilterRoute}?piel=${catalogFilterValue}`, {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    await expect(page.locator(`#bscFiltersForm input[name="piel"][value="${catalogFilterValue}"]`)).toBeChecked();
+    await expect(page.locator('.bsc__active-filter-badge')).toContainText('Piel grasa');
+    await expect(page.locator('#bscProductsContainer .bsc__product-card').first()).toBeVisible();
+
+    const paginationLinks = page.locator('#bscPaginationContainer a');
+    for (const link of await paginationLinks.all()) {
+      const href = await link.getAttribute('href');
+      expect(href).toContain(`piel=${catalogFilterValue}`);
+      expect(href).not.toMatch(/(?:group|subgroup|category|action|nonce|_wpnonce|paged)=/);
+    }
   });
 
   test('product cards with multiple options show their lowest available price', async ({ page }) => {
