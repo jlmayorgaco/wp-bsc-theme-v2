@@ -437,6 +437,21 @@ padding-left: 1px;
   border-color: #333;
   color: #333;
  }
+
+ @media (hover: none) and (pointer: coarse) {
+  .bsc__slider .bsc__product-card .bsc__button--product-card:not(:disabled) {
+    -webkit-tap-highlight-color: transparent;
+    transition: none;
+
+    &:hover,
+    &:active,
+    &:focus-visible {
+      background-color: #fff;
+      color: #333;
+    }
+  }
+ }
+
  .bsc__slider--ultimos_lanzamientos{
   padding-top: 0px !important;
  }

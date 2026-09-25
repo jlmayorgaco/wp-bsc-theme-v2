@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/bsc-email-design-system.php';
 
-$customer_name    = sanitize_text_field( (string) ( $customer_name ?? 'Bubble Lover' ) );
+$customer_name    = bsc_email_first_name( (string) ( $customer_name ?? '' ) );
 $items            = is_array( $items ?? null ) ? $items : array();
 $recover_url      = (string) ( $recover_url ?? bsc_email_shop_url() );
 $shop_url         = (string) ( $shop_url ?? bsc_email_shop_url() );

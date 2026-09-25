@@ -103,6 +103,13 @@ class BSC_Catalog_Request_Context {
 		return $this->category;
 	}
 
+	/**
+	 * Return the selected category chip slug, if any.
+	 */
+	public function get_subcat(): string {
+		return $this->get_selected_values( 'subcat' )[0] ?? '';
+	}
+
 	public function get_min_price(): int {
 		return $this->min_price;
 	}
@@ -166,6 +173,11 @@ class BSC_Catalog_Request_Context {
 			}
 
 			$public_args[ $field_name ] = count( $values ) > 1 ? $values : $values[0];
+		}
+
+		$subcat = $this->get_subcat();
+		if ( '' !== $subcat ) {
+			$public_args['subcat'] = $subcat;
 		}
 
 		if ( $this->has_min_price ) {

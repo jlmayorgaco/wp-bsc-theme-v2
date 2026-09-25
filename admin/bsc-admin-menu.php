@@ -836,8 +836,15 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_contact_email', sanitize_email( wp_unslash( $_POST['bsc_contact_email'] ?? '' ) ) );
 		update_option( 'bsc_creator_email', sanitize_email( wp_unslash( $_POST['bsc_creator_email'] ?? '' ) ) );
 		update_option( 'bsc_free_shipping_threshold', max( 0, intval( wp_unslash( $_POST['bsc_free_shipping_threshold'] ?? 300000 ) ) ) );
-		update_option( 'bsc_bogota_shipping_price', max( 0, intval( wp_unslash( $_POST['bsc_bogota_shipping_price'] ?? 10000 ) ) ) );
-		update_option( 'bsc_other_shipping_price', max( 0, intval( wp_unslash( $_POST['bsc_other_shipping_price'] ?? 17000 ) ) ) );
+		$bogota_shipping_price = max( 0, intval( wp_unslash( $_POST['bsc_bogota_shipping_price'] ?? bsc_get_bogota_shipping_price() ) ) );
+		$other_shipping_price  = max( 0, intval( wp_unslash( $_POST['bsc_other_shipping_price'] ?? bsc_get_other_shipping_price() ) ) );
+		$shipping_price_changed = $bogota_shipping_price !== bsc_get_bogota_shipping_price()
+			|| $other_shipping_price !== bsc_get_other_shipping_price();
+		update_option( 'bsc_bogota_shipping_price', $bogota_shipping_price );
+		update_option( 'bsc_other_shipping_price', $other_shipping_price );
+		if ( $shipping_price_changed && class_exists( 'WC_Cache_Helper' ) ) {
+			WC_Cache_Helper::get_transient_version( 'shipping', true );
+		}
 		update_option( 'bsc_bogota_shipping_label', sanitize_text_field( wp_unslash( $_POST['bsc_bogota_shipping_label'] ?? 'Bogotá' ) ) );
 		update_option( 'bsc_default_max_products_slider', max( 1, intval( wp_unslash( $_POST['bsc_default_max_products_slider'] ?? 5 ) ) ) );
 		update_option( 'bsc_form_data_retention_days', max( 30, intval( wp_unslash( $_POST['bsc_form_data_retention_days'] ?? 730 ) ) ) );
@@ -944,7 +951,7 @@ function bsc_render_settings_page(): void {
 					<th><label for="bsc_bogota_shipping_price">Tarifa Bogotá/Cundinamarca (COP)</label></th>
 					<td>
 						<input type="number" id="bsc_bogota_shipping_price" name="bsc_bogota_shipping_price"
-							value="<?php echo esc_attr( get_option( 'bsc_bogota_shipping_price', 10000 ) ); ?>"
+							value="<?php echo esc_attr( bsc_get_bogota_shipping_price() ); ?>"
 							class="regular-text" min="0" step="1000">
 						<p class="description">Valor aplicado en checkout para pedidos de Bogotá y Cundinamarca.</p>
 					</td>
@@ -953,7 +960,7 @@ function bsc_render_settings_page(): void {
 					<th><label for="bsc_other_shipping_price">Tarifa resto del país (COP)</label></th>
 					<td>
 						<input type="number" id="bsc_other_shipping_price" name="bsc_other_shipping_price"
-							value="<?php echo esc_attr( get_option( 'bsc_other_shipping_price', 17000 ) ); ?>"
+							value="<?php echo esc_attr( bsc_get_other_shipping_price() ); ?>"
 							class="regular-text" min="0" step="1000">
 						<p class="description">Valor aplicado en checkout para destinos fuera de Bogotá y Cundinamarca.</p>
 					</td>

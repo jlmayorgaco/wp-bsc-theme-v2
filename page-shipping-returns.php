@@ -38,9 +38,14 @@ bsc_render_static_page_template(
 				<h2>COSTOS DE ENV&Iacute;O</h2>
 				<p>Realizamos todos los env&iacute;os desde nuestra bodega en Bogot&aacute;, y manejamos las siguientes tarifas:</p>
 				<ul>
-					<li>Bogot&aacute; y zonas cercanas (Soacha, Ch&iacute;a, Cajic&aacute;, Mosquera, Funza, Zipaquir&aacute;, La Calera): <strong>$10.000 COP</strong></li>
-					<li>Resto del pa&iacute;s: <strong>$17.000 COP</strong></li>
-					<li>Por compras <strong>superiores a $300.000</strong> pesos el env&iacute;o es <strong>GRATIS</strong></li>
+					<li>Bogot&aacute; y Cundinamarca: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_bogota_shipping_price() ) ); ?></strong></li>
+					<li>Resto del pa&iacute;s: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_other_shipping_price() ) ); ?></strong></li>
+					<?php $free_shipping_threshold = max( 0, (int) get_option( 'bsc_free_shipping_threshold', 300000 ) ); ?>
+					<?php if ( $free_shipping_threshold > 0 ) : ?>
+						<li>En compras desde <strong><?php echo esc_html( bsc_format_cop_shipping_price( $free_shipping_threshold ) ); ?></strong>, el env&iacute;o es <strong>GRATIS</strong>.</li>
+					<?php else : ?>
+						<li>El env&iacute;o es <strong>GRATIS</strong> en todos los pedidos.</li>
+					<?php endif; ?>
 				</ul>
 			</section>
 

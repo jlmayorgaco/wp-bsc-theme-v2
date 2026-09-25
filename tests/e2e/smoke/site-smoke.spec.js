@@ -246,7 +246,7 @@ test.describe('BSC smoke', () => {
     await expect(page.locator('.coming-soon-container').first()).toBeVisible();
   });
 
-  test('catalog filters persist from page 2 through AJAX and server pagination', async ({ page }) => {
+  test('catalog filters persist from page 2 through AJAX and server pagination', async ({ page }, testInfo) => {
     test.skip(!expectsStorefront(), 'Storefront mode is required for catalog filter regression');
 
     const pageTwoRoute = `${catalogFilterRoute.replace(/\/$/, '')}/page/2/`;
@@ -263,6 +263,9 @@ test.describe('BSC smoke', () => {
 
     test.skip(!(await initialProducts.count()) || !(await initialNextLink.count()), 'Catalog fixture has no page 2');
 
+    if (testInfo.project.name === 'mobile') {
+      await page.locator('.bsc__filters-mobile-toggle').click();
+    }
     await page.locator('summary:has-text("Tipo de Piel")').click();
     await filterInput.check();
 
@@ -279,6 +282,9 @@ test.describe('BSC smoke', () => {
     await expect(filteredNextLink).toHaveAttribute('href', new RegExp(`/page/2/\\?.*piel=${catalogFilterValue}`));
     await expect(filteredNextLink).toHaveAttribute('href', /orderby=price/);
 
+    if (testInfo.project.name === 'mobile') {
+      await page.locator('.bsc__filters-mobile-close').click();
+    }
     await filteredNextLink.click();
     await expect(page).toHaveURL(new RegExp(`/page/2/\\?.*piel=${catalogFilterValue}`));
     await expect(page).toHaveURL(/orderby=price/);
@@ -305,6 +311,57 @@ test.describe('BSC smoke', () => {
       expect(href).toContain(`piel=${catalogFilterValue}`);
       expect(href).not.toMatch(/(?:group|subgroup|category|action|nonce|_wpnonce|paged)=/);
     }
+  });
+
+  test('mobile category chips intersect sidebar filters and survive reload', async ({ page }, testInfo) => {
+    test.skip(!expectsStorefront() || testInfo.project.name !== 'mobile', 'Mobile storefront catalog is required');
+
+    await gotoAndStabilize(page, '/product-category/group-skin-care/', {
+      primePage: false,
+      waitForImages: false,
+    });
+
+    const chip = page.locator('.bsc__subsubcategory-link[data-filter="sk-rutina-s2-limpiadores-acuosos"]');
+    const allChip = page.locator('.bsc__subsubcategory-link[data-filter="all"]');
+    const acne = page.locator('#bscFiltersForm input[name="necesidad"][value="sk-necesidad-acne"]');
+    test.skip(!(await chip.count()) || !(await acne.count()), 'Catalog fixture has no aqueous cleanser or acne filter');
+
+    const applyAndWait = async (action) => {
+      const responsePromise = page.waitForResponse((response) => (
+        response.url().includes('admin-ajax.php') &&
+        response.url().includes('action=bsc_filter_products')
+      ));
+      await action();
+      const response = await responsePromise;
+      expect((await response.json()).success).toBe(true);
+      await expect(page.locator('#bscProductsContainer .bsc__loading')).toHaveCount(0);
+    };
+    const productLinks = () => page.locator('#bscProductsContainer .bsc-product-card .card__images')
+      .evaluateAll((links) => links.map((link) => link.href));
+
+    await applyAndWait(() => chip.click());
+    const chipOnly = await productLinks();
+    expect(chipOnly.length).toBeGreaterThan(0);
+
+    await page.locator('.bsc__filters-mobile-toggle').click();
+    await page.locator('#bscFiltersForm summary').filter({ hasText: 'Necesidad' }).click();
+    await applyAndWait(() => acne.check());
+    const combined = await productLinks();
+    expect(combined.length).toBeGreaterThan(0);
+    expect(combined.every((link) => chipOnly.includes(link))).toBe(true);
+    await expect(page).toHaveURL(/subcat=sk-rutina-s2-limpiadores-acuosos/);
+    await expect(page).toHaveURL(/necesidad=sk-necesidad-acne/);
+
+    await page.locator('.bsc__filters-mobile-close').click();
+    await applyAndWait(() => allChip.click());
+    const acneOnly = await productLinks();
+    expect(combined.every((link) => acneOnly.includes(link))).toBe(true);
+
+    await applyAndWait(() => chip.click());
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(chip).toHaveClass(/bsc__subsubcategory-link--active/);
+    await expect(acne).toBeChecked();
+    expect((await productLinks()).sort()).toEqual(combined.sort());
   });
 
   test('product cards with multiple options show their lowest available price', async ({ page }) => {

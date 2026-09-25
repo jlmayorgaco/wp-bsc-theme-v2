@@ -59,6 +59,15 @@ class BSC_Catalog_Product_Query {
 			);
 		}
 
+		if ( '' !== $context->get_subcat() ) {
+			$tax_query[] = array(
+				'taxonomy'         => 'product_cat',
+				'field'            => 'slug',
+				'terms'            => array( $context->get_subcat() ),
+				'include_children' => true,
+			);
+		}
+
 		if (!empty( $filter_categories )) {
 			$tax_query[] = array(
 				'taxonomy'         => 'product_cat',

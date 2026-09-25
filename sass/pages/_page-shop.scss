@@ -259,16 +259,38 @@ $container-width: bsc.$container-wide;
       background-color: transparent;
     }
 
-    @include bsc.media-max("phone-sm") {
+    @include bsc.media-max("phone") {
       gap: 6px;
 
       .page-numbers {
-        padding-inline: 12px;
+        min-width: 34px;
+        min-height: 34px;
+        padding-inline: 11px;
+        font-size: 11px;
+        letter-spacing: 0.75px;
       }
 
       .prev,
       .next {
         padding-inline: 14px;
+      }
+
+      .dots {
+        min-width: 24px;
+        padding: 0;
+      }
+    }
+
+    @include bsc.media-max("phone-sm") {
+      gap: 4px;
+
+      .page-numbers {
+        padding-inline: 9px;
+      }
+
+      .prev,
+      .next {
+        padding-inline: 9px;
       }
     }
   }

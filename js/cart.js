@@ -290,7 +290,7 @@ jQuery(function ($) {
     return $groups;
   }
 
-  function promptVariantSelection($options) {
+  function promptVariantSelection($options, focusFirstChoice = false) {
     if (!$options.length) return;
 
     const $groups = getMissingVariantGroups($options);
@@ -319,9 +319,11 @@ jQuery(function ($) {
       $groups.removeClass('is-selection-prompted');
     }, 560));
 
-    window.setTimeout(() => {
-      firstChoice?.focus({ preventScroll: true });
-    }, reduceMotion ? 0 : 320);
+    if (focusFirstChoice) {
+      window.setTimeout(() => {
+        firstChoice?.focus({ preventScroll: true });
+      }, reduceMotion ? 0 : 320);
+    }
 
     if (isMobileVariantFlow() && typeof navigator.vibrate === 'function') {
       try {
@@ -892,7 +894,8 @@ jQuery(function ($) {
     if ($btn.hasClass('is-selection-required')) {
       if (!$btn.data('bscVariantPrompting')) {
         $btn.data('bscVariantPrompting', true);
-        promptVariantSelection(getProductOptions($btn));
+        const keyboardActivation = e.type === 'click' && e.originalEvent?.detail === 0;
+        promptVariantSelection(getProductOptions($btn), keyboardActivation);
         window.setTimeout(() => $btn.data('bscVariantPrompting', false), 450);
       }
       return;

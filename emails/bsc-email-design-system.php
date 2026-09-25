@@ -53,6 +53,19 @@ if ( ! function_exists( 'bsc_email_account_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'bsc_email_first_name' ) ) {
+	/** Return only the first given name for customer email greetings. */
+	function bsc_email_first_name( string $name, string $fallback = 'Bubble Lover' ): string {
+		$name = trim( sanitize_text_field( $name ) );
+		if ( '' === $name ) {
+			return $fallback;
+		}
+
+		$parts = preg_split( '/\s+/u', $name, 2 );
+		return is_array( $parts ) && '' !== $parts[0] ? $parts[0] : $fallback;
+	}
+}
+
 if ( ! function_exists( 'bsc_email_name_from_user' ) ) {
 	function bsc_email_name_from_user( $user, string $fallback = 'Bubble Lover' ): string {
 		if ( $user instanceof WP_User ) {
@@ -60,7 +73,7 @@ if ( ! function_exists( 'bsc_email_name_from_user' ) ) {
 			if ( '' === $name ) {
 				$name = trim( (string) $user->display_name );
 			}
-			return '' !== $name ? $name : $fallback;
+			return bsc_email_first_name( $name, $fallback );
 		}
 
 		return $fallback;
@@ -70,8 +83,7 @@ if ( ! function_exists( 'bsc_email_name_from_user' ) ) {
 if ( ! function_exists( 'bsc_email_name_from_order' ) ) {
 	function bsc_email_name_from_order( $order, string $fallback = 'Bubble Lover' ): string {
 		if ( $order instanceof WC_Order ) {
-			$name = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
-			return '' !== $name ? $name : $fallback;
+			return bsc_email_first_name( (string) $order->get_billing_first_name(), $fallback );
 		}
 
 		return $fallback;

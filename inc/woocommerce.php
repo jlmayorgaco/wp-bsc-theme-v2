@@ -1703,14 +1703,6 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		return $rates;
 	}
 
-	function bsc_get_bogota_shipping_price(): int {
-		return max( 0, (int) get_option( 'bsc_bogota_shipping_price', 10000 ) );
-	}
-
-	function bsc_get_other_shipping_price(): int {
-		return max( 0, (int) get_option( 'bsc_other_shipping_price', 17000 ) );
-	}
-
 	function bsc_normalize_shipping_text( string $value ): string {
 		$value = html_entity_decode( $value, ENT_QUOTES, 'UTF-8' );
 

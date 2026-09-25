@@ -4,6 +4,8 @@
  */
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/bsc-email-design-system.php';
+
 function bsc_get_followup_email_defaults(): array {
 	return array(
 		'bsc_followup_emails_enabled'        => 1,
@@ -113,7 +115,7 @@ function bsc_get_followup_contact_key( WC_Order $order ): string {
 function bsc_get_followup_order_recipient( WC_Order $order ): array {
 	$user_id = (int) $order->get_user_id();
 	$email   = sanitize_email( (string) $order->get_billing_email() );
-	$name    = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+	$name    = bsc_email_name_from_order( $order, '' );
 
 	if ( $user_id > 0 ) {
 		$user = get_user_by( 'id', $user_id );
@@ -122,10 +124,7 @@ function bsc_get_followup_order_recipient( WC_Order $order ): array {
 				$email = sanitize_email( (string) $user->user_email );
 			}
 			if ( $name === '' ) {
-				$name = trim( $user->first_name . ' ' . $user->last_name );
-				if ( $name === '' ) {
-					$name = $user->display_name;
-				}
+				$name = bsc_email_name_from_user( $user, '' );
 			}
 		}
 	}
@@ -312,7 +311,7 @@ function bsc_password_reset_message_fallback( string $message, string $key, stri
 		'login'
 	);
 
-	$name = $user_data instanceof WP_User ? $user_data->display_name : $user_login;
+	$name = $user_data instanceof WP_User ? bsc_email_name_from_user( $user_data ) : 'Bubble Lover';
 
 	return "Hola {$name},\n\nUsa este enlace para cambiar tu contraseña:\n{$reset_url}\n\nSi no solicitaste este cambio, ignora este correo.\n";
 }
@@ -380,7 +379,7 @@ function bsc_force_password_reset_message_fallback( string $message, string $key
 		'wp-login.php?action=rp&key=' . rawurlencode( $key ) . '&login=' . rawurlencode( $user_login ),
 		'login'
 	);
-	$name      = $user_data instanceof WP_User ? $user_data->display_name : $user_login;
+	$name      = $user_data instanceof WP_User ? bsc_email_name_from_user( $user_data ) : 'Bubble Lover';
 	$password  = wp_specialchars_decode( 'contrase&ntilde;a', ENT_QUOTES );
 
 	return sprintf(

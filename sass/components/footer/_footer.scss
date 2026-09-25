@@ -385,6 +385,7 @@ $breakpoints: (
       right: footer-floating(cart-badge-offset);
       width: footer-floating(cart-badge-size);
       height: footer-floating(cart-badge-size);
+      border: 1px solid #333;
       border-radius: 50%;
       background: #ffffff;
       color: var(--color--text);

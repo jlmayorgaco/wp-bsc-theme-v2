@@ -16,11 +16,11 @@ WC()->cart    = new WC_Cart();
 
 // These are already-calculated WooCommerce totals, not a second price calculator.
 $cases = array(
-	'national shipping' => array( 2000, 0, 17000, 0, 0, 19000 ),
+	'national shipping' => array( 2000, 0, 18000, 0, 0, 20000 ),
 	'local shipping'    => array( 2000, 0, 10000, 0, 0, 12000 ),
-	'coupon discount'   => array( 2000, 500, 17000, 0, 0, 18500 ),
+	'coupon discount'   => array( 2000, 500, 18000, 0, 0, 19500 ),
 	'free shipping'     => array( 2000, 0, 0, 0, 0, 2000 ),
-	'fees and taxes'    => array( 2000, 500, 17000, 300, 200, 19000 ),
+	'fees and taxes'    => array( 2000, 500, 18000, 300, 200, 20000 ),
 );
 
 try {
