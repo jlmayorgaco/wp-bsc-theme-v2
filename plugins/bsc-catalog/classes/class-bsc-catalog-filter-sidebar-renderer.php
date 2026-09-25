@@ -58,6 +58,10 @@ class BSC_Catalog_Filter_Sidebar_Renderer {
 		if ($context->get_category() !== '') {
 			printf( '<input hidden type="text" value="%s" name="category">', esc_attr( $context->get_category() ) );
 		}
+
+		if ( '' === $context->get_subgroup() && '' !== $context->get_category() ) {
+			printf( '<input type="hidden" name="subcat" value="%s">', esc_attr( $context->get_subcat() ) );
+		}
 	}
 
 	private function render_group( array $filter, BSC_Catalog_Request_Context $context ): void {

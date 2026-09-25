@@ -505,13 +505,15 @@ class BSCShopPage {
 		$filter_context     = null;
 		$has_filter_sidebar = function_exists( 'bsc_render_custom_filters_sidebar' ) && class_exists( 'BSC_Catalog_Request_Context' );
 		if ($has_filter_sidebar) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only catalog filters.
+			$request_params             = BSC_Catalog_Request_Context::sanitize_request_array( $_GET );
+			$request_params['group']    = $cat->slug;
+			$request_params['category'] = $defaultChild->slug;
 			$filter_context = BSC_Catalog_Request_Context::from_request(
-				array(
-					'group'    => $cat->slug,
-					'category' => $defaultChild->slug,
-				)
+				$request_params
 			);
 		}
+		$selected_subcat = $filter_context ? $filter_context->get_subcat() : '';
 
 		echo "<div class='shop__main shop__main--group'>";
 		echo "<section class='shop__content'>";
@@ -619,7 +621,7 @@ class BSCShopPage {
 				echo '<div class="bsc__subsubcategory-modal-options">';
 
 				foreach ($filter_items as $item) {
-					$active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-modal-option--active' : '';
+					$active_class = $item['slug'] === ( $selected_subcat ?: 'all' ) ? ' bsc__subsubcategory-modal-option--active' : '';
 
 					printf(
 						'<button type="button" class="bsc__subsubcategory-modal-option%s" data-filter="%s" data-filter-label="%s">%s</button>',
@@ -638,7 +640,7 @@ class BSCShopPage {
 			echo "<div class='bsc__subsubcategory-links'>";
 
 			foreach ($filter_items as $item) {
-				$active_class = $item['slug'] === 'all' ? ' bsc__subsubcategory-link--active' : '';
+				$active_class = $item['slug'] === ( $selected_subcat ?: 'all' ) ? ' bsc__subsubcategory-link--active' : '';
 
 				printf(
 					'<button type="button" class="bsc__subsubcategory-link%s" data-filter="%s" data-filter-label="%s">%s</button>',
@@ -652,18 +654,28 @@ class BSCShopPage {
 			echo '</div>'; // .bsc__subsubcategory-links
 		}
 
-		// --- productos del defaultChild + todos sus descendientes ---
-		// Cap at 120 products: client-side filter needs all records upfront,
-		// but -1 causes full table scan and OOM on large catalogues.
-		$product_ids_for_level = $this->getVisibleProductIdsForTerm( $defaultChild, 120 );
-		$products_query        = new WP_Query(
-			array(
+		// Keep the group catalog capped at 120 products in both the initial view
+		// and AJAX responses. Public filter URLs must use the same combined query.
+		$has_public_filters = $filter_context
+			&& ! empty( $filter_context->get_public_query_args( new BSC_Catalog_Filter_Config() ) );
+		if ( $has_public_filters && class_exists( 'BSC_Catalog_Product_Query' ) ) {
+			$products_query = ( new BSC_Catalog_Product_Query() )->get_query(
+				$filter_context,
+				array(
+					'posts_per_page' => 120,
+					'no_found_rows'  => true,
+				)
+			);
+		} else {
+			$product_ids_for_level = $this->getVisibleProductIdsForTerm( $defaultChild, 120 );
+			$products_query        = new WP_Query(
+				array(
 					'post_type'              => 'product',
 					'post_status'            => 'publish',
 					'post__in'               => ! empty( $product_ids_for_level ) ? $product_ids_for_level : array( 0 ),
 					'orderby'                => 'post__in',
 					'posts_per_page'         => max( 1, count( $product_ids_for_level ) ),
-					'no_found_rows'  => true, // skip COUNT(*) — pagination not needed here
+					'no_found_rows'          => true, // Skip COUNT(*) — pagination is not used here.
 					'update_post_meta_cache' => true,
 					'update_post_term_cache' => true,
 					'tax_query'              => array(
@@ -674,8 +686,9 @@ class BSCShopPage {
 							'include_children' => true,
 						),
 					),
-			)
-		);
+				)
+			);
+		}
 
 		$catalog_layout_class = $has_filter_sidebar ? 'shop__catalog-layout' : 'shop__catalog-layout shop__catalog-layout--full';
 

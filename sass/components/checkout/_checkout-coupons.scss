@@ -264,6 +264,10 @@
 }
 
 @include mixins.bsc-breakpoint-down("phone") {
+  .bsc__coupon-field .bsc__coupon-input {
+    font-size: 16px;
+  }
+
   .bsc__coupon-row {
     align-items: flex-start;
   }

@@ -23,17 +23,6 @@ async function stabilizeHomeHero(page) {
         swiper.slideTo(stableSlide, 0);
       }
     }
-
-    document
-      .querySelectorAll('.bsc__home-swiper .slide__hero')
-      .forEach((node) => node.classList.remove('fade-in'));
-
-    const activeHero = document.querySelector(
-      '.bsc__home-swiper .swiper-slide-active .slide__hero'
-    );
-    if (activeHero) {
-      activeHero.classList.add('fade-in');
-    }
   });
 }
 

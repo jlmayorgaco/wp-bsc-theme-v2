@@ -228,7 +228,7 @@ function bsc_seo_get_canonical_url(): string {
  * Check whether the current catalog URL contains filter parameters.
  */
 function bsc_seo_has_filter_query(): bool {
-	$filter_keys = array( 'orderby', 'min_price', 'max_price', 'rating_filter', 'bsc_recover_cart' );
+	$filter_keys = array( 'orderby', 'min_price', 'max_price', 'rating_filter', 'subcat', 'bsc_recover_cart' );
 
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only query inspection for indexation rules.
 	foreach ( array_keys( $_GET ) as $key ) {
@@ -821,6 +821,7 @@ function bsc_seo_filter_robots_txt( string $output, bool $is_public ): string {
 		'Disallow: /*?s=',
 		'Disallow: /*?orderby=',
 		'Disallow: /*filter_',
+		'Disallow: /*subcat=',
 		'Disallow: /*min_price=',
 		'Disallow: /*max_price=',
 		'Sitemap: ' . home_url( '/wp-sitemap.xml' ),

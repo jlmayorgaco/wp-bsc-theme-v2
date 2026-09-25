@@ -1,7 +1,7 @@
 <?php
 
 class BSC_Catalog_Product_Renderer {
-	public function render_query_results( WP_Query $query ): string {
+	public function render_query_results( WP_Query $query, bool $wrap_cards = false ): string {
 		if (!class_exists( 'BSC_Products_Card' )) {
 			throw new RuntimeException( 'La clase BSC_Products_Card no está disponible.' );
 		}
@@ -20,7 +20,13 @@ class BSC_Catalog_Product_Renderer {
 
 					$card = new BSC_Products_Card();
 					$card->setProduct( $product );
+					if ( $wrap_cards ) {
+						echo '<div class="bsc-product-card">';
+					}
 					$card->render();
+					if ( $wrap_cards ) {
+						echo '</div>';
+					}
 				}
 			} else {
 				bsc_render_products_empty_state( false );

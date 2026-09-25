@@ -182,6 +182,10 @@ test.describe('BSC visual baseline - email previews', () => {
 
       await ensureEmailPreviewLoaded(page, adminFixture, previewCase);
 
+      const greeting = (await page.locator('body').innerText())
+        .match(/\bHola\s+([^,\n]+),/u)?.[1]?.trim();
+      expect(greeting, 'customer emails greet by first name only').toBe('Preview');
+
       const bodyHtml = await page.locator('body').evaluate((node) => node.innerHTML);
       expect(bodyHtml.includes('{{')).toBeFalsy();
       expect(bodyHtml.includes('}}')).toBeFalsy();

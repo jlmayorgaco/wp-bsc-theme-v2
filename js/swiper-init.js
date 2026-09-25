@@ -11,7 +11,7 @@
     if (!wrapper) return;
 
     /* global Swiper */
-    new Swiper('.bsc__home-swiper', {
+    var swiper = new Swiper('.bsc__home-swiper', {
       loop: true,
       autoHeight: true,
       initialSlide: 0,
@@ -23,20 +23,22 @@
         nextEl: '.bsc-swiper__nav--next',
         prevEl: '.bsc-swiper__nav--prev',
       },
-      on: {
-        init: function () {
-          var initial = document.querySelector('.swiper-slide-active .slide__hero');
-          if (initial) initial.classList.add('fade-in');
-        },
-        slideChangeTransitionStart: function () {
-          document.querySelectorAll('.slide__hero')
-            .forEach(function (el) { el.classList.remove('fade-in'); });
-        },
-        slideChangeTransitionEnd: function () {
-          var active = document.querySelector('.swiper-slide-active .slide__hero');
-          if (active) active.classList.add('fade-in');
-        },
-      },
+    });
+
+    // Lazy slide images can change height after Swiper has measured the slide.
+    // Re-measure the active slide when any banner finishes loading.
+    wrapper.querySelectorAll('img').forEach(function (image) {
+      function updateHeight() {
+        window.requestAnimationFrame(function () {
+          swiper.updateAutoHeight(0);
+        });
+      }
+
+      if (image.complete) {
+        if (image.naturalWidth) updateHeight();
+      } else {
+        image.addEventListener('load', updateHeight, { once: true });
+      }
     });
   });
 }());

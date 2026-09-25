@@ -14,6 +14,7 @@ if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 }
 
 require_once get_template_directory() . '/inc/asset-version.php';
+require_once get_template_directory() . '/inc/shipping-rates.php';
 
 if ( ! defined( '_S_VERSION' ) ) {
 	define( '_S_VERSION', bsc_get_asset_version( 'style.css' ) );

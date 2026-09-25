@@ -1,6 +1,5 @@
 /**
- * BSC Category Page — client-side product filter by subcategory slug.
- * Works with data-subcat attributes rendered in product-category.php.
+ * BSC Category Page — subcategory chips share the catalog query with sidebar filters.
  * Extracted from inline script for cacheability.
  */
 (function () {
@@ -10,6 +9,7 @@
     Array.prototype.forEach.call(document.querySelectorAll('.bsc__default-subsubcategory'), function (section) {
       var linksContainer = section.querySelector('.bsc__subsubcategory-links');
       var cards = section.querySelectorAll('.bsc-product-card');
+      var subcatInput = section.querySelector('#bscFiltersForm input[name="subcat"]');
       var mobileTrigger = section.querySelector('.bsc__subsubcategory-mobile-trigger');
       var mobileCount = section.querySelector('.bsc__subsubcategory-mobile-count');
       var mobileChip = section.querySelector('.bsc__subsubcategory-chip');
@@ -21,7 +21,7 @@
       var activeFilter = defaultFilter;
       var activeLabel = defaultLabel;
 
-      if (!linksContainer || !cards.length) return;
+      if (!linksContainer) return;
 
       function getLabel(btn) {
         return btn.getAttribute('data-filter-label') || btn.textContent.trim() || defaultLabel;
@@ -92,25 +92,33 @@
         }
       }
 
-      function applyFilter(filter, label) {
+      function applyFilter(filter, label, submit) {
         activeFilter = filter || defaultFilter;
         activeLabel = label || defaultLabel;
 
-        Array.prototype.forEach.call(cards, function (card) {
-          var subcats = (card.getAttribute('data-subcat') || '').split(/\s+/).filter(Boolean);
-          var show = activeFilter === defaultFilter || !activeFilter || subcats.indexOf(activeFilter) !== -1;
-          card.style.display = show ? '' : 'none';
-        });
+        if (subcatInput) {
+          subcatInput.value = activeFilter === defaultFilter ? '' : activeFilter;
+        } else {
+          Array.prototype.forEach.call(cards, function (card) {
+            var subcats = (card.getAttribute('data-subcat') || '').split(/\s+/).filter(Boolean);
+            var show = activeFilter === defaultFilter || !activeFilter || subcats.indexOf(activeFilter) !== -1;
+            card.style.display = show ? '' : 'none';
+          });
+        }
 
         updateActiveButtons();
         updateMobileUi();
+
+        if (submit && subcatInput) {
+          subcatInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       }
 
       linksContainer.addEventListener('click', function (e) {
         var btn = e.target.closest('.bsc__subsubcategory-link');
         if (!btn) return;
 
-        applyFilter(btn.getAttribute('data-filter'), getLabel(btn));
+        applyFilter(btn.getAttribute('data-filter'), getLabel(btn), true);
       });
 
       if (mobileTrigger) {
@@ -119,7 +127,7 @@
 
       if (mobileChip) {
         mobileChip.addEventListener('click', function () {
-          applyFilter(defaultFilter, defaultLabel);
+          applyFilter(defaultFilter, defaultLabel, true);
         });
       }
 
@@ -135,7 +143,7 @@
 
           if (!optionBtn) return;
 
-          applyFilter(optionBtn.getAttribute('data-filter'), getLabel(optionBtn));
+          applyFilter(optionBtn.getAttribute('data-filter'), getLabel(optionBtn), true);
           closeModal();
         });
       }
@@ -148,9 +156,9 @@
 
       var initialBtn = linksContainer.querySelector('.bsc__subsubcategory-link--active') || linksContainer.querySelector('.bsc__subsubcategory-link');
       if (initialBtn) {
-        applyFilter(initialBtn.getAttribute('data-filter'), getLabel(initialBtn));
+        applyFilter(initialBtn.getAttribute('data-filter'), getLabel(initialBtn), false);
       } else {
-        applyFilter(defaultFilter, defaultLabel);
+        applyFilter(defaultFilter, defaultLabel, false);
       }
     });
   });
