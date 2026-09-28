@@ -11,57 +11,7 @@ class BSC_Stock {
 	}
 
 	public static function deduct_web_order( int $order_id ): void {
-		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
-			return;
-		}
-		if ( $order->get_meta( '_bsc_is_showroom_sale', true ) ) {
-			return;
-		}
-
-		foreach ( $order->get_items() as $item ) {
-			if ( ! $item instanceof WC_Order_Item_Product ) {
-				continue;
-			}
-
-			if ( $item->get_meta( '_bsc_stock_allocated_at', true ) ) {
-				continue;
-			}
-
-			if ( ! self::acquire_order_item_lock( (int) $item->get_id() ) ) {
-				continue;
-			}
-
-			$product_id = (int) $item->get_product_id();
-			$qty        = max( 1, (int) $item->get_quantity() );
-			$reason     = sprintf( 'Pedido web #%s item #%d', $order->get_order_number(), $item->get_id() );
-			$variant_key = sanitize_key( (string) $item->get_meta( '_bsc_product_variant_key', true ) );
-			$allocation  = $variant_key !== '' && function_exists( 'bsc_product_has_saved_variant_matrix' ) && bsc_product_has_saved_variant_matrix( $product_id )
-				? self::allocate_variant_and_deduct( $product_id, $variant_key, $qty, $reason )
-				: self::allocate_and_deduct( $product_id, $qty, $reason );
-
-			if ( is_wp_error( $allocation ) ) {
-				$item->update_meta_data( '_bsc_stock_allocation_error', $allocation->get_error_message() );
-				$item->save();
-				$order->add_order_note(
-					sprintf(
-						'No se pudo descontar stock para %1$s x %2$d: %3$s',
-						$item->get_name(),
-						$qty,
-						$allocation->get_error_message()
-					)
-				);
-				self::release_order_item_lock( (int) $item->get_id() );
-				continue;
-			}
-
-			$item->update_meta_data( '_bsc_stock_source', self::source_from_allocation( $allocation ) );
-			$item->update_meta_data( '_bsc_stock_bodega_qty', $allocation['bodega'] );
-			$item->update_meta_data( '_bsc_stock_tienda_qty', $allocation['tienda'] );
-			$item->update_meta_data( '_bsc_stock_allocated_at', current_time( 'mysql' ) );
-			$item->save();
-			self::release_order_item_lock( (int) $item->get_id() );
-		}
+		BSC_Order_Stock::paid( $order_id );
 	}
 
 	public static function deduct_tienda( int $order_id ): void {
@@ -174,6 +124,12 @@ class BSC_Stock {
 	 * @return array{bodega: int, tienda: int}|WP_Error
 	 */
 	public static function allocate_and_deduct( int $product_id, int $quantity, string $reason = '' ) {
+		return self::with_product_lock( $product_id, static function () use ( $product_id, $quantity, $reason ) {
+			return self::allocate_and_deduct_locked( $product_id, $quantity, $reason );
+		} );
+	}
+
+	private static function allocate_and_deduct_locked( int $product_id, int $quantity, string $reason = '' ) {
 		$qty = max( 0, $quantity );
 		if ( $qty <= 0 ) {
 			return array(
@@ -246,6 +202,12 @@ class BSC_Stock {
 	 * @return array{bodega: int, tienda: int}|WP_Error
 	 */
 	public static function allocate_variant_and_deduct( int $product_id, string $variant_key, int $quantity, string $reason = '' ) {
+		return self::with_product_lock( $product_id, static function () use ( $product_id, $variant_key, $quantity, $reason ) {
+			return self::allocate_variant_and_deduct_locked( $product_id, $variant_key, $quantity, $reason );
+		} );
+	}
+
+	private static function allocate_variant_and_deduct_locked( int $product_id, string $variant_key, int $quantity, string $reason = '' ) {
 		$qty = max( 0, $quantity );
 		if ( $qty <= 0 ) {
 			return array(
@@ -259,14 +221,10 @@ class BSC_Stock {
 			return new WP_Error( 'bsc_variant_stock_missing', 'Variante no encontrada.' );
 		}
 
-		if ( ! self::acquire_variant_stock_lock( $product_id, $variant_key ) ) {
-			return new WP_Error( 'bsc_variant_stock_locked', 'El stock de esta variante se esta actualizando. Intenta de nuevo.' );
-		}
 
 		$matrix = bsc_get_product_saved_variant_matrix( $product_id, true );
 		$index  = self::find_variant_index_by_key( $matrix, $variant_key );
 		if ( $index < 0 || empty( $matrix[ $index ]['enabled'] ) ) {
-			self::release_variant_stock_lock( $product_id, $variant_key );
 			return new WP_Error( 'bsc_variant_stock_missing', 'Variante no encontrada.' );
 		}
 
@@ -280,13 +238,14 @@ class BSC_Stock {
 		if ( ( $from_bodega + $from_tienda ) < $qty ) {
 			$label = self::variant_label( $variant );
 			self::log_movement( $product_id, 'variante-bodega', -$qty, $bodega, $bodega, 'Rechazado: stock insuficiente. ' . $label . ' ' . $reason );
-			self::release_variant_stock_lock( $product_id, $variant_key );
 			return new WP_Error( 'bsc_stock_shortage', 'Stock insuficiente.' );
 		}
 
 		$matrix[ $index ]['stock_bodega'] = $bodega - $from_bodega;
 		$matrix[ $index ]['stock_tienda'] = $tienda - $from_tienda;
-		update_post_meta( $product_id, '_bsc_variant_matrix', array_values( $matrix ) );
+		if ( false === update_post_meta( $product_id, '_bsc_variant_matrix', array_values( $matrix ) ) ) {
+			return new WP_Error( 'bsc_stock_write_failed', 'No se pudo guardar el inventario.' );
+		}
 
 		if ( function_exists( 'bsc_sync_product_variant_parent_stock' ) ) {
 			bsc_sync_product_variant_parent_stock( $product_id, $matrix );
@@ -300,8 +259,6 @@ class BSC_Stock {
 			self::log_movement( $product_id, 'variante-tienda', -$from_tienda, $tienda, $tienda - $from_tienda, $label . ' ' . $reason );
 		}
 
-		self::release_variant_stock_lock( $product_id, $variant_key );
-
 		return array(
 			'bodega' => $from_bodega,
 			'tienda' => $from_tienda,
@@ -312,6 +269,12 @@ class BSC_Stock {
 	 * @return int|WP_Error
 	 */
 	public static function adjust_variant_stock_strict( int $product_id, string $variant_key, string $type, int $delta, string $reason = '' ) {
+		return self::with_product_lock( $product_id, static function () use ( $product_id, $variant_key, $type, $delta, $reason ) {
+			return self::adjust_variant_stock_strict_locked( $product_id, $variant_key, $type, $delta, $reason );
+		} );
+	}
+
+	private static function adjust_variant_stock_strict_locked( int $product_id, string $variant_key, string $type, int $delta, string $reason = '' ) {
 		$variant_key = sanitize_key( $variant_key );
 		$type        = self::normalize_type( $type );
 		$field       = 'tienda' === $type ? 'stock_tienda' : 'stock_bodega';
@@ -320,34 +283,30 @@ class BSC_Stock {
 			return new WP_Error( 'bsc_variant_stock_missing', 'Variante no encontrada.' );
 		}
 
-		if ( ! self::acquire_variant_stock_lock( $product_id, $variant_key ) ) {
-			return new WP_Error( 'bsc_variant_stock_locked', 'El stock de esta variante se esta actualizando. Intenta de nuevo.' );
-		}
 
 		$matrix = bsc_get_product_saved_variant_matrix( $product_id, true );
 		$index  = self::find_variant_index_by_key( $matrix, $variant_key );
 		if ( $index < 0 ) {
-			self::release_variant_stock_lock( $product_id, $variant_key );
 			return new WP_Error( 'bsc_variant_stock_missing', 'Variante no encontrada.' );
 		}
 
 		$current = max( 0, (int) ( $matrix[ $index ][ $field ] ?? 0 ) );
 		if ( $delta < 0 && $current < abs( $delta ) ) {
 			self::log_movement( $product_id, 'variante-' . $type, $delta, $current, $current, 'Rechazado: stock insuficiente. ' . self::variant_label( $matrix[ $index ] ) . ' ' . $reason );
-			self::release_variant_stock_lock( $product_id, $variant_key );
 			return new WP_Error( 'bsc_stock_shortage', 'Stock insuficiente.' );
 		}
 
 		$new                         = max( 0, $current + $delta );
 		$matrix[ $index ][ $field ] = $new;
-		update_post_meta( $product_id, '_bsc_variant_matrix', array_values( $matrix ) );
+		if ( false === update_post_meta( $product_id, '_bsc_variant_matrix', array_values( $matrix ) ) ) {
+			return new WP_Error( 'bsc_stock_write_failed', 'No se pudo guardar el inventario.' );
+		}
 
 		if ( function_exists( 'bsc_sync_product_variant_parent_stock' ) ) {
 			bsc_sync_product_variant_parent_stock( $product_id, $matrix );
 		}
 
 		self::log_movement( $product_id, 'variante-' . $type, $delta, $current, $new, self::variant_label( $matrix[ $index ] ) . ' ' . $reason );
-		self::release_variant_stock_lock( $product_id, $variant_key );
 
 		return $new;
 	}
@@ -437,12 +396,19 @@ class BSC_Stock {
 	 * @return int|WP_Error
 	 */
 	public static function adjust_strict( int $product_id, string $type, int $delta, string $reason = '' ) {
+		return self::with_product_lock( $product_id, static function () use ( $product_id, $type, $delta, $reason ) {
+			return self::adjust_strict_locked( $product_id, $type, $delta, $reason );
+		} );
+	}
+
+	private static function adjust_strict_locked( int $product_id, string $type, int $delta, string $reason = '' ) {
 		$type     = self::normalize_type( $type );
 		$meta_key = self::meta_key_for_type( $type );
 
 		self::ensure_stock_meta_exists( $product_id, $meta_key );
 
 		$current = (int) get_post_meta( $product_id, $meta_key, true );
+		if ( 0 === $delta ) { return $current; }
 		if ( $delta < 0 && $current < abs( $delta ) ) {
 			self::log_movement( $product_id, $type, $delta, $current, $current, 'Rechazado: stock insuficiente. ' . $reason );
 			return new WP_Error( 'bsc_stock_shortage', 'Stock insuficiente.' );
@@ -583,39 +549,35 @@ class BSC_Stock {
 		return empty( $parts ) ? 'Variante' : 'Variante ' . implode( ' / ', $parts );
 	}
 
-	private static function variant_stock_lock_key( string $variant_key ): string {
-		return '_bsc_variant_stock_lock_' . sanitize_key( $variant_key );
+	/** The serialized matrix is one product-wide resource, including admin writes. */
+	public static function with_product_lock( int $product_id, callable $callback ) {
+		return BSC_DB_Lock::run( 'stock-product:' . $product_id, static function () use ( $product_id, $callback ) {
+			wp_cache_delete( $product_id, 'post_meta' );
+			try {
+				return BSC_DB_Lock::transaction( $callback );
+			} finally {
+				wp_cache_delete( $product_id, 'post_meta' );
+			}
+		} );
 	}
 
-	private static function acquire_variant_stock_lock( int $product_id, string $variant_key ): bool {
-		if ( $product_id <= 0 || ! function_exists( 'add_metadata' ) ) {
+	public static function revision( int $product_id ): string {
+		return hash( 'sha256', wp_json_encode( array( get_post_meta( $product_id, '_bsc_variant_matrix', true ), self::get_stock( $product_id ) ) ) );
+	}
+
+	public static function save_variant_matrix( int $product_id, array $matrix, ?string $revision = null ) {
+		return self::with_product_lock( $product_id, static function () use ( $product_id, $matrix, $revision ) {
+			if ( null !== $revision && ! hash_equals( self::revision( $product_id ), $revision ) ) {
+				return new WP_Error( 'bsc_stock_changed', 'El inventario cambió. Recarga las variantes antes de guardar.' );
+			}
+			$before = get_post_meta( $product_id, '_bsc_variant_matrix', true );
+			if ( $before !== $matrix && false === update_post_meta( $product_id, '_bsc_variant_matrix', $matrix ) ) {
+				return new WP_Error( 'bsc_stock_write_failed', 'No se pudo guardar el inventario.' );
+			}
+			if ( function_exists( 'bsc_sync_product_variant_parent_stock' ) ) {
+				bsc_sync_product_variant_parent_stock( $product_id, $matrix );
+			}
 			return true;
-		}
-
-		return (bool) add_metadata( 'post', $product_id, self::variant_stock_lock_key( $variant_key ), current_time( 'mysql' ), true );
-	}
-
-	private static function release_variant_stock_lock( int $product_id, string $variant_key ): void {
-		if ( $product_id <= 0 || ! function_exists( 'delete_metadata' ) ) {
-			return;
-		}
-
-		delete_metadata( 'post', $product_id, self::variant_stock_lock_key( $variant_key ) );
-	}
-
-	private static function acquire_order_item_lock( int $item_id ): bool {
-		if ( $item_id <= 0 || ! function_exists( 'add_metadata' ) ) {
-			return true;
-		}
-
-		return (bool) add_metadata( 'order_item', $item_id, '_bsc_stock_allocation_lock', current_time( 'mysql' ), true );
-	}
-
-	private static function release_order_item_lock( int $item_id ): void {
-		if ( $item_id <= 0 || ! function_exists( 'delete_metadata' ) ) {
-			return;
-		}
-
-		delete_metadata( 'order_item', $item_id, '_bsc_stock_allocation_lock' );
+		} );
 	}
 }

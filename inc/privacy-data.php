@@ -4,6 +4,29 @@
  */
 defined( 'ABSPATH' ) || exit;
 
+/** Hold through a read/modify/write sequence, including uncached legacy options. */
+function bsc_form_data_lock(): bool {
+	if ( ! BSC_DB_Lock::acquire( 'form-data' ) ) { return false; }
+	wp_cache_delete( 'alloptions', 'options' );
+	foreach ( array( 'bsc_newsletter_subscribers', 'bsc_contact_messages', 'bsc_creator_applications' ) as $key ) {
+		wp_cache_delete( $key, 'options' );
+	}
+	register_shutdown_function( static function () { BSC_DB_Lock::release( 'form-data' ); } );
+	return true;
+}
+
+function bsc_form_data_revision( string $option ): string {
+	return hash( 'sha256', wp_json_encode( get_option( $option, array() ) ) );
+}
+
+function bsc_form_data_guard_admin( string $option ): void {
+	if ( ! bsc_form_data_lock() ) { wp_die( 'Hay una actualización en curso. Intenta nuevamente.', '', array( 'response' => 409 ) ); }
+	$revision = isset( $_POST['bsc_data_revision'] ) && is_string( $_POST['bsc_data_revision'] ) ? sanitize_text_field( wp_unslash( $_POST['bsc_data_revision'] ) ) : '';
+	if ( ! hash_equals( bsc_form_data_revision( $option ), $revision ) ) {
+		wp_die( 'La lista cambió. Recarga la página antes de modificar este registro.', '', array( 'response' => 409 ) );
+	}
+}
+
 function bsc_privacy_get_form_retention_days(): int {
 	$days = absint( get_option( 'bsc_form_data_retention_days', 730 ) );
 
@@ -80,6 +103,7 @@ function bsc_privacy_prune_rows( array $rows, int $max_rows = 1000 ): array {
 }
 
 function bsc_privacy_prune_form_data(): void {
+	if ( ! bsc_form_data_lock() ) { return; }
 	if ( function_exists( 'bsc_newsletter_get_subscribers' ) && function_exists( 'bsc_newsletter_save_subscribers' ) ) {
 		bsc_newsletter_save_subscribers( bsc_newsletter_get_subscribers() );
 	}
@@ -92,6 +116,7 @@ function bsc_privacy_prune_form_data(): void {
 	if ( is_array( $applications ) ) {
 		update_option( 'bsc_creator_applications', bsc_privacy_prune_rows( $applications, 1000 ), false );
 	}
+	BSC_DB_Lock::release( 'form-data' );
 }
 add_action( 'bsc_privacy_prune_form_data', 'bsc_privacy_prune_form_data' );
 

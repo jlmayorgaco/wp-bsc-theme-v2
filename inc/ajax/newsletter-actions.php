@@ -17,6 +17,7 @@ function bsc_newsletter_subscribe() {
 		bsc_rate_limit( 'newsletter', 1, MINUTE_IN_SECONDS );
 	}
 
+	if ( ! bsc_form_data_lock() ) { wp_send_json_error( array( 'message' => 'Intenta nuevamente en unos segundos.' ), 503 ); }
 	$subscribers = bsc_newsletter_get_subscribers();
 	$existing    = array_column( $subscribers, 'email' );
 
@@ -35,6 +36,7 @@ function bsc_newsletter_subscribe() {
 		function_exists( 'bsc_privacy_form_metadata' ) ? bsc_privacy_form_metadata() : array()
 	);
 	bsc_newsletter_save_subscribers( $subscribers );
+	BSC_DB_Lock::release( 'form-data' );
 
 	$admin_email = get_option( 'admin_email' );
 	wp_mail(

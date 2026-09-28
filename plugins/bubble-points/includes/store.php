@@ -24,126 +24,71 @@ if (!function_exists( 'bsc_bp_get_balance' )) {
 
 if (!function_exists( 'bsc_bp_set_balance' )) {
 	function bsc_bp_set_balance( $user_id, $points ) {
-		return update_user_meta( $user_id, 'bsc_bubble_points', max( 0, (int) $points ) );
+		return update_user_meta( $user_id, 'bsc_bubble_points', (int) $points );
 	}
 }
 
-if (!function_exists( 'bsc_bp_with_user_lock' )) {
+if ( ! function_exists( 'bsc_bp_with_user_lock' ) ) {
 	function bsc_bp_with_user_lock( $user_id, callable $callback ) {
-		global $wpdb;
-
-		$lock_name = 'bsc_bp_user_' . (int) $user_id;
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- DB lock is required to serialize point adjustments.
-		$locked = (int) $wpdb->get_var(
-			$wpdb->prepare( 'SELECT GET_LOCK(%s, %d)', $lock_name, 5 )
-		);
-
-		if (1 !== $locked) {
-			return array(
-				'ok'        => false,
-				'balance'   => bsc_bp_get_balance( $user_id ),
-				'error'     => 'lock_timeout',
-				'insert_id' => null,
-			);
-		}
-
-		try {
-			return $callback();
-		} finally {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Releasing the DB lock acquired above.
-			$wpdb->get_var(
-				$wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name )
-			);
-		}
+		$result = BSC_DB_Lock::run( 'points-user:' . (int) $user_id, static function () use ( $user_id, $callback ) {
+			wp_cache_delete( (int) $user_id, 'user_meta' );
+			try {
+				return $callback();
+			} finally {
+				wp_cache_delete( (int) $user_id, 'user_meta' );
+			}
+		} );
+		return is_wp_error( $result ) ? array( 'ok' => false, 'balance' => 0, 'error' => $result->get_error_code(), 'insert_id' => null ) : $result;
 	}
 }
 
-if (!function_exists( 'bsc_bp_add_ledger_entry' )) {
-	/**
-	 * Add a ledger row and update the user's balance.
-	 * Best-effort atomicity; avoids going below zero.
-	 *
-	 * @param int      $user_id
-	 * @param int      $delta       Positive to credit, negative to debit
-	 * @param string   $reason      'order_complete'|'redeem'|'manual_adjustment'|'refund'|'promo'...
-	 * @param int|null $order_id
-	 * @param array    $extra       Arbitrary metadata (will be JSON encoded)
-	 * @param bool     $allow_negative If false, floor at 0 on debit
-	 * @return array { 'ok'=>bool, 'balance'=>int, 'error'=>string|null, 'insert_id'=>int|null }
-	 */
+if ( ! function_exists( 'bsc_bp_add_ledger_entry' ) ) {
+	/** The ledger event and balance commit atomically; refunds may create a debt. */
 	function bsc_bp_add_ledger_entry( $user_id, $delta, $reason, $order_id = null, array $extra = array(), $allow_negative = false ) {
 		global $wpdb;
-
 		$user_id = (int) $user_id;
-		if ($user_id <= 0) {
-			return array(
-				'ok'        => false,
-				'balance'   => 0,
-				'error'     => 'invalid_user',
-				'insert_id' => null,
-			);
+		if ( $user_id <= 0 ) {
+			return array( 'ok' => false, 'balance' => 0, 'error' => 'invalid_user', 'insert_id' => null );
 		}
-
-		return bsc_bp_with_user_lock(
-			$user_id,
-			function () use ( $wpdb, $user_id, $delta, $reason, $order_id, $extra, $allow_negative ) {
-				$delta    = (int) $delta;
-				$reason   = sanitize_key( $reason );
+		return bsc_bp_with_user_lock( $user_id, static function () use ( $wpdb, $user_id, $delta, $reason, $order_id, $extra, $allow_negative ) {
+			$result = BSC_DB_Lock::transaction( static function () use ( $wpdb, $user_id, $delta, $reason, $order_id, $extra, $allow_negative ) {
+				$table = bsc_bp_table();
+				$delta = (int) $delta;
+				$reason = sanitize_key( $reason );
 				$order_id = $order_id ? (int) $order_id : null;
-
-				// Current balance
+				$event_key = isset( $extra['event_key'] ) ? substr( sanitize_text_field( (string) $extra['event_key'] ), 0, 191 ) : null;
+				if ( 'order_complete' === $reason && $order_id ) {
+					$event_key = 'earn:order:' . $order_id;
+					// Recognize pre-migration awards whose event_key is NULL.
+					$existing = $wpdb->get_row( $wpdb->prepare( "SELECT id, delta FROM {$table} WHERE user_id = %d AND order_id = %d AND reason = %s ORDER BY id LIMIT 1", $user_id, $order_id, 'order_complete' ) );
+				} else {
+					$existing = $event_key ? $wpdb->get_row( $wpdb->prepare( "SELECT id, delta FROM {$table} WHERE event_key = %s", $event_key ) ) : null;
+				}
 				$current = bsc_bp_get_balance( $user_id );
-
-				// Compute new balance
+				if ( $existing ) {
+					return array( 'ok' => true, 'balance' => $current, 'error' => null, 'insert_id' => (int) $existing->id, 'delta' => (int) $existing->delta, 'already_applied' => true );
+				}
 				$new = $current + $delta;
-				if (!$allow_negative && $new < 0) {
-					return array(
-						'ok'        => false,
-						'balance'   => $current,
-						'error'     => 'insufficient_points',
-						'insert_id' => null,
-					);
+				if ( ! $allow_negative && $new < 0 ) {
+					return new WP_Error( 'insufficient_points', 'No tienes puntos suficientes.' );
 				}
-				$new = max( 0, $new );
-
-				// Persist balance first (so UI reflects latest fast)
-				bsc_bp_set_balance( $user_id, $new );
-
-				// Insert ledger row
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Ledger writes intentionally go to the custom table.
-				$inserted = $wpdb->insert(
-					bsc_bp_table(),
-					array(
-						'user_id'       => $user_id,
-						'delta'         => $delta,
-						'balance_after' => $new,
-						'reason'        => $reason,
-						'order_id'      => $order_id,
-						'meta'          => $extra ? wp_json_encode( $extra ) : null,
-						'created_at'    => current_time( 'mysql' ),
-					),
-					array( '%d', '%d', '%d', '%s', '%d', '%s', '%s' )
-				);
-
-				if ($inserted === false) {
-					// Ledger failed; try to revert balance to previous to keep consistency
-					bsc_bp_set_balance( $user_id, $current );
-					return array(
-						'ok'        => false,
-						'balance'   => $current,
-						'error'     => 'ledger_insert_failed',
-						'insert_id' => null,
-					);
+				$inserted = $wpdb->insert( $table, array(
+					'user_id' => $user_id, 'delta' => $delta, 'balance_after' => $new,
+					'reason' => $reason, 'order_id' => $order_id, 'event_key' => $event_key,
+					'meta' => $extra ? wp_json_encode( $extra ) : null, 'created_at' => current_time( 'mysql' ),
+				), array( '%d', '%d', '%d', '%s', '%d', '%s', '%s', '%s' ) );
+				if ( false === $inserted ) {
+					return new WP_Error( 'ledger_insert_failed', 'No se pudo registrar el movimiento.' );
 				}
-
-				return array(
-					'ok'        => true,
-					'balance'   => $new,
-					'error'     => null,
-					'insert_id' => (int) $wpdb->insert_id,
-				);
-			}
-		);
+				$insert_id = (int) $wpdb->insert_id;
+				if ( $new !== $current && false === bsc_bp_set_balance( $user_id, $new ) ) {
+					return new WP_Error( 'balance_write_failed', 'No se pudo actualizar el saldo.' );
+				}
+				return array( 'ok' => true, 'balance' => $new, 'error' => null, 'insert_id' => $insert_id, 'delta' => $delta );
+			} );
+			wp_cache_delete( $user_id, 'user_meta' );
+			return is_wp_error( $result ) ? array( 'ok' => false, 'balance' => bsc_bp_get_balance( $user_id ), 'error' => $result->get_error_code(), 'insert_id' => null ) : $result;
+		} );
 	}
 }
 
@@ -153,6 +98,7 @@ if (!function_exists( 'bsc_bp_recalc_balance_from_ledger' )) {
 	 */
 	function bsc_bp_recalc_balance_from_ledger( $user_id ) {
 		global $wpdb;
+		return bsc_bp_with_user_lock( $user_id, static function () use ( $user_id, $wpdb ) {
         // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Ledger table name is internal; user_id is prepared.
 		$sum = (int) $wpdb->get_var(
 			$wpdb->prepare(
@@ -163,6 +109,7 @@ if (!function_exists( 'bsc_bp_recalc_balance_from_ledger' )) {
         // phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		bsc_bp_set_balance( $user_id, $sum );
 		return $sum;
+		} );
 	}
 }
 

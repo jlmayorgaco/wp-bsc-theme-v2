@@ -283,6 +283,7 @@
 
       if (isStockInput($input)) {
         payload[$input.data('type')] = parseInt(value, 10);
+        payload['expected_' + $input.data('type')] = parseInt($input.data('original'), 10);
       } else if (isPriceInput($input)) {
         payload[$input.data('field')] = value;
       } else if (isLocationCodeInput($input)) {
@@ -603,6 +604,7 @@
       }
 
       modalBody().html(buildVariantMatrixForm(response.data.variants || [], productId));
+      modalBody().find('[data-bsc-products-variant-editor]').data('revision', response.data.revision);
       applyVariantSwatches(modalBody());
     }).fail(function (xhr) {
       var message = xhr.responseJSON && xhr.responseJSON.data
@@ -630,7 +632,8 @@
       action: 'bsc_save_product_variant_matrix',
       nonce: nonce,
       product_id: productId,
-      variants: variants,
+        variants: variants,
+        revision: $editor.data('revision'),
     }).done(function (response) {
       var $row;
 
@@ -648,6 +651,7 @@
       syncRowState($row);
 
       modalBody().html(buildVariantMatrixForm(response.data.variants || [], productId));
+      modalBody().find('[data-bsc-products-variant-editor]').data('revision', response.data.revision);
       applyVariantSwatches(modalBody());
       showToast(strings.variantsSaved || 'Variantes guardadas.', 'success');
     }).fail(function (xhr) {

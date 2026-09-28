@@ -17,22 +17,33 @@ if [ ! -f "$ARTIFACT" ]; then
     exit 1
 fi
 
-if tar -tzf "$ARTIFACT" >/dev/null 2>&1; then
-    echo "Archive integrity OK: $ARTIFACT"
-else
-    echo "Archive integrity FAILED: $ARTIFACT" >&2
+CHECKSUM_FILE="${ARTIFACT}.sha256"
+if [ ! -f "$CHECKSUM_FILE" ]; then
+    echo "Missing checksum: $CHECKSUM_FILE" >&2
     exit 1
 fi
-
-CHECKSUM_FILE="${ARTIFACT}.sha256"
-if [ -f "$CHECKSUM_FILE" ]; then
-    if command -v sha256sum >/dev/null 2>&1; then
-        sha256sum -c "$CHECKSUM_FILE"
-    elif command -v shasum >/dev/null 2>&1; then
-        shasum -a 256 -c "$CHECKSUM_FILE"
-    else
-        echo "No checksum command available; checksum not verified"
-    fi
-else
-    echo "Checksum file not found: $CHECKSUM_FILE"
+# Read only the digest, never follow a pathname supplied by a checksum file.
+EXPECTED="$(awk 'NR==1 {print $1}' "$CHECKSUM_FILE")"
+if [[ ! "$EXPECTED" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "Invalid SHA256 digest" >&2
+    exit 1
 fi
+if command -v sha256sum >/dev/null 2>&1; then
+    ACTUAL="$(sha256sum -- "$ARTIFACT" | awk '{print $1}')"
+elif command -v shasum >/dev/null 2>&1; then
+    ACTUAL="$(shasum -a 256 -- "$ARTIFACT" | awk '{print $1}')"
+else
+    echo "SHA256 utility required" >&2
+    exit 1
+fi
+if [ "${EXPECTED,,}" != "${ACTUAL,,}" ]; then
+    echo "Checksum FAILED: $ARTIFACT" >&2
+    exit 1
+fi
+case "$ARTIFACT" in
+    *.sql.gz) gzip -t -- "$ARTIFACT" ;;
+    *.tar.gz|*.tgz) tar -tzf "$ARTIFACT" >/dev/null ;;
+    *.age) ;; # Integrity verified here; decrypt and verify inner files before restoring.
+    *) echo "Unsupported artifact type: $ARTIFACT" >&2; exit 1 ;;
+esac
+echo "Integrity OK: $ARTIFACT"

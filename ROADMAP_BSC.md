@@ -2,7 +2,7 @@
 
 Ultima consolidacion: 2026-06-13
 Repositorio: wp-bsc-theme-v2
-Rama esperada de release: MVP2
+Rama esperada de release: main
 Objetivo: mantener una sola fuente de verdad para roadmap, release, QA, deploy, arquitectura, operaciones, tickets historicos y reglas de trabajo.
 
 ## Politica de documentacion
@@ -78,7 +78,7 @@ Regla CSS/Sass:
 
 ## Estado actual de release
 
-Branch activo: `MVP2`
+Branch activo: `main`
 
 Gate prod-readiness cliente documentado el 2026-06-13:
 
@@ -205,7 +205,7 @@ Gate Skin Quiz AI documentado el 2026-05-25:
 - Playwright local `https://bsc.local/skin-quiz/`: Skin Quiz 1 devuelve `Rutina lista.`, renderiza 3 rutinas y conserva tabs `Skin Quiz 1` / `Skin Quiz 2 AI` sin errores de consola propios.
 - Playwright local `https://bsc.local/skin-quiz/?mode=ai`: Skin Quiz 2 AI acepta foto, consentimiento, 3 preguntas, fallback sin API key, slider antes/despues con preview local, 3 rutinas y 3 botones de agregar productos.
 - Se separo `/skin-quiz/` en dos modos: quiz normal guiado y quiz AI Enhanced.
-- El modo AI valida JPG/PNG/WebP hasta 4MB, requiere consentimiento explicito y no guarda la imagen en DB, options ni submissions; solo lee el archivo temporal para enviar a Gemini cuando hay API key.
+- El modo AI valida JPG/PNG/WebP hasta 4MB, requiere consentimiento explícito y conserva la selfie como dato sensible por un máximo configurable de 90 días fuera del document root; solo se sirve mediante endpoint autorizado y se elimina por cleanup.
 - Se agrego servicio OOP `BSC_Growth_AI_Service` con prompts acotados a skincare cosmetico, sin diagnostico medico, sin identidad facial, sin promesas de cura y con fallback seguro al motor normal.
 - Se agrego configuracion en BSC Config para `BSC_GEMINI_API_KEY`/`GEMINI_API_KEY`/option admin, modelo de analisis, modelo de imagen y toggle de simulacion visual.
 - El catalogo enviado a AI queda limitado a productos reales publicados, con IDs, nombre, precio, categorias y tags; la respuesta se normaliza para crear rutinas dinamicas con `product_ids` reales.
@@ -231,7 +231,7 @@ Scope ya cerrado en MVP2:
 - Mantenimiento pre-GO del 2026-05-25: se mantiene storefront anonimo en mantenimiento mientras se termina QA; codigo reforzado con headers de seguridad, bloqueo REST users publico, author archives anonimos redirigidos, fallback de imagen social SEO, limpieza de Woo Blocks en paginas no checkout/cart, bundle sin artefactos internos y webhook de deploy que limpia archivos publicos internos y reescribe `robots.txt`.
 - Importador BSC embebido: la ruta admin legacy `admin.php?page=bsc-plugin` queda servida por el theme bundle y cubierta por smoke desktop.
 - Growth MVP del 2026-05-25: rutinas/bundles internos, Skin Quiz discreto, CRM cliente, dashboard de conversion, busqueda enriquecida y recompra en cuenta quedaron implementados en `plugins/bsc-growth` con Sass/token pipeline y gates verdes.
-- Skin Quiz AI del 2026-05-25: dos versiones de quiz, Gemini configurable, carga privada de foto sin persistencia, slider antes/despues, rutina dinamica y carrito de productos en un click quedaron implementados con fallback sin API key.
+- Skin Quiz AI del 2026-05-25: dos versiones de quiz, Gemini configurable, almacenamiento privado de foto fuera de webroot, slider antes/después, rutina dinámica y carrito de productos en un click quedaron implementados con fallback sin API key.
 
 Notas residuales:
 
@@ -402,7 +402,7 @@ Deploy:
 wp maintenance-mode activate --path=/var/www/html
 cd /var/www/html/wp-content/themes/wp-bsc-theme-v2
 git fetch origin
-git pull origin MVP2
+git pull origin main
 wp eval "if ( false === get_option( 'bsc_form_data_retention_days', false ) ) { update_option( 'bsc_form_data_retention_days', 730, false ); }" --path=/var/www/html
 wp rewrite flush --path=/var/www/html
 wp cache flush --path=/var/www/html

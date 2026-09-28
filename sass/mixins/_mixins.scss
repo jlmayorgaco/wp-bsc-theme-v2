@@ -81,7 +81,7 @@ $button-letter-spacing: 1.5px;
   text-decoration: none;
   padding: $padding;
   border-radius: $radius;
-  transition: all 0.25s ease-in-out;
+  transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out, border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out;
   cursor: pointer;
   height: $height;
   overflow: hidden;
@@ -115,7 +115,7 @@ $button-letter-spacing: 1.5px;
   text-decoration: none;
   padding: $padding;
   border-radius: $radius;
-  transition: all 0.25s ease-in-out;
+  transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out, border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out, transform 0.25s ease-in-out;
   cursor: pointer;
 
   background-color: if($outline, transparent, $bg);
@@ -258,9 +258,10 @@ $button-letter-spacing: 1.5px;
   font-size: $font-size;
   letter-spacing: $letter-spacing;
   line-height: 1.2;
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 
   &::placeholder {
     color: var(--color--muted);
@@ -304,7 +305,7 @@ $button-letter-spacing: 1.5px;
     font-weight: bold;
     line-height: 1;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 
     &:hover {
       background-color: #e0e0e0;

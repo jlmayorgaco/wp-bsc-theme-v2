@@ -16,6 +16,24 @@ function bsc_ga4_get_measurement_id(): string {
 	return preg_match( '/^G-[A-Z0-9]+$/', $measurement_id ) ? $measurement_id : '';
 }
 
+function bsc_ga4_consent_required(): bool {
+	return defined( 'BSC_GA4_REQUIRE_CONSENT' ) ? (bool) BSC_GA4_REQUIRE_CONSENT : true;
+}
+
+function bsc_ga4_consent_state(): string {
+	if ( ! bsc_ga4_consent_required() ) {
+		return 'granted';
+	}
+
+	$value = isset( $_COOKIE['bsc_analytics_consent'] ) ? sanitize_key( wp_unslash( $_COOKIE['bsc_analytics_consent'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only consent state.
+
+	return in_array( $value, array( 'granted', 'denied' ), true ) ? $value : 'unknown';
+}
+
+function bsc_ga4_has_consent(): bool {
+	return 'granted' === bsc_ga4_consent_state();
+}
+
 function bsc_ga4_get_product_item( WC_Product $product, int $quantity = 1, int $index = 0 ): array {
 	$terms      = get_the_terms( $product->get_id(), 'product_cat' );
 	$categories = array();
@@ -104,6 +122,10 @@ function bsc_ga4_get_order_payload( WC_Order $order ): array {
 }
 
 function bsc_ga4_print_bootstrap(): void {
+	if ( ! bsc_ga4_has_consent() ) {
+		return;
+	}
+
 	$measurement_id = bsc_ga4_get_measurement_id();
 
 	echo "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}</script>\n";
@@ -112,16 +134,35 @@ function bsc_ga4_print_bootstrap(): void {
 		return;
 	}
 
-	printf(
+	printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- URL value is escaped with esc_attr() below.
 		'<script async src="https://www.googletagmanager.com/gtag/js?id=%1$s"></script>' . "\n",
 		esc_attr( $measurement_id )
 	);
-	printf(
+	printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Measurement ID is escaped with esc_js() below.
 		"<script>gtag('js',new Date());gtag('config','%s');</script>\n",
 		esc_js( $measurement_id )
 	);
 }
 add_action( 'wp_head', 'bsc_ga4_print_bootstrap', 5 );
+
+function bsc_ga4_render_consent_banner(): void {
+	if ( ! bsc_ga4_consent_required() || 'unknown' !== bsc_ga4_consent_state() || '' === bsc_ga4_get_measurement_id() ) {
+		return;
+	}
+	?>
+	<section class="bsc-analytics-consent" data-bsc-analytics-consent-banner role="dialog" aria-labelledby="bsc-analytics-consent-title" aria-describedby="bsc-analytics-consent-description">
+		<div class="bsc-analytics-consent__copy">
+			<h2 id="bsc-analytics-consent-title">Analítica opcional</h2>
+			<p id="bsc-analytics-consent-description">Usamos Google Analytics para entender qué contenido ayuda a mejorar la tienda. Puedes aceptar o rechazar estas cookies; las funciones esenciales seguirán disponibles. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Ver política de cookies</a>.</p>
+		</div>
+		<div class="bsc-analytics-consent__actions">
+			<button type="button" class="bsc__button bsc__button--outline" data-bsc-analytics-consent="denied">No gracias</button>
+			<button type="button" class="bsc__button" data-bsc-analytics-consent="granted">Aceptar analítica</button>
+		</div>
+	</section>
+	<?php
+}
+add_action( 'wp_footer', 'bsc_ga4_render_consent_banner', 4 );
 
 function bsc_ga4_event_script( string $event_name, array $params, string $dedupe_key = '' ): string {
 	$payload = array(
@@ -136,7 +177,7 @@ function bsc_ga4_event_script( string $event_name, array $params, string $dedupe
 }
 
 function bsc_ga4_output_page_events(): void {
-	if ( ! class_exists( 'WooCommerce' ) ) {
+	if ( ! bsc_ga4_has_consent() || ! class_exists( 'WooCommerce' ) ) {
 		return;
 	}
 

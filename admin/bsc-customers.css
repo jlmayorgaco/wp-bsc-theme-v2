@@ -101,7 +101,7 @@
   width: 100%;
 }
 
-.bsc-customers__field-grid [aria-invalid="true"] {
+.bsc-customers__field-grid [aria-invalid=true] {
   border-color: #b32d2e;
   box-shadow: 0 0 0 1px #b32d2e;
 }
@@ -125,7 +125,7 @@
   background: #f6f7f7;
   border: 1px solid #dcdcde;
   border-radius: 4px;
-  grid-column: 1 / -1;
+  grid-column: 1/-1;
   padding: 14px;
 }
 
@@ -180,44 +180,38 @@
   .bsc-customers__field-grid--needs {
     grid-template-columns: 1fr;
   }
-
   .bsc-customers__summary {
     display: grid;
   }
-
   .bsc-customers__actions-column {
     text-align: left;
     white-space: normal;
     width: auto;
   }
-
   .bsc-customers__identity {
     align-items: flex-start;
     flex-direction: column;
   }
-
   .bsc-customers__form .bsc-admin-panel {
     padding: 16px;
   }
-
   .bsc-customers__form .bsc-admin-sticky-submit {
     align-items: stretch;
     box-shadow: none;
     flex-direction: column;
     position: static;
   }
-
   .bsc-customers__save-help {
     flex: 0 1 auto;
   }
-
   .bsc-customers__form .bsc-admin-sticky-submit .button {
     min-height: 44px;
     text-align: center;
   }
-
   .bsc-customers__filters .button,
   .bsc-customers__pagination .page-numbers {
     min-height: 44px;
   }
 }
+
+/*# sourceMappingURL=bsc-customers.css.map */

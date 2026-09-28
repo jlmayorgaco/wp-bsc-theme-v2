@@ -190,5 +190,137 @@
     "line": 41,
     "text": "printf(",
     "reason": "WooCommerce dashboard account links printf escapes URL placeholders in surrounding arguments."
+  },
+  {
+    "file": "admin/class-bsc-order-labels.php",
+    "line": 354,
+    "text": "echo $pdf;",
+    "reason": "Intentional binary PDF response generated from escaped label data and emitted after PDF headers."
+  },
+  {
+    "file": "components/checkout/checkout-cart.php",
+    "line": 18,
+    "text": "echo $this->render_cart_item( $key, $item );",
+    "reason": "Renderer returns controlled checkout cart markup with escaped item fields."
+  },
+  {
+    "file": "components/header/BSC_HeaderNav.class.php",
+    "line": 35,
+    "text": "echo $menu->renderButton();",
+    "reason": "Header menu renderer returns controlled markup and escapes dynamic labels/URLs internally."
+  },
+  {
+    "file": "components/header/BSC_HeaderNav.class.php",
+    "line": 50,
+    "text": "echo $menu->renderContent();",
+    "reason": "Header menu renderer returns controlled markup and escapes dynamic labels/URLs internally."
+  },
+  {
+    "file": "components/header/partials/header-desktop.php",
+    "line": 9,
+    "text": "echo $headerNav->renderNavButtons();",
+    "reason": "Header navigation component returns controlled escaped markup."
+  },
+  {
+    "file": "components/header/partials/header-desktop.php",
+    "line": 76,
+    "text": "echo $headerNav->renderNavContent();",
+    "reason": "Header navigation component returns controlled escaped markup."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 334,
+    "text": "printf(",
+    "reason": "Category renderer escapes URL, image URL, alt text and title in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 341,
+    "text": "printf(",
+    "reason": "Category renderer escapes URL, image URL, alt text and title in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 361,
+    "text": "printf(",
+    "reason": "Category renderer escapes URL, image URL, alt text and title in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 626,
+    "text": "printf(",
+    "reason": "Subcategory renderer escapes class, filter slug, label and text in surrounding arguments."
+  },
+  {
+    "file": "components/product-category.php",
+    "line": 645,
+    "text": "printf(",
+    "reason": "Subcategory renderer escapes class, filter slug, label and text in surrounding arguments."
+  },
+  {
+    "file": "components/swiper.php",
+    "line": 95,
+    "text": "printf(",
+    "reason": "Swiper image renderer escapes URL, alt and generated attributes in surrounding arguments."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 241,
+    "text": "printf(",
+    "reason": "Filter input renderer escapes class, type, name, value and label in surrounding arguments."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 249,
+    "text": "printf(",
+    "reason": "Price range renderer uses validated integer configuration/context values."
+  },
+  {
+    "file": "plugins/bsc-catalog/classes/class-bsc-catalog-filter-sidebar-renderer.php",
+    "line": 271,
+    "text": "printf(",
+    "reason": "Sort option renderer escapes option value, selected state and label in surrounding arguments."
+  },
+  {
+    "file": "plugins/bsc-importer/admin/importer-page.php",
+    "line": 672,
+    "text": "echo $json;",
+    "reason": "Importer export emits wp_json_encode output after JSON headers."
+  },
+  {
+    "file": "plugins/bubble-points/admin/user-history.php",
+    "line": 40,
+    "text": "printf(",
+    "reason": "User history heading escapes display name and email in surrounding arguments."
+  },
+  {
+    "file": "plugins/bubble-points/admin/user-history.php",
+    "line": 145,
+    "text": "printf(",
+    "reason": "Ledger table printf uses pre-escaped cells and controlled numeric formatting."
+  },
+  {
+    "file": "plugins/bubble-points/classes/class-bsc-bubble-points-coupon.php",
+    "line": 111,
+    "text": "echo $this->get_html();",
+    "reason": "Woo coupon shortcode renderer returns trusted WooCommerce coupon HTML."
+  },
+  {
+    "file": "scripts/script_custom_types.php",
+    "line": 145,
+    "text": "printf(",
+    "reason": "Home slide field renderer escapes field name, label, type and value in surrounding arguments."
+  },
+  {
+    "file": "scripts/script_custom_types.php",
+    "line": 154,
+    "text": "printf(",
+    "reason": "Home slide field renderer escapes field name, label, type and value in surrounding arguments."
+  },
+  {
+    "file": "scripts/script_custom_types.php",
+    "line": 382,
+    "text": "printf(",
+    "reason": "Home favorites setting field escapes the key and stored value in surrounding arguments."
   }
 ]

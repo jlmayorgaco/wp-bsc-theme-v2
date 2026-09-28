@@ -14,6 +14,7 @@ if ( ! defined( 'BSC_THEME_VERSION' ) ) {
 }
 
 require_once get_template_directory() . '/inc/asset-version.php';
+require_once get_template_directory() . '/includes/class-bsc-db-lock.php';
 require_once get_template_directory() . '/inc/shipping-rates.php';
 
 if ( ! defined( '_S_VERSION' ) ) {
@@ -39,6 +40,12 @@ require get_template_directory() . '/inc/customizer.php';
 require get_template_directory() . '/inc/functions_bsc.php';
 require_once get_template_directory() . '/inc/bsc-contact-options.php';
 require_once get_template_directory() . '/inc/privacy-data.php';
+require_once get_template_directory() . '/inc/privacy-skin-quiz.php';
+
+// The storefront's authored content is Spanish; retain an explicitly configured locale.
+add_filter( 'language_attributes', static function ( $attributes ) {
+	return ! is_admin() && 'en_US' === get_locale() ? preg_replace( '/lang="en-US"/', 'lang="es-CO"', $attributes ) : $attributes;
+} );
 require_once get_template_directory() . '/inc/contact-store.php';
 require_once get_template_directory() . '/inc/newsletter-store.php';
 require_once get_template_directory() . '/inc/bsc-static-pages.php';
@@ -64,6 +71,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require get_template_directory() . '/inc/woocommerce.php';
 	require_once get_template_directory() . '/inc/product-price.php';
 	require_once get_template_directory() . '/inc/payments/wompi-compat.php';
+	require_once get_template_directory() . '/inc/payments/wompi-security.php';
 }
 
 if ( is_admin() ) {
@@ -72,6 +80,9 @@ if ( is_admin() ) {
 
 require_once get_template_directory() . '/includes/class-bsc-roles.php';
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
+if ( class_exists( 'WooCommerce' ) ) {
+	require_once get_template_directory() . '/includes/class-bsc-order-stock.php';
+}
 
 foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_module_bootstrap ) {
 	require_once $bsc_module_bootstrap;
@@ -84,6 +95,8 @@ require_once get_template_directory() . '/inc/abandoned-cart.php';
 
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_template_directory() . '/emails/bsc-emails.php';
+	require_once get_template_directory() . '/includes/class-bsc-sale-backup.php';
+	require_once get_template_directory() . '/includes/class-bsc-sale-recovery.php';
 }
 
 if ( is_admin() ) {
@@ -97,6 +110,8 @@ require_once get_template_directory() . '/scripts/script_custom_types.php';
 // Runtime behavior modules.
 require_once get_template_directory() . '/inc/performance/frontend-cleanup.php';
 require_once get_template_directory() . '/inc/security/security-hooks.php';
+require_once get_template_directory() . '/inc/security/rest-batch-compat.php';
+require_once get_template_directory() . '/inc/security/admin-action-permissions.php';
 require_once get_template_directory() . '/inc/product/product-extra-images.php';
 require_once get_template_directory() . '/inc/routing/frontend-routing.php';
 

@@ -186,7 +186,7 @@ $sidebar-mobile-cta-radius: 30px;
     text-decoration: none;
     padding: 12px 24px;
     border-radius: 30px;
-    transition: all 0.25s ease-in-out;
+    transition: background-color 0.25s ease-in-out, color 0.25s ease-in-out, transform 0.25s ease-in-out;
     cursor: pointer;
     background-color: #333;
     color: #fff;

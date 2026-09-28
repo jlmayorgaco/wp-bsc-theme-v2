@@ -285,7 +285,7 @@ class BSC_Growth_Skin_Quiz {
 
 		try {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File upload is validated by BSC_Growth_AI_Service::validate_image().
-			$response = ( new BSC_Growth_AI_Service() )->recommend_with_image( $answers, $_FILES['skin_photo'] ?? array() );
+			$response = ( new BSC_Growth_AI_Service() )->recommend_with_image( $answers, wp_unslash( $_FILES['skin_photo'] ?? array() ) );
 		} catch ( Throwable $exception ) {
 			wp_send_json_error( array( 'message' => $exception->getMessage() ), 400 );
 		}
@@ -294,7 +294,7 @@ class BSC_Growth_Skin_Quiz {
 		self::update_customer_profile( $answers );
 		self::save_customer_progress_snapshot( $answers );
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File upload is validated by BSC_Growth_AI_Service before private storage.
-		$run_id = BSC_Growth_Skin_Quiz_Store::create_run( $answers, $response, $_FILES['skin_photo'] ?? array(), 'ai' );
+		$run_id = BSC_Growth_Skin_Quiz_Store::create_run( $answers, $response, wp_unslash( $_FILES['skin_photo'] ?? array() ), 'ai' );
 		if ( $run_id > 0 ) {
 			$run = BSC_Growth_Skin_Quiz_Store::get_run( $run_id );
 			$response['bundles'] = self::attach_run_meta_to_bundles( (array) $response['bundles'], $run );
@@ -340,7 +340,7 @@ class BSC_Growth_Skin_Quiz {
 
 	private static function render_normal_form( bool $hidden ): void {
 		?>
-		<form class="bsc-skin-quiz__form <?php echo $hidden ? 'is-hidden' : ''; ?>" data-bsc-skin-quiz-form data-quiz-mode="normal">
+		<form class="bsc-skin-quiz__form <?php echo esc_attr( $hidden ? 'is-hidden' : '' ); ?>" data-bsc-skin-quiz-form data-quiz-mode="normal">
 			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
 
 			<fieldset class="bsc-skin-quiz__fieldset">
@@ -368,7 +368,7 @@ class BSC_Growth_Skin_Quiz {
 
 	private static function render_ai_form( bool $hidden ): void {
 		?>
-		<form class="bsc-skin-quiz__form bsc-skin-quiz__form--ai <?php echo $hidden ? 'is-hidden' : ''; ?>" data-bsc-skin-quiz-form data-quiz-mode="ai" enctype="multipart/form-data">
+		<form class="bsc-skin-quiz__form bsc-skin-quiz__form--ai <?php echo esc_attr( $hidden ? 'is-hidden' : '' ); ?>" data-bsc-skin-quiz-form data-quiz-mode="ai" enctype="multipart/form-data">
 			<?php wp_nonce_field( 'bsc_growth_action', 'bsc_growth_nonce' ); ?>
 
 			<div class="bsc-skin-quiz__capture" data-bsc-camera-shell data-bsc-photo-dropzone>
@@ -1170,21 +1170,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	private static function persist_submission( array $answers, array $bundles ): void {
-		$submissions = get_option( self::OPTION_SUBMISSIONS, array() );
-		$submissions = is_array( $submissions ) ? $submissions : array();
-
-		array_unshift(
-			$submissions,
-			array(
-				'created_at' => current_time( 'mysql' ),
-				'user_id'    => get_current_user_id(),
-				'email'      => is_user_logged_in() ? (string) wp_get_current_user()->user_email : '',
-				'answers'    => $answers,
-				'bundles'    => wp_list_pluck( $bundles, 'id' ),
-			)
-		);
-
-		update_option( self::OPTION_SUBMISSIONS, array_slice( $submissions, 0, self::MAX_SUBMISSIONS ), false );
+		// The expiring runs table is the only source of questionnaire answers.
 	}
 
 	private static function update_customer_profile( array $answers ): void {
@@ -1216,6 +1202,7 @@ class BSC_Growth_Skin_Quiz {
 		}
 
 		$routine['created_at'] = current_time( 'mysql' );
+		$routine['expires_at'] = time() + BSC_Growth_Skin_Quiz_Store::retention_days() * DAY_IN_SECONDS;
 		update_user_meta( $user_id, self::USER_LAST_ROUTINE, $routine );
 	}
 
@@ -1227,6 +1214,11 @@ class BSC_Growth_Skin_Quiz {
 		}
 
 		$routine = get_user_meta( $user_id, self::USER_LAST_ROUTINE, true );
+		$expiry = is_array( $routine ) ? (int) ( $routine['expires_at'] ?? ( strtotime( $routine['created_at'] ?? '1970-01-01' ) + BSC_Growth_Skin_Quiz_Store::retention_days() * DAY_IN_SECONDS ) ) : 0;
+		if ( $expiry <= time() ) {
+			delete_user_meta( $user_id, self::USER_LAST_ROUTINE );
+			return array();
+		}
 
 		return is_array( $routine ) ? $routine : array();
 	}

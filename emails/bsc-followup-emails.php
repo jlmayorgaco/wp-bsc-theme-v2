@@ -1022,4 +1022,4 @@ function bsc_run_followup_email_jobs(): array {
 
 	return $summary;
 }
-add_action( 'bsc_run_daily_followup_emails', 'bsc_run_followup_email_jobs' );
+add_action( 'bsc_run_daily_followup_emails', static function (): void { bsc_run_followup_email_jobs(); } );

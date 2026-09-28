@@ -51,7 +51,9 @@ write_checksum_file "$SYSTEM_FILE"
     echo "5. Validate services, SSL, ports, cron, and application flows."
 } > "$MANIFEST_FILE"
 
-tar -czf "$DEST_FILE" -C "$STAGING_DIR" .
+tar -czf "${DEST_FILE}.partial" -C "$STAGING_DIR" .
+tar -tzf "${DEST_FILE}.partial" >/dev/null
+mv -- "${DEST_FILE}.partial" "$DEST_FILE"
 write_checksum_file "$DEST_FILE"
 push_remote_artifacts "bundles" "$DEST_FILE" "${DEST_FILE}.sha256"
 purge_old_files "$DEST_DIR" "*.tar.gz" "$BUNDLE_RETENTION_DAYS"

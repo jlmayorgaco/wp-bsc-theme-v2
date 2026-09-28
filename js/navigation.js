@@ -10,6 +10,10 @@ document.querySelectorAll('.bsc__menu-nav--button').forEach((btn) => {
     targetMenu.hidden = false;
     targetMenu.classList.add('visible');
     btn.setAttribute('aria-expanded', 'true');
+    targetMenu.querySelectorAll('img[data-src]').forEach((image) => {
+      image.src = image.dataset.src;
+      image.removeAttribute('data-src');
+    });
   };
 
   const hideMenu = () => {

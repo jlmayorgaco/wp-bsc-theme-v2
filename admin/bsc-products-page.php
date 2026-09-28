@@ -129,9 +129,13 @@ function bsc_ajax_update_product_stock(): void {
 
 	$old_value = (int) get_post_meta( $product_id, $meta_key, true );
 	$new_value = $value;
+	if ( ! isset( $_POST['expected_value'] ) || (int) $_POST['expected_value'] !== $old_value ) {
+		wp_send_json_error( array( 'message' => 'El inventario cambió. Recarga la tabla antes de guardar.' ), 409 );
+	}
 
 	if (class_exists( 'BSC_Stock' ) && $old_value !== $value) {
-		$new_value = BSC_Stock::adjust( $product_id, $type, $value - $old_value, 'Edicion inline BSC Products' );
+		$new_value = BSC_Stock::adjust_strict( $product_id, $type, $value - $old_value, 'Edicion inline BSC Products' );
+		if ( is_wp_error( $new_value ) ) { wp_send_json_error( array( 'message' => $new_value->get_error_message() ), 409 ); }
 	} else {
 		update_post_meta( $product_id, $meta_key, $value );
 	}
@@ -170,15 +174,17 @@ function bsc_ajax_update_product_stocks(): void {
 
 	$current_bodega = (int) get_post_meta( $product_id, '_stock_bodega', true );
 	$current_tienda = (int) get_post_meta( $product_id, '_stock_tienda', true );
+	if ( ! isset( $_POST['expected_bodega'], $_POST['expected_tienda'] ) || (int) $_POST['expected_bodega'] !== $current_bodega || (int) $_POST['expected_tienda'] !== $current_tienda ) {
+		wp_send_json_error( array( 'message' => 'El inventario cambió desde que abriste la tabla. Recarga para conservar las ventas recientes.' ), 409 );
+	}
 
 	if (class_exists( 'BSC_Stock' )) {
-		if ($current_bodega !== $bodega) {
-			$bodega = BSC_Stock::adjust( $product_id, 'bodega', $bodega - $current_bodega, 'Edicion inline BSC Products' );
-		}
-
-		if ($current_tienda !== $tienda) {
-			$tienda = BSC_Stock::adjust( $product_id, 'tienda', $tienda - $current_tienda, 'Edicion inline BSC Products' );
-		}
+		$stock_result = BSC_Stock::with_product_lock( $product_id, static function () use ( $product_id, $bodega, $tienda, $current_bodega, $current_tienda ) {
+			$result = BSC_Stock::adjust_strict( $product_id, 'bodega', $bodega - $current_bodega, 'Edicion inline BSC Products' );
+			if ( is_wp_error( $result ) ) { return $result; }
+			return BSC_Stock::adjust_strict( $product_id, 'tienda', $tienda - $current_tienda, 'Edicion inline BSC Products' );
+		} );
+		if ( is_wp_error( $stock_result ) ) { wp_send_json_error( array( 'message' => $stock_result->get_error_message() ), 409 ); }
 	} else {
 		update_post_meta( $product_id, '_stock_bodega', $bodega );
 		update_post_meta( $product_id, '_stock_tienda', $tienda );
@@ -362,7 +368,8 @@ function bsc_ajax_adjust_stock(): void {
 		wp_send_json_error( array( 'message' => 'Producto inválido' ), 400 );
 	}
 
-	$new_stock = BSC_Stock::adjust( $product_id, $type, $delta, $reason );
+	$new_stock = BSC_Stock::adjust_strict( $product_id, $type, $delta, $reason );
+	if ( is_wp_error( $new_stock ) ) { wp_send_json_error( array( 'message' => $new_stock->get_error_message() ), 409 ); }
 	wp_send_json_success( array( 'new_stock' => $new_stock ) );
 }
 
@@ -442,6 +449,7 @@ function bsc_ajax_get_product_variant_matrix(): void {
 		array(
 			'product_id' => $product_id,
 			'name'       => $product->get_name(),
+			'revision'   => BSC_Stock::revision( $product_id ),
 			'variants'   => bsc_products_format_variant_matrix_response( $product_id, true ),
 			'saved'      => function_exists( 'bsc_product_has_saved_variant_matrix' ) && bsc_product_has_saved_variant_matrix( $product_id ),
 		)
@@ -474,9 +482,10 @@ function bsc_ajax_save_product_variant_matrix(): void {
 		wp_send_json_error( array( 'message' => 'No hay variantes para guardar.' ), 400 );
 	}
 
-	update_post_meta( $product_id, '_bsc_variant_matrix', $variants );
-	if (function_exists( 'bsc_sync_product_variant_parent_stock' )) {
-		bsc_sync_product_variant_parent_stock( $product_id, $variants );
+	$revision = isset( $_POST['revision'] ) && is_string( $_POST['revision'] ) ? sanitize_text_field( wp_unslash( $_POST['revision'] ) ) : '';
+	$result = BSC_Stock::save_variant_matrix( $product_id, $variants, $revision );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => $result->get_error_message() ), 409 );
 	}
 
 	$stock = class_exists( 'BSC_Stock' )
@@ -489,6 +498,7 @@ function bsc_ajax_save_product_variant_matrix(): void {
 	wp_send_json_success(
 		array(
 			'variants' => bsc_products_format_variant_matrix_response( $product_id, true ),
+			'revision' => BSC_Stock::revision( $product_id ),
 			'bodega'   => (int) ( $stock['bodega'] ?? 0 ),
 			'tienda'   => (int) ( $stock['tienda'] ?? 0 ),
 		)
@@ -817,7 +827,7 @@ function bsc_render_products_page(): void {
 								data-type="bodega"
 								data-original="<?php echo esc_attr( $stock['bodega'] ); ?>"
 								value="<?php echo esc_attr( $stock['bodega'] ); ?>"
-								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>
+								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Literal readonly attribute only. ?>
 							>
 							<?php if ($has_variant_matrix) : ?>
 								<span class="bsc-admin-products__stock-note">Total variantes</span>
@@ -831,7 +841,7 @@ function bsc_render_products_page(): void {
 								data-type="tienda"
 								data-original="<?php echo esc_attr( $stock['tienda'] ); ?>"
 								value="<?php echo esc_attr( $stock['tienda'] ); ?>"
-								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; ?>
+								<?php echo $has_variant_matrix ? 'readonly="readonly"' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Literal readonly attribute only. ?>
 							>
 							<?php if ($has_variant_matrix) : ?>
 								<span class="bsc-admin-products__stock-note">Total variantes</span>

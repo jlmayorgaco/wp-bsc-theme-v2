@@ -10,6 +10,25 @@ class BSC_Growth_AI_Service {
 	private const MAX_GENERATED_IMAGE_BYTES = 8388608;
 
 	public function recommend_with_image( array $answers, array $file ): array {
+		// Fail fast when AI is busy; never queue PHP checkout workers behind an AI request.
+		$slot = null;
+		for ( $i = 0; $i < 2; ++$i ) {
+			if ( BSC_DB_Lock::acquire( 'ai-slot:' . $i, 0 ) ) {
+				$slot = $i;
+				break;
+			}
+		}
+		if ( null === $slot ) {
+			return $this->fallback_response( $answers, new BSC_Growth_Bundle_Repository(), 'La lectura con foto está ocupada. Preparamos tu rutina con las respuestas.' );
+		}
+		try {
+			return $this->recommend_with_image_locked( $answers, $file );
+		} finally {
+			BSC_DB_Lock::release( 'ai-slot:' . $slot );
+		}
+	}
+
+	private function recommend_with_image_locked( array $answers, array $file ): array {
 		$repository = new BSC_Growth_Bundle_Repository();
 		$image      = $this->validate_image( $file );
 		$signals    = (array) ( $answers['vision_signals'] ?? array() );
@@ -24,7 +43,7 @@ class BSC_Growth_AI_Service {
 			$usage[]  = (array) ( $analysis['_bsc_usage'] ?? array() );
 			unset( $analysis['_bsc_usage'] );
 		} catch ( Throwable $exception ) {
-			return $this->fallback_response( $answers, $repository, 'Lectura con foto no disponible: ' . sanitize_text_field( $exception->getMessage() ) );
+			return $this->fallback_response( $answers, $repository, 'La lectura con foto no está disponible. Preparamos tu rutina con las respuestas.' );
 		}
 
 		try {
@@ -81,7 +100,7 @@ class BSC_Growth_AI_Service {
 	}
 
 	private function generate_after_image( array $image, array $analysis, array $vision_signals ): array {
-		if ( ! (bool) get_option( 'bsc_gemini_generate_after_image', 1 ) ) {
+		if ( ! (bool) get_option( 'bsc_gemini_generate_after_image', 0 ) ) {
 			return array();
 		}
 
@@ -228,6 +247,9 @@ class BSC_Growth_AI_Service {
 
 		$bytes     = file_get_contents( $tmp_name );
 		$imageinfo = @getimagesize( $tmp_name );
+		if ( ! is_array( $imageinfo ) || $imageinfo[0] > 6000 || $imageinfo[1] > 6000 || $imageinfo[0] * $imageinfo[1] > 16000000 ) {
+			throw new RuntimeException( 'La foto debe tener como máximo 16 megapíxeles y 6000 píxeles por lado.' );
+		}
 		$mime_type = is_array( $imageinfo ) ? (string) ( $imageinfo['mime'] ?? '' ) : '';
 		$allowed   = array( 'image/jpeg', 'image/png', 'image/webp' );
 
@@ -242,10 +264,23 @@ class BSC_Growth_AI_Service {
 	}
 
 	private function call_generate_content( string $model, array $parts, array $generation_config ): array {
+		$allowed = BSC_DB_Lock::run( 'ai-daily-budget', static function () {
+			wp_cache_delete( 'bsc_ai_daily_usage', 'options' );
+			$usage = (array) get_option( 'bsc_ai_daily_usage', array() );
+			$today = gmdate( 'Y-m-d' );
+			$count = ( $usage['day'] ?? '' ) === $today ? (int) ( $usage['count'] ?? 0 ) : 0;
+			$limit = max( 0, (int) get_option( 'bsc_ai_daily_request_limit', 100 ) );
+			if ( $count >= $limit ) { return false; }
+			return update_option( 'bsc_ai_daily_usage', array( 'day' => $today, 'count' => $count + 1 ), false );
+		}, 0 );
+		if ( true !== $allowed ) {
+			throw new RuntimeException( 'La lectura con foto no está disponible por ahora.' );
+		}
 		$response = wp_remote_post(
 			'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode( $model ) . ':generateContent',
 			array(
-				'timeout' => 35,
+				'timeout' => 15,
+				'limit_response_size' => 12582912,
 				'headers' => array(
 					'Content-Type'   => 'application/json',
 					'x-goog-api-key' => $this->api_key(),
@@ -409,9 +444,13 @@ class BSC_Growth_AI_Service {
 
 		$bytes = base64_decode( $image['data'], true );
 		if ( false === $bytes || strlen( $bytes ) > self::MAX_GENERATED_IMAGE_BYTES ) {
-			return $image;
+			return array();
 		}
 
+		$dimensions = @getimagesizefromstring( $bytes );
+		if ( ! is_array( $dimensions ) || $dimensions[0] * $dimensions[1] > 16000000 || max( $dimensions[0], $dimensions[1] ) > 6000 ) {
+			return array();
+		}
 		$source = @imagecreatefromstring( $bytes );
 		if ( ! $source ) {
 			return $image;

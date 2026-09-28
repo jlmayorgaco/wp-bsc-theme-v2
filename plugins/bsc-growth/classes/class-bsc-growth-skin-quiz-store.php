@@ -5,7 +5,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class BSC_Growth_Skin_Quiz_Store {
-	private const DB_VERSION       = '1.0.0';
+	private const DB_VERSION       = '1.1.1';
 	private const DB_VERSION_OPT   = 'bsc_skin_quiz_db_version';
 	private const PHOTO_RETENTION  = 90;
 	private const PRIVATE_SUBDIR   = 'bsc-private/skin-quiz';
@@ -14,6 +14,7 @@ class BSC_Growth_Skin_Quiz_Store {
 	public static function register_hooks(): void {
 		add_action( 'init', array( __CLASS__, 'maybe_install' ), 8 );
 		add_action( 'bsc_skin_quiz_cleanup', array( __CLASS__, 'cleanup_expired_runs' ) );
+		add_action( 'bsc_skin_quiz_migrate_images', array( __CLASS__, 'migrate_legacy_images' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_get_private_image', array( __CLASS__, 'ajax_private_image' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_delete_run', array( __CLASS__, 'ajax_delete_run' ) );
 		add_action( 'wp_ajax_bsc_skin_quiz_send_routine', array( __CLASS__, 'ajax_send_routine' ) );
@@ -21,20 +22,21 @@ class BSC_Growth_Skin_Quiz_Store {
 	}
 
 	public static function maybe_install(): void {
-		if ( get_option( self::DB_VERSION_OPT ) === self::DB_VERSION ) {
-			self::ensure_private_directory();
-			self::ensure_cleanup_schedule();
-			return;
+		if ( get_option( self::DB_VERSION_OPT ) !== self::DB_VERSION ) {
+			self::install_tables();
+			global $wpdb;
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( self::runs_table() ) ) ) === self::runs_table() ) {
+				update_option( self::DB_VERSION_OPT, self::DB_VERSION, false );
+			}
 		}
-
-		self::install_tables();
-		self::ensure_private_directory();
-		update_option( self::DB_VERSION_OPT, self::DB_VERSION, false );
 		self::ensure_cleanup_schedule();
+		if ( ! get_option( 'bsc_skin_quiz_private_migration_2_done' ) && ! wp_next_scheduled( 'bsc_skin_quiz_migrate_images' ) ) {
+			wp_schedule_single_event( time() + 60, 'bsc_skin_quiz_migrate_images' );
+		}
 	}
 
 	public static function retention_days(): int {
-		return max( 1, (int) get_option( 'bsc_skin_quiz_photo_retention_days', self::PHOTO_RETENTION ) );
+		return max( 1, min( self::PHOTO_RETENTION, (int) get_option( 'bsc_skin_quiz_photo_retention_days', self::PHOTO_RETENTION ) ) );
 	}
 
 	public static function runs_table(): string {
@@ -138,7 +140,7 @@ class BSC_Growth_Skin_Quiz_Store {
 		global $wpdb;
 
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::runs_table() . ' WHERE id = %d', $run_id ),
+			$wpdb->prepare( 'SELECT * FROM ' . self::runs_table() . ' WHERE id = %d AND expires_at > %s', $run_id, current_time( 'mysql', true ) ),
 			ARRAY_A
 		);
 
@@ -156,7 +158,7 @@ class BSC_Growth_Skin_Quiz_Store {
 		}
 
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::runs_table() . ' WHERE share_token = %s', $token ),
+			$wpdb->prepare( 'SELECT * FROM ' . self::runs_table() . ' WHERE share_token = %s AND expires_at > %s', $token, current_time( 'mysql', true ) ),
 			ARRAY_A
 		);
 
@@ -174,8 +176,9 @@ class BSC_Growth_Skin_Quiz_Store {
 
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . self::runs_table() . ' WHERE user_id = %d ORDER BY created_at DESC LIMIT %d',
+				'SELECT * FROM ' . self::runs_table() . ' WHERE user_id = %d AND expires_at > %s ORDER BY created_at DESC LIMIT %d',
 				$user_id,
+				current_time( 'mysql', true ),
 				max( 1, $limit )
 			),
 			ARRAY_A
@@ -328,7 +331,7 @@ class BSC_Growth_Skin_Quiz_Store {
 		check_ajax_referer( 'bsc_skin_quiz_image_' . $run_id, 'nonce' );
 		$run = self::get_run( $run_id );
 
-		if ( ! $run || ! self::can_view_run( $run ) || empty( $run['image_path'] ) || ! file_exists( $run['image_path'] ) ) {
+		if ( ! $run || ! self::can_view_run( $run ) || empty( $run['image_path'] ) || ! self::is_safe_private_path( (string) $run['image_path'] ) || ! file_exists( $run['image_path'] ) ) {
 			status_header( 403 );
 			exit;
 		}
@@ -336,7 +339,9 @@ class BSC_Growth_Skin_Quiz_Store {
 		$mime = in_array( $run['image_mime'], array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ? $run['image_mime'] : 'image/jpeg';
 		header( 'Content-Type: ' . $mime );
 		header( 'Content-Length: ' . (string) filesize( $run['image_path'] ) );
-		header( 'Cache-Control: private, max-age=300' );
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+		header( 'Pragma: no-cache' );
+		header( 'X-Content-Type-Options: nosniff' );
 		readfile( $run['image_path'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
 		exit;
 	}
@@ -403,19 +408,29 @@ class BSC_Growth_Skin_Quiz_Store {
 		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 			self::delete_run( (int) $row['id'] );
 		}
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM ' . self::events_table() . ' WHERE created_at < %s', gmdate( 'Y-m-d H:i:s', time() - self::retention_days() * DAY_IN_SECONDS ) ) );
+		delete_option( 'bsc_skin_quiz_submissions' ); // Canonical, expiring records are in the runs table.
 	}
 
-	public static function delete_run( int $run_id ): void {
+	public static function delete_run( int $run_id ): bool {
 		self::maybe_install();
-
+		$result = BSC_DB_Lock::run( 'skin-quiz-image-migration', static function () use ( $run_id ) {
 		global $wpdb;
 
-		$run = self::get_run( $run_id );
-		if ( $run && ! empty( $run['image_path'] ) && file_exists( $run['image_path'] ) ) {
+		$run = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM ' . self::runs_table() . ' WHERE id = %d', $run_id ), ARRAY_A );
+		if ( ! $run ) { return true; }
+		if ( ! empty( $run['image_path'] ) && file_exists( $run['image_path'] ) ) {
+			if ( ! self::is_safe_private_path( (string) $run['image_path'] ) ) { return false; }
 			wp_delete_file( $run['image_path'] );
+			clearstatcache( true, $run['image_path'] );
+			if ( file_exists( $run['image_path'] ) ) { return false; }
 		}
 
-		$wpdb->delete( self::runs_table(), array( 'id' => $run_id ), array( '%d' ) );
+		if ( false === $wpdb->delete( self::events_table(), array( 'run_id' => $run_id ), array( '%d' ) ) || false === $wpdb->delete( self::runs_table(), array( 'id' => $run_id ), array( '%d' ) ) ) { return false; }
+		do_action( 'bsc_skin_quiz_run_deleted', $run_id, $run );
+		return true;
+		} );
+		return true === $result;
 	}
 
 	private static function install_tables(): void {
@@ -487,27 +502,154 @@ class BSC_Growth_Skin_Quiz_Store {
 	}
 
 	private static function ensure_private_directory(): string {
-		$upload_dir = wp_upload_dir();
-		$base       = trailingslashit( (string) $upload_dir['basedir'] ) . self::PRIVATE_SUBDIR;
+		$base = self::private_storage_dir();
+		if ( '' === $base ) {
+			return '';
+		}
 
 		if ( ! is_dir( $base ) ) {
-			wp_mkdir_p( $base );
+			if ( ! wp_mkdir_p( $base ) ) {
+				return '';
+			}
+			chmod( $base, 0700 );
 		}
 
 		if ( is_dir( $base ) ) {
 			$index = trailingslashit( $base ) . 'index.php';
-			$deny  = trailingslashit( $base ) . '.htaccess';
 
 			if ( ! file_exists( $index ) ) {
 				file_put_contents( $index, "<?php\n// Silence is golden.\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 			}
-			$rules = "Deny from all\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n";
-			if ( ! file_exists( $deny ) || ! str_contains( (string) file_get_contents( $deny ), 'Require all denied' ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-				file_put_contents( $deny, $rules ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-			}
 		}
 
-		return $base;
+		return is_dir( $base ) && is_writable( $base ) ? $base : '';
+	}
+
+	/**
+	 * Return a private image directory that is outside the public document root.
+	 * Production may override this with an absolute path such as /var/lib/bsc/skin-quiz.
+	 */
+	private static function private_storage_dir(): string {
+		$configured = defined( 'BSC_SKIN_QUIZ_PRIVATE_DIR' ) ? trim( (string) BSC_SKIN_QUIZ_PRIVATE_DIR ) : '';
+		$document   = realpath( ABSPATH );
+		$base       = '' !== $configured
+			? $configured
+			: dirname( false !== $document ? $document : untrailingslashit( ABSPATH ) ) . DIRECTORY_SEPARATOR . 'bsc-private' . DIRECTORY_SEPARATOR . 'skin-quiz';
+		$base       = wp_normalize_path( $base );
+
+		$absolute = str_starts_with( $base, '/' ) || 1 === preg_match( '~^[A-Za-z]:/~', $base );
+		if ( '' === $base || ! $absolute || in_array( '..', explode( '/', $base ), true ) ) {
+			return '';
+		}
+
+		// Resolve the nearest existing ancestor to catch symlinks before directory creation.
+		$ancestor = $base;
+		$suffix = '';
+		while ( ! file_exists( $ancestor ) && dirname( $ancestor ) !== $ancestor ) {
+			$suffix = '/' . basename( $ancestor ) . $suffix;
+			$ancestor = dirname( $ancestor );
+		}
+		$real_ancestor = realpath( $ancestor );
+		if ( false === $real_ancestor ) {
+			return '';
+		}
+		$base = wp_normalize_path( $real_ancestor ) . $suffix;
+		$document = wp_normalize_path( false !== $document ? $document : untrailingslashit( ABSPATH ) );
+		if ( '\\' === DIRECTORY_SEPARATOR ) {
+			$base_compare = strtolower( $base );
+			$document = strtolower( $document );
+		} else {
+			$base_compare = $base;
+		}
+		$prefix   = trailingslashit( untrailingslashit( $document ) );
+		if ( '' !== $document && ( $base_compare === untrailingslashit( $document ) || str_starts_with( $base_compare, $prefix ) ) ) {
+			return '';
+		}
+
+		return untrailingslashit( $base );
+	}
+
+	private static function is_safe_private_path( string $path ): bool {
+		$directory = self::ensure_private_directory();
+		if ( '' === $directory ) { return false; }
+		$real_path = realpath( $path );
+		$real_base = realpath( $directory );
+
+		if ( false === $real_path || false === $real_base ) {
+			return false;
+		}
+
+		$real_path = wp_normalize_path( $real_path );
+		$real_base = trailingslashit( wp_normalize_path( untrailingslashit( $real_base ) ) );
+
+		return str_starts_with( $real_path, $real_base );
+	}
+
+	/**
+	 * Move files written by versions that used uploads/bsc-private into the
+	 * outside-webroot directory during the one-time storage migration.
+	 */
+	public static function migrate_legacy_images(): void {
+		BSC_DB_Lock::run( 'skin-quiz-image-migration', static function () {
+			global $wpdb;
+			$destination = self::ensure_private_directory();
+			$upload = wp_upload_dir();
+			$legacy = realpath( trailingslashit( (string) $upload['basedir'] ) . self::PRIVATE_SUBDIR );
+			if ( '' === $destination ) {
+				update_option( 'bsc_skin_quiz_migration_error', 'La carpeta privada no está disponible.', false );
+				return;
+			}
+			if ( false === $legacy ) {
+				update_option( 'bsc_skin_quiz_private_migration_2_done', 1, false );
+				return;
+			}
+			$cursor = (int) get_option( 'bsc_skin_quiz_migration_cursor', 0 );
+			$rows = $wpdb->get_results( $wpdb->prepare( 'SELECT id, image_path FROM ' . self::runs_table() . " WHERE id > %d AND image_path <> '' ORDER BY id LIMIT 50", $cursor ), ARRAY_A );
+			$prefix = trailingslashit( wp_normalize_path( $legacy ) );
+			// Retry an unlink if the process stopped after committing the private pathname.
+			$pending = (array) get_option( 'bsc_skin_quiz_migration_pending_unlink', array() );
+			if ( ! empty( $pending['old'] ) && ! empty( $pending['new'] ) ) {
+				$old_path = realpath( $pending['old'] );
+				if ( $old_path && str_starts_with( wp_normalize_path( $old_path ), $prefix ) && is_file( $pending['new'] ) && hash_file( 'sha256', $old_path ) === hash_file( 'sha256', $pending['new'] ) ) {
+					$committed = $wpdb->get_var( $wpdb->prepare( 'SELECT image_path FROM ' . self::runs_table() . ' WHERE id = %d', (int) $pending['id'] ) );
+					if ( $committed === $pending['new'] ) { wp_delete_file( $old_path ); }
+				}
+				if ( ! $old_path || ! file_exists( $old_path ) ) { delete_option( 'bsc_skin_quiz_migration_pending_unlink' ); }
+			}
+			foreach ( (array) $rows as $row ) {
+				$old = realpath( (string) $row['image_path'] );
+				if ( ! $old && str_starts_with( wp_normalize_path( (string) $row['image_path'] ), $prefix ) ) {
+					update_option( 'bsc_skin_quiz_migration_error', 'Falta la imagen de la rutina ' . (int) $row['id'] . '. Revisar o eliminar ese registro.', false );
+					return;
+				}
+				if ( $old && is_file( $old ) && str_starts_with( wp_normalize_path( $old ), $prefix ) ) {
+					$new = trailingslashit( $destination ) . 'legacy-' . (int) $row['id'] . '-' . sanitize_file_name( basename( $old ) );
+					if ( ! copy( $old, $new ) || hash_file( 'sha256', $old ) !== hash_file( 'sha256', $new ) ) {
+						update_option( 'bsc_skin_quiz_migration_error', 'No se pudo verificar la copia de la imagen ' . (int) $row['id'], false );
+						return; // Cursor remains at the last verified row; retry is safe.
+					}
+					chmod( $new, 0600 );
+					update_option( 'bsc_skin_quiz_migration_pending_unlink', array( 'old' => $old, 'new' => $new, 'id' => (int) $row['id'] ), false );
+					if ( false === $wpdb->update( self::runs_table(), array( 'image_path' => $new ), array( 'id' => (int) $row['id'] ), array( '%s' ), array( '%d' ) ) ) {
+						return;
+					}
+					wp_delete_file( $old );
+					if ( file_exists( $old ) ) {
+						update_option( 'bsc_skin_quiz_migration_error', 'No se pudo eliminar la copia pública de la imagen ' . (int) $row['id'], false );
+						return;
+					}
+					delete_option( 'bsc_skin_quiz_migration_pending_unlink' );
+				}
+				update_option( 'bsc_skin_quiz_migration_cursor', (int) $row['id'], false );
+			}
+			if ( count( (array) $rows ) < 50 && ! get_option( 'bsc_skin_quiz_migration_pending_unlink' ) ) {
+				update_option( 'bsc_skin_quiz_private_migration_2_done', 1, false );
+				delete_option( 'bsc_skin_quiz_migration_error' );
+			}
+		} );
+		if ( ! get_option( 'bsc_skin_quiz_private_migration_2_done' ) && ! wp_next_scheduled( 'bsc_skin_quiz_migrate_images' ) ) {
+			wp_schedule_single_event( time() + 300, 'bsc_skin_quiz_migrate_images' );
+		}
 	}
 
 	private static function store_private_selfie( array $file ): array {
@@ -534,6 +676,9 @@ class BSC_Growth_Skin_Quiz_Store {
 		}
 
 		$dir       = self::ensure_private_directory();
+		if ( '' === $dir ) {
+			return array();
+		}
 		$filename  = wp_generate_uuid4() . '-' . wp_generate_password( 10, false, false ) . '.' . $extensions[ $mime_type ];
 		$dest_path = trailingslashit( $dir ) . $filename;
 

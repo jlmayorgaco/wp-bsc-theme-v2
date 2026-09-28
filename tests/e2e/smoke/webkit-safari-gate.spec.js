@@ -56,14 +56,15 @@ test.describe('Safari/WebKit release gate @webkit', () => {
     await expect(page.locator('.bsc__button-add-to-cart').first()).toBeVisible();
 
     await gotoAndStabilize(page, '/cart/', { primePage: false });
+    await expect(page).toHaveURL(/\/checkout\/?/);
     await expect(
-      page.locator('.woocommerce-cart-form, .bsc__cart-empty, .bsc__product-recommendations').first()
+      page.locator('.bsc__page--empty, .container__empty, form.checkout').first()
     ).toBeVisible();
 
     await gotoAndStabilize(page, routes.checkout, { primePage: false });
 
     await expect(
-      page.locator('.bsc__checkout-main, .bsc__cart-empty, form.checkout').first()
+      page.locator('.bsc__checkout-main, .bsc__page--empty, .container__empty, form.checkout').first()
     ).toBeVisible();
     consoleWatcher.assertNoErrors();
   });

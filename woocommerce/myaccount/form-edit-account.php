@@ -2,10 +2,10 @@
 /**
  * BSC custom account details form.
  *
- * Reviewed against WooCommerce form-edit-account.php 10.5.0.
+ * Reviewed against WooCommerce form-edit-account.php 11.0.0.
  *
  * @package WooCommerce\Templates
- * @version 10.5.0
+ * @version 11.0.0
  */
 
 defined( 'ABSPATH' ) || exit;

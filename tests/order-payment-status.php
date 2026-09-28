@@ -24,6 +24,14 @@ function sanitize_email( $value ): string { return (string) $value; }
 function get_post_meta( ...$args ): string { return ''; }
 function wc_get_order( $id ) { return $GLOBALS['test_order']; }
 function wp_mail( ...$args ): bool { throw new RuntimeException( 'This test must never send email.' ); }
+function wp_json_encode( $value ): string { return json_encode( $value ); }
+function sanitize_key( $value ): string { return (string) $value; }
+function is_wp_error( $value ): bool { return $value instanceof WP_Error; }
+function as_has_scheduled_action( ...$args ): bool { return false; }
+function as_enqueue_async_action( ...$args ): int { ++$GLOBALS['queued_emails']; return 1; }
+$GLOBALS['queued_emails'] = 0;
+class WP_Error { public function __construct( ...$args ) {} }
+class BSC_DB_Lock { public static function run( $key, $callback ) { return $callback(); } }
 
 class WP_List_Table {
 	public function __construct( ...$args ) {}
@@ -35,10 +43,14 @@ class WC_Order {
 	public int $recipient_reads = 0;
 	public string $transaction_id = '';
 	public array $notes = array();
+	public array $meta = array();
 	public function __construct( public string $status = 'pending', public bool $archived = false ) {}
 	public function get_id(): int { return 69087; }
 	public function get_status(): string { return $this->status; }
-	public function get_meta( $key, $single = true ) { return '_bsc_archived_at' === $key && $this->archived ? '2026-09-03' : ''; }
+	public function get_meta( $key, $single = true ) { return '_bsc_archived_at' === $key && $this->archived ? '2026-09-03' : ( $this->meta[ $key ] ?? '' ); }
+	public function update_meta_data( $key, $value ): void { $this->meta[ $key ] = $value; }
+	public function read_meta_data( $force = false ): void {}
+	public function get_date_paid() { return $this->is_paid() ? true : null; }
 	public function get_total(): string { return '1000.00'; }
 	public function get_currency(): string { return 'COP'; }
 	public function get_payment_method(): string { return 'wompi'; }
@@ -69,6 +81,7 @@ require_once get_template_directory() . '/inc/order-status.php';
 require_once get_template_directory() . '/components/orders/order-progress-bar.php';
 require_once get_template_directory() . '/admin/bsc-orders-page.php';
 require_once get_template_directory() . '/inc/payments/wompi-compat.php';
+require_once get_template_directory() . '/inc/payments/wompi-security.php';
 require_once get_template_directory() . '/emails/bsc-emails.php';
 
 if ( in_array( '--widget-script', $argv, true ) ) {
@@ -135,7 +148,7 @@ foreach ( array( 'pending', 'on-hold' ) as $status ) {
 }
 $GLOBALS['test_order'] = new WC_Order( 'processing' );
 bsc_handle_payment_complete_order_email( 69087 );
-check( 1 === $GLOBALS['test_order']->recipient_reads, 'Paid orders still reach the dispatcher (empty test recipient).' );
+check( 1 === $GLOBALS['queued_emails'] && 0 === $GLOBALS['test_order']->recipient_reads, 'Paid orders enqueue email without contacting SMTP in the payment request.' );
 
 $approved = (object) array( 'id' => 'test-transaction', 'status' => 'APPROVED', 'reference' => '69087', 'amount_in_cents' => 100000, 'currency' => 'COP' );
 $query = array( 'bsc_wompi_return' => '1', 'bsc_wompi_transaction_id' => 'test-transaction', 'key' => 'test_order_key', 'bsc_wompi_status' => 'APPROVED' );

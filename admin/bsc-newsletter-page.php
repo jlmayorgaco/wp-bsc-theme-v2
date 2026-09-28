@@ -49,6 +49,7 @@ function bsc_newsletter_handle_admin_actions(): void {
 		}
 
 		$action = sanitize_key( wp_unslash( $_POST['bsc_newsletter_action'] ) );
+		bsc_form_data_guard_admin( 'bsc_newsletter_subscribers' );
 
 		if ( 'update_lead' === $action ) {
 			$index       = isset( $_POST['subscriber_id'] ) ? absint( wp_unslash( $_POST['subscriber_id'] ) ) : -1;
@@ -269,6 +270,7 @@ function bsc_render_newsletter_page(): void {
 					<td>
 						<form method="post" class="bsc-admin-newsletter__status-form">
 							<?php wp_nonce_field( 'bsc_newsletter_action', 'bsc_newsletter_nonce' ); ?>
+<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_newsletter_subscribers' ) ); ?>">
 							<input type="hidden" name="bsc_newsletter_action" value="update_lead">
 							<input type="hidden" name="subscriber_id" value="<?php echo esc_attr( $index ); ?>">
 							<select name="subscriber_status">
@@ -283,6 +285,7 @@ function bsc_render_newsletter_page(): void {
 						</form>
 						<form method="post" class="bsc-admin-newsletter__delete-form">
 							<?php wp_nonce_field( 'bsc_newsletter_action', 'bsc_newsletter_nonce' ); ?>
+<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_newsletter_subscribers' ) ); ?>">
 							<input type="hidden" name="bsc_newsletter_action" value="delete_lead">
 							<input type="hidden" name="subscriber_id" value="<?php echo esc_attr( $index ); ?>">
 							<button type="submit" class="button button-small bsc-admin-button-danger" onclick="return confirm('Eliminar este lead y sus datos personales?');">Eliminar datos</button>

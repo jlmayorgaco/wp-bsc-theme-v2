@@ -85,8 +85,11 @@ if (count( $repeated_slides ) > 0) : ?>
 							<?php
 							$mobile_srcset = wp_get_attachment_image_srcset( $mobile_image_id, 'full' );
 							$mobile_srcset = $mobile_srcset ? $mobile_srcset : wp_get_attachment_image_url( $mobile_image_id, 'full' );
+							$mobile_image   = wp_get_attachment_image_src( $mobile_image_id, 'full' );
+							$mobile_width   = is_array( $mobile_image ) ? absint( $mobile_image[1] ) : 0;
+							$mobile_height  = is_array( $mobile_image ) ? absint( $mobile_image[2] ) : 0;
 							?>
-							<source media="(max-width: 800px)" srcset="<?php echo esc_attr( (string) $mobile_srcset ); ?>" sizes="100vw">
+							<source media="(max-width: 800px)" srcset="<?php echo esc_attr( (string) $mobile_srcset ); ?>" sizes="100vw" width="<?php echo esc_attr( (string) $mobile_width ); ?>" height="<?php echo esc_attr( (string) $mobile_height ); ?>">
 						<?php endif; ?>
 						<?php echo wp_get_attachment_image( $desktop_image_id, 'full', false, $image_attrs ); ?>
 					</picture>

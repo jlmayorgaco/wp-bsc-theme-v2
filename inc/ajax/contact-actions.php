@@ -57,6 +57,7 @@ function bsc_contact_form_submit() {
 	$message_id = function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'contact_', true );
 
 	if ( function_exists( 'bsc_contact_get_messages' ) && function_exists( 'bsc_contact_save_messages' ) ) {
+		if ( ! bsc_form_data_lock() ) { wp_send_json_error( array( 'message' => 'Intenta nuevamente en unos segundos.' ), 503 ); }
 		$messages   = bsc_contact_get_messages();
 		$messages[] = array_merge(
 			array(
@@ -72,11 +73,12 @@ function bsc_contact_form_submit() {
 			function_exists( 'bsc_privacy_form_metadata' ) ? bsc_privacy_form_metadata() : array()
 		);
 		bsc_contact_save_messages( $messages );
+		BSC_DB_Lock::release( 'form-data' );
 	}
 
 	$sent = wp_mail( $to, $subject, $body, $headers );
 
-	if ( $sent && function_exists( 'bsc_contact_get_messages' ) && function_exists( 'bsc_contact_save_messages' ) ) {
+	if ( $sent && function_exists( 'bsc_contact_get_messages' ) && function_exists( 'bsc_contact_save_messages' ) && bsc_form_data_lock() ) {
 		$messages = bsc_contact_get_messages();
 
 		foreach ( $messages as $index => $stored_message ) {
@@ -88,6 +90,7 @@ function bsc_contact_form_submit() {
 			bsc_contact_save_messages( $messages );
 			break;
 		}
+		BSC_DB_Lock::release( 'form-data' );
 	}
 
 	wp_send_json_success( array( 'message' => 'Gracias por escribirnos. Te respondemos pronto.' ) );

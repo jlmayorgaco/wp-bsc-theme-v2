@@ -13,12 +13,11 @@
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^6.5.0",
     "@playwright/test": "^1.59.1",
-    "@wordpress/scripts": "^19.2.2",
     "dir-archiver": "^1.1.1",
     "postcss-scss": "^4.0.9",
     "rtlcss": "^3.5.0",
     "sass": "^1.89.1",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "stylelint": "^17.12.0",
     "swiper": "^12.1.4"
   },
@@ -72,6 +71,7 @@
     "test:e2e:visual:update": "playwright test tests/e2e/visual/public-pages.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/header-and-mobile-nav.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/account-and-post-purchase.spec.js --workers=1 --update-snapshots && playwright test tests/e2e/visual/email-previews.spec.js --workers=1 --update-snapshots",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "bundle": "dir-archiver --src . --dest ../wp-bsc-theme-v2.zip --exclude .DS_Store .stylelintrc.json .eslintrc .git .gitattributes .github .gitignore README.md ROADMAP_BSC.md composer.json composer.lock cicd node_modules vendor package-lock.json package.json .travis.yml phpcs.xml.dist phpstan.neon phpstan-baseline.neon phpstan-bootstrap.php sass tests tools style.css.map yarn.lock test-results playwright-report Videos admin.zip admin2.zip"
+    "bundle": "node tools/bundle-theme.js && npm run audit:bundle",
+    "audit:bundle": "node tools/audit-bundle.js ../wp-bsc-theme-v2.zip"
   }
 }

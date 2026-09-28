@@ -20,7 +20,7 @@ function bsc_bp_enqueue_scripts() {
 		'bsc-bubble-points-modal',
 		get_stylesheet_directory_uri() . '/plugins/bubble-points/scripts/bubble-points-modal.js',
 		array( 'jquery' ),
-		'1.0.0',
+		(string) filemtime( get_stylesheet_directory() . '/plugins/bubble-points/scripts/bubble-points-modal.js' ),
 		true
 	);
 

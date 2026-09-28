@@ -3,7 +3,7 @@
  * Plain-text BSC override for the WooCommerce customer reset password email.
  *
  * @package BSC2
- * @version 10.4.0
+ * @version 10.9.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -45,7 +45,7 @@ if ( '' === $bsc_reset_url ) {
 $bsc_display_name = bsc_email_name_from_user( $bsc_user instanceof WP_User ? $bsc_user : null, 'Bubble Lover' );
 $bsc_password     = wp_specialchars_decode( 'contrase&ntilde;a', ENT_QUOTES );
 
-printf(
+printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain-text template uses escaped arguments below.
 	"Hola %s,\n\nRecibimos una solicitud para restablecer la %s de tu cuenta BSC.\n\nCambia tu %s aqui:\n%s\n\nSi no solicitaste este cambio, ignora este correo.\n",
 	esc_html( sanitize_text_field( $bsc_display_name ) ),
 	esc_html( $bsc_password ),

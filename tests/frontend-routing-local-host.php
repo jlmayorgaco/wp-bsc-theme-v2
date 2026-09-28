@@ -64,14 +64,13 @@ function bsc_assert_same( $expected, $actual, $message ) {
 
 $_SERVER['REQUEST_URI'] = '/';
 
-$no_cache_headers = bsc_disable_frontend_page_cache_headers( array( 'Content-Type' => 'text/html' ) );
-bsc_assert_same( 'no-store, no-cache, must-revalidate, max-age=0', $no_cache_headers['Cache-Control'], 'Public HTML must disable browser and proxy page caches.' );
-bsc_assert_same( '0', $no_cache_headers['X-Accel-Expires'], 'Public HTML must disable the WordOps FastCGI cache.' );
+$cache_headers = bsc_frontend_page_cache_headers( array( 'Content-Type' => 'text/html' ) );
+bsc_assert_same( 'public, max-age=0, s-maxage=300, stale-while-revalidate=30', $cache_headers['Cache-Control'], 'Anonymous public HTML must advertise a short reverse-proxy cache window.' );
+bsc_assert_same( '300', $cache_headers['X-Accel-Expires'], 'Anonymous public HTML must allow the WordOps FastCGI cache.' );
 
 bsc_disable_frontend_page_cache();
-bsc_assert_same( true, defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE, 'Public HTML must disable WordPress page-cache plugins.' );
-bsc_assert_same( true, $bsc_test_nocache_headers, 'Public HTML must send WordPress no-cache headers.' );
-$bsc_test_nocache_headers = false;
+bsc_assert_same( false, defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE, 'Anonymous public HTML must remain eligible for page caching.' );
+bsc_assert_same( false, $bsc_test_nocache_headers, 'Anonymous public HTML must not send WordPress no-cache headers.' );
 
 $_SERVER['HTTP_HOST'] = 'bsc.local';
 bsc_assert_same( true, bsc_is_local_storefront_request(), 'bsc.local must bypass parking.' );

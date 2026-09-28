@@ -14,7 +14,8 @@ $menu-title-font: 'Helvetica', sans-serif;
 }
 
 .search-result-item.is-active {
-  outline: none;
+  outline: 2px solid #333;
+  outline-offset: -2px;
 }
 
 .search-result-item--all {
@@ -83,7 +84,8 @@ $menu-title-font: 'Helvetica', sans-serif;
     padding: 0.25rem 0 0.625rem;
     font-size: 1em;
     border: none;
-    outline: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     letter-spacing: 0;
     font-family: $menu-title-font;
     border-bottom: 1px solid rgba(51, 51, 51, 0.35);
@@ -94,7 +96,8 @@ $menu-title-font: 'Helvetica', sans-serif;
   .header-search-input:focus,
   .header-search-input:focus-visible {
     border-bottom-color: #333;
-    outline: none;
+    outline: 2px solid #333;
+    outline-offset: 2px;
     box-shadow: none;
   }
 
@@ -145,7 +148,8 @@ $menu-title-font: 'Helvetica', sans-serif;
   letter-spacing: 0;
   border: 0;
   border-bottom: 1px solid rgba(51, 51, 51, 0.35);
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   background: #fff;
   box-sizing: border-box;
   box-shadow: none;
@@ -154,13 +158,15 @@ $menu-title-font: 'Helvetica', sans-serif;
 .bsc-mobile-search-panel .header-search-input:focus,
 .bsc-mobile-search-panel .header-search-input:focus-visible {
   border-bottom-color: #333;
-  outline: none;
+  outline: 2px solid #333;
+  outline-offset: 2px;
   box-shadow: none;
 }
 
 .search-result-item:focus,
 .search-result-item:focus-visible {
-  outline: none;
+  outline: 2px solid #333;
+  outline-offset: -2px;
   background-color: #f7f7f7;
 }
 

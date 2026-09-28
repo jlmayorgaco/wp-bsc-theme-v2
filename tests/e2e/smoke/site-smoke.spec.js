@@ -169,10 +169,11 @@ test.describe('BSC smoke', () => {
 
     const productResult = results.locator('.search-result-item:not(.search-result-item--all)').first();
     await expect(productResult.locator('.search-result-name')).toHaveText('Protector solar');
-    await expect(productResult.loc('.search-result-price del')).toHaveText('$100.000');
-    await expect(productResult.loc('.search-result-price ins')).toHaveText('$85.000');
-    await expect(productResult.loc('.search-result-price .screen-reader-text')).toHaveCount(2);
-    await expect(productResult.loc('.search-result-price .screen-reader-text').first()).toBeHidden();
+    await expect(productResult.locator('.search-result-price del')).toHaveText(/\$\s*100\.000/);
+    await expect(productResult.locator('.search-result-price ins')).toHaveText(/\$\s*85\.000/);
+    await expect(productResult.locator('.search-result-price .screen-reader-text')).toHaveCount(2);
+    // Accessible text stays in the accessibility tree while being visually clipped.
+    await expect(productResult.locator('.search-result-price .screen-reader-text').first()).toHaveCSS('clip-path', 'inset(50%)');
     await expect(productResult.locator('.search-result-brand')).toHaveCount(0);
     await expect(productResult).not.toContainText('TOCOBO');
   });
@@ -585,16 +586,18 @@ test.describe('BSC smoke', () => {
     const minOutput = page.locator('#min_price_output').first();
     const maxOutput = page.locator('#max_price_output').first();
 
+    const openFilters = page.locator('.bsc__filters-mobile-toggle');
+    if (await openFilters.isVisible()) await openFilters.click();
     await expect(minInput).toBeVisible();
     await expect(maxInput).toBeVisible();
 
     await minInput.fill('45000');
     await minInput.dispatchEvent('input');
-    await expect(minOutput).toHaveText('45000');
+    await expect(minOutput).toHaveText('$45.000');
 
     await maxInput.fill('120000');
     await maxInput.dispatchEvent('input');
-    await expect(maxOutput).toHaveText('120000');
+    await expect(maxOutput).toHaveText('$120.000');
   });
 
   test('first PDP opens from category', async ({ page }) => {
@@ -741,6 +744,9 @@ test.describe('BSC smoke', () => {
     const shippingRow = shippingValue.locator('xpath=ancestor::div[contains(@class,"review-summary__row")][1]');
     const pendingNotice = page.locator('#bsc-shipping-pending-msg').first();
 
+    // WooCommerce may preselect the store's department for a new guest.
+    await page.locator('#billing_state').selectOption('', { force: true });
+    await page.evaluate(() => window.jQuery('#billing_state').trigger('change'));
     await expect(pendingNotice).toContainText('Selecciona tu departamento para ver el valor del envio.');
     await expect(shippingRow).toBeHidden();
 

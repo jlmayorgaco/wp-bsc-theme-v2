@@ -637,6 +637,15 @@ function bsc_render_product_edit_page(): void {
 		}
 
 		$new_title       = sanitize_text_field( wp_unslash( $_POST['post_title'] ?? '' ) );
+		if ( ! BSC_DB_Lock::acquire( 'stock-product:' . $product_id ) ) {
+			wp_die( 'Hay una operación de inventario en curso. Intenta nuevamente.', '', array( 'response' => 409 ) );
+		}
+		register_shutdown_function( static function () use ( $product_id ) { BSC_DB_Lock::release( 'stock-product:' . $product_id ); } );
+		wp_cache_delete( $product_id, 'post_meta' );
+		$revision = isset( $_POST['bsc_stock_revision'] ) && is_string( $_POST['bsc_stock_revision'] ) ? sanitize_text_field( wp_unslash( $_POST['bsc_stock_revision'] ) ) : '';
+		if ( ! hash_equals( BSC_Stock::revision( $product_id ), $revision ) ) {
+			wp_die( 'El inventario cambió mientras editabas. Recarga el producto antes de guardar.', '', array( 'response' => 409 ) );
+		}
 		$new_excerpt     = wp_kses_post( wp_unslash( $_POST['post_excerpt'] ?? '' ) );
 		$location_code   = bsc_normalize_product_location_code( wp_unslash( $_POST['_bsc_location_code'] ?? '' ) );
 		$post_status_raw = isset( $_POST['post_status'] ) ? sanitize_key( wp_unslash( $_POST['post_status'] ) ) : '';
@@ -778,9 +787,9 @@ function bsc_render_product_edit_page(): void {
 		}
 
 		if (!empty( $variant_matrix )) {
-			update_post_meta( $product_id, '_bsc_variant_matrix', $variant_matrix );
-			if (function_exists( 'bsc_sync_product_variant_parent_stock' )) {
-				bsc_sync_product_variant_parent_stock( $product_id, $variant_matrix );
+			$matrix_result = BSC_Stock::save_variant_matrix( $product_id, $variant_matrix );
+			if ( is_wp_error( $matrix_result ) ) {
+				wp_die( esc_html( $matrix_result->get_error_message() ) );
 			}
 		} else {
 			delete_post_meta( $product_id, '_bsc_variant_matrix' );
@@ -922,6 +931,7 @@ function bsc_render_product_edit_page(): void {
 
 		<form method="post" class="bsc-admin-product-edit__form">
 			<?php wp_nonce_field( 'bsc_product_edit_action', 'bsc_product_edit_nonce' ); ?>
+			<input type="hidden" name="bsc_stock_revision" value="<?php echo esc_attr( BSC_Stock::revision( $product_id ) ); ?>">
 			<?php wp_nonce_field( 'bsc_product_covers_save', 'bsc_product_covers_nonce' ); ?>
 
 			<div class="bsc-product-edit-grid bsc-admin-product-edit__grid">

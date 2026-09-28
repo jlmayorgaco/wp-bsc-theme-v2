@@ -6,6 +6,43 @@
   min-width: 1220px;
 }
 
+.bsc-admin-creators__table th:nth-child(8),
+.bsc-admin-creators__table td:nth-child(8) {
+  width: 300px;
+}
+
+.bsc-admin-creators__message {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.bsc-admin-creators__message-details summary {
+  cursor: pointer;
+}
+
+.bsc-admin-creators__message-expand,
+.bsc-admin-creators__message-collapse {
+  color: #2271b1;
+  display: block;
+  margin-top: 6px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bsc-admin-creators__message-collapse,
+.bsc-admin-creators__message-details[open] .bsc-admin-creators__message-expand {
+  display: none;
+}
+
+.bsc-admin-creators__message-details[open] .bsc-admin-creators__message-collapse {
+  display: block;
+}
+
+.bsc-admin-creators__message-full {
+  margin-top: 8px;
+  white-space: pre-wrap;
+}
+
 .bsc-admin-creators__link-empty {
   color: #646970;
 }

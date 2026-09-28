@@ -18,8 +18,8 @@ function bsc_reload_city_fields() {
 	$country  = $country ?: 'CO';
 
 	// The Colombia city plugin reads these through WC_Checkout::get_value().
-	$_POST['billing_country'] = $country;
-	$_POST['billing_state']   = $state;
+	$_POST['billing_country'] = sanitize_text_field( $country );
+	$_POST['billing_state']   = sanitize_text_field( $state );
 
 	$html = bsc_render_checkout_city_field(
 		'billing_city',
