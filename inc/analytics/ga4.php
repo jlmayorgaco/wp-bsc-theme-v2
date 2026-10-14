@@ -121,36 +121,12 @@ function bsc_ga4_get_order_payload( WC_Order $order ): array {
 	);
 }
 
-function bsc_ga4_print_bootstrap(): void {
-	if ( ! bsc_ga4_has_consent() ) {
-		return;
-	}
-
-	$measurement_id = bsc_ga4_get_measurement_id();
-
-	echo "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}</script>\n";
-
-	if ( '' === $measurement_id ) {
-		return;
-	}
-
-	printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- URL value is escaped with esc_attr() below.
-		'<script async src="https://www.googletagmanager.com/gtag/js?id=%1$s"></script>' . "\n",
-		esc_attr( $measurement_id )
-	);
-	printf( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Measurement ID is escaped with esc_js() below.
-		"<script>gtag('js',new Date());gtag('config','%s');</script>\n",
-		esc_js( $measurement_id )
-	);
-}
-add_action( 'wp_head', 'bsc_ga4_print_bootstrap', 5 );
-
 function bsc_ga4_render_consent_banner(): void {
-	if ( ! bsc_ga4_consent_required() || 'unknown' !== bsc_ga4_consent_state() || '' === bsc_ga4_get_measurement_id() ) {
+	if ( ! bsc_ga4_consent_required() || '' === bsc_ga4_get_measurement_id() ) {
 		return;
 	}
 	?>
-	<section class="bsc-analytics-consent" data-bsc-analytics-consent-banner role="dialog" aria-labelledby="bsc-analytics-consent-title" aria-describedby="bsc-analytics-consent-description">
+	<section class="bsc-analytics-consent" data-bsc-analytics-consent-banner role="dialog" aria-labelledby="bsc-analytics-consent-title" aria-describedby="bsc-analytics-consent-description" hidden>
 		<div class="bsc-analytics-consent__copy">
 			<h2 id="bsc-analytics-consent-title">Analítica opcional</h2>
 			<p id="bsc-analytics-consent-description">Usamos Google Analytics para entender qué contenido ayuda a mejorar la tienda. Puedes aceptar o rechazar estas cookies; las funciones esenciales seguirán disponibles. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Ver política de cookies</a>.</p>
@@ -172,8 +148,9 @@ function bsc_ga4_event_script( string $event_name, array $params, string $dedupe
 
 	$encoded_payload = wp_json_encode( $payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	$encoded_key     = wp_json_encode( $dedupe_key );
+	$requires_consent = bsc_ga4_consent_required() ? 'true' : 'false';
 
-	return "(function(){var payload={$encoded_payload};var key={$encoded_key};if(key&&window.sessionStorage&&sessionStorage.getItem(key)){return;}window.dataLayer=window.dataLayer||[];window.dataLayer.push({ecommerce:null});window.dataLayer.push(payload);if(key&&window.sessionStorage){sessionStorage.setItem(key,'1');}}());";
+	return "(function(){if({$requires_consent}&&!document.cookie.split(';').some(function(cookie){return cookie.trim()==='bsc_analytics_consent=granted';})){return;}var payload={$encoded_payload};var key={$encoded_key};if(key&&window.sessionStorage&&sessionStorage.getItem(key)){return;}window.dataLayer=window.dataLayer||[];window.dataLayer.push({ecommerce:null});window.dataLayer.push(payload);if(key&&window.sessionStorage){sessionStorage.setItem(key,'1');}}());";
 }
 
 function bsc_ga4_output_page_events(): void {

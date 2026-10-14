@@ -12166,6 +12166,10 @@ body.admin-bar .bsc__header--mobile {
   box-shadow: 0 0.75rem 2rem rgba(34, 34, 34, 0.16);
 }
 
+.bsc-analytics-consent[hidden] {
+  display: none;
+}
+
 .bsc-analytics-consent__copy {
   max-width: 52rem;
 }

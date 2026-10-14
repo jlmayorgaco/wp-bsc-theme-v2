@@ -1,9 +1,52 @@
 (function () {
   'use strict';
 
+  var analyticsConfig = window.bsc_analytics || {};
+
+  function analyticsConsentState() {
+    var match = document.cookie.match(/(?:^|;\s*)bsc_analytics_consent=([^;]*)/);
+    var value = match ? match[1] : '';
+    return value === 'granted' || value === 'denied' ? value : 'unknown';
+  }
+
+  function hasAnalyticsConsent() {
+    return !analyticsConfig.consent_required || analyticsConsentState() === 'granted';
+  }
+
+  function startAnalytics() {
+    var measurementId = String(analyticsConfig.measurement_id || '');
+    if (!/^G-[A-Z0-9]+$/.test(measurementId) || document.querySelector('script[data-bsc-ga4]')) return;
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId);
+
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+    script.setAttribute('data-bsc-ga4', '');
+    document.head.appendChild(script);
+  }
+
+  function removeConsentBanner() {
+    var banner = document.querySelector('[data-bsc-analytics-consent-banner]');
+    if (banner) banner.remove();
+  }
+
+  var consentBanner = document.querySelector('[data-bsc-analytics-consent-banner]');
+  if (consentBanner) {
+    if (analyticsConsentState() !== 'unknown' || !analyticsConfig.consent_required) {
+      consentBanner.remove();
+    } else {
+      consentBanner.hidden = false;
+    }
+  }
+  analyticsConfig.consent_granted = hasAnalyticsConsent();
+  if (analyticsConfig.consent_granted) startAnalytics();
+
   function pushEcommerceEvent(eventName, ecommerce) {
-    var analyticsConfig = window.bsc_analytics || {};
-    if (analyticsConfig.consent_required && !analyticsConfig.consent_granted) return;
+    if (!hasAnalyticsConsent()) return;
 
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ ecommerce: null });
@@ -28,7 +71,9 @@
     var maxAge = 180 * 24 * 60 * 60;
     var secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = 'bsc_analytics_consent=' + encodeURIComponent(value) + '; Max-Age=' + maxAge + '; Path=/; SameSite=Lax' + secure;
-    window.location.reload();
+    analyticsConfig.consent_granted = value === 'granted';
+    removeConsentBanner();
+    if (hasAnalyticsConsent()) startAnalytics();
   }
 
   if (window.jQuery) {
