@@ -14968,7 +14968,7 @@ details[open] .bsc__product-detail-category > summary::after {
   outline-offset: 3px;
 }
 .bsc__tabs .tab__header.active, .bsc__tabs .tab__header:hover {
-  border-color: var(--color--main);
+  border-color: transparent;
   opacity: 1;
 }
 .bsc__tabs .tab__header .tab__icon {
