@@ -140,7 +140,11 @@ if (!function_exists( 'bsc_create_default_pages' )) {
 		);
 
 		foreach ($pages as $page) {
-			$existing = get_page_by_path( $page['slug'] );
+			// Child pages must be looked up by their full path. Looking up only
+			// "bubble-points" misses /mi-cuenta/bubble-points/ and creates a
+			// numbered duplicate every time this bootstrap runs.
+			$page_path = !empty( $page['parent'] ) ? $page['parent'] . '/' . $page['slug'] : $page['slug'];
+			$existing  = get_page_by_path( $page_path );
 
 			if (!$existing) {
 				// Resolve parent ID if needed

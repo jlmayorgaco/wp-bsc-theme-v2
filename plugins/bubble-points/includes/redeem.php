@@ -54,7 +54,13 @@ if ( ! function_exists( 'bsc_bp_order_is_awardable' ) ) {
 	 * @return bool
 	 */
 	function bsc_bp_order_is_awardable( WC_Order $order ): bool {
-		return in_array(
+		// WooCommerce can set date_paid when an admin manually moves an order to
+		// processing. Wompi orders also need the verified payment transaction.
+		if ( 'wompi' === $order->get_payment_method() && '' === trim( (string) $order->get_transaction_id() ) ) {
+			return false;
+		}
+
+		return (bool) $order->get_date_paid( 'edit' ) && in_array(
 			bsc_bp_normalize_order_status( $order->get_status() ),
 			bsc_bp_awardable_order_statuses(),
 			true
@@ -229,7 +235,7 @@ function bsc_bp_reconcile_order_points( int $order_id ): void {
 			}
 			$total = (float) $order->get_total();
 			$target = $total > 0 ? (int) floor( $awarded * max( 0, $total - (float) $order->get_total_refunded() ) / $total ) : 0;
-			if ( $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) ) {
+			if ( ! bsc_bp_order_is_awardable( $order ) ) {
 				$target = 0;
 			}
 			$delta = $target - (int) ( $rows->net ?? 0 );

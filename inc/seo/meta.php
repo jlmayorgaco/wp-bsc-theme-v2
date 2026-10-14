@@ -252,6 +252,17 @@ function bsc_seo_should_noindex(): bool {
 		return true;
 	}
 
+	if ( is_page( array( 'login', 'register', 'mi-cuenta' ) ) || is_page_template( 'page-bubble-points.php' ) ) {
+		return true;
+	}
+
+	if ( is_page() ) {
+		$account_page = get_page_by_path( 'mi-cuenta' );
+		if ( $account_page instanceof WP_Post && in_array( $account_page->ID, get_post_ancestors( get_queried_object_id() ), true ) ) {
+			return true;
+		}
+	}
+
 	if ( function_exists( 'is_cart' ) && is_cart() ) {
 		return true;
 	}
@@ -788,6 +799,17 @@ function bsc_seo_filter_sitemap_pages( array $args, string $post_type ): array {
 		$excluded[] = $sample_page->ID;
 	}
 
+	foreach ( array( 'login', 'register', 'mi-cuenta', 'mi-cuenta/bubble-points' ) as $private_path ) {
+		$private_page = get_page_by_path( $private_path );
+		if ( $private_page instanceof WP_Post ) {
+			$excluded[] = $private_page->ID;
+			if ( 'mi-cuenta' === $private_path ) {
+				// This also removes all numbered Bubble Points copies until cleanup finishes.
+				$args['post_parent__not_in'] = array_values( array_unique( array_merge( $args['post_parent__not_in'] ?? array(), array( $private_page->ID ) ) ) );
+			}
+		}
+	}
+
 	if ( function_exists( 'wc_get_page_id' ) ) {
 		foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
 			$page_id = wc_get_page_id( $page );
@@ -806,6 +828,16 @@ function bsc_seo_filter_sitemap_pages( array $args, string $post_type ): array {
 	return $args;
 }
 add_filter( 'wp_sitemaps_posts_query_args', 'bsc_seo_filter_sitemap_pages', 10, 2 );
+
+/** Consolidate legacy numbered Bubble Points URLs on the canonical account page. */
+function bsc_seo_redirect_duplicate_bubble_points(): void {
+	$request = trim( (string) ( $GLOBALS['wp']->request ?? '' ), '/' );
+	if ( preg_match( '#^mi-cuenta/bubble-points-[1-9][0-9]*$#', $request ) ) {
+		wp_safe_redirect( home_url( '/mi-cuenta/bubble-points/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'bsc_seo_redirect_duplicate_bubble_points', 1 );
 
 /**
  * Exclude the default product category from the public sitemap.
