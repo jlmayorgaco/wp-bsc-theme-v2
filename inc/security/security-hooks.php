@@ -160,6 +160,7 @@ function bsc_disable_public_blog_routes(): void {
 		&& ! is_tag()
 		&& ! is_date()
 		&& ! is_feed()
+		&& 'users' !== get_query_var( 'sitemap' )
 	) {
 		return;
 	}
