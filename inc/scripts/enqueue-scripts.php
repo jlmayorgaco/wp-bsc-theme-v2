@@ -81,6 +81,7 @@ function bsc_2_0_scripts() {
 			'currency'          => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'COP',
 			'consent_required'  => function_exists( 'bsc_ga4_consent_required' ) ? bsc_ga4_consent_required() : true,
 			'consent_granted'   => function_exists( 'bsc_ga4_has_consent' ) ? bsc_ga4_has_consent() : false,
+			'measurement_id'    => function_exists( 'bsc_ga4_get_measurement_id' ) ? bsc_ga4_get_measurement_id() : '',
 		)
 	);
 
