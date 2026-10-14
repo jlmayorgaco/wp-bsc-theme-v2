@@ -12,6 +12,21 @@ class BSC_Growth_Skin_Quiz {
 	private const MAX_SUBMISSIONS    = 300;
 	private const MAX_EVENTS         = 1200;
 
+	/** Restrict the preview to the two named administrator accounts. */
+	public static function can_access(): bool {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
+
+		$user = wp_get_current_user();
+		if ( 'uwoi7s' === $user->user_login ) {
+			return true;
+		}
+
+		return 'male' === $user->user_login
+			&& 'malejandramayorga@gmail.com' === strtolower( $user->user_email );
+	}
+
 	public static function register_hooks(): void {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'render_page' ) );
@@ -44,7 +59,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	public static function body_class( array $classes ): array {
-		if ( self::is_request() ) {
+		if ( self::is_request() && self::can_access() ) {
 			$classes   = array_values( array_diff( $classes, array( 'error404' ) ) );
 			$classes[] = 'page-skin-quiz';
 		}
@@ -53,7 +68,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	public static function prevent_404( $preempt, WP_Query $query ) {
-		if ( ! self::is_request() ) {
+		if ( ! self::is_request() || ! self::can_access() ) {
 			return $preempt;
 		}
 
@@ -65,7 +80,7 @@ class BSC_Growth_Skin_Quiz {
 
 	public static function enqueue_assets(): void {
 		$is_account = function_exists( 'is_account_page' ) && is_account_page();
-		if ( ! self::is_request() && ! $is_account ) {
+		if ( ! self::can_access() || ( ! self::is_request() && ! $is_account ) ) {
 			return;
 		}
 
@@ -103,6 +118,10 @@ class BSC_Growth_Skin_Quiz {
 	public static function render_page(): void {
 		if ( ! self::is_request() ) {
 			return;
+		}
+		if ( ! self::can_access() ) {
+			nocache_headers();
+			wp_die( esc_html__( 'No tienes permisos para acceder al Skin Quiz.', 'bsc-2-0' ), '', array( 'response' => 403 ) );
 		}
 
 		status_header( 200 );
@@ -225,6 +244,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	public static function ajax_recommend(): void {
+		self::require_access();
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 		if ( function_exists( 'bsc_rate_limit' ) ) {
 			bsc_rate_limit( 'skin_quiz_recommend', 20, MINUTE_IN_SECONDS );
@@ -271,6 +291,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	public static function ajax_ai_recommend(): void {
+		self::require_access();
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 		if ( function_exists( 'bsc_rate_limit' ) ) {
 			bsc_rate_limit( 'skin_quiz_ai', 3, 10 * MINUTE_IN_SECONDS );
@@ -321,6 +342,7 @@ class BSC_Growth_Skin_Quiz {
 	}
 
 	public static function ajax_track_event(): void {
+		self::require_access();
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 		if ( function_exists( 'bsc_rate_limit' ) ) {
 			bsc_rate_limit( 'skin_quiz_track', 120, MINUTE_IN_SECONDS );
@@ -336,6 +358,13 @@ class BSC_Growth_Skin_Quiz {
 
 		self::track_event( $event, $mode, $meta );
 		wp_send_json_success( array( 'tracked' => true ) );
+	}
+
+	/** Reject unauthorized quiz AJAX requests before any work is performed. */
+	private static function require_access(): void {
+		if ( ! self::can_access() ) {
+			wp_send_json_error( array( 'message' => 'No tienes permisos para acceder al Skin Quiz.' ), 403 );
+		}
 	}
 
 	private static function render_normal_form( bool $hidden ): void {

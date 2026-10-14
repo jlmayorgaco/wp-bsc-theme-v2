@@ -322,6 +322,10 @@ class BSC_Growth_Skin_Quiz_Store {
 	}
 
 	public static function ajax_private_image(): void {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
+			status_header( 403 );
+			exit;
+		}
 		$run_id = isset( $_GET['run_id'] ) ? absint( $_GET['run_id'] ) : 0;
 		if ( $run_id <= 0 ) {
 			status_header( 404 );
@@ -347,6 +351,9 @@ class BSC_Growth_Skin_Quiz_Store {
 	}
 
 	public static function ajax_delete_run(): void {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
+			wp_send_json_error( array( 'message' => 'No tienes permisos para acceder al Skin Quiz.' ), 403 );
+		}
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 		$run_id = isset( $_POST['run_id'] ) ? absint( $_POST['run_id'] ) : 0;
 		$run    = self::get_run( $run_id );
@@ -360,6 +367,9 @@ class BSC_Growth_Skin_Quiz_Store {
 	}
 
 	public static function ajax_send_routine(): void {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
+			wp_send_json_error( array( 'message' => 'No tienes permisos para acceder al Skin Quiz.' ), 403 );
+		}
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
 		if ( function_exists( 'bsc_rate_limit' ) ) {
 			bsc_rate_limit( 'skin_quiz_send_routine', 5, 10 * MINUTE_IN_SECONDS );
