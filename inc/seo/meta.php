@@ -804,6 +804,40 @@ function bsc_seo_filter_sitemap_pages( array $args, string $post_type ): array {
 add_filter( 'wp_sitemaps_posts_query_args', 'bsc_seo_filter_sitemap_pages', 10, 2 );
 
 /**
+ * Exclude author and blog entries from the public WordPress sitemaps.
+ *
+ * @param WP_Sitemaps_Provider $provider Sitemap provider.
+ * @param string               $name     Provider name.
+ * @return WP_Sitemaps_Provider|false
+ */
+function bsc_seo_hide_users_sitemap( $provider, string $name ) {
+	return 'users' === $name ? false : $provider;
+}
+add_filter( 'wp_sitemaps_add_provider', 'bsc_seo_hide_users_sitemap', 10, 2 );
+
+/**
+ * Exclude blog posts from the public sitemap.
+ *
+ * @param array $post_types Public post types in the sitemap.
+ */
+function bsc_seo_hide_blog_post_sitemap( array $post_types ): array {
+	unset( $post_types['post'] );
+	return $post_types;
+}
+add_filter( 'wp_sitemaps_post_types', 'bsc_seo_hide_blog_post_sitemap' );
+
+/**
+ * Exclude blog taxonomies from the public sitemap.
+ *
+ * @param array $taxonomies Public taxonomies in the sitemap.
+ */
+function bsc_seo_hide_blog_taxonomy_sitemaps( array $taxonomies ): array {
+	unset( $taxonomies['category'], $taxonomies['post_tag'] );
+	return $taxonomies;
+}
+add_filter( 'wp_sitemaps_taxonomies', 'bsc_seo_hide_blog_taxonomy_sitemaps' );
+
+/**
  * Add BSC-specific crawl directives to robots.txt.
  *
  * @param string $output    Existing robots.txt output.

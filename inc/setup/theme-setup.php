@@ -6,7 +6,6 @@
 if (!function_exists( 'bsc_2_0_setup' )) {
 	function bsc_2_0_setup() {
 		load_theme_textdomain( 'bsc-2-0', get_template_directory() . '/languages' );
-		add_theme_support( 'automatic-feed-links' );
 		add_theme_support( 'title-tag' );
 		add_theme_support( 'post-thumbnails' );
 
