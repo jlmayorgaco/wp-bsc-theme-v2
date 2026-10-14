@@ -11,7 +11,9 @@
 				class="header-mobile__icon-btn header-mobile__menu-btn"
 			>
 				<span class="mobile-toggle__icon mobile-toggle__icon--open">
-					<i aria-hidden="true" class="dlicon ui-3_menu-left"></i>
+					<svg class="bsc-icon bsc-icon--menu" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+						<path d="M4 6h16M4 12h16M4 18h16" />
+					</svg>
 				</span>
 
 				<span class="mobile-toggle__icon mobile-toggle__icon--close" aria-hidden="true">

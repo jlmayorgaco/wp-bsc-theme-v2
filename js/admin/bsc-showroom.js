@@ -4,6 +4,7 @@
   var cart = {};
   var selectedProduct = null;
   var searchTimer = null;
+  var requestId = null;
 
   var $search = $('#bsc-product-search');
   var $qty = $('#bsc-product-qty');
@@ -196,12 +197,15 @@
       return;
     }
 
-    productId = selectedProduct.id;
+    productId = selectedProduct.id + ':' + (selectedProduct.variant_key || '');
+    requestId = null;
 
     if (cart[productId]) {
       cart[productId].qty += quantity;
     } else {
       cart[productId] = {
+        id: selectedProduct.id,
+        variant_key: selectedProduct.variant_key || '',
         name: selectedProduct.name,
         price: selectedProduct.price,
         qty: quantity,
@@ -221,12 +225,14 @@
     var quantity = parseInt($(this).val(), 10) || 1;
 
     if (cart[productId]) {
+      requestId = null;
       cart[productId].qty = quantity;
       renderCart();
     }
   });
 
   $(document).on('click', '.remove-item', function () {
+    requestId = null;
     delete cart[$(this).data('pid')];
     renderCart();
   });
@@ -234,7 +240,8 @@
   $registerButton.on('click', function () {
     var items = Object.keys(cart).map(function (productId) {
       return {
-        id: parseInt(productId, 10),
+        id: cart[productId].id,
+        variant_key: cart[productId].variant_key,
         qty: cart[productId].qty,
       };
     });
@@ -246,11 +253,13 @@
     }
 
     $registerButton.prop('disabled', true).text(strings.registering || 'Registrando...');
+    requestId = requestId || crypto.randomUUID();
 
     $.post(config.ajaxUrl, {
       action: 'bsc_register_showroom_sale',
       nonce: config.nonce,
       items: JSON.stringify(items),
+      request_id: requestId,
       payment_method: payment,
       customer_name: $('#bsc-customer-name').val().trim(),
       customer_phone: $('#bsc-customer-phone').val().trim(),
@@ -285,8 +294,9 @@
         );
         $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
       })
-      .fail(function () {
-        showNotice(strings.connectionError || 'Error de conexión.', 'error');
+      .fail(function (xhr) {
+        var response = xhr.responseJSON;
+        showNotice(escapeHtml((response && response.data && response.data.message) || strings.connectionError || 'Error de conexión. Intenta nuevamente para consultar el resultado de esta venta.'), 'error');
         $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
       });
   });

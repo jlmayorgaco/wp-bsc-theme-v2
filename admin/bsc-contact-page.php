@@ -49,6 +49,7 @@ function bsc_contact_handle_admin_actions(): void {
 		}
 
 		$action = sanitize_key( wp_unslash( $_POST['bsc_contact_action'] ) );
+		bsc_form_data_guard_admin( 'bsc_contact_messages' );
 
 		if ( 'update_message' === $action ) {
 			$index    = isset( $_POST['message_id'] ) ? max( 0, (int) wp_unslash( $_POST['message_id'] ) ) : -1;
@@ -287,6 +288,7 @@ function bsc_render_contact_page(): void {
 					<td>
 						<form method="post" class="bsc-admin-contact__status-form">
 							<?php wp_nonce_field( 'bsc_contact_action', 'bsc_contact_nonce' ); ?>
+<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_contact_messages' ) ); ?>">
 							<input type="hidden" name="bsc_contact_action" value="update_message">
 							<input type="hidden" name="message_id" value="<?php echo esc_attr( $index ); ?>">
 							<select name="message_status">
@@ -303,6 +305,7 @@ function bsc_render_contact_page(): void {
 							<a class="button button-small" href="mailto:<?php echo esc_attr( $email ); ?>">Responder</a>
 							<form method="post" class="bsc-admin-contact__delete-form">
 								<?php wp_nonce_field( 'bsc_contact_action', 'bsc_contact_nonce' ); ?>
+<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_contact_messages' ) ); ?>">
 								<input type="hidden" name="bsc_contact_action" value="delete_message">
 								<input type="hidden" name="message_id" value="<?php echo esc_attr( $index ); ?>">
 								<button type="submit" class="button button-small bsc-admin-button-danger" onclick="return confirm('Eliminar este mensaje y sus datos personales?');">Eliminar datos</button>

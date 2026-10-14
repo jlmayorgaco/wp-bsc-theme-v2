@@ -125,6 +125,17 @@ function bsc_get_email_tiktok_url(): string {
 }
 
 function bsc_get_smtp_string_setting( string $option_name, string $constant_name = '', string $default = '' ): string {
+	if ( $constant_name !== '' && defined( $constant_name ) && (string) constant( $constant_name ) !== '' ) {
+		return sanitize_text_field( (string) constant( $constant_name ) );
+	}
+
+	if ( $constant_name !== '' ) {
+		$environment_value = getenv( $constant_name );
+		if ( false !== $environment_value && (string) $environment_value !== '' ) {
+			return sanitize_text_field( (string) $environment_value );
+		}
+	}
+
 	$value = get_option( $option_name, null );
 
 	if ( is_string( $value ) && $value !== '' ) {
@@ -135,22 +146,25 @@ function bsc_get_smtp_string_setting( string $option_name, string $constant_name
 		return sanitize_text_field( (string) $value );
 	}
 
-	if ( $constant_name !== '' && defined( $constant_name ) ) {
-		return sanitize_text_field( (string) constant( $constant_name ) );
-	}
-
 	return $default;
 }
 
 function bsc_get_smtp_password(): string {
-	$password = (string) get_option( 'bsc_smtp_password', '' );
-
-	if ( $password !== '' ) {
-		return $password;
+	if ( defined( 'BSC_SMTP_PASSWORD' ) ) {
+		$password = (string) BSC_SMTP_PASSWORD;
+		if ( '' !== $password ) {
+			return $password;
+		}
 	}
 
-	if ( defined( 'BSC_SMTP_PASSWORD' ) ) {
-		return (string) BSC_SMTP_PASSWORD;
+	$environment_password = getenv( 'BSC_SMTP_PASSWORD' );
+	if ( false !== $environment_password && '' !== (string) $environment_password ) {
+		return (string) $environment_password;
+	}
+
+	$stored_password = (string) get_option( 'bsc_smtp_password', '' );
+	if ( '' !== $stored_password ) {
+		return $stored_password;
 	}
 
 	return '';

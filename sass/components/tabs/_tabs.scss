@@ -1,6 +1,6 @@
 @use "../../tokens/public" as bsc;
 
-$tab-muted-opacity: 0.56;
+$tab-muted-opacity: 1;
 $tab-state-duration: 180ms;
 
 .bsc__tabs {
@@ -21,6 +21,10 @@ $tab-state-duration: 180ms;
   }
 
   .tab__header {
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font: inherit;
     cursor: pointer;
     padding: 0.5rem 1rem;
     display: flex;
@@ -32,6 +36,11 @@ $tab-state-duration: 180ms;
 
     width: 130px;
     height: 130px;
+
+    &:focus-visible {
+      outline: 2px solid bsc.$text;
+      outline-offset: 3px;
+    }
 
     &.active,
     &:hover {

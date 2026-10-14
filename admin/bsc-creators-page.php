@@ -75,6 +75,7 @@ function bsc_creators_handle_actions(): void {
 		}
 
 		$action = sanitize_key( wp_unslash( $_POST['bsc_creator_action'] ) );
+		bsc_form_data_guard_admin( 'bsc_creator_applications' );
 
 		if ('update_status' === $action) {
 			$index        = isset( $_POST['application_id'] ) ? absint( wp_unslash( $_POST['application_id'] ) ) : -1;
@@ -255,6 +256,11 @@ function bsc_render_creators_page(): void {
 			$visible_rows = 0;
 			foreach ($applications as $index => $application) :
 				$status = bsc_creators_normalize_status( (string) ( $application['status'] ?? 'new' ) );
+				$message = (string) ( $application['mensaje'] ?? '' );
+				$message_preview = wp_trim_words( $message, 18 );
+				$normalized_message = preg_replace( '/\s+/u', ' ', trim( $message ) );
+				$normalized_preview = wp_trim_words( $message, 18, '' );
+				$message_is_truncated = is_string( $normalized_message ) && $normalized_preview !== $normalized_message;
 
 				if ($status_filter && $status !== $status_filter) {
 					continue;
@@ -284,7 +290,20 @@ function bsc_render_creators_page(): void {
 						<?php endif; ?>
 					</td>
 					<td><?php echo esc_html( $application['source'] ?? 'bubble-creators-form' ); ?></td>
-					<td><?php echo esc_html( wp_trim_words( (string) ( $application['mensaje'] ?? '' ), 18 ) ); ?></td>
+					<td class="bsc-admin-creators__message">
+						<?php if ( $message_is_truncated ) : ?>
+							<details class="bsc-admin-creators__message-details">
+								<summary>
+									<span class="bsc-admin-creators__message-preview"><?php echo esc_html( $message_preview ); ?></span>
+									<span class="bsc-admin-creators__message-expand">Ver mensaje completo</span>
+									<span class="bsc-admin-creators__message-collapse">Ocultar mensaje</span>
+								</summary>
+								<div class="bsc-admin-creators__message-full"><?php echo esc_html( $message ); ?></div>
+							</details>
+						<?php else : ?>
+							<?php echo esc_html( $message ); ?>
+						<?php endif; ?>
+					</td>
 					<td><?php echo esc_html( wp_trim_words( (string) ( $application['notes'] ?? '' ), 14 ) ); ?></td>
 					<td>
 						<?php
@@ -295,6 +314,7 @@ function bsc_render_creators_page(): void {
 					<td>
 						<form method="post" class="bsc-admin-creators__status-form">
 							<?php wp_nonce_field( 'bsc_creators_action', 'bsc_creators_nonce' ); ?>
+							<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_creator_applications' ) ); ?>">
 							<input type="hidden" name="bsc_creator_action" value="update_status">
 							<input type="hidden" name="application_id" value="<?php echo esc_attr( $index ); ?>">
 							<select name="application_status">
@@ -309,6 +329,7 @@ function bsc_render_creators_page(): void {
 						</form>
 						<form method="post" class="bsc-admin-creators__delete-form">
 							<?php wp_nonce_field( 'bsc_creators_action', 'bsc_creators_nonce' ); ?>
+							<input type="hidden" name="bsc_data_revision" value="<?php echo esc_attr( bsc_form_data_revision( 'bsc_creator_applications' ) ); ?>">
 							<input type="hidden" name="bsc_creator_action" value="delete_application">
 							<input type="hidden" name="application_id" value="<?php echo esc_attr( $index ); ?>">
 							<button type="submit" class="button button-small bsc-admin-button-danger" onclick="return confirm('Eliminar esta solicitud y sus datos personales?');">Eliminar datos</button>

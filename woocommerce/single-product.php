@@ -93,7 +93,8 @@ $base_price_html = function_exists( 'bsc_get_product_available_price_html' )
 		<?php
 		$main_image_id            = (int) $product->get_image_id();
 		$discount_badge_rendered = false;
-		$discount_badge_filter   = static function ( string $html, int $attachment_id ) use ( $card, $main_image_id, &$discount_badge_rendered ): string {
+		$discount_badge_filter   = static function ( string $html, int|string $attachment_id ) use ( $card, $main_image_id, &$discount_badge_rendered ): string {
+			$attachment_id = absint( $attachment_id );
 			if ( $discount_badge_rendered || $main_image_id <= 0 || $attachment_id !== $main_image_id ) {
 				return $html;
 			}
@@ -157,13 +158,13 @@ $base_price_html = function_exists( 'bsc_get_product_available_price_html' )
 					?>
 					<button
 						type="button"
-						class="bsc-product-options__color-option<?php echo $is_selected_color ? ' is-selected' : ''; ?>"
+						class="bsc-product-options__color-option<?php echo esc_attr( $is_selected_color ? ' is-selected' : '' ); ?>"
 						data-bsc-color-option
 						data-name="<?php echo esc_attr( $variant['name'] ); ?>"
 						data-hex="<?php echo esc_attr( $variant['hex'] ); ?>"
 						data-price="<?php echo esc_attr( $variant['price'] ); ?>"
 						role="option"
-						aria-selected="<?php echo $is_selected_color ? 'true' : 'false'; ?>"
+						aria-selected="<?php echo esc_attr( $is_selected_color ? 'true' : 'false' ); ?>"
 						aria-label="<?php echo esc_attr( $color_label ); ?>"
 						title="<?php echo esc_attr( (string) $variant['name'] ); ?>"
 					>
@@ -188,12 +189,12 @@ $base_price_html = function_exists( 'bsc_get_product_available_price_html' )
 					?>
 					<button
 						type="button"
-						class="bsc-product-options__size-option<?php echo $is_selected_size ? ' is-selected' : ''; ?>"
+						class="bsc-product-options__size-option<?php echo esc_attr( $is_selected_size ? ' is-selected' : '' ); ?>"
 						data-bsc-size-option
 						data-name="<?php echo esc_attr( $variant['name'] ); ?>"
 						data-price="<?php echo esc_attr( $variant['price'] ); ?>"
 						role="option"
-						aria-selected="<?php echo $is_selected_size ? 'true' : 'false'; ?>"
+						aria-selected="<?php echo esc_attr( $is_selected_size ? 'true' : 'false' ); ?>"
 					>
 						<span class="bsc-product-options__option-name"><?php echo esc_html( $variant['name'] ); ?></span>
 						<?php if ( $variant['price'] !== '' ) : ?>
@@ -296,9 +297,9 @@ $base_price_html = function_exists( 'bsc_get_product_available_price_html' )
 
 	<div class="bsc__product-recommendations">
 		<div class="section__container">
-		<h1 class="bsc__title">
+		<h2 class="bsc__title">
 			<strong>Recomendados</strong> para ti
-		</h1>
+		</h2>
 
 		<?php
 		$key            = 'bsc-recomended-products';

@@ -3,7 +3,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <main class="bsc bsc__page bsc__page--cancelled">
 	<div class="bsc__container bsc__container--centered">
-	<img class="bsc__empty-logo" alt="" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_image_empty_cart.png">
+	<img class="bsc__empty-logo" alt="" width="2218" height="1417" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_image_empty_cart.png">
 	<h1 class="bsc__title">Pedido <strong>cancelado</strong></h1>
 	<p class="bsc__subtitle">Tu pedido fue cancelado. Si crees que esto es un error, contáctanos por WhatsApp.</p>
 	<div class="bsc__cancelled-actions">

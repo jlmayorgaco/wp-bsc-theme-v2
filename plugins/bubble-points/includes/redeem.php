@@ -158,6 +158,7 @@ if ( ! function_exists( 'bsc_bp_award_order_points' ) ) {
 		if ( empty( $result['ok'] ) ) {
 			return $result;
 		}
+		$points = isset( $result['delta'] ) ? (int) $result['delta'] : $points;
 
 		$order->update_meta_data( '_bsc_bp_points_awarded', $points );
 		$order->update_meta_data( '_bsc_bp_points_awarded_at', current_time( 'mysql' ) );
@@ -206,3 +207,51 @@ if ( ! function_exists( 'bsc_bp_award_order_points_on_payment_complete' ) ) {
 
 add_action( 'woocommerce_order_status_changed', 'bsc_bp_award_order_points_on_status_change', 20, 4 );
 add_action( 'woocommerce_payment_complete', 'bsc_bp_award_order_points_on_payment_complete', 20, 1 );
+
+/** Reconcile the order's net benefit, including partial refunds and later reinstatement. */
+function bsc_bp_reconcile_order_points( int $order_id ): void {
+	$reconciled = BSC_DB_Lock::run( 'points-order:' . $order_id, static function () use ( $order_id ) {
+		global $wpdb;
+		$order = wc_get_order( $order_id );
+		if ( ! $order || ! $order->get_user_id() ) {
+			return;
+		}
+		$user_id = (int) $order->get_user_id();
+		return bsc_bp_with_user_lock( $user_id, static function () use ( $order, $order_id, $user_id, $wpdb ) {
+			$table = bsc_bp_table();
+			$rows = $wpdb->get_row( $wpdb->prepare(
+				"SELECT MAX(id) AS last_id, SUM(delta) AS net, SUM(CASE WHEN reason = 'order_complete' THEN delta ELSE 0 END) AS awarded FROM {$table} WHERE user_id = %d AND order_id = %d AND reason IN ('order_complete', 'order_refund', 'order_reconcile')",
+				$user_id, $order_id
+			) );
+			$awarded = (int) ( $rows->awarded ?? 0 );
+			if ( $awarded <= 0 ) {
+				return;
+			}
+			$total = (float) $order->get_total();
+			$target = $total > 0 ? (int) floor( $awarded * max( 0, $total - (float) $order->get_total_refunded() ) / $total ) : 0;
+			if ( $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) ) {
+				$target = 0;
+			}
+			$delta = $target - (int) ( $rows->net ?? 0 );
+			if ( 0 === $delta ) {
+				return;
+			}
+			$result = bsc_bp_add_ledger_entry( $user_id, $delta, 'order_reconcile', $order_id, array(
+				'event_key' => 'reconcile:order:' . $order_id . ':after:' . (int) $rows->last_id . ':target:' . $target,
+				'refunded_total' => $order->get_total_refunded(),
+				'status' => $order->get_status(),
+			), true );
+			return $result;
+		} );
+	} );
+	if ( is_wp_error( $reconciled ) || ( is_array( $reconciled ) && empty( $reconciled['ok'] ) ) ) {
+		$order = wc_get_order( $order_id );
+		if ( $order ) { $order->add_order_note( 'Conciliación de Bubble Points pendiente; se reintentará automáticamente.' ); }
+		// WP-Cron deduplicates pending retries; this also handles failure to acquire either lock.
+		wp_schedule_single_event( time() + 300, 'bsc_bp_reconcile_order_points', array( $order_id ) );
+	}
+}
+add_action( 'bsc_bp_reconcile_order_points', 'bsc_bp_reconcile_order_points' );
+add_action( 'woocommerce_order_status_changed', 'bsc_bp_reconcile_order_points', 30, 1 );
+add_action( 'woocommerce_payment_complete', 'bsc_bp_reconcile_order_points', 30, 1 );
+add_action( 'woocommerce_order_refunded', 'bsc_bp_reconcile_order_points', 30, 1 );

@@ -67,26 +67,34 @@ function bsc_email_debug_secret_summary( string $secret, string $source = '' ): 
 }
 
 function bsc_get_bsc_smtp_password_source(): string {
-	if ( (string) get_option( 'bsc_smtp_password', '' ) !== '' ) {
-		return 'option:bsc_smtp_password';
-	}
-
 	if ( defined( 'BSC_SMTP_PASSWORD' ) && (string) BSC_SMTP_PASSWORD !== '' ) {
 		return 'constant:BSC_SMTP_PASSWORD';
+	}
+
+	if ( false !== getenv( 'BSC_SMTP_PASSWORD' ) && '' !== (string) getenv( 'BSC_SMTP_PASSWORD' ) ) {
+		return 'env:BSC_SMTP_PASSWORD';
+	}
+
+	if ( (string) get_option( 'bsc_smtp_password', '' ) !== '' ) {
+		return 'option:bsc_smtp_password';
 	}
 
 	return 'none';
 }
 
 function bsc_get_bsc_smtp_value_source( string $option_name, string $constant_name = '' ): string {
+	if ( $constant_name !== '' && defined( $constant_name ) && (string) constant( $constant_name ) !== '' ) {
+		return 'constant:' . $constant_name;
+	}
+
+	if ( $constant_name !== '' && false !== getenv( $constant_name ) && '' !== (string) getenv( $constant_name ) ) {
+		return 'env:' . $constant_name;
+	}
+
 	$value = get_option( $option_name, null );
 
 	if ( ( is_string( $value ) && $value !== '' ) || is_numeric( $value ) ) {
 		return 'option:' . $option_name;
-	}
-
-	if ( $constant_name !== '' && defined( $constant_name ) && (string) constant( $constant_name ) !== '' ) {
-		return 'constant:' . $constant_name;
 	}
 
 	return 'default/empty';

@@ -63,10 +63,10 @@ class BSC_Growth_Skin_Quiz_Admin {
 		update_option( 'bsc_gemini_generate_after_image', empty( $_POST['generate_after_image'] ) ? 0 : 1, false );
 		update_option( 'bsc_skin_quiz_ab_testing_enabled', empty( $_POST['ab_testing_enabled'] ) ? 0 : 1, false );
 		update_option( 'bsc_skin_quiz_photo_retention_days', max( 1, absint( $_POST['photo_retention_days'] ?? 90 ) ), false );
-		update_option( 'bsc_skin_quiz_usd_to_cop', max( 1, (float) ( $_POST['usd_to_cop'] ?? 4000 ) ), false );
-		update_option( 'bsc_skin_quiz_analysis_input_usd_m', max( 0, (float) ( $_POST['analysis_input_usd_m'] ?? 1.5 ) ), false );
-		update_option( 'bsc_skin_quiz_analysis_output_usd_m', max( 0, (float) ( $_POST['analysis_output_usd_m'] ?? 9 ) ), false );
-		update_option( 'bsc_skin_quiz_image_base_usd', max( 0, (float) ( $_POST['image_base_usd'] ?? 0.039 ) ), false );
+		update_option( 'bsc_skin_quiz_usd_to_cop', max( 1, (float) sanitize_text_field( wp_unslash( $_POST['usd_to_cop'] ?? 4000 ) ) ), false );
+		update_option( 'bsc_skin_quiz_analysis_input_usd_m', max( 0, (float) sanitize_text_field( wp_unslash( $_POST['analysis_input_usd_m'] ?? 1.5 ) ) ), false );
+		update_option( 'bsc_skin_quiz_analysis_output_usd_m', max( 0, (float) sanitize_text_field( wp_unslash( $_POST['analysis_output_usd_m'] ?? 9 ) ) ), false );
+		update_option( 'bsc_skin_quiz_image_base_usd', max( 0, (float) sanitize_text_field( wp_unslash( $_POST['image_base_usd'] ?? 0.039 ) ) ), false );
 
 		wp_safe_redirect(
 			add_query_arg(

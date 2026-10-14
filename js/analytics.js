@@ -2,6 +2,9 @@
   'use strict';
 
   function pushEcommerceEvent(eventName, ecommerce) {
+    var analyticsConfig = window.bsc_analytics || {};
+    if (analyticsConfig.consent_required && !analyticsConfig.consent_granted) return;
+
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ ecommerce: null });
     window.dataLayer.push({
@@ -19,6 +22,13 @@
       price: Number.isFinite(rawPrice) ? rawPrice : 0,
       quantity: quantity || 1,
     };
+  }
+
+  function setAnalyticsConsent(value) {
+    var maxAge = 180 * 24 * 60 * 60;
+    var secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = 'bsc_analytics_consent=' + encodeURIComponent(value) + '; Max-Age=' + maxAge + '; Path=/; SameSite=Lax' + secure;
+    window.location.reload();
   }
 
   if (window.jQuery) {
@@ -44,6 +54,12 @@
       });
     });
   }
+
+  document.addEventListener('click', function (event) {
+    var target = event.target.closest('[data-bsc-analytics-consent]');
+    if (!target) return;
+    setAnalyticsConsent(target.getAttribute('data-bsc-analytics-consent') === 'granted' ? 'granted' : 'denied');
+  });
 
   window.bscPushEcommerceEvent = pushEcommerceEvent;
 }());

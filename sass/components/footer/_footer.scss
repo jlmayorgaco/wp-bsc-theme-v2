@@ -238,6 +238,9 @@ $breakpoints: (
   }
 
   &__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
     font-size: 0.95em;
     letter-spacing: 1px;
     color: footer-color(link);
@@ -246,6 +249,11 @@ $breakpoints: (
 
     &:hover {
       color: footer-color(link-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid currentcolor;
+      outline-offset: 3px;
     }
   }
 
@@ -375,8 +383,9 @@ $breakpoints: (
       transform: translateY(footer-floating(cart-hover-lift));
     }
 
-    i {
-      font-size: 19px;
+    .bsc-icon {
+      width: 19px;
+      height: 19px;
     }
 
     .footer__cart-count {

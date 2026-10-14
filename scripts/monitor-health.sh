@@ -3,19 +3,22 @@
 # Usage: bash scripts/monitor-health.sh
 # Cron: */15 * * * * /path/to/scripts/monitor-health.sh
 
-SITE_URL="https://bubblesskincare.com"
-SITE_HOST="bubblesskincare.com"
-ADMIN_EMAIL="admin@bubblesskincare.com"
-LOG_FILE="/var/log/bsc-monitor.log"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/backup-common.sh"
+load_backup_config
+SITE_HOST="$(printf '%s' "$SITE_URL" | sed -E 's#https?://([^/]+).*#\1#')"
 DISK_THRESHOLD=80    # alert when disk > 80%
 SSL_WARN_DAYS=30     # alert when SSL expires in < 30 days
+HEALTH_FAILED=0
+mkdir -p "$(dirname "$LOG_FILE")"
 
 send_alert() {
     local subject="$1"
     local body="$2"
+    HEALTH_FAILED=1
     echo "[$(date)] ALERT: $body" >> "$LOG_FILE"
     if command -v mail &>/dev/null; then
-        echo "$body" | mail -s "$subject" "$ADMIN_EMAIL"
+        echo "$body" | mail -s "$subject" "$ADMIN_EMAIL" || echo "Alert email delivery failed" >> "$LOG_FILE"
     fi
 }
 
@@ -41,17 +44,19 @@ check_backup_freshness() {
 }
 
 # Check 1: HTTP status
-HTTP_CODE=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 10 "$SITE_URL" 2>/dev/null)
+HTTP_CODE=$(curl -sL -o /dev/null -w "%{http_code}" --max-time 10 "$SITE_URL" 2>/dev/null) || HTTP_CODE="connection-failed"
 if [ "$HTTP_CODE" != "200" ]; then
     send_alert "BSC Site Down - HTTP $HTTP_CODE" \
-        "bubblesskincare.com returned HTTP $HTTP_CODE at $(date). Check server immediately."
+        "$SITE_URL returned HTTP $HTTP_CODE at $(date). Check server immediately."
 else
     echo "[$(date)] OK  HTTP $HTTP_CODE $SITE_URL" >> "$LOG_FILE"
 fi
 
 # Check 2: Disk usage
-DISK_USAGE=$(df / | awk 'NR==2{gsub(/%/,"",$5); print $5}')
-if [ -n "$DISK_USAGE" ] && [ "$DISK_USAGE" -gt "$DISK_THRESHOLD" ]; then
+DISK_USAGE=$(df / | awk 'NR==2{gsub(/%/,"",$5); print $5}') || DISK_USAGE=""
+if ! [[ "$DISK_USAGE" =~ ^[0-9]+$ ]]; then
+    send_alert "BSC Disk Check Failed" "Could not read filesystem usage."
+elif [ "$DISK_USAGE" -gt "$DISK_THRESHOLD" ]; then
     send_alert "BSC Disk Warning - ${DISK_USAGE}% used" \
         "Server disk is at ${DISK_USAGE}%. Free up space before it fills completely."
 else
@@ -61,10 +66,10 @@ fi
 # Check 3: SSL certificate expiry
 if command -v openssl &>/dev/null; then
     SSL_EXPIRY=$(echo | timeout 5 openssl s_client -connect "${SITE_HOST}:443" -servername "$SITE_HOST" 2>/dev/null \
-        | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+        | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2) || SSL_EXPIRY=""
 
     if [ -n "$SSL_EXPIRY" ]; then
-        EXPIRY_EPOCH=$(date -d "$SSL_EXPIRY" +%s 2>/dev/null)
+        EXPIRY_EPOCH=$(date -d "$SSL_EXPIRY" +%s 2>/dev/null) || EXPIRY_EPOCH=""
         NOW_EPOCH=$(date +%s)
         if [ -n "$EXPIRY_EPOCH" ]; then
             DAYS_LEFT=$(( (EXPIRY_EPOCH - NOW_EPOCH) / 86400 ))
@@ -74,14 +79,18 @@ if command -v openssl &>/dev/null; then
             else
                 echo "[$(date)] OK  SSL valid for ${DAYS_LEFT} days" >> "$LOG_FILE"
             fi
+        else
+            send_alert "BSC SSL Check Failed" "Could not parse certificate expiry for $SITE_HOST."
         fi
+    else
+        send_alert "BSC SSL Check Failed" "Could not retrieve certificate for $SITE_HOST."
     fi
+else
+    send_alert "BSC SSL Check Failed" "openssl is unavailable."
 fi
 
 # Check 4: Backup freshness
-check_backup_freshness "DB" "/backups/bsc/db" "*.sql.gz" 2
-check_backup_freshness "WordPress app" "/backups/bsc/full" "full-*.tar.gz" 2
-check_backup_freshness "VPS state" "/backups/bsc/system" "system-*.tar.gz" 2
-check_backup_freshness "Recovery bundle" "/backups/bsc/bundles" "recovery-bundle-*.tar.gz" 8
+bash "$SCRIPT_DIR/check-backup-health.sh" || HEALTH_FAILED=1
 
 echo "[$(date)] --- Health check complete ---" >> "$LOG_FILE"
+exit "$HEALTH_FAILED"

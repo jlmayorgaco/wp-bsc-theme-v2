@@ -26,7 +26,7 @@ function bsc_apply_coupon() {
 	if ( $coupon_code === '' ) {
 		wp_send_json_error(
 			array(
-				'message' => 'Ingresa un codigo de cupon para aplicarlo.',
+				'message' => 'Ingresa un código de cupón para aplicarlo.',
 				'status'  => 'warning',
 			)
 		);
@@ -37,7 +37,7 @@ function bsc_apply_coupon() {
 	if ( ! $coupon->get_id() || ! wc_is_same_coupon( $coupon->get_code(), $coupon_code ) ) {
 		wp_send_json_error(
 			array(
-				'message' => 'El cupon ingresado no existe o no es valido.',
+				'message' => 'El cupón ingresado no existe o no es válido.',
 				'status'  => 'error',
 			)
 		);
@@ -46,7 +46,7 @@ function bsc_apply_coupon() {
 	if ( WC()->cart->has_discount( $coupon_code ) ) {
 		wp_send_json_error(
 			array(
-				'message' => 'Este cupon ya esta aplicado.',
+				'message' => 'Este cupón ya está aplicado.',
 				'status'  => 'warning',
 			)
 		);
@@ -56,7 +56,7 @@ function bsc_apply_coupon() {
 	if ( $expires && time() > $expires->getTimestamp() ) {
 		wp_send_json_error(
 			array(
-				'message' => 'Este cupon ya expiro.',
+				'message' => 'Este cupón ya venció.',
 				'status'  => 'error',
 			)
 		);
@@ -66,10 +66,22 @@ function bsc_apply_coupon() {
 		wc_clear_notices();
 	}
 
-	$applied = WC()->cart->apply_coupon( $coupon_code );
+	// WooCommerce may return English error text (and encoded price markup) here.
+	// Translate by error code while the coupon is being validated.
+	$translated_error = '';
+	$translate_error  = static function ( $message, $error_code, $error_coupon ) use ( $coupon, &$translated_error ) {
+		$translated_error = bsc_coupon_error_in_spanish( (int) $error_code, $error_coupon instanceof WC_Coupon ? $error_coupon : $coupon );
+		return $translated_error;
+	};
+	add_filter( 'woocommerce_coupon_error', $translate_error, PHP_INT_MAX, 3 );
+	try {
+		$applied = WC()->cart->apply_coupon( $coupon_code );
+	} finally {
+		remove_filter( 'woocommerce_coupon_error', $translate_error, PHP_INT_MAX );
+	}
 
 	if ( ! $applied ) {
-		$message = bsc_get_coupon_notice_message( 'No pudimos aplicar este cupon. Revisa las condiciones e intentalo de nuevo.' );
+		$message = $translated_error ?: 'No pudimos aplicar este cupón. Revisa las condiciones e inténtalo de nuevo.';
 
 		if ( function_exists( 'wc_clear_notices' ) ) {
 			wc_clear_notices();
@@ -92,7 +104,7 @@ function bsc_apply_coupon() {
 	wp_send_json_success(
 		array_merge(
 			array(
-				'message' => 'Cupon agregado exitosamente.',
+				'message' => 'Cupón aplicado correctamente.',
 				'status'  => 'success',
 			),
 			bsc_get_coupon_totals_payload()
@@ -114,7 +126,7 @@ function bsc_remove_coupon() {
 	if ( '' === $coupon_code ) {
 		wp_send_json_error(
 			array(
-				'message' => 'No encontramos un cupon para eliminar.',
+				'message' => 'No encontramos un cupón para eliminar.',
 				'status'  => 'warning',
 			)
 		);
@@ -135,7 +147,7 @@ function bsc_remove_coupon() {
 	wp_send_json_success(
 		array_merge(
 			array(
-				'message' => 'Cupon eliminado.',
+				'message' => 'Cupón eliminado.',
 				'status'  => 'success',
 			),
 			bsc_get_coupon_totals_payload()
@@ -196,24 +208,42 @@ function bsc_get_posted_coupon_code(): string {
 	return wc_format_coupon_code( (string) $raw_coupon_code );
 }
 
-function bsc_get_coupon_notice_message( string $fallback ): string {
-	if ( ! function_exists( 'wc_get_notices' ) ) {
-		return $fallback;
-	}
+function bsc_coupon_plain_text( string $message ): string {
+	// WooCommerce prices contain markup and encoded currency symbols.
+	return trim( wp_strip_all_tags( html_entity_decode( $message, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
+}
 
-	$notices = wc_get_notices( 'error' );
-	if ( empty( $notices ) || ! is_array( $notices ) ) {
-		return $fallback;
-	}
+function bsc_coupon_error_in_spanish( int $error_code, WC_Coupon $coupon ): string {
+	$code = bsc_coupon_plain_text( $coupon->get_code() );
 
-	$last_notice = end( $notices );
-	if ( is_array( $last_notice ) && isset( $last_notice['notice'] ) ) {
-		return wp_strip_all_tags( (string) $last_notice['notice'] );
+	switch ( $error_code ) {
+		case WC_Coupon::E_WC_COUPON_NOT_EXIST:
+			return 'Este cupón no existe.';
+		case WC_Coupon::E_WC_COUPON_EXPIRED:
+			return 'Este cupón venció.';
+		case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_REACHED:
+		case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_COUPON_STUCK:
+		case WC_Coupon::E_WC_COUPON_USAGE_LIMIT_COUPON_STUCK_GUEST:
+			return 'Este cupón alcanzó su límite de usos.';
+		case WC_Coupon::E_WC_COUPON_ALREADY_APPLIED:
+			return 'Este cupón ya está aplicado.';
+		case WC_Coupon::E_WC_COUPON_ALREADY_APPLIED_INDIV_USE_ONLY:
+			return 'Este cupón no se puede combinar con otros cupones.';
+		case WC_Coupon::E_WC_COUPON_MIN_SPEND_LIMIT_NOT_MET:
+			return 'Para usar este cupón, el pedido debe ser de al menos ' . bsc_coupon_plain_text( wc_price( $coupon->get_minimum_amount() ) ) . '.';
+		case WC_Coupon::E_WC_COUPON_MAX_SPEND_LIMIT_MET:
+			return 'Este cupón solo aplica a pedidos de hasta ' . bsc_coupon_plain_text( wc_price( $coupon->get_maximum_amount() ) ) . '.';
+		case WC_Coupon::E_WC_COUPON_NOT_VALID_SALE_ITEMS:
+			return 'Este cupón no aplica a productos en oferta.';
+		case WC_Coupon::E_WC_COUPON_EXCLUDED_PRODUCTS:
+		case WC_Coupon::E_WC_COUPON_EXCLUDED_CATEGORIES:
+		case WC_Coupon::E_WC_COUPON_NOT_APPLICABLE:
+			return 'Este cupón no aplica a los productos de tu carrito.';
+		case WC_Coupon::E_WC_COUPON_NOT_YOURS_REMOVED:
+			return 'Ingresa un correo electrónico válido para usar este cupón.';
+		case WC_Coupon::E_WC_COUPON_PLEASE_ENTER:
+			return 'Ingresa un código de cupón.';
+		default:
+			return $code ? sprintf( 'El cupón «%s» no se puede aplicar a este pedido.', $code ) : 'No pudimos aplicar este cupón. Revisa las condiciones e inténtalo de nuevo.';
 	}
-
-	if ( is_string( $last_notice ) ) {
-		return wp_strip_all_tags( $last_notice );
-	}
-
-	return $fallback;
 }

@@ -66,7 +66,7 @@ if (!class_exists( 'BSC_Bubble_Point_Coupon' )) {
 			$alt        = esc_attr( $this->alt );
 			$check_img  = esc_url( $this->img_src( 'plugins/bubble-points/images/coupon__check.png' ) );
 
-			// Entire card is the trigger (no internal button)
+			$disabled = 'normal' === $this->state ? '' : 'disabled';
 			return <<<HTML
                 <div class="{$class_str} js-bsc-coupon"
                      data-points="{$points_raw}"
@@ -99,9 +99,9 @@ if (!class_exists( 'BSC_Bubble_Point_Coupon' )) {
                     </div>
                   </div>
 
-                  <div class="bsc__coupon-card__label">
+                  <button type="button" class="bsc__coupon-card__label" {$disabled}>
                     Redimir x {$points_fmt} Bubble Points
-                  </div>
+                  </button>
                 </div>
             HTML;
 		}

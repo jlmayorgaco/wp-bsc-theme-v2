@@ -54,7 +54,7 @@ $render_cart_recommendations = static function ( int $products_limit = 5 ): void
 
 	<div class="container__empty <?php echo esc_attr( WC()->cart->is_empty() ? 'is-visible' : '' ); ?> ">
 		<p class="bsc__cart-empty">
-			<img width="250" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_image_empty_cart.png" alt="">
+			<img width="250" height="160" src="<?php echo esc_url( get_template_directory_uri() ); ?>/images/bsc_image_empty_cart.png" alt="">
 		</p>
 		<a class="bsc__button" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>">Volver a la tienda</a>
 
