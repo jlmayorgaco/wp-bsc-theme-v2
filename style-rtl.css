@@ -14968,7 +14968,7 @@ details[open] .bsc__product-detail-category > summary::after {
   outline-offset: 3px;
 }
 .bsc__tabs .tab__header.active, .bsc__tabs .tab__header:hover {
-  border-color: var(--color--main);
+  border-color: transparent;
   opacity: 1;
 }
 .bsc__tabs .tab__header .tab__icon {
@@ -15875,7 +15875,7 @@ details[open] .bsc__product-detail-category > summary::after {
   right: 26px;
 }
 
-.bsc__coupon-remove {
+.applied-coupon-item .bsc__coupon-remove {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15893,12 +15893,12 @@ details[open] .bsc__product-detail-category > summary::after {
   cursor: pointer;
   transition: opacity 0.25s ease-in-out;
 }
-.bsc__coupon-remove span {
+.applied-coupon-item .bsc__coupon-remove span {
   font-size: 14px;
   font-weight: 700;
   line-height: 1;
 }
-.bsc__coupon-remove:hover, .bsc__coupon-remove:focus {
+.applied-coupon-item .bsc__coupon-remove:hover, .applied-coupon-item .bsc__coupon-remove:focus {
   opacity: 0.5;
 }
 
