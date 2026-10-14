@@ -12,7 +12,7 @@ class BSC_Growth_Skin_Quiz_Admin {
 	}
 
 	public static function register_admin_menu(): void {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
 			return;
 		}
 
@@ -20,7 +20,7 @@ class BSC_Growth_Skin_Quiz_Admin {
 			'bsc-dashboard',
 			'Skin Quiz BSC',
 			'Skin Quiz',
-			'manage_woocommerce',
+			'manage_options',
 			'bsc-skin-quiz',
 			array( __CLASS__, 'render_page' )
 		);
@@ -54,7 +54,7 @@ class BSC_Growth_Skin_Quiz_Admin {
 			return;
 		}
 
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
 			wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
 		}
 
@@ -81,7 +81,7 @@ class BSC_Growth_Skin_Quiz_Admin {
 	}
 
 	public static function render_page(): void {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( ! BSC_Growth_Skin_Quiz::can_access() ) {
 			wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
 		}
 

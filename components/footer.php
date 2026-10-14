@@ -74,7 +74,7 @@ $checkout_aria_label  = sprintf(
 			<li class="footer__list-item">
 			<a href="<?php echo esc_url( $bubble_creators_url ); ?>" class="footer__link">Bubble Creators</a>
 			</li>
-			<?php if ( 'production' !== wp_get_environment_type() ) : ?>
+			<?php if ( class_exists( 'BSC_Growth_Skin_Quiz' ) && BSC_Growth_Skin_Quiz::can_access() ) : ?>
 			<li class="footer__list-item">
 			<a href="<?php echo esc_url( $skin_quiz_url ); ?>" class="footer__link">Skin Quiz</a>
 			</li>
