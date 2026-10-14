@@ -772,26 +772,30 @@ add_action( 'created_product_cat', 'bsc_seo_save_product_cat_fields' );
 add_action( 'edited_product_cat', 'bsc_seo_save_product_cat_fields' );
 
 /**
- * Remove private WooCommerce pages from core sitemaps.
+ * Remove the sample page and private WooCommerce pages from core sitemaps.
  *
  * @param array  $args      Sitemap query args.
  * @param string $post_type Sitemap post type.
  */
 function bsc_seo_filter_sitemap_pages( array $args, string $post_type ): array {
-	if ( 'page' !== $post_type || ! function_exists( 'wc_get_page_id' ) ) {
+	if ( 'page' !== $post_type ) {
 		return $args;
 	}
 
-	$excluded = array_filter(
-		array_map(
-			'absint',
-			array(
-				wc_get_page_id( 'cart' ),
-				wc_get_page_id( 'checkout' ),
-				wc_get_page_id( 'myaccount' ),
-			)
-		)
-	);
+	$excluded    = array();
+	$sample_page = get_page_by_path( 'sample-page' );
+	if ( $sample_page instanceof WP_Post ) {
+		$excluded[] = $sample_page->ID;
+	}
+
+	if ( function_exists( 'wc_get_page_id' ) ) {
+		foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
+			$page_id = wc_get_page_id( $page );
+			if ( $page_id > 0 ) {
+				$excluded[] = $page_id;
+			}
+		}
+	}
 
 	if ( empty( $excluded ) ) {
 		return $args;
@@ -802,6 +806,26 @@ function bsc_seo_filter_sitemap_pages( array $args, string $post_type ): array {
 	return $args;
 }
 add_filter( 'wp_sitemaps_posts_query_args', 'bsc_seo_filter_sitemap_pages', 10, 2 );
+
+/**
+ * Exclude the default product category from the public sitemap.
+ *
+ * @param array  $args     Sitemap term query args.
+ * @param string $taxonomy Taxonomy name.
+ */
+function bsc_seo_hide_uncategorized_product_cat( array $args, string $taxonomy ): array {
+	if ( 'product_cat' !== $taxonomy ) {
+		return $args;
+	}
+
+	$term = get_term_by( 'slug', 'uncategorized', 'product_cat' );
+	if ( $term instanceof WP_Term ) {
+		$args['exclude'] = array_values( array_unique( array_merge( $args['exclude'] ?? array(), array( $term->term_id ) ) ) );
+	}
+
+	return $args;
+}
+add_filter( 'wp_sitemaps_taxonomies_query_args', 'bsc_seo_hide_uncategorized_product_cat', 10, 2 );
 
 /**
  * Exclude author and blog entries from the public WordPress sitemaps.
