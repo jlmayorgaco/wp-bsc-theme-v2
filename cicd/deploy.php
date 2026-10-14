@@ -398,16 +398,18 @@ function bsc_deploy_smoke_passes( string $url, int $attempts, int &$status = 0 )
 }
 
 /*
- * Sync to the branch that was actually pushed. A bare `git pull --ff-only`
- * depends on whichever branch happens to be checked out on the server, and it
- * cannot fast-forward once main has been force-pushed, which is exactly how
- * this deploy silently froze for three weeks.
+ * Sync to the branch that was actually pushed. Production may have tracked
+ * files edited outside Git; reset and clean before switching branches so those
+ * edits cannot block checkout. Fetch first so a network failure leaves the
+ * working tree untouched.
  */
 $previous_sha = trim( bsc_deploy_run_git_command( $repo_dir, 'git rev-parse HEAD' ) );
 $log          = 'previous HEAD: ' . $previous_sha . "\n";
 $failed       = false;
 $commands     = array(
 	'git fetch --prune origin',
+	'git reset --hard',
+	'git clean -fd',
 	'git checkout -B ' . escapeshellarg( $branch ) . ' ' . escapeshellarg( 'origin/' . $branch ),
 	'git reset --hard ' . escapeshellarg( 'origin/' . $branch ),
 	'git clean -fd',
