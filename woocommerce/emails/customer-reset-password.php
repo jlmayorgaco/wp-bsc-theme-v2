@@ -3,7 +3,7 @@
  * BSC override for the WooCommerce customer reset password email.
  *
  * @package BSC2
- * @version 10.4.0
+ * @version 10.9.0
  */
 
 defined( 'ABSPATH' ) || exit;

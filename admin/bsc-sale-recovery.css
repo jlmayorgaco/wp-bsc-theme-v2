@@ -1,0 +1,93 @@
+.bsc-sale-recovery {
+  max-width: 1260px;
+}
+.bsc-sale-recovery .bsc-recovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.bsc-sale-recovery .bsc-recovery-card {
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+.bsc-sale-recovery h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+.bsc-sale-recovery p {
+  line-height: 1.6;
+}
+.bsc-sale-recovery label {
+  display: block;
+  font-weight: 600;
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+.bsc-sale-recovery input[type=email], .bsc-sale-recovery input[type=file] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+.bsc-sale-recovery .bsc-recovery-check {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.bsc-sale-recovery .bsc-recovery-check input {
+  flex-shrink: 0;
+}
+.bsc-sale-recovery .description {
+  margin-bottom: 18px;
+}
+.bsc-sale-recovery .bsc-recovery-table {
+  overflow-x: auto;
+}
+.bsc-sale-recovery .bsc-recovery-table table {
+  min-width: 540px;
+}
+.bsc-sale-recovery .bsc-recovery-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.bsc-sale-recovery dt {
+  color: #50575e;
+  font-size: 12px;
+}
+.bsc-sale-recovery dd {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+.bsc-sale-recovery .bsc-recovery-warning {
+  background: #fff8e5;
+  border-left: 4px solid #dba617;
+  padding: 12px;
+}
+@media (max-width: 900px) {
+  .bsc-sale-recovery .bsc-recovery-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .bsc-sale-recovery .bsc-recovery-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .bsc-sale-recovery .bsc-recovery-card {
+    padding: 16px;
+  }
+  .bsc-sale-recovery .bsc-recovery-facts {
+    grid-template-columns: 1fr;
+  }
+  .bsc-sale-recovery .button {
+    white-space: normal;
+  }
+}
+
+/*# sourceMappingURL=bsc-sale-recovery.css.map */

@@ -15,10 +15,8 @@
       loop: true,
       autoHeight: true,
       initialSlide: 0,
-      autoplay: {
-        delay: 4000,
-        disableOnInteraction: true,
-      },
+      autoplay: false,
+      speed: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300,
       navigation: {
         nextEl: '.bsc-swiper__nav--next',
         prevEl: '.bsc-swiper__nav--prev',
@@ -26,11 +24,18 @@
     });
 
     // Lazy slide images can change height after Swiper has measured the slide.
-    // Re-measure the active slide when any banner finishes loading.
+    // Only the active slide may drive auto-height: loading an off-screen image
+    // with a different aspect ratio must not resize the visible hero.
     wrapper.querySelectorAll('img').forEach(function (image) {
       function updateHeight() {
+        var slide = image.closest('.swiper-slide');
+        if (!slide || !slide.classList.contains('swiper-slide-active')) return;
+
         window.requestAnimationFrame(function () {
-          swiper.updateAutoHeight(0);
+          // The active slide can change before this frame runs.
+          if (slide.classList.contains('swiper-slide-active')) {
+            swiper.updateAutoHeight(0);
+          }
         });
       }
 

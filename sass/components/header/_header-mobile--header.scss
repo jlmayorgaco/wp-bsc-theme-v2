@@ -102,10 +102,10 @@ $header-mobile-logo-width: 150px;
   .header-mobile__menu-btn {
     color: bsc.$text !important;
 
-    i {
+    .bsc-icon {
       color: bsc.$text !important;
-      font-size: 25px;
-      line-height: 1;
+      width: 25px;
+      height: 25px;
     }
 
     button {

@@ -29,8 +29,13 @@ async function waitForImages(page) {
     await Promise.all(
       images.map((img) => {
         const rect = img.getBoundingClientRect();
+        // Hidden mega-menu images are lazy and will never fire a load event here.
+        if (!rect.width || !rect.height || !img.checkVisibility()) {
+          return Promise.resolve();
+        }
         const isNearViewport =
-          rect.bottom >= -300 && rect.top <= window.innerHeight + 300;
+          rect.bottom >= -300 && rect.top <= window.innerHeight + 300 &&
+          rect.right >= 0 && rect.left <= window.innerWidth;
 
         if (img.loading === 'lazy' && !isNearViewport) {
           return Promise.resolve();

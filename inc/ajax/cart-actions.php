@@ -152,8 +152,9 @@ function bsc_ajax_add_to_cart_handler() {
 		wp_send_json_error( array( 'error' => 'Producto o cantidad inválida.' ), 400 );
 	}
 
+	$cart_request = wc_clean( wp_unslash( $_POST ) );
 	$cart_item_data = function_exists( 'bsc_build_product_variant_cart_item_data' )
-		? bsc_build_product_variant_cart_item_data( (int) $product_id, $_POST )
+		? bsc_build_product_variant_cart_item_data( (int) $product_id, $cart_request )
 		: array();
 
 	if ( is_wp_error( $cart_item_data ) ) {

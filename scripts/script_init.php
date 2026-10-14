@@ -19,7 +19,7 @@ function bsc_enqueue_fontawesome() {
 add_action( 'wp_enqueue_scripts', 'bsc_enqueue_fontawesome' );
 
 /**
- * Swiper 11 — local, served from theme vendor/swiper/ directory.
+ * Swiper 12 — local, served from theme vendor/swiper/ directory.
  * Only loaded on the front page (hero slider).
  */
 function bsc_enqueue_swiper_assets() {
@@ -30,13 +30,13 @@ function bsc_enqueue_swiper_assets() {
 		'swiper-css',
 		get_template_directory_uri() . '/vendor/swiper/swiper-bundle.min.css',
 		array(),
-		'11.0.0'
+		bsc_get_asset_version( 'vendor/swiper/swiper-bundle.min.css' )
 	);
 	wp_enqueue_script(
 		'swiper-js',
 		get_template_directory_uri() . '/vendor/swiper/swiper-bundle.min.js',
 		array(),
-		'11.0.0',
+		bsc_get_asset_version( 'vendor/swiper/swiper-bundle.min.js' ),
 		true
 	);
 }

@@ -63,6 +63,7 @@ function bsc_creator_apply() {
 		bsc_rate_limit( 'creator', 1, 5 * MINUTE_IN_SECONDS );
 	}
 
+	if ( ! bsc_form_data_lock() ) { wp_send_json_error( array( 'message' => 'Intenta nuevamente en unos segundos.' ), 503 ); }
 	$applications   = get_option( 'bsc_creator_applications', array() );
 	$applications   = is_array( $applications ) ? $applications : array();
 	$applications[] = array_merge(
@@ -83,6 +84,7 @@ function bsc_creator_apply() {
 		: array_slice( array_values( $applications ), -1000 );
 
 	update_option( 'bsc_creator_applications', $applications, false );
+	BSC_DB_Lock::release( 'form-data' );
 
 	$creator_email = bsc_get_creator_email_recipient();
 	$body          = "Nueva solicitud Bubble Creator\n\n";

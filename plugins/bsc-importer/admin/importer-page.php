@@ -72,7 +72,7 @@ function bsc_theme_importer_get_uploaded_file( string $field_name ): array {
 		throw new RuntimeException( 'Selecciona un archivo.' );
 	}
 
-	$file = (array) $_FILES[ $field_name ];
+	$file = (array) wp_unslash( $_FILES[ $field_name ] );
     // phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 	return array(

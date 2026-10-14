@@ -148,6 +148,7 @@ class BSC_Growth_Bundles {
 
 	public static function ajax_add_bundle_to_cart(): void {
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
+		bsc_rate_limit( 'bundle_cart', 10, MINUTE_IN_SECONDS );
 
 		$bundle_id  = isset( $_POST['bundle_id'] ) ? sanitize_text_field( wp_unslash( $_POST['bundle_id'] ) ) : '';
 		$run_id     = isset( $_POST['run_id'] ) ? absint( $_POST['run_id'] ) : 0;
@@ -168,7 +169,7 @@ class BSC_Growth_Bundles {
 
 		wp_send_json_success(
 			array(
-				'message'      => 'Rutina agregada al carrito.',
+				'message'      => $added === count( $bundle['product_ids'] ) ? 'Rutina agregada al carrito.' : sprintf( 'Agregamos %d de %d productos. Revisa el carrito: algunos ya no están disponibles.', $added, count( $bundle['product_ids'] ) ),
 				'cart_url'     => BSC_Growth_Plugin::cart_url(),
 				'checkout_url' => BSC_Growth_Plugin::checkout_url(),
 				'cart_count'   => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
@@ -178,11 +179,16 @@ class BSC_Growth_Bundles {
 
 	public static function ajax_add_products_to_cart(): void {
 		check_ajax_referer( 'bsc_growth_action', 'nonce' );
+		bsc_rate_limit( 'bundle_cart', 10, MINUTE_IN_SECONDS );
+		$raw_ids = $_POST['product_ids'] ?? array();
+		if ( ( is_array( $raw_ids ) && count( $raw_ids ) > 12 ) || ( is_string( $raw_ids ) && strlen( $raw_ids ) > 240 ) || ( ! is_string( $raw_ids ) && ! is_array( $raw_ids ) ) ) {
+			wp_send_json_error( array( 'message' => 'Puedes agregar hasta 12 productos por rutina.' ), 400 );
+		}
 
 		$product_ids = isset( $_POST['product_ids'] ) ? wp_parse_id_list( wp_unslash( $_POST['product_ids'] ) ) : array();
 		$run_id      = isset( $_POST['run_id'] ) ? absint( $_POST['run_id'] ) : 0;
 
-		if ( empty( $product_ids ) ) {
+		if ( empty( $product_ids ) || count( $product_ids ) > 12 ) {
 			wp_send_json_error( array( 'message' => 'No encontramos productos para agregar.' ), 400 );
 		}
 
@@ -196,7 +202,7 @@ class BSC_Growth_Bundles {
 
 		wp_send_json_success(
 			array(
-				'message'      => 'Rutina agregada al carrito.',
+				'message'      => $added === count( $product_ids ) ? 'Rutina agregada al carrito.' : sprintf( 'Agregamos %d de %d productos. Revisa el carrito: algunos ya no están disponibles.', $added, count( $product_ids ) ),
 				'cart_url'     => BSC_Growth_Plugin::cart_url(),
 				'checkout_url' => BSC_Growth_Plugin::checkout_url(),
 				'cart_count'   => is_object( $cart ) && is_callable( array( $cart, 'get_cart_contents_count' ) ) ? (int) call_user_func( array( $cart, 'get_cart_contents_count' ) ) : 0,
@@ -222,7 +228,7 @@ class BSC_Growth_Bundles {
 
 		$added = 0;
 
-		foreach ( $product_ids as $product_id ) {
+		foreach ( array_slice( array_unique( $product_ids ), 0, 12 ) as $product_id ) {
 			$product = wc_get_product( (int) $product_id );
 
 			if ( ! $product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {

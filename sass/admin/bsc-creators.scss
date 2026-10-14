@@ -8,6 +8,43 @@
   min-width: 1220px;
 }
 
+.bsc-admin-creators__table th:nth-child(8),
+.bsc-admin-creators__table td:nth-child(8) {
+  width: 300px;
+}
+
+.bsc-admin-creators__message {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.bsc-admin-creators__message-details summary {
+  cursor: pointer;
+}
+
+.bsc-admin-creators__message-expand,
+.bsc-admin-creators__message-collapse {
+  color: admin.$wp-blue;
+  display: block;
+  margin-top: admin.$space-2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bsc-admin-creators__message-collapse,
+.bsc-admin-creators__message-details[open] .bsc-admin-creators__message-expand {
+  display: none;
+}
+
+.bsc-admin-creators__message-details[open] .bsc-admin-creators__message-collapse {
+  display: block;
+}
+
+.bsc-admin-creators__message-full {
+  margin-top: admin.$space-3;
+  white-space: pre-wrap;
+}
+
 .bsc-admin-creators__link-empty {
   color: admin.$text-subtle;
 }

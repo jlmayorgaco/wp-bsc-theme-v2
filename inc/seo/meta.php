@@ -231,7 +231,7 @@ function bsc_seo_has_filter_query(): bool {
 	$filter_keys = array( 'orderby', 'min_price', 'max_price', 'rating_filter', 'subcat', 'bsc_recover_cart' );
 
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only query inspection for indexation rules.
-	foreach ( array_keys( $_GET ) as $key ) {
+	foreach ( array_keys( wp_unslash( $_GET ) ) as $key ) {
 		$key = sanitize_key( wp_unslash( $key ) );
 
 		if ( in_array( $key, $filter_keys, true ) || 0 === strpos( $key, 'filter_' ) || 0 === strpos( $key, 'query_type_' ) ) {

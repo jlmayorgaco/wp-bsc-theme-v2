@@ -7,6 +7,9 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once get_template_directory() . '/admin/bsc-admin-ui.php';
+if ( class_exists( 'BSC_Sale_Backup' ) ) {
+	require_once get_template_directory() . '/admin/bsc-sale-recovery-page.php';
+}
 
 // Register BSC menu pages
 add_action( 'admin_menu', 'bsc_add_admin_menu' );

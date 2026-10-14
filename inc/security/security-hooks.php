@@ -137,7 +137,7 @@ function bsc_get_request_ip(): string {
 		? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
 		: 'unknown';
 
-	if ( defined( 'BSC_TRUST_PROXY_HEADERS' ) && BSC_TRUST_PROXY_HEADERS ) {
+	if ( defined( 'BSC_TRUST_PROXY_HEADERS' ) && BSC_TRUST_PROXY_HEADERS && bsc_is_trusted_proxy( $ip ) ) {
 		$proxy_headers = array(
 			'HTTP_CF_CONNECTING_IP',
 			'HTTP_X_REAL_IP',
@@ -162,6 +162,56 @@ function bsc_get_request_ip(): string {
 	return $ip !== '' ? $ip : 'unknown';
 }
 
+/**
+ * Validate the immediate proxy before trusting forwarding headers.
+ * Configure BSC_TRUSTED_PROXY_CIDRS as a comma-separated list of proxy IPs/CIDRs.
+ */
+function bsc_is_trusted_proxy( string $ip ): bool {
+	$configured = defined( 'BSC_TRUSTED_PROXY_CIDRS' ) ? BSC_TRUSTED_PROXY_CIDRS : array();
+	if ( ! is_array( $configured ) ) {
+		$configured = preg_split( '/[\s,]+/', (string) $configured, -1, PREG_SPLIT_NO_EMPTY );
+	}
+
+	foreach ( (array) $configured as $network ) {
+		$network = trim( (string) $network );
+		if ( '' !== $network && bsc_ip_in_cidr( $ip, $network ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+function bsc_ip_in_cidr( string $ip, string $cidr ): bool {
+	$parts  = explode( '/', trim( $cidr ), 2 );
+	$network = trim( (string) ( $parts[0] ?? '' ) );
+	$ip_bin = filter_var( $ip, FILTER_VALIDATE_IP ) ? inet_pton( $ip ) : false;
+	$net_bin = filter_var( $network, FILTER_VALIDATE_IP ) ? inet_pton( $network ) : false;
+
+	if ( false === $ip_bin || false === $net_bin || strlen( $ip_bin ) !== strlen( $net_bin ) ) {
+		return false;
+	}
+
+	$max_bits = strlen( $net_bin ) * 8;
+	$bits     = isset( $parts[1] ) && is_numeric( $parts[1] ) ? (int) $parts[1] : $max_bits;
+	if ( $bits < 0 || $bits > $max_bits ) {
+		return false;
+	}
+
+	$full_bytes = intdiv( $bits, 8 );
+	if ( $full_bytes > 0 && substr( $ip_bin, 0, $full_bytes ) !== substr( $net_bin, 0, $full_bytes ) ) {
+		return false;
+	}
+
+	$remaining_bits = $bits % 8;
+	if ( 0 === $remaining_bits ) {
+		return true;
+	}
+
+	$mask = ( 0xFF << ( 8 - $remaining_bits ) ) & 0xFF;
+	return ( ord( $ip_bin[ $full_bytes ] ) & $mask ) === ( ord( $net_bin[ $full_bytes ] ) & $mask );
+}
+
 function bsc_rate_limit_key( string $scope ): string {
 	$user_id = get_current_user_id();
 	$actor   = $user_id > 0 ? 'u' . $user_id : 'ip' . bsc_get_request_ip();
@@ -171,15 +221,34 @@ function bsc_rate_limit_key( string $scope ): string {
 
 function bsc_rate_limit_passed( string $scope, int $limit, int $window_seconds ): bool {
 	$key  = bsc_rate_limit_key( $scope );
-	$hits = (int) get_transient( $key );
+	if ( function_exists( 'wp_using_ext_object_cache' ) && wp_using_ext_object_cache() ) {
+		$group = 'bsc-rate-limit';
+		if ( false === wp_cache_get( $key, $group ) ) {
+			wp_cache_add( $key, 0, $group, $window_seconds );
+		}
 
-	if ( $hits >= $limit ) {
-		do_action( 'bsc_rate_limit_blocked', sanitize_key( $scope ), bsc_get_request_ip(), get_current_user_id() );
-		return false;
+		$hits = wp_cache_incr( $key, 1, $group );
+		if ( false !== $hits ) {
+			if ( $hits > $limit ) {
+				do_action( 'bsc_rate_limit_blocked', sanitize_key( $scope ), bsc_get_request_ip(), get_current_user_id() );
+				return false;
+			}
+
+			return true;
+		}
 	}
 
-	set_transient( $key, $hits + 1, $window_seconds );
-	return true;
+	$result = BSC_DB_Lock::run( 'rate:' . $key, static function () use ( $key, $scope, $limit, $window_seconds ) {
+		wp_cache_delete( '_transient_' . $key, 'options' );
+		wp_cache_delete( '_transient_timeout_' . $key, 'options' );
+		$hits = (int) get_transient( $key );
+		if ( $hits >= $limit ) {
+			do_action( 'bsc_rate_limit_blocked', sanitize_key( $scope ), bsc_get_request_ip(), get_current_user_id() );
+			return false;
+		}
+		return set_transient( $key, $hits + 1, $window_seconds );
+	}, 0 );
+	return true === $result;
 }
 
 function bsc_rate_limit( string $scope, int $limit, int $window_seconds ): void {
@@ -209,7 +278,7 @@ function bsc_record_rate_limit_blocked( string $scope, string $ip, int $user_id 
 	$rows[] = array(
 		'blocked_at' => current_time( 'mysql' ),
 		'scope'      => sanitize_key( $scope ),
-		'ip'         => sanitize_text_field( $ip ),
+		'ip'         => substr( wp_hash( $ip ), 0, 16 ),
 		'user_id'    => max( 0, $user_id ),
 	);
 

@@ -62,7 +62,10 @@
 
 				<li class="menu__icon icon--shop menu__icon--hidden">
 					<a href="<?php echo esc_url( $checkout_url ); ?>" aria-label="Ir al checkout" title="Ir al checkout">
-						<i aria-hidden="true" class="dlicon shopping_bag-20"></i>
+						<svg class="bsc-icon bsc-icon--bag" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+							<path d="M4.5 8h15l1 12h-17l1-12Z" />
+							<path d="M9 8V6a3 3 0 0 1 6 0v2" />
+						</svg>
 						<span></span>
 					</a>
 				</li>

@@ -96,7 +96,7 @@ class BSC_MenuNav {
 
 		if ($this->image) {
 			echo '<a class="bsc__menu-nav-image" href="' . esc_url( $this->link ) . '">';
-			echo '<img src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->name ) . '">';
+			echo '<img data-src="' . esc_url( $this->image ) . '" alt="' . esc_attr( $this->name ) . '" loading="lazy" decoding="async">';
 			echo '</a>';
 		}
 

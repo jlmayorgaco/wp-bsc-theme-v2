@@ -230,7 +230,7 @@ function bsc_process_abandoned_carts(): int {
 
 	return $sent_count;
 }
-add_action( 'bsc_process_abandoned_carts', 'bsc_process_abandoned_carts' );
+add_action( 'bsc_process_abandoned_carts', static function (): void { bsc_process_abandoned_carts(); } );
 
 function bsc_abandoned_cart_restore_from_token(): void {
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Recovery token comes from the email link, not an admin form.

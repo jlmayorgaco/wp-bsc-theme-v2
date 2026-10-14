@@ -101,13 +101,18 @@ function bsc_render_wompi_receipt( int $order_id ): void {
 		wc_print_notice( __( 'El pago en linea no esta disponible en este momento.', 'bsc-2-0' ), 'error' );
 		return;
 	}
+	$reservation = BSC_Order_Stock::allocate( $order_id, false );
+	if ( is_wp_error( $reservation ) ) {
+		wc_print_notice( $reservation->get_error_message(), 'error' );
+		return;
+	}
 
 	bsc_remove_official_wompi_receipt_callback();
 
 	$public_key    = bsc_get_wompi_gateway_public_key( $gateway );
 	$integrity_key = bsc_get_wompi_gateway_integrity_key( $gateway );
 
-	if ( '' === $public_key || '' === $integrity_key ) {
+	if ( '' === $public_key || '' === $integrity_key || ( function_exists( 'bsc_wompi_event_secret' ) && '' === bsc_wompi_event_secret() ) ) {
 		wc_print_notice( __( 'No pudimos iniciar el pago en linea en este momento.', 'bsc-2-0' ), 'error' );
 		return;
 	}
@@ -337,8 +342,8 @@ function bsc_maybe_complete_wompi_return(): void {
 	}
 
 	if ( $order->is_paid() && $order->get_transaction_id() === $transaction_id ) {
-		if ( function_exists( 'bsc_send_order_email' ) ) {
-			bsc_send_order_email( $order_id, 'processing' );
+		if ( function_exists( 'bsc_queue_order_email' ) ) {
+			bsc_queue_order_email( $order_id, 'processing' );
 		}
 		return;
 	}
@@ -348,9 +353,9 @@ function bsc_maybe_complete_wompi_return(): void {
 		return;
 	}
 
-	bsc_update_order_from_wompi_transaction( $order, $transaction );
-	$order->payment_complete( $transaction_id );
-	$order->add_order_note( 'Pago Wompi verificado en retorno del checkout. Transaction ID: ' . $transaction_id );
+	if ( function_exists( 'bsc_wompi_reconcile_transaction' ) ) {
+		bsc_wompi_reconcile_transaction( $transaction, $order_key );
+	}
 }
 
 function bsc_get_wompi_return_query_value( array $keys ): string {
@@ -403,7 +408,7 @@ function bsc_wompi_transaction_matches_order( ?object $transaction, WC_Order $or
 	}
 
 	$currency = (string) ( $transaction->currency ?? '' );
-	if ( $currency && $currency !== $order->get_currency() ) {
+	if ( $currency !== $order->get_currency() ) {
 		return false;
 	}
 

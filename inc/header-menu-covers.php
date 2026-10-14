@@ -92,7 +92,7 @@ function bsc_get_header_menu_cover_saved_value( string $slug ): array {
  * @param string $slug Header menu slug.
  * @param string $size WordPress image size.
  */
-function bsc_get_header_menu_cover_image_url( string $slug, string $size = 'full' ): string {
+function bsc_get_header_menu_cover_image_url( string $slug, string $size = 'bsc-card' ): string {
 	$definitions = bsc_get_header_menu_cover_definitions();
 
 	if ( empty( $definitions[ $slug ] ) ) {

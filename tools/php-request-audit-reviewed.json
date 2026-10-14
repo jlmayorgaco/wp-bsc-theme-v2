@@ -26,5 +26,89 @@
     "global": "$_FILES",
     "text": "$size = bsc_theme_importer_upload_product_photos_zip($_FILES['product_photos_zip']);",
     "reason": "Importer ZIP upload is nonce/capability protected and bsc_theme_importer_upload_product_photos_zip validates extension, size, temp file and ZIP entries."
+  },
+  {
+    "file": "tests/frontend-routing-local-host.php",
+    "line": 65,
+    "global": "$_SERVER",
+    "text": "$_SERVER['REQUEST_URI'] = '/';",
+    "reason": "Test fixture sets a controlled request URI before invoking the routing contract."
+  },
+  {
+    "file": "tests/frontend-routing-local-host.php",
+    "line": 75,
+    "global": "$_SERVER",
+    "text": "$_SERVER['HTTP_HOST'] = 'bsc.local';",
+    "reason": "Test fixture sets a controlled local host to verify parking bypass behavior."
+  },
+  {
+    "file": "tests/frontend-routing-local-host.php",
+    "line": 81,
+    "global": "$_SERVER",
+    "text": "$_SERVER['HTTP_HOST'] = 'bsc.local:8443';",
+    "reason": "Test fixture sets a controlled local host with a port."
+  },
+  {
+    "file": "tests/frontend-routing-local-host.php",
+    "line": 88,
+    "global": "$_SERVER",
+    "text": "$_SERVER['HTTP_HOST'] = 'www.bsc.local';",
+    "reason": "Test fixture verifies that a lookalike host does not bypass the exact-host guard."
+  },
+  {
+    "file": "tests/frontend-routing-local-host.php",
+    "line": 91,
+    "global": "$_SERVER",
+    "text": "$_SERVER['HTTP_HOST'] = 'bubblesskincare.com';",
+    "reason": "Test fixture restores the production host before asserting production behavior."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 146,
+    "global": "$_GET",
+    "text": "$_GET = $query;",
+    "reason": "Payment regression fixture supplies a controlled return query to the isolated test harness."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 153,
+    "global": "$_GET",
+    "text": "$_GET = $query;",
+    "reason": "Payment regression fixture supplies a controlled return query for mismatch validation."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 159,
+    "global": "$_GET",
+    "text": "$_GET = $query;",
+    "reason": "Payment regression fixture supplies a controlled query before invalid-key validation."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 160,
+    "global": "$_GET",
+    "text": "$_GET['key'] = 'wrong-key';",
+    "reason": "Payment regression fixture intentionally replaces the controlled order key with an invalid value."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 166,
+    "global": "$_GET",
+    "text": "$_GET = $query;",
+    "reason": "Payment regression fixture supplies a controlled query before missing-transaction validation."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 167,
+    "global": "$_GET",
+    "text": "unset( $_GET['bsc_wompi_transaction_id'] );",
+    "reason": "Payment regression fixture intentionally removes the transaction identifier."
+  },
+  {
+    "file": "tests/order-payment-status.php",
+    "line": 172,
+    "global": "$_GET",
+    "text": "$_GET = $query;",
+    "reason": "Payment regression fixture supplies the valid controlled query before the approved-payment assertion."
   }
 ]

@@ -42,7 +42,7 @@ get_header( 'shop' ); ?>
 
 		<section class="bsc-kb-grid bsc-kb-grid--shop">
 			<?php
-			foreach ($bsc_groups as $g) :
+			foreach ($bsc_groups as $bsc_index => $g) :
 				$term_link = trailingslashit( home_url( '/product-category/' . $g['slug'] . '/' ) );
 				?>
 				<article class="bsc-kb-card">
@@ -54,9 +54,10 @@ get_header( 'shop' ); ?>
 									$g['image'],
 									$g['title'],
 									array(
-										'loading' => 'lazy',
-										'width'   => '400',
-										'height'  => '500',
+										'loading'       => 0 === $bsc_index ? 'eager' : 'lazy',
+										'fetchpriority' => 0 === $bsc_index ? 'high' : null,
+										'width'         => '400',
+										'height'        => '500',
 									),
 									'(max-width: 768px) 100vw, 33vw'
 								);

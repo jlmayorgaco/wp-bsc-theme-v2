@@ -14,7 +14,7 @@ require_once __DIR__ . '/hooks/hooks-admin.php';
 require_once __DIR__ . '/hooks/hooks-front.php';
 
 // AJAX
-if (defined( 'DOING_AJAX' ) && DOING_AJAX) {
+if (wp_doing_ajax()) {
 	foreach (glob( __DIR__ . '/ajax/*.php' ) as $ajax_file) {
 		require_once $ajax_file;
 	}

@@ -100,9 +100,9 @@ assertIncludes(
   'BSC_Stock::adjust_strict must keep the atomic stock-shortage guard.'
 );
 assertIncludes(
-  stockSource,
-  "add_metadata( 'order_item', $item_id, '_bsc_stock_allocation_lock'",
-  'BSC_Stock must keep per-order-item allocation locks.'
+  read('includes/class-bsc-order-stock.php'),
+  "BSC_DB_Lock::run( 'stock-order:'",
+  'Order allocation and restoration must serialize by order.'
 );
 assertMatches(
   stockSource,
@@ -112,24 +112,24 @@ assertMatches(
 
 const bubblePointsStore = read('plugins/bubble-points/includes/store.php');
 assertIncludes(
-  bubblePointsStore,
+  read('includes/class-bsc-db-lock.php'),
   'SELECT GET_LOCK(%s, %d)',
   'Bubble Points ledger writes must use a per-user database lock.'
 );
 assertIncludes(
-  bubblePointsStore,
+  read('includes/class-bsc-db-lock.php'),
   'SELECT RELEASE_LOCK(%s)',
   'Bubble Points ledger writes must release the per-user database lock.'
 );
 assertMatches(
   bubblePointsStore,
-  /'ok'\s*=>\s*false[\s\S]*'balance'\s*=>\s*\$current[\s\S]*'error'\s*=>\s*'insufficient_points'/,
+  /return new WP_Error\( 'insufficient_points'/,
   'Bubble Points debits must reject insufficient balances.'
 );
 assertMatches(
   bubblePointsStore,
-  /bsc_bp_set_balance\(\s*\$user_id,\s*\$current\s*\);/,
-  'Bubble Points must revert balance if ledger insert fails.'
+  /BSC_DB_Lock::transaction\(/,
+  'Bubble Points ledger and balance must commit in one transaction.'
 );
 
 const redeemSource = read('plugins/bubble-points/ajax/redeem.php');

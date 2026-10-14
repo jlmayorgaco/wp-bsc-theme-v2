@@ -30,8 +30,8 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 
 @use "generic/box-sizing";
 @use "generic/normalize";
-@use "generic/dlicon";
 @use "generic/global";
+@use "components/icons";
 
 @use "mixins/mixins";
 
@@ -52,6 +52,7 @@ Nicolas Gallagher and Jonathan Neal https://necolas.github.io/normalize.css/
 @use "components/footer/footer";
 @use "components/forms/forms";
 @use "components/swiper/swiper_home";
+@use "components/analytics-consent";
 
 
 @use "components/products/card";

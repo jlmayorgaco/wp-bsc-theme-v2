@@ -2,6 +2,7 @@
 # BSC-148: shared helpers for DB, app, VPS-state, and recovery-bundle backups.
 
 set -euo pipefail
+umask 077
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="${BSC_BACKUP_CONFIG:-$SCRIPT_DIR/backup-config.sh}"
@@ -40,12 +41,27 @@ load_backup_config() {
     BUNDLE_RETENTION_DAYS="${BUNDLE_RETENTION_DAYS:-$RETENTION_DAYS}"
     ADMIN_EMAIL="${ADMIN_EMAIL:-}"
     REMOTE_DEST="${REMOTE_DEST:-}"
+    REMOTE_REQUIRED="${REMOTE_REQUIRED:-1}"
+    REMOTE_REQUIRE_ENCRYPTION="${REMOTE_REQUIRE_ENCRYPTION:-1}"
+    AGE_RECIPIENT="${AGE_RECIPIENT:-}"
     EMAIL_ATTACH_BACKUP="${EMAIL_ATTACH_BACKUP:-0}"
     EMAIL_ATTACH_MAX_MB="${EMAIL_ATTACH_MAX_MB:-10}"
     SYSTEM_BACKUP_ROOTS="${SYSTEM_BACKUP_ROOTS:-/etc/nginx /etc/apache2 /etc/httpd /etc/letsencrypt /etc/cron.d /var/spool/cron /var/spool/cron/crontabs /etc/systemd/system /etc/ssh /etc/mysql /etc/php}"
     SYSTEM_BACKUP_FILES="${SYSTEM_BACKUP_FILES:-/etc/crontab /etc/fstab /etc/hosts /etc/environment /etc/passwd /etc/group}"
-    WORDPRESS_BACKUP_PATHS="${WORDPRESS_BACKUP_PATHS:-wp-config.php wp-content/themes wp-content/plugins wp-content/mu-plugins wp-content/uploads wp-content/languages}"
+    WORDPRESS_BACKUP_PATHS="${WORDPRESS_BACKUP_PATHS:-.}"
     WORDPRESS_EXCLUDES="${WORDPRESS_EXCLUDES:-wp-content/cache wp-content/upgrade wp-content/ai1wm-backups wp-content/backups node_modules .git}"
+    EXTRA_BACKUP_PATHS="${EXTRA_BACKUP_PATHS:-$(dirname "$WP_ROOT")/bsc-private/skin-quiz}"
+    export WP_ROOT BACKUP_LOCAL
+    set -E
+    trap 'backup_failure "$?" "$LINENO"' ERR
+}
+
+backup_failure() {
+    local result="$1" line="$2"
+    trap - ERR
+    log_message "FAIL" "Backup/restore failed at line $line (exit $result)" || true
+    send_email "BSC backup FAILED" "Operation failed at line $line. Review ${LOG_FILE}." || true
+    return "$result"
 }
 
 log_message() {
@@ -103,14 +119,14 @@ write_checksum_file() {
     local checksum_tool
     checksum_tool="$(checksum_command)"
     if [ -z "$checksum_tool" ]; then
-        log_message "WARN" "No SHA256 tool found; checksum skipped for $artifact"
-        return 0
+        log_message "FAIL" "No SHA256 tool found for $artifact"
+        return 1
     fi
 
     if [ "$checksum_tool" = "sha256sum" ]; then
-        sha256sum "$artifact" > "${artifact}.sha256"
+        (cd "$(dirname "$artifact")" && sha256sum -- "$(basename "$artifact")") > "${artifact}.sha256"
     else
-        shasum -a 256 "$artifact" > "${artifact}.sha256"
+        (cd "$(dirname "$artifact")" && shasum -a 256 -- "$(basename "$artifact")") > "${artifact}.sha256"
     fi
 }
 
@@ -118,18 +134,52 @@ push_remote_artifacts() {
     local remote_subdir="$1"
     shift
     if [ -z "$REMOTE_DEST" ]; then
+        if [ "${REMOTE_REQUIRED:-1}" = "1" ]; then
+            log_message "FAIL" "Remote backup is required but REMOTE_DEST is empty"
+            return 1
+        fi
+        log_message "WARN" "Local-only backup explicitly configured"
         return 0
     fi
 
     if ! command -v rsync >/dev/null 2>&1; then
-        log_message "WARN" "rsync not available; remote copy skipped"
-        return 0
+        log_message "FAIL" "rsync not available; remote copy failed"
+        return 1
     fi
 
-    if rsync -az "$@" "${REMOTE_DEST}/${remote_subdir}/"; then
+    local remote_files=("$@")
+    if [ "${REMOTE_REQUIRE_ENCRYPTION:-1}" = "1" ]; then
+        if [ -z "${AGE_RECIPIENT:-}" ] || ! command -v age >/dev/null 2>&1; then
+            log_message "FAIL" "Encrypted off-site backup requires age and AGE_RECIPIENT; local copy retained"
+            return 1
+        fi
+        local outgoing="$BACKUP_LOCAL/outgoing" encrypted
+        ensure_directory "$outgoing"
+        encrypted="$outgoing/${remote_subdir}-$(date +%F-%H-%M-%S)-$$.tar.age"
+        local tar_items=() item
+        for item in "$@"; do
+            tar_items+=(-C "$(dirname "$item")" "$(basename "$item")")
+        done
+        if ! tar -cf - "${tar_items[@]}" | age -r "$AGE_RECIPIENT" -o "${encrypted}.partial"; then
+            return 1
+        fi
+        mv -- "${encrypted}.partial" "$encrypted"
+        write_checksum_file "$encrypted"
+        remote_files=("$encrypted" "${encrypted}.sha256")
+    fi
+    if rsync -az --checksum -- "${remote_files[@]}" "${REMOTE_DEST}/${remote_subdir}/"; then
         log_message "OK" "Remote copy sent to ${REMOTE_DEST}/${remote_subdir}/"
+        if [ -n "${BACKUP_LOCAL:-}" ]; then
+            ensure_directory "$BACKUP_LOCAL/status"
+            date +%s > "$BACKUP_LOCAL/status/${remote_subdir}.remote-ok.partial"
+            mv -- "$BACKUP_LOCAL/status/${remote_subdir}.remote-ok.partial" "$BACKUP_LOCAL/status/${remote_subdir}.remote-ok"
+        fi
+        if [ -n "${encrypted:-}" ]; then
+            rm -f -- "$encrypted" "${encrypted}.sha256"
+        fi
     else
-        log_message "WARN" "Remote copy failed for ${remote_subdir}; local copy retained"
+        log_message "FAIL" "Remote copy failed for ${remote_subdir}; local copy retained"
+        return 1
     fi
 }
 
@@ -152,12 +202,12 @@ copy_path_preserving_tree() {
 
     if command -v rsync >/dev/null 2>&1; then
         rsync -aR "$source_path" "$destination_root/"
-        return 0
+        return $?
     fi
 
     local parent_dir
     parent_dir="$(dirname "$source_path")"
-    mkdir -p "${destination_root}${parent_dir}"
+    mkdir -p "${destination_root}${parent_dir}" || return 1
     cp -a "$source_path" "${destination_root}${parent_dir}/"
 }
 
@@ -165,9 +215,13 @@ backup_database() {
     local output_file="$1"
     require_command mysqldump
     ensure_directory "$(dirname "$output_file")"
-    mysqldump -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
+    if ! MYSQL_PWD="$DB_PASS" mysqldump -h "$DB_HOST" -u "$DB_USER" \
         --single-transaction --quick --lock-tables=false \
-        "$DB_NAME" | gzip > "$output_file"
+        "$DB_NAME" | gzip > "${output_file}.partial"; then
+        return 1
+    fi
+    gzip -t "${output_file}.partial" || return 1
+    mv -- "${output_file}.partial" "$output_file"
 }
 
 backup_wordpress_application() {
@@ -193,7 +247,9 @@ backup_wordpress_application() {
         tar_args+=("--exclude=$excluded_path")
     done
 
-    tar -czf "$output_file" "${tar_args[@]}" -C "$WP_ROOT" "${includes[@]}"
+    tar -czf "${output_file}.partial" "${tar_args[@]}" -C "$WP_ROOT" "${includes[@]}" || return 1
+    tar -tzf "${output_file}.partial" >/dev/null || return 1
+    mv -- "${output_file}.partial" "$output_file"
 }
 
 write_system_inventory() {
@@ -255,27 +311,32 @@ write_system_inventory() {
 
 backup_vps_state() {
     local output_file="$1"
-    ensure_directory "$(dirname "$output_file")"
+    ensure_directory "$(dirname "$output_file")" || return 1
 
     local staging_dir
-    staging_dir="$(mktemp -d)"
+    staging_dir="$(mktemp -d)" || return 1
     local rootfs_dir="${staging_dir}/rootfs"
     local inventory_dir="${staging_dir}/inventory"
-    ensure_directory "$rootfs_dir"
-    ensure_directory "$inventory_dir"
+    ensure_directory "$rootfs_dir" || return 1
+    ensure_directory "$inventory_dir" || return 1
 
-    write_system_inventory "$inventory_dir"
+    write_system_inventory "$inventory_dir" || return 1
 
     local system_path
     for system_path in $SYSTEM_BACKUP_ROOTS; do
-        copy_path_preserving_tree "$system_path" "$rootfs_dir"
+        copy_path_preserving_tree "$system_path" "$rootfs_dir" || return 1
     done
 
     for system_path in $SYSTEM_BACKUP_FILES; do
-        copy_path_preserving_tree "$system_path" "$rootfs_dir"
+        copy_path_preserving_tree "$system_path" "$rootfs_dir" || return 1
+    done
+    for system_path in ${EXTRA_BACKUP_PATHS:-}; do
+        copy_path_preserving_tree "$system_path" "$rootfs_dir" || return 1
     done
 
-    tar -czf "$output_file" -C "$staging_dir" rootfs inventory
+    tar -czf "${output_file}.partial" -C "$staging_dir" rootfs inventory || return 1
+    tar -tzf "${output_file}.partial" >/dev/null || return 1
+    mv -- "${output_file}.partial" "$output_file" || return 1
     rm -rf "$staging_dir"
 }
 

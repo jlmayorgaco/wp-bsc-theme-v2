@@ -225,6 +225,14 @@ function bsc_ajax_showroom_search(): void {
 
 	$results = array();
 	foreach ($products as $product) {
+		$matrix = bsc_get_product_saved_variant_matrix( $product->get_id(), false );
+		if ( $matrix ) {
+			foreach ( $matrix as $variant ) {
+				if ( empty( $variant['enabled'] ) ) { continue; }
+				$results[] = array( 'id' => $product->get_id(), 'variant_key' => $variant['key'], 'name' => $product->get_name() . ' — ' . trim( $variant['color_name'] . ' ' . $variant['size_name'] ), 'sku' => $product->get_sku(), 'price' => (float) ( '' !== (string) ( $variant['sale_price'] ?? '' ) ? $variant['sale_price'] : $variant['regular_price'] ), 'stock_tienda' => (int) $variant['stock_tienda'] );
+			}
+			continue;
+		}
 		$results[] = array(
 			'id'           => $product->get_id(),
 			'name'         => $product->get_name(),
@@ -268,97 +276,16 @@ function bsc_ajax_register_showroom_sale(): void {
 		wp_send_json_error( array( 'message' => 'Sin productos' ) );
 	}
 
-	$validated_items = array();
-	foreach ($items as $item) {
-		$product_id = absint( $item['id'] ?? 0 );
-		$qty        = max( 1, absint( $item['qty'] ?? 1 ) );
-		$product    = wc_get_product( $product_id );
-
-		if (!$product) {
-			wp_send_json_error( array( 'message' => 'Producto invalido' ) );
-		}
-
-		if (!isset( $validated_items[ $product_id ] )) {
-			$validated_items[ $product_id ] = array(
-				'product' => $product,
-				'qty'     => 0,
-			);
-		}
-		$validated_items[ $product_id ]['qty'] += $qty;
-	}
-
-	foreach ($validated_items as $product_id => $item) {
-		$stock = BSC_Stock::get_stock( (int) $product_id );
-		if ( (int) $stock['tienda'] < (int) $item['qty']) {
-			wp_send_json_error(
-				array(
-					'message' => sprintf(
-						'Stock tienda insuficiente para %1$s. Disponible: %2$d.',
-						$item['product']->get_name(),
-						(int) $stock['tienda']
-					),
-				)
-			);
-		}
-	}
-
-	$deducted_items = array();
-	foreach ($validated_items as $product_id => $item) {
-		$result = BSC_Stock::adjust_strict( (int) $product_id, 'tienda', - (int) $item['qty'], 'Venta presencial pendiente' );
-		if (is_wp_error( $result )) {
-			foreach ($deducted_items as $deducted) {
-				BSC_Stock::adjust( (int) $deducted['product_id'], 'tienda', (int) $deducted['qty'], 'Rollback venta presencial' );
-			}
-			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
-		}
-
-		$deducted_items[] = array(
-			'product_id' => (int) $product_id,
-			'qty'        => (int) $item['qty'],
-		);
-	}
-
-	$order = wc_create_order( array( 'customer_id' => 0 ) );
-	if (is_wp_error( $order ) || !$order) {
-		foreach ($deducted_items as $deducted) {
-			BSC_Stock::adjust( (int) $deducted['product_id'], 'tienda', (int) $deducted['qty'], 'Rollback venta presencial' );
-		}
-		wp_send_json_error( array( 'message' => 'No se pudo crear el pedido' ) );
-	}
-
-	foreach ($validated_items as $item) {
-		$order->add_product( $item['product'], (int) $item['qty'] );
-	}
-
-	if ($customer_name) {
-		$parts = explode( ' ', $customer_name, 2 );
-		$order->set_billing_first_name( $parts[0] );
-		$order->set_billing_last_name( $parts[1] ?? '' );
-	}
-	if ($customer_phone) {
-		$order->set_billing_phone( $customer_phone );
-	}
-	if ($customer_email) {
-		$order->set_billing_email( $customer_email );
-	}
-
-	$order->set_payment_method( $payment );
-	$order->set_payment_method_title( $payment_methods[ $payment ] );
-	$order->update_meta_data( '_bsc_is_showroom_sale', '1' );
-	$order->save();
-
-	$order->calculate_totals();
-	$order->update_status( 'completed', 'Venta presencial registrada desde BSC Admin.' );
-	$order->save();
-
+	$request_id = isset( $_POST['request_id'] ) && is_string( $_POST['request_id'] ) ? sanitize_key( wp_unslash( $_POST['request_id'] ) ) : '';
+	if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $request_id ) ) { wp_send_json_error( array( 'message' => 'Recarga la página antes de registrar la venta.' ), 400 ); }
+	$order = BSC_Order_Stock::showroom( $items, $payment, $payment_methods[ $payment ], array( 'name' => $customer_name, 'phone' => $customer_phone, 'email' => $customer_email ), $request_id );
+	if ( is_wp_error( $order ) ) { wp_send_json_error( array( 'message' => $order->get_error_message() ), 409 ); }
 	$order_id = $order->get_id();
-
-	$order->add_order_note( 'Stock de tienda descontado para venta presencial #' . $order_id . '.' );
 
 	wp_send_json_success(
 		array(
 			'order_id' => $order_id,
-			'edit_url' => admin_url( 'post.php?post=' . $order_id . '&action=edit' ),
+			'edit_url' => $order->get_edit_order_url(),
 		)
 	);
 }

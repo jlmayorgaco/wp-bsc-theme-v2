@@ -1152,7 +1152,7 @@ if (!function_exists( 'bsc_get_header_menu_native_cover_image_url' )) {
 		$image_id = absint( get_post_meta( $item_id, '_bsc_header_menu_cover_image_id', true ) );
 
 		if ($image_id > 0) {
-			$image_url = wp_get_attachment_image_url( $image_id, 'full' );
+			$image_url = wp_get_attachment_image_url( $image_id, 'bsc-card' );
 
 			if (is_string( $image_url ) && $image_url !== '') {
 				return $image_url;

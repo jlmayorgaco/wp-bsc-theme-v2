@@ -486,9 +486,9 @@ function bsc_home_favorites_settings_page() {
 						<button
 							type="button"
 							id="<?php echo esc_attr( $tab_id ); ?>"
-							class="bsc-home-products-admin__tab<?php echo $index === 0 ? ' is-active' : ''; ?>"
+							class="bsc-home-products-admin__tab<?php echo esc_attr( $index === 0 ? ' is-active' : '' ); ?>"
 							role="tab"
-							aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
+							aria-selected="<?php echo esc_attr( $index === 0 ? 'true' : 'false' ); ?>"
 							aria-controls="<?php echo esc_attr( $panel_id ); ?>"
 							data-bsc-home-product-tab="<?php echo esc_attr( $key ); ?>"
 						>
@@ -507,10 +507,10 @@ function bsc_home_favorites_settings_page() {
 						?>
 						<div
 							id="<?php echo esc_attr( $panel_id ); ?>"
-							class="bsc-home-products-admin__tab-panel<?php echo $index === 0 ? ' is-active' : ''; ?>"
+							class="bsc-home-products-admin__tab-panel<?php echo esc_attr( $index === 0 ? ' is-active' : '' ); ?>"
 							role="tabpanel"
 							aria-labelledby="<?php echo esc_attr( $tab_id ); ?>"
-							<?php echo $index === 0 ? '' : 'hidden'; ?>
+							<?php echo esc_attr( $index === 0 ? '' : 'hidden' ); ?>
 							data-bsc-home-product-panel="<?php echo esc_attr( $key ); ?>"
 						>
 							<?php bsc_home_favorites_render_selector_card( $key, $categories[ $key ], 'pestana' ); ?>

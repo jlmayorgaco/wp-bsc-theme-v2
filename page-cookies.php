@@ -12,21 +12,21 @@ bsc_render_static_page_template(
 			?>
 			<div class="bsc__info-block">
 				<h2>Uso de cookies</h2>
-				<p>Utilizamos cookies para recordar tu sesion, mantener el carrito, mejorar la navegacion y entender como se usa la tienda.</p>
+				<p>Utilizamos cookies esenciales para recordar tu sesión y mantener el carrito. Las cookies de analítica son opcionales y solo se activan después de que las aceptes.</p>
 			</div>
 
 			<div class="bsc__info-block">
 				<h2>Tipos de cookies</h2>
 				<ul>
 					<li>Cookies esenciales para login, carrito y checkout.</li>
-					<li>Cookies de analitica para entender el comportamiento de navegacion.</li>
+					<li>Cookies de analítica, gestionadas con Google Analytics, para entender el comportamiento de navegación cuando das tu consentimiento.</li>
 					<li>Cookies funcionales para recordar preferencias de la experiencia.</li>
 				</ul>
 			</div>
 
 			<div class="bsc__info-block">
 				<h2>Control de preferencias</h2>
-				<p>Puedes administrar o eliminar cookies desde la configuracion de tu navegador. Algunas funciones de la tienda podrian verse afectadas si desactivas cookies esenciales.</p>
+				<p>Puedes aceptar o rechazar la analítica desde el aviso de consentimiento, o administrar y eliminar cookies desde la configuración de tu navegador. Algunas funciones de la tienda podrían verse afectadas si desactivas cookies esenciales.</p>
 			</div>
 			<?php
 		},

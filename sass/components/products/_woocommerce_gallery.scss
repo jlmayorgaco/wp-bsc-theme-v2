@@ -29,6 +29,37 @@
   min-width: 0;
 }
 
+// Keep the initial gallery track on one square slide until WooCommerce wraps it
+// in .flex-viewport. Without this, all gallery images stack vertically first.
+.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper {
+  display: flex;
+  width: calc(100% - var(--thumbs-w) - var(--thumbs-gap));
+  aspect-ratio: var(--gallery-aspect-ratio);
+  overflow: hidden;
+}
+
+.woocommerce-product-gallery--without-images > .woocommerce-product-gallery__wrapper {
+  width: 100%;
+}
+
+.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.woocommerce-product-gallery > .woocommerce-product-gallery__wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .woocommerce-product-gallery__image {
   position: relative;
 }
@@ -198,6 +229,11 @@
     max-width: 100%;
     min-width: 0;
   } 
+
+  .woocommerce-product-gallery > .woocommerce-product-gallery__wrapper {
+    width: 100%;
+    flex: 0 0 100%;
+  }
 
   .bsc__product-gallery {
     --thumb-w: 90px;

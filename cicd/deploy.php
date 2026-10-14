@@ -58,6 +58,7 @@ $repo_dir   = bsc_deploy_env( 'BSC_DEPLOY_REPO_DIR', $web_root . '/wp-content/th
 $log_file   = bsc_deploy_env( 'BSC_DEPLOY_LOG', '/var/www/bsc-deploy.log' );
 $smoke_url  = bsc_deploy_env( 'BSC_DEPLOY_SMOKE_URL', 'https://bubblesskincare.com/' );
 $cache_dir  = bsc_deploy_env( 'BSC_DEPLOY_CACHE_DIR', '/var/run/nginx-cache' );
+$deploy_ref = bsc_deploy_env( 'BSC_DEPLOY_REF', 'refs/heads/main' );
 $enabled    = strtolower( bsc_deploy_env( 'BSC_DEPLOY_WEBHOOK_ENABLED' ) );
 
 header( 'Content-Type: text/plain; charset=UTF-8' );
@@ -109,8 +110,8 @@ if ( 'push' !== $github_event ) {
 $decoded_payload = json_decode( $payload, true );
 $pushed_ref      = is_array( $decoded_payload ) ? (string) ( $decoded_payload['ref'] ?? '' ) : '';
 
-// Production follows main only. Feature and integration branches must not deploy here.
-$allowed_refs = array( 'refs/heads/main' );
+// Production follows one explicit ref only. Feature and integration branches must not deploy here.
+$allowed_refs = preg_match( '{^refs/heads/[A-Za-z0-9._/-]+$}', $deploy_ref ) ? array( $deploy_ref ) : array( 'refs/heads/main' );
 
 if ( ! in_array( $pushed_ref, $allowed_refs, true ) ) {
 	bsc_deploy_log( $log_file, 'IGNORED: ref "' . $pushed_ref . '" not in [' . implode( ', ', $allowed_refs ) . '].' );
@@ -197,6 +198,7 @@ function bsc_deploy_cleanup_public_theme( string $repo_dir ): array {
 		'.stylelintrc.json',
 		'README.md',
 		'ROADMAP_BSC.md',
+		'PROD_READINESS_REMEDIATION_2026-09-26.md',
 		'composer.json',
 		'composer.lock',
 		'node_modules',
@@ -452,6 +454,7 @@ $rollback     = 'not needed';
 if ( ! $smoke_ok && '' !== $previous_sha && preg_match( '{^[0-9a-f]{40}$}', $previous_sha ) ) {
 	$log .= '$ ROLLBACK to ' . $previous_sha . "\n";
 	$log .= bsc_deploy_run_git_command( $repo_dir, 'git reset --hard ' . escapeshellarg( $previous_sha ) );
+	$removed = array_merge( $removed, bsc_deploy_cleanup_public_theme( $repo_dir ) );
 
 	if ( function_exists( 'opcache_reset' ) ) {
 		opcache_reset();

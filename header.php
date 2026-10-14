@@ -23,7 +23,7 @@
 <?php wp_body_open(); ?>
 <div id="page" class="site">
 
-	<a class="skip-link screen-reader-text" href="#primary">
+	<a class="skip-link screen-reader-text" href="#content">
 		<?php esc_html_e( 'Skip to content', 'bsc-2-0' ); ?>
 	</a>
 
@@ -32,3 +32,4 @@
 	<!-- ---------------------------------- -->
 	<?php require 'components/header.php'; ?>
 	<!-- ---------------------------------- -->
+	<div id="content" tabindex="-1"></div>

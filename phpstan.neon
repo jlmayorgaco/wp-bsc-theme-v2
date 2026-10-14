@@ -1,9 +1,10 @@
 includes:
 	- tools/php-vendor/szepeviktor/phpstan-wordpress/extension.neon
-	- phpstan-baseline.neon
 
 parameters:
 	level: 0
+	parallel:
+		maximumNumberOfProcesses: 1
 	paths:
 		- admin
 		- components
@@ -18,9 +19,12 @@ parameters:
 		- page-register.php
 		- template-bsc-shop-landing.php
 		- front-page.php
+		- helpers
 
 	bootstrapFiles:
 		- phpstan-bootstrap.php
+		- tools/php-vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+		- tools/php-vendor/php-stubs/woocommerce-stubs/woocommerce-packages-stubs.php
 
 	excludePaths:
 		analyse:
