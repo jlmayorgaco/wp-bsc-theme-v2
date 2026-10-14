@@ -10,6 +10,7 @@
 <?php $theme_uri = get_template_directory_uri(); ?>
 
 <main class="bsc bsc__page page-home">
+	<h1 class="bsc-home-h1">Bubbles Skin Care: skincare coreano original en Colombia</h1>
 
 	<section class="section home__swiper--section">
 		<?php require_once get_template_directory() . '/components/swiper.php'; ?>

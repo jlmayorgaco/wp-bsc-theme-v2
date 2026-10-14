@@ -601,6 +601,17 @@ textarea:focus-visible {
   width: 100%;
   overflow: hidden;
 }
+.bsc__page.page-home .bsc-home-h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .bsc__page.page-home .home__swiper--section {
   background-color: white;
 }
