@@ -141,12 +141,12 @@ function bsc_exclude_blog_terms_from_rest_search( array $args ): array {
 	return $args;
 }
 
-add_action( 'template_redirect', 'bsc_disable_public_blog_routes', 0 );
+add_action( 'template_redirect', 'bsc_disable_public_default_routes', 0 );
 
 /**
- * Return a real 404 for unused author, blog and WordPress feed routes.
+ * Return a real 404 for unused author, blog, feed and sample page routes.
  */
-function bsc_disable_public_blog_routes(): void {
+function bsc_disable_public_default_routes(): void {
 	$feed = (string) get_query_var( 'feed' );
 	if ( 'bsc-google-merchant' === $feed ) {
 		return;
@@ -160,6 +160,7 @@ function bsc_disable_public_blog_routes(): void {
 		&& ! is_tag()
 		&& ! is_date()
 		&& ! is_feed()
+		&& ! is_page( 'sample-page' )
 		&& 'users' !== get_query_var( 'sitemap' )
 	) {
 		return;

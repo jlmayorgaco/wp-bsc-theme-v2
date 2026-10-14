@@ -37,6 +37,20 @@ function bsc_redirect_my_account_guests() {
 add_action( 'template_redirect', 'bsc_redirect_my_account_guests' );
 
 /**
+ * Send the default WooCommerce category to the catalog without hiding its products.
+ */
+function bsc_redirect_uncategorized_products(): void {
+	if ( ! is_tax( 'product_cat', 'uncategorized' ) ) {
+		return;
+	}
+
+	$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+	wp_safe_redirect( $shop_url, 301 );
+	exit;
+}
+add_action( 'template_redirect', 'bsc_redirect_uncategorized_products', 1 );
+
+/**
  * Check whether the current request is the local storefront oracle.
  *
  * The saved parking setting remains untouched so production keeps its configured state.
