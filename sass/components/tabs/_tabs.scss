@@ -44,7 +44,7 @@ $tab-state-duration: 180ms;
 
     &.active,
     &:hover {
-      border-color: var(--color--main);
+      border-color: transparent;
       opacity: 1;
     }
 
