@@ -78,18 +78,97 @@ function bsc_restrict_rest_user_endpoints( array $endpoints ): array {
 	return $endpoints;
 }
 
-add_action( 'template_redirect', 'bsc_disable_public_author_archives' );
+add_filter( 'rest_endpoints', 'bsc_hide_public_blog_rest_endpoints' );
 
 /**
- * Avoid public author archive enumeration.
+ * Keep the unused blog API routes unavailable to visitors.
+ *
+ * @param array $endpoints Registered REST endpoints.
  */
-function bsc_disable_public_author_archives(): void {
-	if ( ! is_author() || is_user_logged_in() ) {
+function bsc_hide_public_blog_rest_endpoints( array $endpoints ): array {
+	if ( current_user_can( 'edit_posts' ) ) {
+		return $endpoints;
+	}
+
+	foreach ( array_keys( $endpoints ) as $route ) {
+		if ( preg_match( '#^/wp/v2/(?:posts|categories|tags)(?:/|$)#', $route ) ) {
+			unset( $endpoints[ $route ] );
+		}
+	}
+
+	return $endpoints;
+}
+
+add_filter( 'rest_post_search_query', 'bsc_exclude_blog_posts_from_rest_search' );
+
+/**
+ * Keep product and page REST searches available without listing blog posts.
+ *
+ * @param array $args REST search query args.
+ */
+function bsc_exclude_blog_posts_from_rest_search( array $args ): array {
+	if ( current_user_can( 'edit_posts' ) ) {
+		return $args;
+	}
+
+	$args['post_type'] = array_values( array_diff( (array) ( $args['post_type'] ?? array() ), array( 'post' ) ) );
+	if ( empty( $args['post_type'] ) ) {
+		$args['post_type'] = array( 'page' );
+		$args['post__in']  = array( 0 );
+	}
+
+	return $args;
+}
+
+add_filter( 'rest_term_search_query', 'bsc_exclude_blog_terms_from_rest_search' );
+
+/**
+ * Exclude blog terms from public REST search results.
+ *
+ * @param array $args REST term search query args.
+ */
+function bsc_exclude_blog_terms_from_rest_search( array $args ): array {
+	if ( current_user_can( 'edit_posts' ) ) {
+		return $args;
+	}
+
+	$args['taxonomy'] = array_values( array_diff( (array) ( $args['taxonomy'] ?? array() ), array( 'category', 'post_tag' ) ) );
+	if ( empty( $args['taxonomy'] ) ) {
+		$args['taxonomy'] = array( 'product_cat' );
+		$args['include']  = array( 0 );
+	}
+
+	return $args;
+}
+
+add_action( 'template_redirect', 'bsc_disable_public_blog_routes', 0 );
+
+/**
+ * Return a real 404 for unused author, blog and WordPress feed routes.
+ */
+function bsc_disable_public_blog_routes(): void {
+	$feed = (string) get_query_var( 'feed' );
+	if ( 'bsc-google-merchant' === $feed ) {
 		return;
 	}
 
-	wp_safe_redirect( home_url( '/' ), 301 );
-	exit;
+	if (
+		! is_author()
+		&& ! ( is_home() && ! is_front_page() )
+		&& ! is_singular( 'post' )
+		&& ! is_category()
+		&& ! is_tag()
+		&& ! is_date()
+		&& ! is_feed()
+	) {
+		return;
+	}
+
+	global $wp_query;
+	$wp_query->set_404();
+	status_header( 404 );
+	nocache_headers();
+	remove_action( 'template_redirect', 'redirect_canonical' );
 }
 
 add_action(
