@@ -10,8 +10,9 @@ const script = execFileSync(process.env.PHP_BIN || 'php', [
   '-n', path.join(__dirname, 'order-payment-status.php'), '--widget-script',
 ], { encoding: 'utf8' });
 
-function openWidget() {
+function openWidget({ failFirstOpen = false } = {}) {
   const callbacks = [];
+  let openAttempts = 0;
   const buttonEvents = {};
   const paymentUrl = 'https://shop.example.test/checkout/order-pay/69087/?key=test';
   const window = {
@@ -22,7 +23,11 @@ function openWidget() {
     },
     WidgetCheckout: function (options) {
       assert.equal(options.reference, '69087');
-      this.open = callback => callbacks.push(callback);
+      this.open = callback => {
+        openAttempts += 1;
+        if (failFirstOpen && openAttempts === 1) throw new Error('Temporary widget error');
+        callbacks.push(callback);
+      };
     },
   };
   const document = {
@@ -56,4 +61,32 @@ test('real transactions retain the order key and send their ID to server verific
     assert.equal(target.searchParams.get('bsc_wompi_transaction_id'), 'test-transaction');
     assert.equal(target.searchParams.get('bsc_wompi_status'), status);
   }
+});
+
+test('repeated clicks do not open overlapping payment widgets', () => {
+  const ui = openWidget();
+  ui.buttonEvents.click({ preventDefault() {} });
+  ui.buttonEvents.click({ preventDefault() {} });
+  assert.equal(ui.callbacks.length, 1);
+  ui.callbacks[0](null);
+  ui.buttonEvents.click({ preventDefault() {} });
+  assert.equal(ui.callbacks.length, 2);
+});
+
+test('the callback cannot replace the configured order return URL', () => {
+  const ui = openWidget();
+  ui.callbacks[0]({ transaction: {
+    id: 'test-transaction', status: 'APPROVED', redirectUrl: 'https://other.example.test/',
+  } });
+  const target = new URL(ui.window.location.href);
+  assert.equal(target.origin, 'https://shop.example.test');
+  assert.equal(target.pathname, '/checkout/order-received/69087/');
+  assert.equal(target.searchParams.get('key'), 'test');
+});
+
+test('a widget error releases the button for another attempt', () => {
+  const ui = openWidget({ failFirstOpen: true });
+  assert.equal(ui.callbacks.length, 0);
+  ui.buttonEvents.click({ preventDefault() {} });
+  assert.equal(ui.callbacks.length, 1);
 });

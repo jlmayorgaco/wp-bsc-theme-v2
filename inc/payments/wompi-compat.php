@@ -120,7 +120,7 @@ function bsc_render_wompi_receipt( int $order_id ): void {
 	$amount_in_cents = max( 0, (int) round( (float) $order->get_total() * 100 ) );
 	$currency        = $order->get_currency();
 	$signature       = hash( 'sha256', "{$order_id}{$amount_in_cents}{$currency}{$integrity_key}" );
-	$redirect_url    = $order->get_checkout_order_received_url();
+	$redirect_url    = add_query_arg( 'bsc_wompi_return', '1', $order->get_checkout_order_received_url() );
 
 	$wompi_data = array(
 		'currency'        => $currency,
@@ -241,6 +241,7 @@ function bsc_get_wompi_widget_inline_script(): string {
 (function () {
 	var data = window.bscWompiData || {};
 	var autoOpened = false;
+	var checkoutIsOpen = false;
 
 	function createCheckout() {
 		if (typeof window.WidgetCheckout !== 'function') {
@@ -258,22 +259,31 @@ function bsc_get_wompi_widget_inline_script(): string {
 	}
 
 	function openCheckout() {
+		if (checkoutIsOpen) {
+			return;
+		}
 		var checkout = createCheckout();
 		if (!checkout) {
 			return;
 		}
 
-		checkout.open(function (result) {
-			var transaction = result && result.transaction;
-			if (!transaction || !transaction.id) {
-				return;
-			}
-			var redirectUrl = (transaction && transaction.redirectUrl) || data.redirectUrl;
+		checkoutIsOpen = true;
+		try {
+			checkout.open(function (result) {
+				checkoutIsOpen = false;
+				var transaction = result && result.transaction;
+				if (!transaction || !transaction.id) {
+					return;
+				}
+				var redirectUrl = data.redirectUrl;
 
-			if (redirectUrl) {
-				window.location.href = appendReturnParams(redirectUrl, transaction || {});
-			}
-		});
+				if (redirectUrl) {
+					window.location.href = appendReturnParams(redirectUrl, transaction || {});
+				}
+			});
+		} catch (error) {
+			checkoutIsOpen = false;
+		}
 	}
 
 	function appendReturnParams(url, transaction) {
@@ -319,8 +329,9 @@ function bsc_get_wompi_widget_inline_script(): string {
 JS;
 }
 
+/** Confirm an authenticated order return using the private API, with durable recovery. */
 function bsc_maybe_complete_wompi_return(): void {
-	if ( is_admin() || empty( $_GET['bsc_wompi_return'] ) ) {
+	if ( is_admin() ) {
 		return;
 	}
 
@@ -328,7 +339,7 @@ function bsc_maybe_complete_wompi_return(): void {
 	$transaction_id = bsc_get_wompi_return_query_value( array( 'bsc_wompi_transaction_id', 'id', 'transaction_id' ) );
 	$order_key      = bsc_get_wompi_return_query_value( array( 'key' ) );
 
-	if ( ! $order_id || ! $transaction_id || ! $order_key ) {
+	if ( ! $order_id || ! bsc_wompi_valid_transaction_id( $transaction_id ) || ! $order_key ) {
 		return;
 	}
 
@@ -341,24 +352,69 @@ function bsc_maybe_complete_wompi_return(): void {
 		return;
 	}
 
-	if ( $order->is_paid() && $order->get_transaction_id() === $transaction_id ) {
-		if ( function_exists( 'bsc_queue_order_email' ) ) {
-			bsc_queue_order_email( $order_id, 'processing' );
+	// The return is a fallback. Neither the URL status nor an admin status verifies a payment.
+	try {
+		$transaction = bsc_get_wompi_transaction_for_return( $transaction_id );
+		if ( ! $transaction ) {
+			bsc_wompi_schedule_reconciliation( $transaction_id, $order_id );
+			bsc_wompi_log(
+				'warning',
+				'return_api_unavailable',
+				array(
+					'order_id'       => $order_id,
+					'transaction_id' => $transaction_id,
+				)
+			);
+			return;
 		}
-		return;
-	}
-
-	$transaction = bsc_get_wompi_transaction_for_return( $transaction_id );
-	if ( ! bsc_wompi_transaction_matches_order( $transaction, $order ) ) {
-		return;
-	}
-
-	if ( function_exists( 'bsc_wompi_reconcile_transaction' ) ) {
-		bsc_wompi_reconcile_transaction( $transaction, $order_key );
+		if ( ! bsc_wompi_transaction_matches_order( $transaction, $order, false ) ) {
+			bsc_wompi_log(
+				'warning',
+				'return_transaction_mismatch',
+				array(
+					'order_id'       => $order_id,
+					'transaction_id' => $transaction_id,
+				)
+			);
+			return;
+		}
+		if ( 'PENDING' === ( $transaction->status ?? '' ) ) {
+			bsc_wompi_schedule_reconciliation( $transaction_id, $order_id );
+		} elseif ( 'APPROVED' === ( $transaction->status ?? '' ) ) {
+			$result = bsc_wompi_reconcile_transaction( $transaction, $order_key );
+			if ( is_wp_error( $result ) && 503 === bsc_wompi_error_http_status( $result ) ) {
+				bsc_wompi_schedule_reconciliation( $transaction_id, $order_id );
+			}
+			bsc_wompi_log(
+				is_wp_error( $result ) ? 'error' : 'info',
+				is_wp_error( $result ) ? $result->get_error_code() : 'return_reconciled',
+				array(
+					'order_id'       => $order_id,
+					'transaction_id' => $transaction_id,
+				)
+			);
+		}
+	} catch ( Throwable $error ) {
+		bsc_wompi_schedule_reconciliation( $transaction_id, $order_id );
+		bsc_wompi_log(
+			'error',
+			'return_processing_failed',
+			array(
+				'order_id'       => $order_id,
+				'transaction_id' => $transaction_id,
+			)
+		);
 	}
 }
 
+/**
+ * Read the first scalar return parameter.
+ *
+ * @param array $keys Accepted query parameter names.
+ * @return string
+ */
 function bsc_get_wompi_return_query_value( array $keys ): string {
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Wompi cannot send a WP nonce; the caller verifies the order key and authoritative API data.
 	foreach ( $keys as $key ) {
 		if ( empty( $_GET[ $key ] ) || is_array( $_GET[ $key ] ) ) {
 			continue;
@@ -368,10 +424,17 @@ function bsc_get_wompi_return_query_value( array $keys ): string {
 	}
 
 	return '';
+	// phpcs:enable WordPress.Security.NonceVerification.Recommended
 }
 
+/**
+ * Fetch a matching transaction with private-key authentication.
+ *
+ * @param string $transaction_id Transaction to query.
+ * @return object|null
+ */
 function bsc_get_wompi_transaction_for_return( string $transaction_id ): ?object {
-	if ( ! class_exists( 'Wompi_Portal_Pagos_API' ) ) {
+	if ( ! bsc_wompi_valid_transaction_id( $transaction_id ) || ! class_exists( 'Wompi_Portal_Pagos_API' ) ) {
 		return null;
 	}
 
@@ -382,32 +445,40 @@ function bsc_get_wompi_transaction_for_return( string $transaction_id ): ?object
 		true
 	);
 
-	if ( ! is_object( $response ) || empty( $response->data ) || ! is_object( $response->data ) ) {
+	if ( ! is_object( $response ) || empty( $response->data ) || ! is_object( $response->data ) || ( $response->data->id ?? null ) !== $transaction_id ) {
 		return null;
 	}
 
 	return $response->data;
 }
 
-function bsc_wompi_transaction_matches_order( ?object $transaction, WC_Order $order ): bool {
+/**
+ * Check exact reference, amount and currency against an order.
+ *
+ * @param object|null $transaction Authoritative API transaction.
+ * @param WC_Order    $order Expected order.
+ * @param bool        $require_approved Whether a final approval is required.
+ * @return bool
+ */
+function bsc_wompi_transaction_matches_order( ?object $transaction, WC_Order $order, bool $require_approved = true ): bool {
 	if ( ! $transaction ) {
 		return false;
 	}
 
-	if ( (string) ( $transaction->status ?? '' ) !== 'APPROVED' ) {
+	if ( $require_approved && ( $transaction->status ?? '' ) !== 'APPROVED' ) {
 		return false;
 	}
 
-	if ( (string) ( $transaction->reference ?? '' ) !== (string) $order->get_id() ) {
+	if ( ! is_scalar( $transaction->reference ?? null ) || (string) $transaction->reference !== (string) $order->get_id() ) {
 		return false;
 	}
 
 	$expected_amount = max( 0, (int) round( (float) $order->get_total() * 100 ) );
-	if ( (int) ( $transaction->amount_in_cents ?? 0 ) !== $expected_amount ) {
+	if ( ! is_numeric( $transaction->amount_in_cents ?? null ) || (float) $transaction->amount_in_cents !== (float) $expected_amount ) {
 		return false;
 	}
 
-	$currency = (string) ( $transaction->currency ?? '' );
+	$currency = $transaction->currency ?? '';
 	if ( $currency !== $order->get_currency() ) {
 		return false;
 	}
@@ -415,7 +486,14 @@ function bsc_wompi_transaction_matches_order( ?object $transaction, WC_Order $or
 	return true;
 }
 
-function bsc_update_order_from_wompi_transaction( WC_Order $order, object $transaction ): void {
+/**
+ * Persist the transaction ID before payment hooks, including missing billing fields.
+ *
+ * @param WC_Order $order Target order.
+ * @param object   $transaction Verified API transaction.
+ * @return bool
+ */
+function bsc_update_order_from_wompi_transaction( WC_Order $order, object $transaction ): bool {
 	$order->set_transaction_id( (string) ( $transaction->id ?? '' ) );
 
 	if ( empty( $order->get_billing_email() ) && ! empty( $transaction->customer_email ) ) {
@@ -447,5 +525,5 @@ function bsc_update_order_from_wompi_transaction( WC_Order $order, object $trans
 		);
 	}
 
-	$order->save();
+	return (bool) $order->save();
 }

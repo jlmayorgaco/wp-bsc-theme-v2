@@ -29,8 +29,12 @@ function sanitize_key( $value ): string { return (string) $value; }
 function is_wp_error( $value ): bool { return $value instanceof WP_Error; }
 function as_has_scheduled_action( ...$args ): bool { return false; }
 function as_enqueue_async_action( ...$args ): int { ++$GLOBALS['queued_emails']; return 1; }
+function wc_get_logger() { return new class { public function log( ...$args ): void {} }; }
 $GLOBALS['queued_emails'] = 0;
-class WP_Error { public function __construct( ...$args ) {} }
+class WP_Error {
+	public function __construct( private string $code, ...$args ) {}
+	public function get_error_code(): string { return $this->code; }
+}
 class BSC_DB_Lock { public static function run( $key, $callback ) { return $callback(); } }
 
 class WP_List_Table {
@@ -62,8 +66,8 @@ class WC_Order {
 	public function get_billing_email(): string { ++$this->recipient_reads; return ''; }
 	public function get_billing_first_name(): string { return ''; }
 	public function get_billing_phone(): string { return ''; }
-	public function save(): void { ++$this->saved; }
-	public function payment_complete( $id ): void { ++$this->completed; $this->status = 'processing'; }
+	public function save(): int { ++$this->saved; return $this->get_id(); }
+	public function payment_complete( $id ): bool { ++$this->completed; $this->status = 'processing'; return true; }
 	public function add_order_note( $note ): void { $this->notes[] = $note; }
 }
 
