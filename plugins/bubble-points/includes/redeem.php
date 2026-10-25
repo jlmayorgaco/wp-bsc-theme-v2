@@ -76,6 +76,11 @@ if ( ! function_exists( 'bsc_bp_calculate_order_points' ) ) {
 	 * @return int
 	 */
 	function bsc_bp_calculate_order_points( WC_Order $order ): int {
+		// Preserve the earning rule in effect when the guest purchase was paid.
+		$guest_points = $order->get_meta( '_bsc_bp_guest_points', true );
+		if ( '' !== $guest_points ) {
+			return max( 0, (int) $guest_points );
+		}
 		if ( function_exists( 'bsc_calculate_order_bubble_points' ) ) {
 			return max( 0, (int) bsc_calculate_order_bubble_points( $order ) );
 		}
@@ -120,10 +125,19 @@ if ( ! function_exists( 'bsc_bp_award_order_points' ) ) {
 
 		$user_id = (int) $order->get_user_id();
 		if ( $user_id <= 0 ) {
+			// The billing email on the order is the guest identity. No spendable
+			// balance exists until ownership of that email has been confirmed.
+			$points = bsc_bp_calculate_order_points( $order );
+			if ( '' === $order->get_meta( '_bsc_bp_guest_points', true ) ) {
+				$order->update_meta_data( '_bsc_bp_guest_points', $points );
+				$order->save_meta_data();
+			}
 			return array(
-				'ok'      => false,
-				'error'   => 'invalid_user',
-				'balance' => 0,
+				'ok'            => true,
+				'error'         => null,
+				'pending_guest' => true,
+				'points'        => $points,
+				'balance'       => 0,
 			);
 		}
 
@@ -215,7 +229,7 @@ add_action( 'woocommerce_order_status_changed', 'bsc_bp_award_order_points_on_st
 add_action( 'woocommerce_payment_complete', 'bsc_bp_award_order_points_on_payment_complete', 20, 1 );
 
 /** Reconcile the order's net benefit, including partial refunds and later reinstatement. */
-function bsc_bp_reconcile_order_points( int $order_id ): void {
+function bsc_bp_reconcile_order_points( int $order_id, bool $schedule_retry = true ) {
 	$reconciled = BSC_DB_Lock::run( 'points-order:' . $order_id, static function () use ( $order_id ) {
 		global $wpdb;
 		$order = wc_get_order( $order_id );
@@ -250,12 +264,13 @@ function bsc_bp_reconcile_order_points( int $order_id ): void {
 			return $result;
 		} );
 	} );
-	if ( is_wp_error( $reconciled ) || ( is_array( $reconciled ) && empty( $reconciled['ok'] ) ) ) {
+	if ( $schedule_retry && ( is_wp_error( $reconciled ) || ( is_array( $reconciled ) && empty( $reconciled['ok'] ) ) ) ) {
 		$order = wc_get_order( $order_id );
 		if ( $order ) { $order->add_order_note( 'Conciliación de Bubble Points pendiente; se reintentará automáticamente.' ); }
 		// WP-Cron deduplicates pending retries; this also handles failure to acquire either lock.
 		wp_schedule_single_event( time() + 300, 'bsc_bp_reconcile_order_points', array( $order_id ) );
 	}
+	return $reconciled;
 }
 add_action( 'bsc_bp_reconcile_order_points', 'bsc_bp_reconcile_order_points' );
 add_action( 'woocommerce_order_status_changed', 'bsc_bp_reconcile_order_points', 30, 1 );

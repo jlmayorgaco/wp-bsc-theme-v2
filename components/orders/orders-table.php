@@ -136,8 +136,9 @@ class BSC_Orders_Table {
 									<a
 										class="<?php echo esc_attr( $this->button_class ); ?> bsc__orders-pagination-page"
 										href="<?php echo esc_url( wc_get_endpoint_url( 'orders', $page ) ); ?>"
+										aria-label="<?php echo esc_attr( sprintf( 'Ir a la página %d', $page ) ); ?>"
 									>
-										<span class="screen-reader-text"><?php esc_html_e( 'Página', 'woocommerce' ); ?> </span><?php echo esc_html( $page ); ?>
+										<?php echo esc_html( $page ); ?>
 									</a>
 								<?php endif; ?>
 							</li>

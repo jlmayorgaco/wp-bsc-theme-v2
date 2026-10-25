@@ -5,6 +5,10 @@
   var selectedProduct = null;
   var searchTimer = null;
   var requestId = null;
+  var appliedCoupon = '';
+  var couponRequest = null;
+  var couponVersion = 0;
+  var salePending = false;
 
   var $search = $('#bsc-product-search');
   var $qty = $('#bsc-product-qty');
@@ -26,6 +30,18 @@
 
   function escapeHtml(value) {
     return $('<div>').text(value == null ? '' : String(value)).html();
+  }
+
+  function createRequestId() {
+    if (typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    var bytes = crypto.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    return Array.from(bytes, function (value, index) {
+      return ([4, 6, 8, 10].indexOf(index) !== -1 ? '-' : '') + value.toString(16).padStart(2, '0');
+    }).join('');
   }
 
   function hideResults() {
@@ -94,6 +110,7 @@
   }
 
   function renderCart() {
+    clearCoupon();
     var keys = Object.keys(cart);
     var total = 0;
 
@@ -118,6 +135,12 @@
         $('<td>', {
           class: 'bsc-showroom__cart-cell',
           text: item.name,
+        })
+      );
+      $row.append(
+        $('<td>', {
+          class: 'bsc-showroom__cart-cell bsc-showroom__cart-cell--center',
+          text: Number(item.stock_tienda) > 0 ? 'Stock' : 'Encargo',
         })
       );
       $row.append(
@@ -160,6 +183,80 @@
     $cartTotal.text(formatPrice(total));
   }
 
+  function cartItems() {
+    return Object.keys(cart).map(function (key) {
+      return { id: cart[key].id, variant_key: cart[key].variant_key, qty: cart[key].qty };
+    });
+  }
+
+  function clearCoupon() {
+    couponVersion += 1;
+    if (couponRequest) {
+      couponRequest.abort();
+      couponRequest = null;
+    }
+    appliedCoupon = '';
+    $('#bsc-remove-coupon').prop('hidden', true);
+    $('#bsc-apply-coupon').prop('disabled', false).text('Aplicar');
+    $('#bsc-coupon-notice').text('');
+    $registerButton.prop('disabled', salePending);
+  }
+
+  $('#bsc-apply-coupon').on('click', function () {
+    renderCart();
+    var code = $('#bsc-coupon-code').val().trim();
+    if (!cartItems().length || !code) {
+      $('#bsc-coupon-notice').text('Agrega productos e ingresa un cupón.');
+      return;
+    }
+    var version = couponVersion;
+    requestId = null;
+    $(this).prop('disabled', true).text('Aplicando...');
+    $registerButton.prop('disabled', true);
+    couponRequest = $.post(config.ajaxUrl, {
+      action: 'bsc_showroom_coupon',
+      nonce: config.nonce,
+      items: JSON.stringify(cartItems()),
+      customer_email: $('#bsc-customer-email').val().trim(),
+      coupon_code: code,
+    }).done(function (response) {
+      if (version !== couponVersion) { return; }
+      if (response && response.success) {
+        appliedCoupon = response.data.code;
+        $('#bsc-coupon-notice').text('Cupón ' + appliedCoupon + ' aplicado. Descuento: ' + formatPrice(response.data.discount));
+        $('#bsc-remove-coupon').prop('hidden', false);
+        $cartTotal.text(formatPrice(response.data.total));
+      } else {
+        $('#bsc-coupon-notice').text((response && response.data && response.data.message) || 'No se pudo aplicar el cupón.');
+      }
+    }).fail(function (xhr, status) {
+      if (version !== couponVersion || status === 'abort') { return; }
+      $('#bsc-coupon-notice').text((xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) || 'No se pudo aplicar el cupón. Intenta nuevamente.');
+    }).always(function () {
+      if (version !== couponVersion) { return; }
+      couponRequest = null;
+      $('#bsc-apply-coupon').prop('disabled', false).text('Aplicar');
+      $registerButton.prop('disabled', false);
+    });
+  });
+
+  $('#bsc-remove-coupon').on('click', function () {
+    requestId = null;
+    $('#bsc-coupon-code').val('');
+    renderCart();
+  });
+
+  $('#bsc-coupon-code, #bsc-customer-email').on('input', function () {
+    var hadCoupon = Boolean(appliedCoupon);
+    requestId = null;
+    renderCart();
+    if (hadCoupon) { $('#bsc-coupon-notice').text('Los datos cambiaron. Aplica el cupón nuevamente.'); }
+  });
+
+  $('#bsc-customer-name, #bsc-customer-phone, input[name="bsc-payment"]').on('change', function () {
+    requestId = null;
+  });
+
   $search.on('input', function () {
     var query = $search.val().trim();
 
@@ -189,7 +286,7 @@
   });
 
   $('#bsc-add-product').on('click', function () {
-    var quantity = parseInt($qty.val(), 10) || 1;
+    var quantity = Math.max(1, parseInt($qty.val(), 10) || 1);
     var productId;
 
     if (!selectedProduct) {
@@ -222,7 +319,7 @@
 
   $(document).on('change', '.cart-qty', function () {
     var productId = $(this).data('pid');
-    var quantity = parseInt($(this).val(), 10) || 1;
+    var quantity = Math.max(1, parseInt($(this).val(), 10) || 1);
 
     if (cart[productId]) {
       requestId = null;
@@ -238,6 +335,7 @@
   });
 
   $registerButton.on('click', function () {
+    if (salePending || couponRequest) { return; }
     var items = Object.keys(cart).map(function (productId) {
       return {
         id: cart[productId].id,
@@ -252,8 +350,11 @@
       return;
     }
 
-    $registerButton.prop('disabled', true).text(strings.registering || 'Registrando...');
-    requestId = requestId || crypto.randomUUID();
+    salePending = true;
+    var $saleControls = $('.bsc-showroom__card').find('input, button').filter(':enabled');
+    $saleControls.prop('disabled', true);
+    $registerButton.text(strings.registering || 'Registrando...');
+    requestId = requestId || createRequestId();
 
     $.post(config.ajaxUrl, {
       action: 'bsc_register_showroom_sale',
@@ -264,6 +365,7 @@
       customer_name: $('#bsc-customer-name').val().trim(),
       customer_phone: $('#bsc-customer-phone').val().trim(),
       customer_email: $('#bsc-customer-email').val().trim(),
+      coupon_code: appliedCoupon,
     })
       .done(function (response) {
         if (response && response.success) {
@@ -292,12 +394,16 @@
             ),
           'error'
         );
-        $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
+        salePending = false;
+        $saleControls.prop('disabled', false);
+        $registerButton.text(strings.registerSale || 'Registrar venta');
       })
       .fail(function (xhr) {
         var response = xhr.responseJSON;
         showNotice(escapeHtml((response && response.data && response.data.message) || strings.connectionError || 'Error de conexión. Intenta nuevamente para consultar el resultado de esta venta.'), 'error');
-        $registerButton.prop('disabled', false).text(strings.registerSale || 'Registrar venta');
+        salePending = false;
+        $saleControls.prop('disabled', false);
+        $registerButton.text(strings.registerSale || 'Registrar venta');
       });
   });
 })(jQuery);

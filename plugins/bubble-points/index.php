@@ -41,6 +41,7 @@ add_action( 'after_switch_theme', 'bsc_bp_maybe_install' );
 
 require_once __DIR__ . '/includes/store.php';
 require_once __DIR__ . '/includes/redeem.php';
+require_once __DIR__ . '/includes/guest-orders.php';
 require_once __DIR__ . '/admin/admin-menu.php';
 require_once __DIR__ . '/admin/admin-actions.php';
 require_once __DIR__ . '/admin/user-history.php';

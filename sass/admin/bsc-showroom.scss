@@ -89,6 +89,10 @@
     display: none;
 }
 
+.bsc-showroom #bsc-remove-coupon[hidden] {
+    display: none;
+}
+
 .bsc-showroom__search-result,
 .bsc-showroom__search-empty {
     padding: 10px 14px;
@@ -129,6 +133,10 @@
 
 .bsc-showroom__cart-table {
     margin-top: 16px;
+}
+
+.bsc-showroom__cart-scroll {
+    overflow-x: auto;
 }
 
 .bsc-showroom__cart-head-row,
@@ -290,15 +298,15 @@
 
 @media (max-width: 1280px) {
     .bsc-showroom__layout {
-    align-items: start;
-    display: grid;
-    gap: 20px;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-    margin-top: 20px;
-}
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 @media (max-width: 782px) {
+    .bsc-showroom__cart-table {
+        min-width: 520px;
+    }
+
     .bsc-showroom__search-bar,
     .bsc-showroom__payment-options {
         flex-wrap: wrap;

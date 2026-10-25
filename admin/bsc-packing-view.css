@@ -56,15 +56,14 @@ body.bsc-packing-view {
 }
 
 .bsc-packing-view__details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: block;
   margin-bottom: 10px;
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
-.bsc-packing-view__details-row--full {
-  grid-column: span 2;
+.bsc-packing-view__details > div + div {
+  margin-top: 4px;
 }
 
 .bsc-packing-view table {

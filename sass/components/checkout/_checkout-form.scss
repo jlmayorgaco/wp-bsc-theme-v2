@@ -10,6 +10,39 @@ $checkout-valid-color: rgb(0, 255, 13);
   margin-bottom: var(--bsc-spacing-md);
 }
 
+.bsc__checkout-account {
+  margin-block: var(--bsc-spacing-md);
+  color: var(--bsc-color-text);
+
+  .bsc__checkout-account-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--bsc-color-text);
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+  }
+
+  p {
+    margin: 0 0 0 32px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
 .bsc__form-input,
 .bsc__form-textarea,
 .bsc__form-select,

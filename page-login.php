@@ -10,6 +10,13 @@ get_header();
 // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only login error flag.
 $login_error = isset( $_GET['login'] ) && 'failed' === sanitize_key( wp_unslash( $_GET['login'] ) );
 $lost_password_url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_url() : wp_lostpassword_url();
+$account_redirect = home_url( '/mi-cuenta/' );
+// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only destination, validated before use.
+$requested_redirect = isset( $_GET['redirect_to'] ) ? wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), $account_redirect ) : $account_redirect;
+// Restrict the custom login return path to this site's account page.
+if ( wp_parse_url( $requested_redirect, PHP_URL_HOST ) === wp_parse_url( $account_redirect, PHP_URL_HOST ) && wp_parse_url( $requested_redirect, PHP_URL_PATH ) === wp_parse_url( $account_redirect, PHP_URL_PATH ) ) {
+	$account_redirect = $requested_redirect;
+}
 ?>
 <main class="login">
 	<div class="login__container">
@@ -74,7 +81,7 @@ $lost_password_url = function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_
 
 			<div class="form__field form__field--submit bsc">
 			<button type="submit" name="wp-submit" id="wp-submit" class="bsc__button bsc__button--product-card bsc__button-add-to-cart form__submit form__submit--product-card" value="Iniciar sesi&oacute;n">Iniciar sesi&oacute;n</button>
-			<input type="hidden" name="redirect_to" value="<?php echo esc_url( home_url( '/mi-cuenta/' ) ); ?>" />
+			<input type="hidden" name="redirect_to" value="<?php echo esc_url( $account_redirect ); ?>" />
 			</div>
 
 			<div class="form__links">

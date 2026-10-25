@@ -57,6 +57,9 @@ if ( 'POST' === $request_method && isset( $_POST['email'] ) ) {
 			if ( function_exists( 'bsc_handle_new_customer_welcome_email' ) ) {
 				bsc_handle_new_customer_welcome_email( (int) $user_id );
 			}
+			if ( function_exists( 'bsc_bp_send_guest_recovery_email' ) ) {
+				bsc_bp_send_guest_recovery_email( (int) $user_id );
+			}
 
 			wp_safe_redirect( home_url( '/registro-familia-bubbles/' ) );
 			exit;

@@ -208,6 +208,11 @@ function bsc_parse_birthday_month_day( string $raw ): array {
 }
 
 function bsc_handle_new_customer_welcome_email( int $user_id ): void {
+	// Checkout accounts receive WooCommerce's welcome with the password setup
+	// link. A second welcome would send them to login before they have a password.
+	if ( 'yes' === get_user_meta( $user_id, '_bsc_checkout_account', true ) ) {
+		return;
+	}
 	if ( ! (bool) bsc_get_followup_email_setting( 'bsc_welcome_email_enabled' ) ) {
 		return;
 	}

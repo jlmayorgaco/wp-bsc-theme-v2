@@ -172,6 +172,11 @@ $menu-title-font: 'Helvetica', sans-serif;
   }
 }
 
+// Let the home hero follow the header's actual height without a fixed gap.
+body.home .bsc__header--desktop {
+  position: sticky;
+}
+
 .bsc__header--mobile {
   display: none;
 }

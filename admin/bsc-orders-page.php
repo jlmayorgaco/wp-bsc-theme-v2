@@ -881,7 +881,8 @@ function bsc_render_packing_view( array $order_ids ): void {
 				?: trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
 			$city    = $order->get_shipping_city() ?: $order->get_billing_city();
 			$address = trim( $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2() )
-					?: $order->get_billing_address_1();
+					?: trim( $order->get_billing_address_1() . ' ' . $order->get_billing_address_2() );
+			$customer_note = trim( $order->get_customer_note() );
 			?>
 		<div class="bsc-packing-view__order-card">
 			<div class="bsc-packing-view__order-header">
@@ -889,18 +890,17 @@ function bsc_render_packing_view( array $order_ids ): void {
 				<span class="bsc-packing-view__order-status"><?php echo esc_html( bsc_simplified_order_status_label( $order ) ); ?></span>
 			</div>
 			<div class="bsc-packing-view__details">
-				<div><strong>Cliente:</strong> <?php echo esc_html( $name ); ?></div>
-				<div><strong>Teléfono:</strong> <?php echo esc_html( $order->get_billing_phone() ); ?></div>
+				<div><strong>Nombre cliente:</strong> <?php echo esc_html( $name ); ?></div>
+				<div><strong>Dirección:</strong> <?php echo esc_html( $address ); ?></div>
 				<div><strong>Ciudad:</strong> <?php echo esc_html( $city ); ?></div>
-				<div>
-					<strong>Fecha:</strong>
-					<?php echo esc_html( $order->get_date_created() ? wp_date( 'd/m/Y', $order->get_date_created()->getTimestamp(), wp_timezone() ) : '' ); ?>
-				</div>
-				<div class="bsc-packing-view__details-row--full"><strong>Dirección:</strong> <?php echo esc_html( $address ); ?></div>
+				<div><strong>Teléfono:</strong> <?php echo esc_html( $order->get_billing_phone() ); ?></div>
+				<?php if ( '' !== $customer_note ) : ?>
+					<div><strong>Notas:</strong> <?php echo nl2br( esc_html( $customer_note ) ); ?></div>
+				<?php endif; ?>
 			</div>
 			<table>
 				<thead>
-					<tr><th>Producto</th><th>SKU</th><th>Qty</th><th>Subtotal</th><th>Stock</th><th>Origen para empaque</th></tr>
+					<tr><th>Producto</th><th>SKU</th><th>Ubicación</th><th>Qty</th><th>Subtotal</th><th>Stock</th><th>Origen para empaque</th></tr>
 				</thead>
 				<tbody>
 					<?php
@@ -908,6 +908,7 @@ function bsc_render_packing_view( array $order_ids ): void {
 						$product      = $item->get_product();
 						$product_id   = (int) $item->get_product_id();
 						$sku          = $product ? $product->get_sku() : '';
+						$location_code = bsc_get_product_location_code( $product_id );
 						$variant_data = $item instanceof WC_Order_Item_Product && function_exists( 'bsc_get_order_item_product_variant_data' )
 							? bsc_get_order_item_product_variant_data( $item )
 							: array(
@@ -940,6 +941,7 @@ function bsc_render_packing_view( array $order_ids ): void {
 							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( $sku ); ?></td>
+						<td><?php echo esc_html( '' !== $location_code ? $location_code : 'Sin ubicación' ); ?></td>
 						<td><?php echo esc_html( $item->get_quantity() ); ?></td>
 						<td><?php echo wp_kses_post( wc_price( $item->get_total() ) ); ?></td>
 						<td class="bsc-packing-stock">
@@ -952,7 +954,7 @@ function bsc_render_packing_view( array $order_ids ): void {
 					</tr>
 					<?php endforeach; ?>
 					<tr class="total-row">
-						<td colspan="5">Total</td>
+						<td colspan="6">Total</td>
 						<td><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></td>
 					</tr>
 				</tbody>

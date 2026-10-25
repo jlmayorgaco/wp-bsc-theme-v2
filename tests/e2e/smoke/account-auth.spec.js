@@ -168,6 +168,17 @@ test.describe('BSC smoke - auth and account', () => {
     await expect(page.locator('.bsc__orders-next')).toBeVisible();
     await expect(page.locator('.bsc__orders-pagination-page')).toHaveCount(maxPages);
     await expect(page.locator('.bsc__orders-pagination-page[aria-current="page"]')).toHaveText('1');
+    await expect(page.locator('.bsc__orders-pagination-page')).toHaveText(
+      Array.from({ length: maxPages }, (_, index) => String(index + 1))
+    );
+    await expect(page.locator('.bsc__orders-next')).toHaveText('Siguiente');
+
+    const confirmation = page.locator('.bsc__email-confirmation');
+    if (await confirmation.count()) {
+      await expect(confirmation.getByRole('heading')).toHaveText('Confirma tu correo');
+      await expect(confirmation.getByRole('link', { name: 'Confirmar mi correo' })).toBeVisible();
+    }
+    await page.screenshot({ path: require('path').join(require('os').tmpdir(), 'bsc-account-confirmation-' + test.info().project.name + '.png'), fullPage: true });
 
     const orderPages = [await accountOrderHrefs(page)];
     expect(orderPages[0]).toHaveLength(perPage);

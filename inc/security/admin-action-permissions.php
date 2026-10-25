@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 function bsc_admin_action_page( string $action ): string {
 	$groups = array(
 		'bsc-products' => array( 'bsc_update_product_status', 'bsc_update_product_stock', 'bsc_update_product_stocks', 'bsc_apply_product_discount', 'bsc_trash_product', 'bsc_adjust_stock', 'bsc_get_stock_log', 'bsc_get_product_variant_matrix', 'bsc_save_product_variant_matrix' ),
-		'bsc-showroom' => array( 'bsc_showroom_search', 'bsc_register_showroom_sale' ),
+		'bsc-showroom' => array( 'bsc_showroom_search', 'bsc_showroom_coupon', 'bsc_register_showroom_sale' ),
 		'bsc-orders' => array( 'bsc_update_order_status', 'bsc_save_tracking', 'bsc_pack_order_item_stock' ),
 	);
 	foreach ( $groups as $page => $actions ) {

@@ -327,13 +327,29 @@ padding-left: 1px;
     letter-spacing: 0;
     padding: 4px 0px;
  }
- .bsc__slider .bsc__product-card .bsc__button--product-card,
- .bsc__slider .bsc__product-card .bsc__button-add-to-cart,
- .bsc__slider .bsc__product-card .bsc__button-add-to-cart--variable {
+ .bsc__slider .bsc__product-card .card__button,
+ .shop__products .bsc__product-card .card__button {
     width: 100%;
     min-width: 0;
-    padding: 0.45rem 1.5rem;
+    container-type: inline-size;
+ }
+ .bsc__slider .bsc__product-card .bsc__button--product-card,
+ .bsc__slider .bsc__product-card .bsc__button-add-to-cart,
+ .bsc__slider .bsc__product-card .bsc__button-add-to-cart--variable,
+ .shop__products .bsc__product-card .bsc__button--product-card,
+ .shop__products .bsc__product-card .bsc__button-add-to-cart,
+ .shop__products .bsc__product-card .bsc__button-add-to-cart--variable {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0.45rem 1.25rem;
+    // Reserve space for the label before adding padding in narrow cards.
+    padding-inline: clamp(0.25rem, calc(50cqi - 3.75rem), 1.25rem);
     font-size: 16px;
+    white-space: nowrap;
  }
  .shop__products .bsc-product-card {
     min-width: 0;
@@ -394,19 +410,6 @@ padding-left: 1px;
     margin-top: auto;
     
  }
- .shop__products .bsc__product-card .bsc__button--product-card,
- .shop__products .bsc__product-card .bsc__button-add-to-cart,
- .shop__products .bsc__product-card .bsc__button-add-to-cart--variable {
-    width: 90%;
-    min-width: 0;
-    min-height: 38px;
-    padding: 0.45rem 0.25rem;
-    font-size: clamp(11px, 4vw, 16px);
-    
-        display: flex;
-    justify-content: center;
-    align-items: center;
- }
  .shop__products .bsc__product-card .bsc__button-add-to-cart--hidden {
     display: none;
  }
@@ -454,12 +457,5 @@ padding-left: 1px;
 
  .bsc__slider--ultimos_lanzamientos{
   padding-top: 0px !important;
- }
- .bsc__slider--ultimos_lanzamientos .bsc__product-card .bsc__button-add-to-cart--variable {
-  padding: 0.45rem 0.25rem;
-  white-space: nowrap;
- }
- .bsc__slider--ultimos_lanzamientos .bsc__product-card .card__button:has(.bsc__button-add-to-cart--variable) {
-  width: 100%;
  }
 }

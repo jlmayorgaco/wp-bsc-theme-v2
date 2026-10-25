@@ -89,6 +89,16 @@ class BSC_Checkout_Form_View {
 			?>
 			</div>
 
+			<?php if ( ! is_user_logged_in() && $this->checkout->is_registration_enabled() ) : ?>
+				<div class="bsc__checkout-account">
+					<label class="bsc__checkout-account-label" for="createaccount">
+						<input type="checkbox" name="createaccount" id="createaccount" value="1" aria-describedby="bsc-checkout-account-help" <?php checked( ! empty( $this->checkout->get_value( 'createaccount' ) ) ); ?>>
+						<span>Crear mi cuenta con esta compra</span>
+					</label>
+					<p id="bsc-checkout-account-help">Recibirás un correo para establecer tu contraseña. En tu cuenta podrás consultar tus compras y tus Bubble Points.</p>
+				</div>
+			<?php endif; ?>
+
 			<div class="bsc__checkout-section">
 			<h2 class="bsc__section-title">Notas del pedido (opcional)</h2>
 			<?php woocommerce_form_field( 'order_comments', $this->fields['order']['order_comments'], $this->checkout->get_value( 'order_comments' ) ); ?>

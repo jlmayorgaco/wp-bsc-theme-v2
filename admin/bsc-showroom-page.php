@@ -96,10 +96,12 @@ function bsc_render_showroom_page(): void {
 					</div>
 					<div id="bsc-search-results" class="bsc-showroom__search-results bsc-showroom__search-results--hidden"></div>
 
+					<div class="bsc-showroom__cart-scroll">
 					<table id="bsc-cart-table" class="bsc-showroom__cart-table bsc-showroom__cart-table--hidden">
 						<thead>
 							<tr class="bsc-showroom__cart-head-row">
 								<th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--left">Producto</th>
+								<th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--center">Stock</th>
 								<th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--center bsc-showroom__cart-head-cell--qty">Qty</th>
 								<th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--right bsc-showroom__cart-head-cell--price">Precio</th>
 								<th class="bsc-showroom__cart-head-cell bsc-showroom__cart-head-cell--right bsc-showroom__cart-head-cell--subtotal">Subtotal</th>
@@ -109,13 +111,21 @@ function bsc_render_showroom_page(): void {
 						<tbody id="bsc-cart-body"></tbody>
 						<tfoot>
 							<tr>
-								<td colspan="3" class="bsc-showroom__cart-total-label">Total:</td>
+								<td colspan="4" class="bsc-showroom__cart-total-label">Total:</td>
 								<td id="bsc-cart-total" class="bsc-showroom__cart-total-value">$0</td>
 								<td></td>
 							</tr>
 						</tfoot>
 					</table>
+					</div>
 					<p id="bsc-cart-empty" class="bsc-showroom__cart-empty">Agrega productos usando el buscador arriba.</p>
+					<label for="bsc-coupon-code" class="bsc-showroom__field-label">Cupón de descuento</label>
+					<div class="bsc-showroom__search-bar">
+						<input type="text" id="bsc-coupon-code" class="bsc-showroom__text-input" placeholder="Código del cupón">
+						<button type="button" id="bsc-apply-coupon" class="button">Aplicar</button>
+						<button type="button" id="bsc-remove-coupon" class="button" hidden>Quitar</button>
+					</div>
+					<p id="bsc-coupon-notice" role="status" aria-live="polite"></p>
 
 					<hr class="bsc-showroom__divider">
 
@@ -132,6 +142,7 @@ function bsc_render_showroom_page(): void {
 						<div class="bsc-showroom__customer-field bsc-showroom__customer-field--full">
 							<label class="bsc-showroom__field-label">Email</label>
 							<input type="email" id="bsc-customer-email" placeholder="Opcional" class="bsc-showroom__text-input bsc-showroom__customer-input">
+							<p>Con este correo, la compra y sus puntos se asociarán al perfil del cliente. Si no tiene cuenta, se creará una y recibirá un enlace para establecer su contraseña.</p>
 						</div>
 					</div>
 
@@ -202,6 +213,20 @@ function bsc_render_showroom_page(): void {
 	<?php
 }
 
+/** Find published Showroom products by name or SKU, including out-of-stock items. */
+function bsc_showroom_find_products( string $query ): array {
+	$args = array( 'limit' => 12, 'status' => 'publish', 'return' => 'objects' );
+	$matches = array_merge(
+		wc_get_products( array_merge( $args, array( 'sku' => $query ) ) ),
+		wc_get_products( array_merge( $args, array( 's' => $query ) ) )
+	);
+	$products = array();
+	foreach ( $matches as $product ) {
+		$products[ $product->get_id() ] = $product;
+	}
+	return array_slice( array_values( $products ), 0, 12 );
+}
+
 add_action( 'wp_ajax_bsc_showroom_search', 'bsc_ajax_showroom_search' );
 function bsc_ajax_showroom_search(): void {
 	check_ajax_referer( 'bsc_admin_orders', 'nonce' );
@@ -214,14 +239,7 @@ function bsc_ajax_showroom_search(): void {
 		wp_send_json_success( array() );
 	}
 
-	$products = wc_get_products(
-		array(
-			's'      => $q,
-			'limit'  => 12,
-			'status' => 'publish',
-			'return' => 'objects',
-		)
-	);
+	$products = bsc_showroom_find_products( $q );
 
 	$results = array();
 	foreach ($products as $product) {
@@ -270,7 +288,12 @@ function bsc_ajax_register_showroom_sale(): void {
 	}
 	$customer_name  = sanitize_text_field( wp_unslash( $_POST['customer_name'] ?? '' ) );
 	$customer_phone = sanitize_text_field( wp_unslash( $_POST['customer_phone'] ?? '' ) );
-	$customer_email = sanitize_email( wp_unslash( $_POST['customer_email'] ?? '' ) );
+	$customer_email = trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ?? '' ) ) );
+	if ( '' !== $customer_email && ! is_email( $customer_email ) ) {
+		wp_send_json_error( array( 'message' => 'Ingresa un correo válido para asociar la compra al cliente.' ), 400 );
+	}
+	$customer_email = sanitize_email( $customer_email );
+	$coupon_code = wc_format_coupon_code( sanitize_text_field( wp_unslash( $_POST['coupon_code'] ?? '' ) ) );
 
 	if (empty( $items ) || !is_array( $items )) {
 		wp_send_json_error( array( 'message' => 'Sin productos' ) );
@@ -278,7 +301,7 @@ function bsc_ajax_register_showroom_sale(): void {
 
 	$request_id = isset( $_POST['request_id'] ) && is_string( $_POST['request_id'] ) ? sanitize_key( wp_unslash( $_POST['request_id'] ) ) : '';
 	if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $request_id ) ) { wp_send_json_error( array( 'message' => 'Recarga la página antes de registrar la venta.' ), 400 ); }
-	$order = BSC_Order_Stock::showroom( $items, $payment, $payment_methods[ $payment ], array( 'name' => $customer_name, 'phone' => $customer_phone, 'email' => $customer_email ), $request_id );
+	$order = BSC_Order_Stock::showroom( $items, $payment, $payment_methods[ $payment ], array( 'name' => $customer_name, 'phone' => $customer_phone, 'email' => $customer_email ), $request_id, $coupon_code );
 	if ( is_wp_error( $order ) ) { wp_send_json_error( array( 'message' => $order->get_error_message() ), 409 ); }
 	$order_id = $order->get_id();
 
@@ -288,4 +311,24 @@ function bsc_ajax_register_showroom_sale(): void {
 			'edit_url' => $order->get_edit_order_url(),
 		)
 	);
+}
+
+add_action( 'wp_ajax_bsc_showroom_coupon', 'bsc_ajax_showroom_coupon' );
+/** Validate and preview a coupon without saving a sale. */
+function bsc_ajax_showroom_coupon(): void {
+	check_ajax_referer( 'bsc_admin_orders', 'nonce' );
+	if ( ! current_user_can( 'manage_options' ) && ! current_user_can( 'manage_woocommerce' ) && ! current_user_can( 'edit_orders' ) ) {
+		wp_send_json_error( array( 'message' => 'Sin permisos' ), 403 );
+	}
+	$items = json_decode( sanitize_textarea_field( wp_unslash( $_POST['items'] ?? '[]' ) ), true );
+	$email = trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ?? '' ) ) );
+	if ( ! is_array( $items ) || ( '' !== $email && ! is_email( $email ) ) ) {
+		wp_send_json_error( array( 'message' => 'Revisa los productos y el correo del cliente.' ), 400 );
+	}
+	$code = wc_format_coupon_code( sanitize_text_field( wp_unslash( $_POST['coupon_code'] ?? '' ) ) );
+	$result = BSC_Order_Stock::showroom_quote( $items, sanitize_email( $email ), $code );
+	if ( is_wp_error( $result ) ) {
+		wp_send_json_error( array( 'message' => wp_strip_all_tags( $result->get_error_message() ) ), 400 );
+	}
+	wp_send_json_success( $result );
 }

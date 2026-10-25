@@ -30,7 +30,23 @@ function bsc_redirect_my_account_guests() {
 		&& ! is_user_logged_in()
 		&& ! bsc_is_account_password_reset_request()
 	) {
-		wp_safe_redirect( home_url( '/login/' ) );
+		$login_url = home_url( '/login/' );
+		// Keep the emailed verification link through the custom login screen.
+		// These values only route back to WooCommerce, which validates the token.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Native emailed verification token, validated by WooCommerce.
+		if ( isset( $_GET['wc_verify_email_key'], $_GET['wc_verify_email_user'] ) ) {
+			$verify_url = add_query_arg(
+				array(
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					'wc_verify_email_key'  => sanitize_text_field( wp_unslash( $_GET['wc_verify_email_key'] ) ),
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					'wc_verify_email_user' => absint( wp_unslash( $_GET['wc_verify_email_user'] ) ),
+				),
+				wc_get_page_permalink( 'myaccount' )
+			);
+			$login_url = add_query_arg( 'redirect_to', $verify_url, $login_url );
+		}
+		wp_safe_redirect( $login_url );
 		exit;
 	}
 }

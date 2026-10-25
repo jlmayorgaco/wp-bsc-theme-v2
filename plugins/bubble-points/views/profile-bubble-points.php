@@ -8,6 +8,9 @@ $coupons = require get_template_directory() . '/plugins/bubble-points/config/cou
 
 $user_id        = get_current_user_id();
 $points_by_user = BSC_Bubble_Points::get( $user_id );
+if ( function_exists( 'bsc_bp_guest_recovery_prompt' ) ) {
+	bsc_bp_guest_recovery_prompt();
+}
 ?>
 
 <div class="bsc profile-points">
