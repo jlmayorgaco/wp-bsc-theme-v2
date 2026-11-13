@@ -118,6 +118,7 @@ $checkout_aria_label  = sprintf(
 		<p class="footer__copyright-text">
 			<strong>© 2020 - <?php echo esc_html( wp_date( 'Y' ) ); ?> BSC | Bubbles Skin Care</strong><br />Todos los derechos reservados
 		</p>
+		<button type="button" class="footer__link bsc-cookie-preferences-link" data-bsc-cookie-open aria-controls="bsc-cookie-preferences" aria-expanded="false" hidden>Preferencias de cookies</button>
 		</div>
 		</div>
 

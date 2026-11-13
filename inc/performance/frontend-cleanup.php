@@ -24,6 +24,10 @@ function bsc_should_bypass_page_cache(): bool {
 		return true;
 	}
 
+	if ( function_exists( 'bsc_meta_is_private_view' ) && bsc_meta_is_private_view() ) {
+		return true;
+	}
+
 	foreach ( array( 'wc-ajax', 'add-to-cart', 'order-pay', 'key', 'routine_run' ) as $query_arg ) {
 		if ( isset( $_GET[ $query_arg ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Cache routing only; no state is changed.
 			return true;

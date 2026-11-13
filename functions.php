@@ -59,6 +59,7 @@ require_once get_template_directory() . '/inc/product-category-labels.php';
 require_once get_template_directory() . '/inc/seo/meta.php';
 require_once get_template_directory() . '/inc/seo/structured-data.php';
 require_once get_template_directory() . '/inc/analytics/ga4.php';
+require_once get_template_directory() . '/inc/analytics/consent.php';
 require_once get_template_directory() . '/inc/analytics/metrics.php';
 require_once get_template_directory() . '/inc/merchant-center-feed.php';
 

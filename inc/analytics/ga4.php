@@ -121,25 +121,6 @@ function bsc_ga4_get_order_payload( WC_Order $order ): array {
 	);
 }
 
-function bsc_ga4_render_consent_banner(): void {
-	if ( ! bsc_ga4_consent_required() || '' === bsc_ga4_get_measurement_id() ) {
-		return;
-	}
-	?>
-	<section class="bsc-analytics-consent" data-bsc-analytics-consent-banner role="dialog" aria-labelledby="bsc-analytics-consent-title" aria-describedby="bsc-analytics-consent-description" hidden>
-		<div class="bsc-analytics-consent__copy">
-			<h2 id="bsc-analytics-consent-title">Analítica opcional</h2>
-			<p id="bsc-analytics-consent-description">Usamos Google Analytics para entender qué contenido ayuda a mejorar la tienda. Puedes aceptar o rechazar estas cookies; las funciones esenciales seguirán disponibles. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Ver política de cookies</a>.</p>
-		</div>
-		<div class="bsc-analytics-consent__actions">
-			<button type="button" class="bsc__button bsc__button--outline" data-bsc-analytics-consent="denied">No gracias</button>
-			<button type="button" class="bsc__button" data-bsc-analytics-consent="granted">Aceptar analítica</button>
-		</div>
-	</section>
-	<?php
-}
-add_action( 'wp_footer', 'bsc_ga4_render_consent_banner', 4 );
-
 function bsc_ga4_event_script( string $event_name, array $params, string $dedupe_key = '' ): string {
 	$payload = array(
 		'event'     => $event_name,
