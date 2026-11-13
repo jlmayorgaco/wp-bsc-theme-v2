@@ -1,0 +1,534 @@
+@use "../../tokens/public" as bsc;
+@use "../../tokens/structure" as structure;
+@use "../../tokens/typography" as type;
+
+.bsc-workshops {
+  background: bsc.$surface;
+  color: bsc.$text;
+  font-family: bsc.$font-main;
+  font-size: type.$font-size__md;
+  line-height: type.$font__line-height-body;
+
+  :where(h2, h3, p) {
+    margin: 0;
+  }
+
+  h2, h3 {
+    line-height: 1.25;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+  }
+
+  .bsc__title {
+    padding: 0;
+
+    &::after {
+      content: none;
+    }
+  }
+
+  .bsc__button {
+    box-sizing: border-box;
+    display: inline-flex;
+    min-height: bsc.$control-height;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid bsc.$border;
+    line-height: 1.25;
+    text-decoration: none;
+
+    &:focus-visible {
+      outline: 2px solid bsc.$text;
+      outline-offset: 2px;
+    }
+  }
+
+  &__wrap {
+    width: min(bsc.$container-width, calc(100% - #{2 * bsc.$space-xl}));
+    margin-inline: auto;
+  }
+
+  &__hero {
+    position: relative;
+
+    > img {
+      height: clamp(220px, 33.5vw, 620px);
+      object-fit: cover;
+      object-position: 50% 58%;
+    }
+
+    .bsc-workshops__hero-cta {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 18%;
+      width: fit-content;
+      margin-inline: auto;
+    }
+  }
+
+  &__agenda {
+    max-width: calc(#{bsc.$container-width} - #{2 * bsc.$space-2xl});
+    padding-block: bsc.$space-2xl structure.$bsc-section-space;
+    scroll-margin-top: calc(#{bsc.$control-height} + #{bsc.$space-2xl});
+  }
+
+  &__section-heading {
+    display: grid;
+    justify-items: center;
+    gap: bsc.$space-sm;
+    margin-bottom: bsc.$space-2xl;
+  }
+
+  &__notice {
+    padding: bsc.$space-sm bsc.$space-md;
+    margin-bottom: bsc.$space-md;
+    border: 1px solid bsc.$border-soft;
+    border-radius: bsc.$radius-md;
+    background: bsc.$surface-soft;
+  }
+
+  &__next {
+    @include bsc.inline-stack(bsc.$space-md, center, space-between);
+
+    padding: bsc.$space-md bsc.$space-lg;
+    margin-bottom: bsc.$space-xl;
+    border: 1px solid bsc.$border;
+    background: bsc.$brand-blue;
+  }
+
+  &__next-title {
+    display: grid;
+    gap: bsc.$space-xs;
+    line-height: 1.25;
+
+    strong {
+      font-size: 1.25rem;
+    }
+  }
+
+  &__countdown {
+    display: flex;
+    gap: bsc.$space-sm;
+    font-variant-numeric: tabular-nums;
+
+    > span {
+      display: grid;
+      min-width: bsc.$control-height;
+      min-height: bsc.$control-height;
+      align-content: center;
+      padding: bsc.$space-xs;
+      border: 1px solid bsc.$border;
+      background: bsc.$surface;
+      line-height: 1;
+      text-align: center;
+    }
+
+    b {
+      font-size: type.$font-size__md;
+    }
+
+    small {
+      font-size: type.$font-size__xs;
+    }
+  }
+
+  &__agenda-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.75fr);
+    gap: bsc.$space-xl;
+    align-items: start;
+  }
+
+  &__benefits {
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: bsc.$space-xs;
+      align-items: start;
+      font-size: type.$font-size__sm;
+    }
+
+    li > span {
+      padding-block: bsc.$space-sm;
+    }
+
+    li svg {
+      margin-top: bsc.$space-xs;
+    }
+
+    li + li > span {
+      border-top: 1px dotted bsc.$border-soft;
+    }
+  }
+
+  &__benefit-photo {
+    display: block;
+    margin-top: bsc.$space-xl;
+
+    img {
+      height: auto;
+      border-radius: bsc.$radius-md;
+      aspect-ratio: 5 / 4;
+      object-fit: cover;
+      object-position: 50% 67%;
+    }
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: bsc.$space-xl bsc.$space-lg;
+  }
+
+  &__empty {
+    grid-column: 1 / -1;
+    padding: bsc.$space-xl;
+    border-radius: bsc.$radius-md;
+    background: bsc.$surface-soft;
+
+    p {
+      margin-block: bsc.$space-sm bsc.$space-lg;
+    }
+  }
+
+  &__card {
+    position: relative;
+    border: 1px solid bsc.$border;
+    border-radius: bsc.$radius-md;
+    text-align: center;
+
+    > img {
+      height: auto;
+      border-bottom: 1px solid bsc.$border;
+      border-radius: bsc.$radius-md bsc.$radius-md 0 0;
+      aspect-ratio: 324 / 187;
+      object-fit: cover;
+      object-position: 50% 17%;
+    }
+  }
+
+  &__month {
+    position: absolute;
+    z-index: 1;
+    inset: -(bsc.$space-xs) bsc.$space-md auto auto;
+    padding: 0 bsc.$space-sm;
+    border: 1px solid bsc.$border;
+    background: bsc.$brand;
+    font-size: type.$font-size__sm;
+    font-weight: 700;
+  }
+
+  &__card:nth-child(even) &__month {
+    background: bsc.$brand-yellow;
+  }
+
+  &__card-content {
+    padding: bsc.$space-lg;
+  }
+
+  &__card-heading h2 {
+    font-size: 1.25rem;
+    letter-spacing: 0.04em;
+  }
+
+  &__card-heading p,
+  &__sold-out p {
+    margin-top: bsc.$space-xs;
+    font-size: type.$font-size__sm;
+  }
+
+  &__sold-out,
+  &__booking {
+    margin-top: bsc.$space-lg;
+  }
+
+  &__sold-out h3 {
+    font-size: type.$font-size__md;
+  }
+
+  &__hearts {
+    display: flex;
+    justify-content: center;
+    gap: bsc.$space-xs;
+    margin-bottom: bsc.$space-sm;
+
+    svg {
+      fill: bsc.$brand;
+    }
+  }
+
+  &__slots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: bsc.$space-sm;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__slot {
+    position: relative;
+    display: grid;
+    min-width: 0;
+
+    > input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    > span {
+      display: grid;
+      min-height: bsc.$control-height;
+      place-items: center;
+      padding: bsc.$space-xs;
+      border: 1px solid bsc.$border;
+      border-radius: bsc.$radius-pill;
+      font-size: type.$font-size__sm;
+      font-weight: 700;
+      line-height: 1.25;
+      cursor: pointer;
+    }
+
+    input:enabled + span:hover {
+      background: bsc.$surface-soft;
+    }
+
+    input:checked + span,
+    input:checked + span:hover {
+      background: bsc.$text;
+      color: bsc.$surface;
+    }
+
+    input:disabled + span {
+      border-color: bsc.$border-soft;
+      background: bsc.$surface-muted;
+      color: bsc.$text-soft;
+      cursor: default;
+    }
+
+    input:focus-visible + span {
+      outline: 2px solid bsc.$text;
+      outline-offset: 2px;
+    }
+  }
+
+  &__remaining {
+    margin-top: bsc.$space-md;
+    font-size: type.$font-size__sm;
+    font-weight: 700;
+  }
+
+  &__amount {
+    @include bsc.inline-stack(bsc.$space-md, center, center);
+
+    margin-block: bsc.$space-xs bsc.$space-lg;
+  }
+
+  &__stepper {
+    overflow: visible;
+
+    input {
+      width: 2.5rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: bsc.$text;
+      font: inherit;
+      text-align: center;
+      appearance: textfield;
+    }
+
+    input::-webkit-inner-spin-button,
+    input::-webkit-outer-spin-button {
+      appearance: none;
+    }
+
+    button:disabled {
+      color: bsc.$text-muted;
+      cursor: default;
+    }
+  }
+
+  &__fields {
+    display: grid;
+    gap: bsc.$space-sm;
+    text-align: start;
+
+    label {
+      display: grid;
+      gap: bsc.$space-xs;
+      font-size: type.$font-size__sm;
+      font-weight: 700;
+    }
+
+    .bsc__input {
+      @include bsc.field-control($border-color: bsc.$border-soft);
+
+      font-weight: 400;
+    }
+  }
+
+  &__form-note {
+    margin-top: bsc.$space-xs;
+    color: bsc.$text-soft;
+    font-size: type.$font-size__xs;
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+    }
+  }
+
+  &__booking button[type="submit"],
+  &__details-inner {
+    margin-top: bsc.$space-md;
+  }
+
+  &__details summary {
+    list-style: none;
+
+    &::after {
+      content: none;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__experience {
+    padding-block: structure.$bsc-section-space;
+    background: bsc.$brand-yellow;
+  }
+
+  &__experience-layout,
+  &__help {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: bsc.$space-2xl;
+
+    .bsc__title {
+      margin: 0 0 bsc.$space-md;
+      text-align: start;
+    }
+  }
+
+  &__experience-layout {
+    align-items: center;
+
+    img {
+      height: clamp(260px, 36vw, 470px);
+      border-radius: bsc.$radius-md;
+      object-fit: cover;
+      object-position: 50% 58%;
+    }
+  }
+
+  &__experience p,
+  &__help aside p {
+    max-width: 49ch;
+    margin-bottom: bsc.$space-lg;
+  }
+
+  &__photo-band img {
+    height: clamp(200px, 31vw, 445px);
+    object-fit: cover;
+    object-position: center 32%;
+  }
+
+  &__help {
+    align-items: start;
+    padding-block: structure.$bsc-section-space;
+
+    details {
+      padding-block: bsc.$space-sm;
+      border-bottom: 1px solid bsc.$border;
+    }
+
+    summary {
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    details p {
+      padding-top: bsc.$space-xs;
+      color: bsc.$text-soft;
+    }
+
+    aside {
+      padding: bsc.$space-lg;
+      border-radius: bsc.$radius-md;
+      background: bsc.$brand;
+    }
+  }
+
+  @include bsc.media-max("tablet-lg") {
+    &__agenda-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__benefits {
+      grid-row: 2;
+    }
+
+    &__benefit-photo {
+      display: none;
+    }
+  }
+
+  @include bsc.media-max("phone") {
+    &__wrap {
+      width: calc(100% - #{2 * bsc.$space-md});
+    }
+
+    &__hero > img {
+      height: clamp(210px, 52vw, 360px);
+    }
+
+    &__agenda,
+    &__experience,
+    &__help {
+      padding-block: bsc.$space-xl;
+    }
+
+    &__section-heading {
+      margin-bottom: bsc.$space-xl;
+    }
+
+    &__next {
+      padding: bsc.$space-md;
+    }
+
+    &__experience-layout,
+    &__help {
+      grid-template-columns: minmax(0, 1fr);
+      gap: bsc.$space-lg;
+    }
+
+    &__experience-layout img {
+      height: min(480px, 80vw);
+    }
+
+    &__card-content {
+      padding: bsc.$space-md;
+    }
+  }
+
+  @include bsc.media-max("phone-sm") {
+    &__cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}

@@ -41,7 +41,7 @@ $photo = $settings['image'] ? wp_get_attachment_image( $settings['image'], 'larg
 			<div hidden aria-hidden="true"><label>Sitio web <input name="website" tabindex="-1" autocomplete="off"></label></div>
 			<?php if ( $open ) : ?>
 				<fieldset class="bsc-workshops__slots">
-					<legend class="screen-reader-text">Elige un horario para <?php echo esc_html( $workshop->post_title ); ?></legend>
+					<legend><span class="screen-reader-text">Elige un horario para <?php echo esc_html( $workshop->post_title ); ?></span></legend>
 					<?php foreach ( $settings['slots'] as $key => $slot ) :
 						$available = isset( $open[ $key ] ) ? bsc_workshops_available( $slot, $args['counts'][ $key ] ?? 0 ) : 0;
 						?>
@@ -53,20 +53,20 @@ $photo = $settings['image'] ? wp_get_attachment_image( $settings['image'], 'larg
 				</fieldset>
 				<p class="bsc-workshops__remaining" data-remaining aria-live="polite"><?php echo esc_html( bsc_workshops_seat_label( $seats ) ); ?></p>
 				<div class="bsc-workshops__amount">
-					<div class="bsc-workshops__stepper">
+					<div class="bsc__quantity-controls bsc-workshops__stepper">
 						<button type="button" data-step="-1" aria-label="Quitar un cupo" disabled>−</button>
 						<input type="number" name="seats" value="1" min="1" max="<?php echo esc_attr( $seats ); ?>" aria-label="Cupos" required>
 						<button type="button" data-step="1" aria-label="Añadir un cupo" <?php disabled( 1, $seats ); ?>>+</button>
 					</div>
-					<output class="bsc-workshops__price" data-price="<?php echo esc_attr( $settings['price'] ); ?>" aria-live="polite"><?php echo esc_html( $settings['price'] ? bsc_workshops_price_label( $settings['price'] ) : 'Gratis' ); ?></output>
+					<output class="bsc__price" data-price="<?php echo esc_attr( $settings['price'] ); ?>" aria-live="polite"><?php echo esc_html( $settings['price'] ? bsc_workshops_price_label( $settings['price'] ) : 'Gratis' ); ?></output>
 				</div>
 				<details class="bsc-workshops__details">
-					<summary class="bsc-workshops__button">¡Reservar!</summary>
+					<summary class="bsc__button">¡Reservar!</summary>
 					<div class="bsc-workshops__details-inner">
 			<?php endif; ?>
 			<div class="bsc-workshops__fields">
-				<label>Nombre completo: <input name="name" autocomplete="name" maxlength="120" required></label>
-				<label>Correo electrónico: <input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+				<label>Nombre completo <input class="bsc__input" name="name" autocomplete="name" maxlength="120" required></label>
+				<label>Correo electrónico <input class="bsc__input" name="email" type="email" autocomplete="email" maxlength="254" required></label>
 			</div>
 			<?php if ( $open ) : ?>
 				<?php if ( $is_demo ) : ?>
@@ -77,7 +77,7 @@ $photo = $settings['image'] ? wp_get_attachment_image( $settings['image'], 'larg
 			<?php endif; ?>
 			<input type="hidden" name="consent" value="yes">
 			<p class="bsc-workshops__form-note">Al enviar, aceptas recibir correos sobre <?php echo $open ? 'tu reserva' : 'los cupos de este taller'; ?>.<?php if ( $args['privacy_url'] ) : ?> <a href="<?php echo esc_url( $args['privacy_url'] ); ?>">Privacidad</a><?php endif; ?></p>
-			<button type="submit" class="bsc-workshops__button<?php echo $open ? '' : ' bsc-workshops__button--outline'; ?>"><?php echo $open ? 'Enviar solicitud' : '¡Avísame!'; ?></button>
+			<button type="submit" class="bsc__button<?php echo $open ? '' : ' bsc__button--outline'; ?>"><?php echo $open ? 'Enviar solicitud' : '¡Avísame!'; ?></button>
 			<?php if ( $open ) : ?>
 					</div>
 				</details>
