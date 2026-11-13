@@ -329,4 +329,7 @@ $base_price_html = function_exists( 'bsc_get_product_available_price_html' )
 	</div>
 </main>
 
-<?php get_footer(); ?>
+<?php
+do_action( 'woocommerce_after_single_product' );
+get_footer();
+?>

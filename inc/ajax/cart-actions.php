@@ -192,6 +192,10 @@ function bsc_ajax_add_to_cart_handler() {
 	if ($added) {
 		$cart_item = WC()->cart->get_cart_item( $added );
 
+		// WC_Cart has already fired woocommerce_add_to_cart for server tracking.
+		// The AJAX hook lets integrations attach their browser fragment to the same add.
+		do_action( 'woocommerce_ajax_added_to_cart', $product_id );
+
 		ob_start();
 		woocommerce_mini_cart();
 		$mini_cart = ob_get_clean();
