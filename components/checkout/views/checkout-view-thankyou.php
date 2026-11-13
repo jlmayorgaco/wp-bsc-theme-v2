@@ -57,3 +57,5 @@ if ( $order->needs_payment() ) {
 
 $order_view->set_actions( $order_actions );
 $order_view->render();
+
+do_action( 'woocommerce_thankyou', $order->get_id() );

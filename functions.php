@@ -74,6 +74,7 @@ if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_template_directory() . '/inc/product-price.php';
 	require_once get_template_directory() . '/inc/payments/wompi-compat.php';
 	require_once get_template_directory() . '/inc/payments/wompi-security.php';
+	require_once get_template_directory() . '/inc/analytics/meta-purchase.php';
 }
 
 if ( is_admin() ) {
