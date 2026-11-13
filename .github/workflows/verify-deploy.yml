@@ -28,26 +28,19 @@ jobs:
           echo "Commit esperado: $GITHUB_SHA"
           live=""
           for attempt in $(seq 1 36); do
-            live=$(curl -fsS --max-time 10 "$SITE/deploy-version.txt?cb=$GITHUB_RUN_ID-$attempt" 2>/dev/null | tr -d '[:space:]' || true)
+            if response=$(curl -fsS --max-time 10 "$SITE/deploy-version.txt?cb=$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$attempt"); then
+              live=$(printf '%s' "$response" | tr -d '\r\n')
+            else
+              live=""
+            fi
 
             if [ "$live" = "$GITHUB_SHA" ]; then
               echo "OK: produccion esta en $live (intento $attempt, ~$((attempt * 5))s)"
               exit 0
             fi
 
-              # Compatibilidad mientras deploy-version.txt no este publicado:
-              # confirmar al menos el contrato de cache selectivo de la tienda.
-            if [ -z "$live" ]; then
-              curl -fsS --max-time 20 -o /dev/null "$SITE/purge/" || true
-              headers=$(mktemp)
-              status=$(curl -sS -D "$headers" -o /dev/null -w '%{http_code}' --max-time 20 "$SITE/?cb=$GITHUB_RUN_ID-$attempt" || true)
-
-              if echo "$status" | grep -Eq '^[23]' && grep -Eiq '^cache-control:.*public' "$headers"; then
-                echo "::notice::Primer deploy verificado por el nuevo contrato de cache publico."
-                exit 0
-              fi
-
-              rm -f "$headers"
+            if ! [[ "$live" =~ ^[a-f0-9]{40}$ ]]; then
+              live=""
             fi
 
             echo "intento $attempt/36 - produccion reporta: ${live:-<sin respuesta>}"
