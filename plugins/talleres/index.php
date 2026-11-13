@@ -45,7 +45,7 @@ add_action( 'wp_enqueue_scripts', static function () {
 		return;
 	}
 	$base = get_template_directory_uri() . '/plugins/talleres/';
-	wp_enqueue_style( 'bsc-workshops', $base . 'talleres.css', array( 'bsc-2-0-style' ), bsc_get_asset_version( 'plugins/talleres/talleres.css' ) );
+	wp_enqueue_style( 'bsc-workshops', $base . 'talleres.css', array(), bsc_get_asset_version( 'plugins/talleres/talleres.css' ) );
 	wp_enqueue_script( 'bsc-workshops', $base . 'talleres.js', array(), bsc_get_asset_version( 'plugins/talleres/talleres.js' ), true );
 } );
 

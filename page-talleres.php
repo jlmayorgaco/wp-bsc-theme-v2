@@ -55,13 +55,13 @@ get_header();
 <main class="bsc bsc-workshops" id="talleres">
 	<section class="bsc-workshops__hero" aria-labelledby="talleres-title">
 		<img src="<?php echo esc_url( $assets . 'mesa.webp' ); ?>" alt="Mesa del taller Bubbles con espejos, toallas y accesorios de skincare" width="1104" height="974" fetchpriority="high">
-		<a class="bsc__button bsc-workshops__hero-cta" href="#talleres-agenda">¡Quierooo asistir!</a>
+		<a class="bsc-workshops__button bsc-workshops__hero-cta" href="#talleres-agenda">¡Quierooo asistir!</a>
 	</section>
 
 	<section class="bsc-workshops__wrap bsc-workshops__agenda" id="talleres-agenda" aria-labelledby="talleres-title">
 		<div class="bsc-workshops__section-heading">
 			<svg width="55" height="11" viewBox="0 0 55 11" fill="none" aria-hidden="true"><path d="M0 2c5.5 0 5.5 6 11 6s5.5-6 11-6 5.5 6 11 6 5.5-6 11-6 5.5 6 11 6" stroke="currentColor" stroke-width="3"/></svg>
-			<h1 id="talleres-title" class="bsc__title"><strong>¡Talleres coreanos!</strong></h1>
+			<h1 id="talleres-title">¡Talleres coreanos!</h1>
 		</div>
 		<?php if ( $message ) : ?>
 			<p class="bsc-workshops__notice" role="status"><?php echo esc_html( $message ); ?></p>
@@ -90,9 +90,9 @@ get_header();
 			<div class="bsc-workshops__cards">
 				<?php if ( ! $agenda ) : ?>
 					<div class="bsc-workshops__empty">
-						<h2>Estamos preparando nuevas fechas</h2>
+						<h3>Estamos preparando nuevas fechas</h3>
 						<p>Escríbenos para preguntar por el próximo taller o planear una experiencia privada con tu grupo.</p>
-						<a class="bsc__button bsc__button--outline" href="<?php echo esc_url( bsc_get_whatsapp_url( 'talleres' ) ); ?>">Consultar por WhatsApp</a>
+						<a class="bsc-workshops__button bsc-workshops__button--outline" href="<?php echo esc_url( bsc_get_whatsapp_url( 'talleres' ) ); ?>">Consultar por WhatsApp</a>
 					</div>
 				<?php endif; ?>
 				<?php foreach ( $agenda as $entry ) : ?>
@@ -106,9 +106,9 @@ get_header();
 		<div class="bsc-workshops__wrap bsc-workshops__experience-layout">
 			<img src="<?php echo esc_url( $assets . 'experiencia.webp' ); ?>" width="720" height="1278" alt="Participantes durante un taller coreano de Bubbles en Bogotá" loading="lazy">
 			<div>
-				<h2 id="talleres-experience-title" class="bsc__title"><strong>Así se vive un taller coreano</strong></h2>
+				<h2 id="talleres-experience-title">Así se vive un taller coreano</h2>
 				<p>Prueba texturas, aprende el orden de una rutina y descubre qué pasos tienen sentido para tu piel. Te guiamos mientras practicas con productos coreanos.</p>
-				<a class="bsc__button bsc__button--outline" href="#talleres-agenda">Explorar los talleres</a>
+				<a class="bsc-workshops__button bsc-workshops__button--outline" href="#talleres-agenda">Explorar los talleres</a>
 			</div>
 		</div>
 	</section>
@@ -118,15 +118,15 @@ get_header();
 	</div>
 	<section class="bsc-workshops__wrap bsc-workshops__help" aria-labelledby="talleres-faq">
 		<div>
-			<h2 id="talleres-faq" class="bsc__title"><strong>Preguntas frecuentes</strong></h2>
+			<h2 id="talleres-faq">Preguntas frecuentes</h2>
 			<?php foreach ( $questions as $question => $answer ) : ?>
 				<details><summary><?php echo esc_html( $question ); ?></summary><p><?php echo esc_html( $answer ); ?></p></details>
 			<?php endforeach; ?>
 		</div>
 		<aside>
-			<h2 class="bsc__title"><strong>¿Quieres un taller privado?</strong></h2>
+			<h2>¿Quieres un taller privado?</h2>
 			<p>Para cumpleaños, despedidas o un plan con tu grupo. Cuéntanos qué tienes en mente.</p>
-			<a class="bsc__button" href="<?php echo esc_url( bsc_get_whatsapp_url( 'talleres' ) ); ?>">Hablar por WhatsApp</a>
+			<a class="bsc-workshops__button" href="<?php echo esc_url( bsc_get_whatsapp_url( 'talleres' ) ); ?>">Hablar por WhatsApp</a>
 		</aside>
 	</section>
 </main>
