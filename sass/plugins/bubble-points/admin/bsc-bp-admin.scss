@@ -1,50 +1,146 @@
 @use "../../../admin/foundation" as admin;
 
-.bsc-bp-inline-form,
-.bsc-bp-history-form {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    flex-wrap: wrap;
+.bsc-bp-admin__section {
+    margin-block: 0 16px;
+    padding: 18px;
 }
 
-.bsc-bp-inline-form {
-    margin-left: 8px;
-}
-
-.bsc-bp-inline-form__amount {
-    width: 110px;
-}
-
-.bsc-bp-inline-form__note {
-    width: 160px;
+.bsc-bp-admin__search {
+    display: flow-root;
+    margin-block: 8px;
 }
 
 .bsc-bp-admin__back-link {
-    margin-bottom: 12px;
+    margin-block: 0 12px;
 }
 
-.bsc-bp-history-form {
-    margin: 12px 0;
+.bsc-bp-profile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    overflow-wrap: anywhere;
+}
+
+.bsc-bp-profile__balance {
+    display: grid;
+    gap: 4px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: #f1f3ff;
+}
+
+.bsc-bp-balance {
+    font-variant-numeric: tabular-nums;
+}
+
+.bsc-bp-profile__balance .bsc-bp-balance {
+    font-size: 24px;
+    line-height: 1.15;
+}
+
+.bsc-bp-admin .column-user .avatar {
+    vertical-align: middle;
+    margin-inline-end: 5px;
+    border-radius: 50%;
+}
+
+.bsc-bp-quick-adjust {
+    margin-top: 6px;
+}
+
+.bsc-bp-quick-adjust > summary {
+    width: fit-content;
+    cursor: pointer;
+}
+
+.bsc-bp-adjust-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.bsc-bp-adjust-form--inline {
     gap: 8px;
 }
 
-.bsc-bp-history-form__label {
-    margin-right: 4px;
+.bsc-bp-adjust-form__field {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
 }
 
-.bsc-bp-history-form__label--spaced {
-    margin: 0 4px;
+.bsc-bp-adjust-form__field label {
+    font-weight: 600;
 }
 
-.bsc-bp-history-form__note {
-    min-width: 260px;
+.bsc-bp-adjust-form__field input {
+    margin: 0;
+    max-width: 100%;
+}
+
+.bsc-bp-adjust-form__field input[type="number"] {
+    width: 110px;
+}
+
+.bsc-bp-adjust-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.bsc-bp-adjust-form__error {
+    flex-basis: 100%;
+    color: admin.$danger-strong;
+    margin: 0;
+}
+
+.bsc-bp-admin .bsc-bp-reduce {
+    color: admin.$danger-strong;
+    border-color: admin.$danger-strong;
+}
+
+.bsc-bp-history {
+    min-width: 540px;
 }
 
 .bsc-bp-history__delta--positive {
-    color: green;
+    color: #276629;
+    font-weight: 600;
 }
 
 .bsc-bp-history__delta--negative {
     color: admin.$danger-strong;
+    font-weight: 600;
+}
+
+.bsc-bp-dialog {
+    box-sizing: border-box;
+    width: min(440px, calc(100% - 32px));
+    padding: 24px;
+    color: #1d2327;
+    border: 1px solid admin.$border;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgb(0 0 0 / 20%);
+}
+
+.bsc-bp-dialog::backdrop {
+    background: rgb(0 0 0 / 48%);
+}
+
+.bsc-bp-dialog h2 {
+    margin: 0;
+}
+
+.bsc-bp-dialog .bsc-bp-adjust-form__actions {
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.bsc-bp-dialog .bsc-bp-dialog__confirm--reduce {
+    background: admin.$danger-strong;
+    border-color: admin.$danger-strong;
 }

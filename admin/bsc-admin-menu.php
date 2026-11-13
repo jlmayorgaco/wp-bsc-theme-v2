@@ -130,6 +130,10 @@ function bsc_dashboard_quick_links(): array {
 			'label' => 'Showcase',
 		),
 		array(
+			'page'  => 'bsc-talleres',
+			'label' => 'Talleres',
+		),
+		array(
 			'page'  => 'bsc-creators',
 			'label' => 'Creators',
 		),
@@ -241,6 +245,10 @@ function bsc_add_admin_menu(): void {
 			'bsc-showroom',
 			'bsc_render_showroom_page'
 		);
+	}
+
+	if ( bsc_current_user_has_bsc_page_access( 'bsc-talleres' ) ) {
+		add_submenu_page( 'bsc-dashboard', 'Talleres BSC', 'Talleres', 'read', 'bsc-talleres', 'bsc_workshops_render_admin' );
 	}
 
 	// 5. Home Favorites - admin only

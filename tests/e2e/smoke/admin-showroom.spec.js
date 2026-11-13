@@ -56,6 +56,8 @@ test.describe('BSC admin showroom smoke', () => {
               sku: 'QA-001',
               price: 45000,
               stock_tienda: 7,
+              stock_bodega: 2,
+              thumbnail: '/wp-content/themes/wp-bsc-theme-v2/images/product-placeholder-wp.jpg',
             },
           ],
         }),
@@ -67,8 +69,11 @@ test.describe('BSC admin showroom smoke', () => {
     await page.locator('#bsc-product-search').fill('qa');
     const result = page.locator('.bsc-showroom__search-result').first();
     await expect(result).toBeVisible();
+    await expect(result.locator('img')).toBeVisible();
     await result.click();
 
+    await expect(page.locator('#bsc-add-product')).toBeDisabled();
+    await page.locator('#bsc-product-source').selectOption('bodega');
     await page.locator('#bsc-add-product').click();
 
     await expect(page.locator('#bsc-cart-table').first()).toBeVisible();
@@ -80,7 +85,7 @@ test.describe('BSC admin showroom smoke', () => {
       })
       .toBe('45000');
     await expect(page.locator('#bsc-cart-body tr').first()).toContainText('QA Showroom Product');
-    await expect(page.locator('#bsc-cart-body tr').first().locator('td').nth(1)).toHaveText('Stock');
+    await expect(page.locator('#bsc-cart-body tr').first().locator('td').nth(1)).toHaveText('Bodega');
   });
 
   test('out-of-stock products remain selectable and coupon changes update the total', async ({ page }, testInfo) => {
@@ -105,11 +110,14 @@ test.describe('BSC admin showroom smoke', () => {
     });
     await openAdminShowroomPage(page, testInfo);
     await page.locator('#bsc-product-search').fill('qa');
-    await page.locator('.bsc-showroom__search-result').first().click();
+    const result = page.locator('.bsc-showroom__search-result').first();
+    await expect(result).toBeDisabled();
+    await page.locator('#bsc-product-backorder').check();
+    await result.click();
     await page.locator('#bsc-add-product').click();
     await expect(page.locator('#bsc-cart-body td').nth(1)).toHaveText('Encargo');
-    await expect(page.locator('#bsc-cart-table th').nth(1)).toHaveText('Stock');
-    await expect(page.locator('#bsc-cart-table th').nth(2)).toHaveText('Qty');
+    await expect(page.locator('#bsc-cart-table th').nth(1)).toHaveText('Inventario');
+    await expect(page.locator('#bsc-cart-table th').nth(2)).toHaveText('Cantidad');
     await page.locator('#bsc-customer-email').fill('qa-showroom@example.invalid');
     await page.locator('#bsc-coupon-code').fill('QA10');
     await page.locator('#bsc-apply-coupon').click();
@@ -128,10 +136,13 @@ test.describe('BSC admin showroom smoke', () => {
     expect(await page.locator('#bsc-customer-email').evaluate((input) => input.getBoundingClientRect().width)).toBeGreaterThan(250);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBeTruthy();
     await page.screenshot({ path: require('path').join(require('os').tmpdir(), 'bsc-showroom-' + testInfo.project.name + '.png'), fullPage: true });
+    await page.locator('#bsc-sale-origin').selectOption('whatsapp');
     await page.locator('#bsc-register-sale').click();
     await expect(page.locator('#bsc-showroom-notice')).toContainText('QA: venta interceptada');
     expect(submitted.get('coupon_code')).toBe('qa10');
     expect(submitted.get('customer_email')).toBe('qa-showroom@example.invalid');
+    expect(submitted.get('sale_origin')).toBe('whatsapp');
+    expect(JSON.parse(submitted.get('items'))[0].source).toBe('encargo');
     expect(errors).toEqual([]);
   });
 });

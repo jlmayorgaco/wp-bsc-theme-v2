@@ -1659,7 +1659,12 @@ if (!function_exists( 'bsc_build_header_nav' )) {
 		$header_nav->setClass( 'bsc__header-nav' );
 		$header_nav->setMenus( array() );
 
-		foreach (bsc_get_header_menu_configs() as $config) {
+		$configs = bsc_get_header_menu_configs();
+		$workshops = array( 'name' => 'TALLERES', 'slug' => 'BSC_MENU_NAV_TALLERES', 'link' => bsc_workshops_public_url(), 'menus' => array() );
+		$contact_index = array_search( 'BSC_MENU_NAV_CONTACT', array_column( $configs, 'slug' ), true );
+		array_splice( $configs, false === $contact_index ? count( $configs ) : $contact_index, 0, array( $workshops ) );
+
+		foreach ( $configs as $config ) {
 			if (array_key_exists( 'enabled', $config ) && !$config['enabled']) {
 				continue;
 			}

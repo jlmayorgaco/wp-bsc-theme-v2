@@ -40,6 +40,7 @@ function bsc_get_whatsapp_url( $context = 'general' ) {
 		'support' => '¡Hola Bubble Skin Care! Necesito ayuda con mi pedido.',
 		'order'   => '¡Hola Bubble Skin Care! Tuve un problema con mi pedido y necesito ayuda.',
 		'encargo' => '¡Hola Bubble Skin Care! 🌈✨💗 Quiero hacer un encargo.',
+		'talleres' => '¡Hola Bubble Skin Care! Quiero más información sobre sus talleres coreanos.',
 	);
 
 	$msg = $messages[ $context ] ?? $messages['general'];

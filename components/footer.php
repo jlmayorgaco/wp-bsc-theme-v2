@@ -71,6 +71,7 @@ $checkout_aria_label  = sprintf(
 		<h2 class="footer__heading">Programas</h2>
 		<div class="footer__divider footer__divider--short"></div>
 		<ul class="footer__list">
+			<li class="footer__list-item"><a href="<?php echo esc_url( bsc_workshops_public_url() ); ?>" class="footer__link">Talleres coreanos</a></li>
 			<li class="footer__list-item">
 			<a href="<?php echo esc_url( $bubble_creators_url ); ?>" class="footer__link">Bubble Creators</a>
 			</li>

@@ -141,18 +141,22 @@ try {
 	$path = $private_method->invoke( null );
 	check_it( $path !== '' && ! str_starts_with( wp_normalize_path( $path ), wp_normalize_path( ABSPATH ) ), 'private directory resolves outside public root' );
 	BSC_Stock::adjust_strict( $pid, 'tienda', 3, 'Showroom fixture' );
+	$product = wc_get_product( $pid );
+	$product->set_status( 'publish' );
+	$product->save();
 	$before = stock_now( $pid );
 	$customer = array( 'name' => 'Integration Test', 'email' => '', 'phone' => '' );
 	$request_id = wp_generate_uuid4();
-	$sale = BSC_Order_Stock::showroom( array( array( 'id' => $pid, 'qty' => 1 ) ), 'cash', 'Efectivo', $customer, $request_id );
+	$store_item = array( 'id' => $pid, 'qty' => 1, 'source' => 'tienda' );
+	$sale = BSC_Order_Stock::showroom( array( $store_item ), 'efectivo', 'Efectivo', $customer, $request_id );
 	check_it( $sale instanceof WC_Order && $sale->has_status( 'completed' ), 'showroom sale completes' );
 	if ( $sale instanceof WC_Order ) {
 		$created[] = $sale->get_id();
 		check_it( stock_now( $pid ) === $before - 1, 'showroom deducts once' );
-		$repeat = BSC_Order_Stock::showroom( array( array( 'id' => $pid, 'qty' => 1 ) ), 'cash', 'Efectivo', $customer, $request_id );
+		$repeat = BSC_Order_Stock::showroom( array( $store_item ), 'efectivo', 'Efectivo', $customer, $request_id );
 		check_it( $repeat instanceof WC_Order && $repeat->get_id() === $sale->get_id() && stock_now( $pid ) === $before - 1, 'showroom retry returns same HPOS order without deduction' );
 		$sale->update_status( 'pending' );
-		$repeat = BSC_Order_Stock::showroom( array( array( 'id' => $pid, 'qty' => 1 ) ), 'cash', 'Efectivo', $customer, $request_id );
+		$repeat = BSC_Order_Stock::showroom( array( $store_item ), 'efectivo', 'Efectivo', $customer, $request_id );
 		check_it( $repeat instanceof WC_Order && $repeat->has_status( 'completed' ) && stock_now( $pid ) === $before - 1, 'showroom recovers committed sale after interrupted completion' );
 		$line_id = array_key_first( $sale->get_items() );
 		$refund = wc_create_refund( array( 'order_id' => $sale->get_id(), 'amount' => $sale->get_total(), 'refund_payment' => false, 'restock_items' => true, 'line_items' => array( $line_id => array( 'qty' => 1, 'refund_total' => $sale->get_total(), 'refund_tax' => array() ) ) ) );
@@ -160,7 +164,7 @@ try {
 	}
 	$before = stock_now( $pid );
 	$failed_id = wp_generate_uuid4();
-	$failed = BSC_Order_Stock::showroom( array( array( 'id' => $pid, 'qty' => 1 ), array( 'id' => $pid, 'qty' => 999 ) ), 'cash', 'Efectivo', $customer, $failed_id );
+	$failed = BSC_Order_Stock::showroom( array( $store_item, array_replace( $store_item, array( 'qty' => 999 ) ) ), 'efectivo', 'Efectivo', $customer, $failed_id );
 	check_it( is_wp_error( $failed ) && stock_now( $pid ) === $before, 'showroom multi-line failure rolls back earlier deductions' );
 	check_it( ! wc_get_orders( array( 'limit' => 1, 'meta_key' => '_bsc_showroom_request_id', 'meta_value' => $uid . ':' . $failed_id ) ), 'failed showroom transaction leaves no order' );
 	$run = BSC_Growth_Skin_Quiz_Store::create_run( array( 'skin_type' => 'dry' ), array(), array(), 'normal' );

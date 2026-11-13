@@ -46,6 +46,7 @@ function bsc_access_managed_pages(): array {
 		'bsc-product-edit'    => 'Editar producto',
 		'bsc-reports'         => 'Informes',
 		'bsc-showroom'        => 'Venta presencial',
+		'bsc-talleres'        => 'Talleres',
 		'bsc-coupons'         => 'Cupones',
 		'bsc-settings'        => 'Configuración',
 		'bsc-home-favorites'  => 'Productos Home',

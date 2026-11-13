@@ -76,14 +76,13 @@ add_action(
 		}
 
 		$now        = current_datetime();
-		$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? $now->format( 'Y-m-01' ) ) );
-		$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? $now->format( 'Y-m-d' ) ) );
+		$date_start = bsc_reports_get_date( $_GET['date_start'] ?? '', $now->format( 'Y-m-01' ) );
+		$date_end   = bsc_reports_get_date( $_GET['date_end'] ?? '', $now->format( 'Y-m-d' ) );
 		$statuses   = bsc_reports_get_statuses();
 
 		$orders_args = array(
-			'status'      => $statuses,
-			'date_after'  => $date_start . ' 00:00:00',
-			'date_before' => $date_end . ' 23:59:59',
+			'status'       => $statuses,
+			'date_created' => $date_start . '...' . $date_end,
 		);
 
 		while ( ob_get_level() > 0 ) {
@@ -93,13 +92,13 @@ add_action(
 		header( 'Content-Disposition: attachment; filename="bsc-informe-' . $date_start . '_' . $date_end . '.csv"' );
 		$out = fopen( 'php://output', 'w' );
 		fputs( $out, "\xEF\xBB\xBF" );
-		fputcsv( $out, array( 'Fecha', 'Pedido #', 'Cliente', 'Email', 'Productos', 'Total', 'Estado', 'Canal' ) );
+		fputcsv( $out, array( 'Fecha', 'Pedido #', 'Cliente', 'Email', 'Productos', 'Total', 'Estado', 'Canal', 'Origen', 'Método de pago', 'Inventario' ) );
 
 		bsc_reports_for_each_order(
 			$orders_args,
 			function ( $order ) use ( $out ) {
 				$items_str = implode( ' | ', array_map( fn( $i ) => $i->get_name() . ' x' . $i->get_quantity(), $order->get_items() ) );
-				$canal     = $order->get_meta( '_bsc_is_showroom_sale' ) ? 'Showroom' : 'Web';
+				$is_showroom = (bool) $order->get_meta( '_bsc_is_showroom_sale' );
 				fputcsv(
 					$out,
 					bsc_csv_safe_row(
@@ -113,7 +112,10 @@ add_action(
 							$items_str,
 							$order->get_total(),
 							wc_get_order_status_name( $order->get_status() ),
-							$canal,
+							$is_showroom ? 'Showroom' : 'Web',
+							$is_showroom ? bsc_reports_showroom_origin( $order ) : '—',
+							bsc_reports_payment_label( $order ),
+							$is_showroom ? bsc_reports_showroom_inventory( $order ) : '—',
 						)
 					)
 				);
@@ -123,6 +125,36 @@ add_action(
 		exit;
 	}
 );
+
+function bsc_reports_get_date( $value, string $default ): string {
+	$value = is_string( $value ) ? sanitize_text_field( wp_unslash( $value ) ) : '';
+	$date  = DateTimeImmutable::createFromFormat( '!Y-m-d', $value, wp_timezone() );
+	return $date && $date->format( 'Y-m-d' ) === $value ? $value : $default;
+}
+
+function bsc_reports_showroom_origin( WC_Order $order ): string {
+	return bsc_showroom_sale_origins()[ $order->get_meta( '_bsc_showroom_origin', true ) ] ?? 'No registrado';
+}
+
+function bsc_reports_payment_label( WC_Order $order ): string {
+	$method = $order->get_payment_method();
+	return bsc_showroom_payment_methods()[ $method ] ?? ( $order->get_payment_method_title() ?: ( $method ?: 'No registrado' ) );
+}
+
+function bsc_reports_showroom_inventory( WC_Order $order ): string {
+	$locations = array();
+	foreach ( $order->get_items() as $item ) {
+		foreach ( array( 'bodega' => 'Bodega', 'tienda' => 'Tienda' ) as $source => $label ) {
+			if ( (int) $item->get_meta( '_bsc_stock_' . $source . '_qty', true ) > 0 || $source === $item->get_meta( '_bsc_stock_source', true ) ) {
+				$locations[ $label ] = true;
+			}
+		}
+		if ( (int) $item->get_meta( 'Encargo', true ) > 0 || 'encargo' === $item->get_meta( '_bsc_stock_source', true ) ) {
+			$locations['Encargo'] = true;
+		}
+	}
+	return $locations ? implode( ', ', array_keys( $locations ) ) : 'No registrado';
+}
 
 function bsc_reports_get_statuses(): array {
 	$all = array( 'completed', 'processing', 'wc-preparing', 'wc-shipped' );
@@ -241,9 +273,10 @@ function bsc_render_reports_page(): void {
 function bsc_reports_tab_ventas(): void {
     // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only sales report filters.
 	$now        = current_datetime();
-	$date_start = sanitize_text_field( wp_unslash( $_GET['date_start'] ?? $now->format( 'Y-m-01' ) ) );
-	$date_end   = sanitize_text_field( wp_unslash( $_GET['date_end'] ?? $now->format( 'Y-m-d' ) ) );
+	$date_start = bsc_reports_get_date( $_GET['date_start'] ?? '', $now->format( 'Y-m-01' ) );
+	$date_end   = bsc_reports_get_date( $_GET['date_end'] ?? '', $now->format( 'Y-m-d' ) );
 	$statuses   = bsc_reports_get_statuses();
+	$showroom_page = max( 1, absint( $_GET['showroom_page'] ?? 1 ) );
 
 	if ( isset( $_GET['preset'] ) ) {
 		switch ( sanitize_key( wp_unslash( $_GET['preset'] ) ) ) {
@@ -271,7 +304,11 @@ function bsc_reports_tab_ventas(): void {
 	}
     // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-	$cache_key = 'bsc_report_' . md5( $date_start . '_' . $date_end . implode( ',', $statuses ) );
+	$orders_args = array(
+		'status'       => $statuses,
+		'date_created' => $date_start . '...' . $date_end,
+	);
+	$cache_key = 'bsc_report_v2_' . md5( wp_json_encode( $orders_args ) . WC_Cache_Helper::get_transient_version( 'orders' ) );
 	$data      = get_transient( $cache_key );
 
 	$clear_cache_nonce = isset( $_GET['bsc_clear_report_cache_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['bsc_clear_report_cache_nonce'] ) ) : '';
@@ -281,12 +318,6 @@ function bsc_reports_tab_ventas(): void {
 	}
 
 	if ( false === $data ) {
-		$orders_args = array(
-			'status'      => $statuses,
-			'date_after'  => $date_start . ' 00:00:00',
-			'date_before' => $date_end . ' 23:59:59',
-		);
-
 		$total_sales    = 0;
 		$order_count    = 0;
 		$total_items    = 0;
@@ -294,16 +325,23 @@ function bsc_reports_tab_ventas(): void {
 		$showroom_sales = 0;
 		$product_sales  = array();
 		$category_sales = array();
+		$showroom_breakdown = array();
 
 		bsc_reports_for_each_order(
 			$orders_args,
-			function ( $order ) use ( &$total_sales, &$order_count, &$total_items, &$web_sales, &$showroom_sales, &$product_sales, &$category_sales ) {
+			function ( $order ) use ( &$total_sales, &$order_count, &$total_items, &$web_sales, &$showroom_sales, &$product_sales, &$category_sales, &$showroom_breakdown ) {
 				$order_count++;
 				$total        = (float) $order->get_total();
 				$total_sales += $total;
 				$is_showroom  = (bool) $order->get_meta( '_bsc_is_showroom_sale' );
 				if ($is_showroom) {
 					$showroom_sales += $total;
+					$origin  = bsc_reports_showroom_origin( $order );
+					$payment = bsc_reports_payment_label( $order );
+					$bucket  = $showroom_breakdown[ $origin ][ $payment ] ?? array( 'count' => 0, 'total' => 0.0 );
+					++$bucket['count'];
+					$bucket['total'] += $total;
+					$showroom_breakdown[ $origin ][ $payment ] = $bucket;
 				} else {
 					$web_sales += $total;
 				}
@@ -359,7 +397,8 @@ function bsc_reports_tab_ventas(): void {
 		$avg_ticket = $order_count > 0 ? $total_sales / $order_count : 0;
 		$avg_items  = $order_count > 0 ? round( $total_items / $order_count, 1 ) : 0;
 
-		$data = compact( 'total_sales', 'order_count', 'avg_ticket', 'avg_items', 'web_sales', 'showroom_sales', 'top_products', 'category_sales' );
+		ksort( $showroom_breakdown );
+		$data = compact( 'total_sales', 'order_count', 'avg_ticket', 'avg_items', 'web_sales', 'showroom_sales', 'top_products', 'category_sales', 'showroom_breakdown' );
 		set_transient( $cache_key, $data, HOUR_IN_SECONDS );
 	}
 
@@ -464,6 +503,8 @@ function bsc_reports_tab_ventas(): void {
 		<div class="bsc-kpi-card"><div class="bsc-kpi-value"><?php echo wp_kses_post( wc_price( $showroom_sales ) ); ?></div><div class="bsc-kpi-label">Ventas Showroom</div></div>
 	</div>
 
+	<?php bsc_reports_render_showroom_sales( $orders_args, $showroom_breakdown, $showroom_page ); ?>
+
 	<div class="bsc-admin-reports__split-grid">
 		<div class="bsc-admin-reports__panel">
 			<h2 class="bsc-admin-reports__section-title">Top 10 productos vendidos</h2>
@@ -509,6 +550,75 @@ function bsc_reports_tab_ventas(): void {
 	</div>
 
 	<p class="bsc-admin-reports__footnote">Resultados cacheados por 1 hora. Usa Limpiar cache para actualizar.</p>
+	<?php
+}
+
+function bsc_reports_render_showroom_sales( array $orders_args, array $breakdown, int $page ): void {
+	$sales = wc_get_orders( $orders_args + array(
+		'meta_key'   => '_bsc_is_showroom_sale',
+		'meta_value' => '1',
+		'orderby'    => 'ID',
+		'order'      => 'DESC',
+		'limit'      => 25,
+		'paged'      => $page,
+		'paginate'   => true,
+	) );
+	?>
+	<section class="bsc-admin-reports__panel">
+		<h2 class="bsc-admin-reports__section-title">Ventas de Showcase</h2>
+		<?php if ( ! $breakdown ) : ?>
+			<p class="bsc-admin-reports__empty-state">Sin ventas de Showcase en este periodo.</p>
+		<?php else : ?>
+			<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush">
+				<table class="wp-list-table widefat striped">
+					<caption class="screen-reader-text">Desglose de ventas por origen y método de pago</caption>
+					<thead><tr><th scope="col">Origen</th><th scope="col">Método de pago</th><th scope="col">Pedidos</th><th scope="col">Total</th></tr></thead>
+					<tbody>
+						<?php foreach ( $breakdown as $origin => $methods ) : ?>
+							<?php foreach ( $methods as $payment => $totals ) : ?>
+								<tr>
+									<td><?php echo esc_html( $origin ); ?></td>
+									<td><?php echo esc_html( $payment ); ?></td>
+									<td><?php echo esc_html( $totals['count'] ); ?></td>
+									<td><?php echo wp_kses_post( wc_price( $totals['total'] ) ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+		<?php endif; ?>
+		<?php if ( $sales->total > 0 ) : ?>
+			<h3>Detalle por pedido</h3>
+			<div class="bsc-admin-table-wrap bsc-admin-table-wrap--flush">
+				<table class="wp-list-table widefat striped">
+					<thead><tr><th scope="col">Pedido</th><th scope="col">Fecha</th><th scope="col">Origen</th><th scope="col">Método de pago</th><th scope="col">Inventario</th><th scope="col">Total</th></tr></thead>
+					<tbody>
+						<?php foreach ( $sales->orders as $order ) : ?>
+							<tr>
+								<td><a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>">#<?php echo esc_html( $order->get_order_number() ); ?></a></td>
+								<td><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></td>
+								<td><?php echo esc_html( bsc_reports_showroom_origin( $order ) ); ?></td>
+								<td><?php echo esc_html( bsc_reports_payment_label( $order ) ); ?></td>
+								<td><?php echo esc_html( bsc_reports_showroom_inventory( $order ) ); ?></td>
+								<td><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+			<?php if ( $sales->max_num_pages > 1 ) : ?>
+				<nav class="tablenav" aria-label="Páginas de ventas de Showcase">
+					<?php echo wp_kses_post( paginate_links( array(
+						'base'    => add_query_arg( 'showroom_page', '%#%', remove_query_arg( array( 'bsc_clear_report_cache', 'bsc_clear_report_cache_nonce' ) ) ),
+						'format'  => '',
+						'current' => $page,
+						'total'   => $sales->max_num_pages,
+					) ) ); ?>
+				</nav>
+			<?php endif; ?>
+		<?php endif; ?>
+	</section>
 	<?php
 }
 

@@ -25,11 +25,11 @@ class BSC_BP_List_Table extends WP_List_Table {
 	 * -------------------------- */
 	public function get_columns() {
 		return array(
-			'user'     => __( 'User', 'bsc' ),
-			'email'    => __( 'Email', 'bsc' ),
-			'points'   => __( 'Points', 'bsc' ),
-			'last_txn' => __( 'Last movement', 'bsc' ),
-			'actions'  => __( 'Actions', 'bsc' ),
+			'user'     => 'Cliente',
+			'email'    => 'Correo',
+			'points'   => 'Saldo',
+			'last_txn' => 'Último movimiento',
+			'actions'  => 'Acciones',
 		);
 	}
 
@@ -42,7 +42,7 @@ class BSC_BP_List_Table extends WP_List_Table {
 	}
 
 	public function no_items() {
-		esc_html_e( 'No users found.', 'bsc' );
+		echo 'No se encontraron clientes.';
 	}
 
 	/*
@@ -105,7 +105,7 @@ class BSC_BP_List_Table extends WP_List_Table {
 				return esc_html( $item->user_email );
 
 			case 'points':
-				return number_format_i18n( (int) $item->points );
+				return '<strong class="bsc-bp-balance">' . esc_html( number_format_i18n( (int) $item->points ) ) . '</strong>';
 
 			case 'last_txn':
 				if (!$item->last_txn) {
@@ -126,25 +126,12 @@ class BSC_BP_List_Table extends WP_List_Table {
 		$user_id     = (int) $item->ID;
 		$history_url = admin_url( 'admin.php?page=bsc-bubble-points&user_id=' . $user_id );
 
-		// One form, two submit buttons (add / reduce)
-		$action_url = wp_nonce_url(
-			admin_url( 'admin-post.php?action=bsc_bp_inline_adjust' ),
-			'bsc_bp_inline_adjust_' . $user_id
-		);
-
 		ob_start(); ?>
-		<a class="button button-small" href="<?php echo esc_url( $history_url ); ?>">
-			<?php esc_html_e( 'View history', 'bsc' ); ?>
-		</a>
-
-		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="bsc-bp-inline-form">
-			<input type="hidden" name="user_id" value="<?php echo (int) $user_id; ?>" />
-			<label class="screen-reader-text" for="delta-<?php echo (int) $user_id; ?>"><?php esc_html_e( 'Points delta', 'bsc' ); ?></label>
-			<input id="delta-<?php echo (int) $user_id; ?>" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" class="bsc-bp-inline-form__amount" required />
-			<input type="text" name="note" placeholder="<?php esc_attr_e( 'Note', 'bsc' ); ?>" class="bsc-bp-inline-form__note" />
-			<button class="button button-small" type="submit" name="op" value="add"><?php esc_html_e( 'Add', 'bsc' ); ?></button>
-			<button class="button button-small" type="submit" name="op" value="reduce"><?php esc_html_e( 'Reduce', 'bsc' ); ?></button>
-		</form>
+		<a href="<?php echo esc_url( $history_url ); ?>">Ver historial</a>
+		<details class="bsc-bp-quick-adjust">
+			<summary>Ajustar puntos<span class="screen-reader-text"> de <?php echo esc_html( $item->display_name ); ?></span></summary>
+			<?php bsc_bp_render_adjust_form( $user_id, $item->display_name, (int) $item->points, true ); ?>
+		</details>
 		<?php
 		return ob_get_clean();
 	}

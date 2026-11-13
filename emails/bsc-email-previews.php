@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_post_bsc_preview_email', 'bsc_render_email_preview_page' );
 
 function bsc_get_email_preview_definitions(): array {
-	return array(
+	$definitions = array(
 		'welcome'             => array(
 			'label'    => 'Usuario nuevo',
 			'template' => 'bsc-welcome-email.php',
@@ -57,6 +57,17 @@ function bsc_get_email_preview_definitions(): array {
 			'template' => 'bsc-abandoned-cart.php',
 		),
 	);
+
+	foreach ( bsc_workshops_email_types() as $type => $details ) {
+		$definitions[ 'workshop-' . $type ] = array(
+			'label'         => $details['label'],
+			'trigger'       => $details['trigger'],
+			'template'      => 'bsc-workshop.php',
+			'workshop_type' => $type,
+		);
+	}
+
+	return $definitions;
 }
 
 function bsc_get_email_preview_url( string $slug ): string {
@@ -213,6 +224,23 @@ function bsc_get_email_preview_order(): WC_Order {
 }
 
 function bsc_get_email_preview_context( string $slug ): array {
+	if ( str_starts_with( $slug, 'workshop-' ) ) {
+		$type = substr( $slug, strlen( 'workshop-' ) );
+		$details = bsc_workshops_email_types()[ $type ] ?? null;
+		if ( ! $details ) {
+			return array();
+		}
+
+		return array(
+			'type'     => $type,
+			'title'    => $details['title'],
+			'workshop' => (object) array( 'post_title' => 'K-Beauty & Matcha (prueba)' ),
+			'booking'  => (object) array( 'name' => 'Bubble Lover', 'seats' => 2, 'amount' => 299800 ),
+			'slot'     => 'availability' === $type ? null : array( 'label' => 'Sáb 24 · 10:00 a. m.' ),
+			'venue'    => 'Estudio BSC · Bogotá (ubicación de ejemplo)',
+		);
+	}
+
 	$user        = bsc_get_email_preview_customer();
 	$order       = bsc_get_email_preview_order();
 	$shop_url    = home_url( '/shop/' );

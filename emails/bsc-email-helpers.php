@@ -437,7 +437,7 @@ function bsc_get_recent_order_email_log_rows( int $limit = 20 ): array {
 }
 
 function bsc_get_email_template_manifest(): array {
-	return array(
+	$manifest = array(
 		array(
 			'slug'    => 'welcome',
 			'label'   => 'Usuario nuevo',
@@ -511,4 +511,17 @@ function bsc_get_email_template_manifest(): array {
 			'file'    => 'bsc-abandoned-cart.php',
 		),
 	);
+
+	foreach ( bsc_get_email_preview_definitions() as $slug => $definition ) {
+		if ( isset( $definition['workshop_type'] ) ) {
+			$manifest[] = array(
+				'slug'    => $slug,
+				'label'   => $definition['label'],
+				'trigger' => $definition['trigger'],
+				'file'    => $definition['template'],
+			);
+		}
+	}
+
+	return $manifest;
 }

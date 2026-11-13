@@ -18,59 +18,29 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 		$user    = get_user_by( 'id', $user_id );
 
 		if (!$user) {
-			echo '<p>' . esc_html__( 'User not found.', 'bsc' ) . '</p>';
+			echo '<p>No se encontró el cliente.</p>';
 			return;
 		}
 
-		// Notices
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag after redirect.
-		if (isset( $_GET['updated'] )) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Points updated.', 'bsc' ) . '</p></div>';
-		}
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag after redirect.
-		$error_message = !empty( $_GET['error'] ) ? sanitize_text_field( wp_unslash( $_GET['error'] ) ) : '';
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-		if ('' !== $error_message) {
-			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html( $error_message ) . '</p></div>';
-		}
-
 		$back_url = admin_url( 'admin.php?page=bsc-bubble-points' );
-		echo '<a href="' . esc_url( $back_url ) . '" class="button bsc-bp-admin__back-link">&larr; ' . esc_html__( 'Back', 'bsc' ) . '</a>';
-
-		printf(
-			'<h2>%s &mdash; %s</h2>',
-			esc_html( $user->display_name ),
-			esc_html( $user->user_email )
-		);
-
-		// Current balance
-		$balance = (int) bsc_bp_get_balance( $user_id );
-		echo '<p><strong>' . esc_html__( 'Current balance', 'bsc' ) . ':</strong> ' . esc_html( number_format_i18n( $balance ) ) . '</p>';
-
-		// Manual adjustment form (Add / Reduce) with note
-		if (current_user_can( 'manage_woocommerce' ) || current_user_can( 'manage_options' )) {
-			$action_url = admin_url( 'admin-post.php' ); // form posts here
-			?>
-		<form method="post" action="<?php echo esc_url( $action_url ); ?>" class="bsc-bp-history-form">
-			<input type="hidden" name="action" value="bsc_bp_manual_adjust">
-			<input type="hidden" name="user_id" value="<?php echo (int) $user_id; ?>">
-
-				<?php
-				// IMPORTANT: field name _bsc_bp_nonce; action string includes the user_id
-				wp_nonce_field( 'bsc_bp_manual_adjust_' . $user_id, '_bsc_bp_nonce' );
-				?>
-
-			<label for="bsc-bp-amount" class="bsc-bp-history-form__label"><strong><?php esc_html_e( 'Amount', 'bsc' ); ?></strong></label>
-			<input id="bsc-bp-amount" type="number" name="amount" step="1" min="0" placeholder="e.g. 100" required />
-
-			<label for="bsc-bp-note" class="bsc-bp-history-form__label bsc-bp-history-form__label--spaced"><strong><?php esc_html_e( 'Note', 'bsc' ); ?></strong></label>
-			<input id="bsc-bp-note" type="text" name="note" placeholder="<?php esc_attr_e( 'Optional note', 'bsc' ); ?>" class="bsc-bp-history-form__note" />
-
-			<button class="button button-primary" type="submit" name="op" value="add"><?php esc_html_e( 'Add', 'bsc' ); ?></button>
-			<button class="button" type="submit" name="op" value="reduce"><?php esc_html_e( 'Reduce', 'bsc' ); ?></button>
-		</form>
-			<?php
-		}
+		$balance  = (int) bsc_bp_get_balance( $user_id );
+		?>
+		<a href="<?php echo esc_url( $back_url ); ?>" class="button bsc-bp-admin__back-link">&larr; Volver a clientes</a>
+		<section class="bsc-admin-panel bsc-bp-admin__section bsc-bp-profile">
+			<div>
+				<h2 class="bsc-admin-panel__title"><?php echo esc_html( $user->display_name ); ?></h2>
+				<p class="bsc-admin-panel__description"><?php echo esc_html( $user->user_email ); ?></p>
+			</div>
+			<div class="bsc-bp-profile__balance">
+				<span>Saldo actual</span>
+				<strong class="bsc-bp-balance"><?php echo esc_html( number_format_i18n( $balance ) ); ?></strong>
+			</div>
+		</section>
+		<section class="bsc-admin-panel bsc-bp-admin__section">
+			<h2 class="bsc-admin-panel__title">Ajustar saldo</h2>
+			<?php bsc_bp_render_adjust_form( $user_id, $user->display_name, $balance ); ?>
+		</section>
+		<?php
 
 		// Fetch paginated ledger
 		$per_page = 25;
@@ -81,18 +51,15 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 		$total = isset( $data['total'] ) ? (int) $data['total'] : 0;
 
 		// Table
-		echo '<table class="widefat striped">';
+		echo '<section class="bsc-admin-panel bsc-bp-admin__section"><h2 class="bsc-admin-panel__title">Historial de movimientos</h2><div class="bsc-admin-table-wrap">';
+		echo '<table class="wp-list-table widefat striped bsc-bp-history">';
 		echo '<thead><tr>';
-		echo '<th>' . esc_html__( 'Date', 'bsc' ) . '</th>';
-		echo '<th>' . esc_html__( 'Delta', 'bsc' ) . '</th>';
-		echo '<th>' . esc_html__( 'Balance after', 'bsc' ) . '</th>';
-		echo '<th>' . esc_html__( 'Type', 'bsc' ) . '</th>';
-		echo '<th>' . esc_html__( 'Order', 'bsc' ) . '</th>';
-		echo '<th>' . esc_html__( 'Comments', 'bsc' ) . '</th>';
+		echo '<th scope="col">Fecha</th><th scope="col">Movimiento</th><th scope="col">Saldo resultante</th>';
+		echo '<th scope="col">Tipo</th><th scope="col">Pedido</th><th scope="col">Comentarios</th>';
 		echo '</tr></thead><tbody>';
 
 		if (empty( $rows )) {
-			echo '<tr><td colspan="6">' . esc_html__( 'No movements yet.', 'bsc' ) . '</td></tr>';
+			echo '<tr><td colspan="6">Este cliente aún no tiene movimientos.</td></tr>';
 		} else {
 			foreach ($rows as $row) {
 				// Expected $row fields: id, user_id, delta, balance_after, reason, order_id, meta(JSON), created_at
@@ -106,11 +73,12 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 				$meta_json  = (string) ( $row->meta ?? '' );
 
 				// Type
-				$type_label = $order_id ? esc_html__( 'Order', 'bsc' ) : esc_html__( 'Manual', 'bsc' );
+				$type_label = 'manual_adjustment' === $reason ? 'Ajuste manual' : ( $order_id ? 'Pedido' : 'Otro' );
 
 				// Order link cell
 				if ($order_id) {
-					$edit_link  = get_edit_post_link( $order_id );
+					$order      = function_exists( 'wc_get_order' ) ? wc_get_order( $order_id ) : false;
+					$edit_link  = $order ? $order->get_edit_order_url() : '';
 					$order_cell = $edit_link
 					? '<a href="' . esc_url( $edit_link ) . '">#' . (int) $order_id . '</a>'
 					: '#' . (int) $order_id;
@@ -126,6 +94,11 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 						if (isset( $meta_arr['note'] ) && is_scalar( $meta_arr['note'] )) {
 							$comments = esc_html( (string) $meta_arr['note'] );
 							unset( $meta_arr['note'] );
+						}
+						if ( 'manual_adjustment' === $reason && ! empty( $meta_arr['admin_id'] ) ) {
+							$admin = get_userdata( (int) $meta_arr['admin_id'] );
+							$comments .= ( $comments ? ' — ' : '' ) . 'Por ' . esc_html( $admin ? $admin->display_name : '#' . (int) $meta_arr['admin_id'] );
+							unset( $meta_arr['admin_id'], $meta_arr['source'], $meta_arr['event_key'] );
 						}
 						$extras = array();
 						foreach ($meta_arr as $k => $v) {
@@ -163,7 +136,7 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 			}
 		}
 
-		echo '</tbody></table>';
+		echo '</tbody></table></div>';
 
 		// Pagination
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
@@ -183,5 +156,6 @@ if ( ! function_exists( 'bsc_bp_render_user_history_screen' ) ) :
 			);
 			echo '</div></div>';
 		}
+		echo '</section>';
 	}
 endif; // function_exists

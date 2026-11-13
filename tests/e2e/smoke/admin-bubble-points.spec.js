@@ -29,23 +29,30 @@ async function openBubblePointsAdmin(page, testInfo) {
 }
 
 test.describe('Bubble Points admin smoke', () => {
-  test('users list loads and inline adjust controls are visible', async ({ page }, testInfo) => {
+  test('users list opens a confirmation for inline adjustments', async ({ page }, testInfo) => {
     await openBubblePointsAdmin(page, testInfo);
 
     await expect(page.locator('.wp-list-table').first()).toBeVisible();
-    await expect(page.locator('.bsc-bp-inline-form').first()).toBeVisible();
-    await expect(page.locator('.bsc-bp-inline-form__amount').first()).toBeVisible();
+    await page.locator('.bsc-bp-quick-adjust summary').first().click();
+    const form = page.locator('[data-bp-adjust]').first();
+    await form.getByLabel('Puntos', { exact: true }).fill('100');
+    await form.getByRole('button', { name: 'Sumar puntos' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Sumar 100 puntos');
+    await dialog.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(form.getByRole('button', { name: 'Sumar puntos' })).toBeFocused();
   });
 
   test('history screen loads for the first listed user', async ({ page }, testInfo) => {
     await openBubblePointsAdmin(page, testInfo);
 
-    const historyLink = page.getByRole('link', { name: /View history/i }).first();
+    const historyLink = page.getByRole('link', { name: /Ver historial/i }).first();
     await expect(historyLink).toBeVisible();
     await historyLink.click();
 
     await expect(page.locator('.bsc-bp-admin__back-link').first()).toBeVisible();
-    await expect(page.locator('.bsc-bp-history-form').first()).toBeVisible();
+    await expect(page.locator('[data-bp-adjust]').first()).toBeVisible();
     await expect(page.locator('.widefat.striped').first()).toBeVisible();
   });
 });

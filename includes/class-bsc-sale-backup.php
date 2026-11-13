@@ -147,7 +147,7 @@ final class BSC_Sale_Backup {
 		$result = array();
 		foreach ( $entity->get_meta_data() as $meta ) {
 			$key     = (string) $meta->key;
-			$allowed = preg_match( '/^_bsc_(stock_|product_variant_|bp_points_|wompi_approved_id$|is_showroom_sale$|tracking_|archived_at$)/', $key );
+			$allowed = preg_match( '/^_bsc_(stock_|product_variant_|bp_points_|wompi_approved_id$|is_showroom_sale$|showroom_origin$|showroom_has_backorder$|tracking_|archived_at$)/', $key );
 			if ( $allowed || ( $item && ! str_starts_with( $key, '_' ) ) || in_array( $key, array( '_reduced_stock', '_refunded_item_id' ), true ) ) {
 				if ( ! preg_match( '/password|secret|token|api.?key|card|cvv/i', $key ) ) {
 					$result[ $key ] = self::plain( $meta->value );

@@ -34,62 +34,32 @@ function bsc_bp_handle_manual_adjust() {
 	$amount = isset( $_POST['amount'] ) ? intval( wp_unslash( $_POST['amount'] ) ) : 0;
 	$op     = isset( $_POST['op'] ) ? sanitize_key( wp_unslash( $_POST['op'] ) ) : '';
 	$note   = isset( $_POST['note'] ) ? sanitize_text_field( wp_unslash( $_POST['note'] ) ) : '';
+	$request_id = sanitize_key( wp_unslash( $_POST['request_id'] ?? '' ) );
+	$source = 'inline' === ( $_POST['adjust_source'] ?? '' ) ? 'admin_inline' : 'admin_user_history';
 
-	if ( $user_id <= 0 || $amount <= 0 || ! in_array( $op, array( 'add', 'reduce' ), true ) ) {
+	if ( $user_id <= 0 || ! get_userdata( $user_id ) || $amount <= 0 || $amount > 2147483647
+		|| ! in_array( $op, array( 'add', 'reduce' ), true ) || ! wp_is_uuid( $request_id, 4 ) ) {
 		return bsc_bp_redirect_back( array( 'bp_msg' => 'invalid' ) );
 	}
 
-	// If you use the meta-based balance:
-	// $current_points = (int) get_user_meta( $user_id, '_bsc_bp_points', true );
-	// $delta          = ( 'add' === $op ) ? $amount : -$amount;
-	// $new_points     = max( 0, $current_points + $delta );
-	// update_user_meta( $user_id, '_bsc_bp_points', $new_points );
-
-	// If you use the ledger system (recommended)
-	$delta = ( 'reduce' === $op ) ? -abs( $amount ) : abs( $amount );
-	if ( function_exists( 'bsc_bp_add_ledger_entry' ) ) {
-		$res = bsc_bp_add_ledger_entry(
-			$user_id,
-			$delta,
-			'manual_adjustment',
-			null,
-			array(
-				'admin_id' => get_current_user_id(),
-				'note'     => $note,
-				'source'   => 'admin_user_history',
-			)
-		);
-
-		if ( empty( $res['ok'] ) ) {
-			return bsc_bp_redirect_back(
-				array(
-					'bp_msg' => 'error',
-					'bp_err' => rawurlencode( $res['error'] ?? 'unknown' ),
-				)
-			);
-		}
-	} else {
-		// Fallback to simple meta if ledger function is missing
-		$current_points = (int) get_user_meta( $user_id, '_bsc_bp_points', true );
-		$new_points     = max( 0, $current_points + $delta );
-		update_user_meta( $user_id, '_bsc_bp_points', $new_points );
-
-		// Append minimal log for visibility
-		$log   = get_user_meta( $user_id, '_bsc_bp_log', true );
-		$log   = is_array( $log ) ? $log : array();
-		$log[] = array(
-			'delta' => (int) $delta,
-			'meta'  => array(
-				'reason' => 'manual_adjust',
-				'by'     => get_current_user_id(),
-				'time'   => current_time( 'mysql' ),
-				'note'   => $note,
-			),
-		);
-		update_user_meta( $user_id, '_bsc_bp_log', $log );
+	$delta = 'reduce' === $op ? -$amount : $amount;
+	$admin = get_current_user_id();
+	$result = bsc_bp_add_ledger_entry(
+		$user_id,
+		$delta,
+		'manual_adjustment',
+		null,
+		array(
+			'admin_id'  => $admin,
+			'note'      => $note,
+			'source'    => $source,
+			'event_key' => 'manual:' . $user_id . ':' . $admin . ':' . $request_id,
+		)
+	);
+	if ( empty( $result['ok'] ) ) {
+		return bsc_bp_redirect_back( array( 'bp_msg' => 'error', 'bp_err' => sanitize_key( $result['error'] ?? 'unknown' ) ) );
 	}
 
-	// Success
 	return bsc_bp_redirect_back( array( 'bp_msg' => 'ok' ) );
 }
 
@@ -104,6 +74,7 @@ function bsc_bp_redirect_back( $args = array() ) {
 		$uid = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
 		$ref = admin_url( 'admin.php?page=bsc-bubble-points' . ( $uid ? '&user_id=' . $uid : '' ) );
 	}
+	$ref = remove_query_arg( array( 'bp_msg', 'bp_err', 'updated', 'error' ), $ref );
 	wp_safe_redirect( add_query_arg( $args, $ref ) );
 	exit;
 }

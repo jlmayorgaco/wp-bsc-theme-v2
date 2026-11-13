@@ -4,6 +4,7 @@ if ( 'cli' !== PHP_SAPI || '1' !== getenv( 'BSC_LOCAL_INTEGRATION' ) ) { exit( 1
 ob_start();
 require_once dirname( __DIR__, 4 ) . '/wp-load.php';
 require_once dirname( __DIR__ ) . '/admin/bsc-showroom-page.php';
+require_once dirname( __DIR__ ) . '/admin/bsc-reports-page.php';
 if ( 'bsc.local' !== wp_parse_url( home_url(), PHP_URL_HOST ) || ! preg_match( '/^(?:localhost|127\.0\.0\.1)(?::\d+)?$/D', DB_HOST ) ) { exit( 1 ); }
 add_filter( 'action_scheduler_allow_async_request_runner', '__return_false', PHP_INT_MAX );
 add_filter( 'woocommerce_defer_transactional_emails', '__return_false', PHP_INT_MAX );
@@ -36,7 +37,7 @@ try {
 	$product->save();
 	$products[] = $product->get_id();
 	update_post_meta( $product->get_id(), '_stock_tienda', 3 );
-	update_post_meta( $product->get_id(), '_stock_bodega', 0 );
+	update_post_meta( $product->get_id(), '_stock_bodega', 2 );
 	$coupon = new WC_Coupon();
 	$coupon->set_code( 'qa-showroom-' . strtolower( wp_generate_password( 12, false ) ) );
 	$coupon->set_discount_type( 'percent' );
@@ -45,11 +46,11 @@ try {
 	$coupon->set_usage_limit_per_user( 1 );
 	$coupon->save();
 	$coupons[] = $coupon->get_id();
-	$items = array( array( 'id' => $product->get_id(), 'qty' => 2 ) );
-	$customer = array( 'name' => 'Prueba Showroom', 'email' => $email, 'phone' => '3001234567' );
+	$items = array( array( 'id' => $product->get_id(), 'qty' => 2, 'source' => 'tienda' ) );
+	$customer = array( 'name' => 'Prueba Showroom', 'email' => $email, 'phone' => '3001234567', 'origin' => 'whatsapp', 'city' => 'Bogotá' );
 	$quote = BSC_Order_Stock::showroom_quote( $items, $email, $coupon->get_code() );
 	showroom_check( ! is_wp_error( $quote ) && 180000.0 === $quote['total'] && 20000.0 === $quote['discount'], 'Apply previews the real 10% discount: ' . wp_json_encode( $quote ) );
-	$multiple = BSC_Order_Stock::showroom_quote( array_merge( $items, array( array( 'id' => $product->get_id(), 'qty' => 1 ) ) ), $email, $coupon->get_code() );
+	$multiple = BSC_Order_Stock::showroom_quote( array_merge( $items, array( array( 'id' => $product->get_id(), 'qty' => 1, 'source' => 'bodega' ) ) ), $email, $coupon->get_code() );
 	showroom_check( ! is_wp_error( $multiple ) && 270000.0 === $multiple['total'], 'Coupon preview discounts every line in a multi-item order' );
 	showroom_check( 0 === ( new WC_Coupon( $coupon->get_id() ) )->get_usage_count() && 3 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ) && ! email_exists( $email ), 'Preview consumes no coupon, stock or account' );
 	showroom_check( is_wp_error( BSC_Order_Stock::showroom_quote( $items, 'wrong@example.invalid', $coupon->get_code() ) ), 'Rejects coupon for another email' );
@@ -61,6 +62,8 @@ try {
 	showroom_check( $user_id > 0 && $user_id === $order->get_customer_id(), 'Sale creates and links the customer account' );
 	showroom_check( 180000.0 === (float) $order->get_total() && 20000.0 === (float) $order->get_discount_total(), 'Saved order matches the discounted preview' );
 	showroom_check( 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Sale deducts store stock once' );
+	showroom_check( 2 === (int) get_post_meta( $product->get_id(), '_stock_bodega', true ), 'Store sale leaves warehouse inventory alone' );
+	showroom_check( $order->has_status( 'processing' ) && 'Bogotá' === $order->get_shipping_city() && 'whatsapp' === $order->get_meta( '_bsc_showroom_origin' ), 'Sale records its origin and leaves a city-only shipment open' );
 	showroom_check( bsc_bp_calculate_order_points( $order ) === bsc_bp_get_balance( $user_id ), 'Points are awarded on the discounted purchase' );
 	$account_mail = array_values( array_filter( $mail, static fn( $message ) => str_contains( $message['subject'], 'Tu cuenta en Bubble Skin Care' ) ) );
 	showroom_check( 1 === count( $account_mail ) && str_contains( $account_mail[0]['message'], 'Establecer mi contraseña' ), 'Sends one password setup email even with account emails disabled' );
@@ -72,15 +75,31 @@ try {
 	$failed = BSC_Order_Stock::showroom( $items, 'efectivo', 'Efectivo', $customer, $failed_request, $coupon->get_code() );
 	showroom_check( is_wp_error( $failed ) && 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Invalid coupon rolls back the stock deduction' );
 	showroom_check( ! wc_get_orders( array( 'meta_key' => '_bsc_showroom_request_id', 'meta_value' => get_current_user_id() . ':' . $failed_request, 'limit' => 1 ) ), 'Invalid coupon leaves no saved sale' );
-	$second = showroom_order( BSC_Order_Stock::showroom( $items, 'tarjeta', 'Tarjeta', array( 'name' => '', 'email' => $email, 'phone' => '' ), wp_generate_uuid4() ) );
+	$short = BSC_Order_Stock::showroom( $items, 'tarjeta', 'Tarjeta', $customer, wp_generate_uuid4() );
+	showroom_check( is_wp_error( $short ) && 'bsc_stock_shortage' === $short->get_error_code(), 'Insufficient store stock rejects the sale even when the warehouse can supply it' );
+	$second = showroom_order( BSC_Order_Stock::showroom( array( array_replace( $items[0], array( 'source' => 'bodega' ) ) ), 'tarjeta', 'Tarjeta', array( 'name' => '', 'email' => $email, 'phone' => '', 'origin' => 'talleres' ), wp_generate_uuid4() ) );
 	showroom_check( $user_id === $second->get_customer_id(), 'Email alone attaches another sale to the existing account' );
-	showroom_check( $second->has_status( 'processing' ) && 0 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Shortage becomes an order in processing without negative stock' );
+	showroom_check( $second->has_status( 'completed' ) && 0 === (int) get_post_meta( $product->get_id(), '_stock_bodega', true ) && 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Warehouse sale deducts only warehouse stock' );
 	$item = current( $second->get_items() );
-	showroom_check( 1 === (int) $item->get_meta( 'Encargo' ) && 1 === (int) $item->get_meta( '_bsc_stock_tienda_qty' ), 'Tracks the ordered and allocated quantities separately' );
-	$third = showroom_order( BSC_Order_Stock::showroom( array( array( 'id' => $product->get_id(), 'qty' => 1 ) ), 'efectivo', 'Efectivo', $customer, wp_generate_uuid4() ) );
-	showroom_check( $third->has_status( 'processing' ) && 0 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Fully out-of-stock product can be bought as Encargo' );
+	showroom_check( 2 === (int) $item->get_meta( '_bsc_stock_bodega_qty' ) && 0 === (int) $item->get_meta( '_bsc_stock_tienda_qty' ), 'Warehouse line records the actual allocation' );
+	$refund = wc_create_refund( array( 'order_id' => $second->get_id(), 'amount' => 0, 'restock_items' => true, 'line_items' => array( $item->get_id() => array( 'qty' => 1, 'refund_total' => 0 ) ) ) );
+	if ( is_wp_error( $refund ) ) { throw new RuntimeException( $refund->get_error_message() ); }
+	$orders[] = $refund->get_id();
+	showroom_check( 1 === (int) get_post_meta( $product->get_id(), '_stock_bodega', true ) && 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Refund restores only warehouse stock' );
+	$third = showroom_order( BSC_Order_Stock::showroom( array( array_replace( $items[0], array( 'source' => 'encargo' ) ) ), 'efectivo', 'Efectivo', $customer, wp_generate_uuid4() ) );
+	$item = current( $third->get_items() );
+	showroom_check( $third->has_status( 'processing' ) && 2 === (int) $item->get_meta( 'Encargo' ) && 200000.0 === (float) $third->get_total(), 'Encargo keeps its price, quantity and pending status' );
+	showroom_check( 1 === (int) get_post_meta( $product->get_id(), '_stock_bodega', true ) && 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Encargo consumes no stock even when both locations have units' );
+	$today = current_datetime()->format( 'Y-m-d' );
+	$report_args = array( 'status' => array( 'completed', 'processing' ), 'date_created' => $today . '...' . $today, 'include' => array( $order->get_id(), $second->get_id(), $third->get_id() ) );
+	ob_start();
+	bsc_reports_render_showroom_sales( $report_args, array( 'Talleres' => array( 'Tarjeta' => array( 'count' => 1, 'total' => $second->get_total() ) ) ), 1 );
+	$report = ob_get_clean();
+	showroom_check( str_contains( $report, 'WhatsApp' ) && str_contains( $report, 'Talleres' ) && str_contains( $report, 'Tarjeta' ) && str_contains( $report, 'Bodega' ) && str_contains( $report, 'Encargo' ), 'Sales report includes origins, payment methods and stock sources for the date' );
 	$third->update_status( 'cancelled' );
-	showroom_check( 0 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Canceling Encargo does not invent stock' );
+	showroom_check( 1 === (int) get_post_meta( $product->get_id(), '_stock_bodega', true ) && 1 === (int) get_post_meta( $product->get_id(), '_stock_tienda', true ), 'Canceling Encargo does not invent stock' );
+	update_post_meta( $product->get_id(), '_stock_tienda', 0 );
+	update_post_meta( $product->get_id(), '_stock_bodega', 0 );
 	$product = wc_get_product( $product->get_id() );
 	$product->set_stock_status( 'outofstock' );
 	$product->save();
@@ -88,13 +107,14 @@ try {
 	showroom_check( in_array( $product->get_id(), $search_ids, true ), 'Showroom SKU search finds a product with zero stock in both locations' );
 	$coupon->set_usage_limit_per_user( 0 );
 	$coupon->save();
-	update_post_meta( $product->get_id(), '_bsc_variant_matrix', array( array( 'size_name' => '50 ml', 'regular_price' => '50000', 'sale_price' => '40000', 'stock_tienda' => 1, 'stock_bodega' => 0, 'enabled' => true ) ) );
+	update_post_meta( $product->get_id(), '_bsc_variant_matrix', array( array( 'size_name' => '50 ml', 'regular_price' => '50000', 'sale_price' => '40000', 'stock_tienda' => 1, 'stock_bodega' => 2, 'enabled' => true ) ) );
 	$variant = bsc_get_product_saved_variant_matrix( $product->get_id(), false )[0];
-	$variant_items = array( array( 'id' => $product->get_id(), 'variant_key' => $variant['key'], 'qty' => 2 ) );
+	$variant_items = array( array( 'id' => $product->get_id(), 'variant_key' => $variant['key'], 'qty' => 2, 'source' => 'bodega' ) );
 	$variant_quote = BSC_Order_Stock::showroom_quote( $variant_items, $email, $coupon->get_code() );
 	showroom_check( ! is_wp_error( $variant_quote ) && 72000.0 === $variant_quote['total'], 'Variant quote uses its sale price and coupon' );
 	$variant_order = showroom_order( BSC_Order_Stock::showroom( $variant_items, 'efectivo', 'Efectivo', $customer, wp_generate_uuid4(), $coupon->get_code() ) );
-	showroom_check( 72000.0 === (float) $variant_order->get_total() && 0 === bsc_get_product_saved_variant_matrix( $product->get_id(), false )[0]['stock_tienda'], 'Variant sale matches preview and deducts only available variant stock' );
+	$remaining_variant = bsc_get_product_saved_variant_matrix( $product->get_id(), false )[0];
+	showroom_check( 72000.0 === (float) $variant_order->get_total() && 0 === $remaining_variant['stock_bodega'] && 1 === $remaining_variant['stock_tienda'], 'Variant sale matches preview and deducts only selected variant stock' );
 	showroom_check( is_wp_error( BSC_Order_Stock::showroom_quote( $items, $email, $coupon->get_code() ) ), 'Variant products require a valid variant in coupon previews' );
 
 	// Reproduce sales saved by older code, before customer linking was enabled.

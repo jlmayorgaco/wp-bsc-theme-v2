@@ -20,6 +20,16 @@ final class BSC_Order_Stock {
 		add_action( 'wp', array( __CLASS__, 'sync_showroom_account' ), 15 );
 		add_filter( 'woocommerce_product_get_manage_stock', array( __CLASS__, 'native_manage_stock' ), 30, 2 );
 		add_filter( 'woocommerce_product_variation_get_manage_stock', array( __CLASS__, 'native_manage_stock' ), 30, 2 );
+		add_filter( 'woocommerce_can_reduce_order_stock', array( __CLASS__, 'allow_native_order_stock' ), 10, 2 );
+		add_filter( 'woocommerce_prevent_adjust_line_item_product_stock', array( __CLASS__, 'prevent_native_backorder_stock' ), 10, 2 );
+	}
+
+	public static function allow_native_order_stock( bool $allowed, WC_Order $order ): bool {
+		return $allowed && ! $order->get_meta( '_bsc_is_showroom_sale', true );
+	}
+
+	public static function prevent_native_backorder_stock( bool $prevent, WC_Order_Item_Product $item ): bool {
+		return $prevent || 'encargo' === $item->get_meta( '_bsc_stock_source', true );
 	}
 
 	/** BSC owns dual inventory; WooCommerce must not reserve/decrement it a second time. */
@@ -51,6 +61,11 @@ final class BSC_Order_Stock {
 				return self::finish_showroom( $existing[0] );
 			}
 			if ( ! $items || count( $items ) > 50 ) { return new WP_Error( 'invalid_items', 'Selecciona entre 1 y 50 productos.' ); }
+			foreach ( $items as $line ) {
+				if ( ! is_array( $line ) || ! is_int( $line['id'] ?? null ) || $line['id'] <= 0 ) {
+					return new WP_Error( 'invalid_product', 'Producto inválido.' );
+				}
+			}
 			$product_ids = wp_parse_id_list( wp_list_pluck( $items, 'id' ) );
 			sort( $product_ids, SORT_NUMERIC );
 			$held = array();
@@ -69,42 +84,57 @@ final class BSC_Order_Stock {
 					if ( is_wp_error( $order ) ) { return $order; }
 					$order->update_meta_data( '_bsc_is_showroom_sale', '1' );
 					$order->update_meta_data( '_bsc_showroom_request_id', get_current_user_id() . ':' . $request_id );
+					$order->update_meta_data( '_bsc_showroom_origin', $customer['origin'] ?? '' );
 					foreach ( $items as $line ) {
-						$id = absint( $line['id'] ?? 0 ); $qty = absint( $line['qty'] ?? 0 );
-						$product = wc_get_product( $id );
-						if ( ! $product || ! $qty || $qty > 999 ) { return new WP_Error( 'invalid_product', 'Producto o cantidad inválidos.' ); }
-						$key = sanitize_key( (string) ( $line['variant_key'] ?? '' ) );
-						$matrix = bsc_get_product_saved_variant_matrix( $id, false );
-						$price = (float) $product->get_price(); $label = '';
-						if ( $matrix ) {
-							$variant = null;
-							foreach ( $matrix as $row ) { if ( $row['key'] === $key && ! empty( $row['enabled'] ) ) { $variant = $row; break; } }
-							if ( ! $variant ) { return new WP_Error( 'variant_required', 'Selecciona una variante disponible.' ); }
-							$price = (float) ( '' !== (string) ( $variant['sale_price'] ?? '' ) ? $variant['sale_price'] : $variant['regular_price'] );
-							$label = trim( $variant['color_name'] . ' ' . $variant['size_name'] );
-							$allocated = min( $qty, max( 0, (int) $variant['stock_tienda'] ) );
-							$adjusted = $allocated ? BSC_Stock::adjust_variant_stock_strict( $id, $key, 'tienda', -$allocated, 'Venta presencial #' . $order->get_id() ) : true;
-						} else {
-							$key = '';
-							$allocated = min( $qty, max( 0, (int) get_post_meta( $id, '_stock_tienda', true ) ) );
-							$adjusted = BSC_Stock::adjust_strict( $id, 'tienda', -$allocated, 'Venta presencial #' . $order->get_id() );
+						$data = self::showroom_line( $line );
+						if ( is_wp_error( $data ) ) {
+							return $data;
 						}
-						if ( is_wp_error( $adjusted ) ) { return $adjusted; }
+						$product = $data['product'];
+						$id      = $product->get_id();
+						$qty     = $data['qty'];
+						$key     = $data['key'];
+						$price   = $data['price'];
+						$source  = $data['source'];
+						if ( 'encargo' !== $source ) {
+							$reason   = 'Venta presencial #' . $order->get_id();
+							$adjusted = '' !== $key
+								? BSC_Stock::adjust_variant_stock_strict( $id, $key, $source, -$qty, $reason )
+								: BSC_Stock::adjust_strict( $id, $source, -$qty, $reason );
+							if ( is_wp_error( $adjusted ) ) {
+								if ( 'bsc_stock_shortage' === $adjusted->get_error_code() ) {
+									return new WP_Error( 'bsc_stock_shortage', sprintf( 'Stock insuficiente en %s para %s. Revisa la cantidad o elige otra ubicación.', ucfirst( $source ), $data['name'] ) );
+								}
+								return $adjusted;
+							}
+						}
+
 						$item_id = $order->add_product( $product, $qty, array( 'subtotal' => $price * $qty, 'total' => $price * $qty ) );
 						$item = $order->get_item( $item_id );
 						if ( ! $item ) { return new WP_Error( 'item_failed', 'No se pudo crear la línea de pedido.' ); }
-						foreach ( array( '_bsc_stock_product_id' => $id, '_bsc_stock_tienda_qty' => $allocated, '_bsc_stock_bodega_qty' => 0, '_bsc_stock_source' => $allocated ? 'tienda' : 'encargo', '_bsc_stock_allocated_at' => current_time( 'mysql' ), '_bsc_stock_allocation_cycle' => wp_generate_uuid4(), '_bsc_product_variant_key' => $key ) as $meta_key => $value ) { $item->update_meta_data( $meta_key, $value ); }
-						if ( $allocated < $qty ) {
-							$item->update_meta_data( 'Encargo', $qty - $allocated );
-							$order->update_meta_data( '_bsc_showroom_has_backorder', 'yes' );
+						$item->update_meta_data( '_bsc_stock_product_id', $id );
+						$item->update_meta_data( '_bsc_stock_tienda_qty', 'tienda' === $source ? $qty : 0 );
+						$item->update_meta_data( '_bsc_stock_bodega_qty', 'bodega' === $source ? $qty : 0 );
+						$item->update_meta_data( '_bsc_stock_source', $source );
+						if ( '' !== $key ) {
+							$item->update_meta_data( '_bsc_product_variant_key', $key );
+							$item->update_meta_data( 'Variante', $data['label'] );
 						}
-						if ( $label ) { $item->update_meta_data( 'Variante', $label ); }
+						if ( 'encargo' === $source ) {
+							$item->update_meta_data( 'Encargo', $qty );
+							$order->update_meta_data( '_bsc_showroom_has_backorder', 'yes' );
+						} else {
+							$item->update_meta_data( '_bsc_stock_allocated_at', current_time( 'mysql' ) );
+							$item->update_meta_data( '_bsc_stock_allocation_cycle', wp_generate_uuid4() );
+							$item->update_meta_data( 'Stock', ucfirst( $source ) );
+						}
 						$item->save();
 					}
 					$name = explode( ' ', $customer['name'], 2 );
 					$order->set_billing_first_name( $name[0] ); $order->set_billing_last_name( $name[1] ?? '' );
 					$order->set_billing_email( $customer['email'] ); $order->set_billing_phone( $customer['phone'] );
 					$order->set_customer_id( $customer['email'] ? (int) email_exists( $customer['email'] ) : 0 );
+					self::set_showroom_shipping( $order, $customer );
 					$order->set_payment_method( $payment ); $order->set_payment_method_title( $payment_title );
 					if ( '' !== $coupon_code ) {
 						$order->calculate_totals();
@@ -123,6 +153,18 @@ final class BSC_Order_Stock {
 				foreach ( $held as $id ) { wp_cache_delete( $id, 'post_meta' ); BSC_DB_Lock::release( 'stock-product:' . $id ); }
 			}
 		} );
+	}
+
+	private static function set_showroom_shipping( WC_Order $order, array $customer ): void {
+		$address = $customer['address'] ?? '';
+		$city    = $customer['city'] ?? '';
+		if ( '' === $address && '' === $city ) {
+			return;
+		}
+		$order->set_shipping_first_name( $order->get_billing_first_name() );
+		$order->set_shipping_last_name( $order->get_billing_last_name() );
+		$order->set_shipping_address_1( $address );
+		$order->set_shipping_city( $city );
 	}
 
 	/**
@@ -169,7 +211,10 @@ final class BSC_Order_Stock {
 		}
 		if ( $order->has_status( 'pending' ) ) {
 			$order->set_date_paid( time() );
-			$order->update_status( 'yes' === $order->get_meta( '_bsc_showroom_has_backorder' ) ? 'processing' : 'completed', 'Venta presencial registrada desde BSC Admin.' );
+			$pending_delivery = 'yes' === $order->get_meta( '_bsc_showroom_has_backorder' )
+				|| '' !== $order->get_shipping_address_1()
+				|| '' !== $order->get_shipping_city();
+			$order->update_status( $pending_delivery ? 'processing' : 'completed', 'Venta presencial registrada desde BSC Admin.' );
 		}
 		if ( $order->get_customer_id() && function_exists( 'bsc_bp_order_is_awardable' ) && bsc_bp_order_is_awardable( $order ) && bsc_bp_calculate_order_points( $order ) > 0 ) {
 			$result = BSC_DB_Lock::run( 'points-order:' . $order->get_id(), static function () use ( $order ) {
@@ -277,6 +322,47 @@ final class BSC_Order_Stock {
 		return is_wp_error( $result ) ? $result : $discounts;
 	}
 
+	/** Resolve the product and its catalog price for both previews and saved orders. */
+	private static function showroom_line( $line ) {
+		if ( ! is_array( $line ) || ! is_int( $line['id'] ?? null ) || $line['id'] <= 0
+			|| ! is_int( $line['qty'] ?? null ) || $line['qty'] < 1 || $line['qty'] > 999 ) {
+			return new WP_Error( 'invalid_product', 'Producto o cantidad inválidos.' );
+		}
+		$source = $line['source'] ?? '';
+		if ( ! in_array( $source, array( 'bodega', 'tienda', 'encargo' ), true ) ) {
+			return new WP_Error( 'invalid_stock_source', 'Selecciona Bodega, Tienda o Encargo para cada producto.' );
+		}
+		$product = wc_get_product( $line['id'] );
+		if ( ! $product || 'publish' !== $product->get_status() ) {
+			return new WP_Error( 'invalid_product', 'El producto ya no está disponible.' );
+		}
+
+		$key   = $line['variant_key'] ?? '';
+		$price = $product->get_price();
+		$label = '';
+		$matrix = bsc_get_product_saved_variant_matrix( $product->get_id(), true );
+		if ( $matrix || '' !== $key ) {
+			$variant = null;
+			foreach ( $matrix as $row ) {
+				if ( $row['key'] === $key && $row['enabled'] ) {
+					$variant = $row;
+					break;
+				}
+			}
+			if ( ! $variant ) {
+				return new WP_Error( 'variant_required', 'Selecciona una variante disponible.' );
+			}
+			$price = $variant['price'];
+			$label = trim( $variant['color_name'] . ' ' . $variant['size_name'] );
+		}
+		if ( ! is_numeric( $price ) || (float) $price < 0 ) {
+			return new WP_Error( 'invalid_price', sprintf( 'Configura un precio para %s antes de agregarlo a la venta.', $product->get_name() ) );
+		}
+		$name = $product->get_name() . ( '' !== $label ? ' — ' . $label : '' );
+		$qty  = $line['qty'];
+		return compact( 'product', 'qty', 'key', 'price', 'source', 'label', 'name' );
+	}
+
 	/**
 	 * Preview a coupon without saving orders, stock movements or coupon usages.
 	 *
@@ -285,7 +371,7 @@ final class BSC_Order_Stock {
 	 * @param string $code Coupon code.
 	 * @return array|WP_Error
 	 */
-	public static function showroom_quote( array $items, string $email, string $code ) {
+	public static function showroom_quote( array $items, string $email, string $code, array $destination = array() ) {
 		if ( ! $items || count( $items ) > 50 || '' === $code ) {
 			return new WP_Error( 'invalid_quote', 'Agrega productos e ingresa un cupón.' );
 		}
@@ -308,34 +394,20 @@ final class BSC_Order_Stock {
 		$order->set_prices_include_tax( 'yes' === get_option( 'woocommerce_prices_include_tax' ) );
 		$order->set_billing_email( $email );
 		$order->set_customer_id( $email ? (int) email_exists( $email ) : 0 );
+		self::set_showroom_shipping( $order, $destination );
 		foreach ( $items as $line ) {
-			$product = wc_get_product( absint( $line['id'] ?? 0 ) );
-			$qty     = absint( $line['qty'] ?? 0 );
-			if ( ! $product || ! $qty || $qty > 999 ) {
-				return new WP_Error( 'invalid_product', 'Producto o cantidad inválidos.' );
+			$data = self::showroom_line( $line );
+			if ( is_wp_error( $data ) ) {
+				return $data;
 			}
-			$price  = (float) $product->get_price();
-			$matrix = bsc_get_product_saved_variant_matrix( $product->get_id(), false );
-			if ( $matrix ) {
-				$variant = null;
-				foreach ( $matrix as $row ) {
-					if ( $row['key'] === sanitize_key( (string) ( $line['variant_key'] ?? '' ) ) && ! empty( $row['enabled'] ) ) {
-						$variant = $row;
-						break;
-					}
-				}
-				if ( ! $variant ) {
-					return new WP_Error( 'variant_required', 'Selecciona una variante disponible.' );
-				}
-				$price = (float) ( '' !== (string) ( $variant['sale_price'] ?? '' ) ? $variant['sale_price'] : $variant['regular_price'] );
-			}
+			$subtotal = $data['price'] * $data['qty'];
 			$item = new WC_Order_Item_Product();
 			// WC_Discounts indexes order lines by ID, even for an unsaved preview.
 			$item->set_id( count( $order->get_items() ) + 1 );
-			$item->set_product( $product );
-			$item->set_quantity( $qty );
-			$item->set_subtotal( $price * $qty );
-			$item->set_total( $price * $qty );
+			$item->set_product( $data['product'] );
+			$item->set_quantity( $data['qty'] );
+			$item->set_subtotal( $subtotal );
+			$item->set_total( $subtotal );
 			$order->add_item( $item );
 		}
 		$order->calculate_totals();
@@ -444,6 +516,9 @@ final class BSC_Order_Stock {
 
 	/** Each restock and its marker commit together; never restore more than allocated. */
 	private static function restore_item( WC_Order_Item_Product $item, int $quantity, string $event, bool $release ) {
+		if ( 'encargo' === $item->get_meta( '_bsc_stock_source', true ) ) {
+			return true;
+		}
 		$product_id = self::product_id( $item );
 		return BSC_Stock::with_product_lock( $product_id, static function () use ( $item, $quantity, $event, $release, $product_id ) {
 			$item->read_meta_data( true );

@@ -1,0 +1,32 @@
+.bsc-workshops-admin__layout { display:grid; grid-template-columns:minmax(230px, 1fr) minmax(0, 3fr); gap:20px; align-items:start; }
+.bsc-workshops-admin__layout .bsc-admin-panel,
+.bsc-workshops-admin__bookings { padding:20px; }
+.bsc-workshops-admin__layout h2,
+.bsc-workshops-admin__bookings h2 { margin-top:0; }
+.bsc-workshops-admin__list { margin:0; }
+.bsc-workshops-admin__list li { display:flex; justify-content:space-between; gap:8px; padding:10px 0; border-top:1px solid #eee; }
+.bsc-workshops-admin__list [aria-current="page"] { font-weight:700; }
+.bsc-workshops-admin__editor { display:grid; gap:15px; }
+.bsc-workshops-admin__editor label { display:grid; gap:4px; min-width:0; font-weight:600; }
+.bsc-workshops-admin__editor input:not([type="checkbox"]),
+.bsc-workshops-admin__editor select,
+.bsc-workshops-admin__editor textarea { width:100%; max-width:100%; }
+.bsc-workshops-admin__editor fieldset { min-width:0; border:1px solid #dcdcde; padding:12px; border-radius:8px; }
+.bsc-workshops-admin__editor legend { padding:0 6px; font-weight:700; }
+.bsc-workshops-admin__fields { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+.bsc-workshops-admin__slot { display:grid; grid-template-columns:minmax(135px, 2fr) 70px minmax(160px, 1fr); gap:8px 12px; align-items:center; padding:12px; background:#f6f7f7; border-radius:6px; margin:10px 0; }
+.bsc-workshops-admin__slot .bsc-workshops-admin__check { display:flex; align-items:center; }
+.bsc-workshops-admin__slot .button-link-delete { justify-self:start; }
+.bsc-workshops-admin__actions,
+.bsc-workshops-admin__media { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.bsc-workshops-admin__media img { display:block; width:72px; height:72px; object-fit:cover; border-radius:6px; }
+.bsc-workshops-admin__media [data-workshop-image]:empty { display:none; }
+.bsc-workshops-admin__bookings { margin-top:20px; }
+.bsc-workshops-admin__bookings .widefat { min-width:620px; }
+.bsc-workshops-admin__bookings nav { margin-top:14px; }
+@media (max-width: 1100px) {
+  .bsc-workshops-admin__layout { grid-template-columns:minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .bsc-workshops-admin__fields, .bsc-workshops-admin__slot { grid-template-columns:minmax(0, 1fr); }
+}
