@@ -83,27 +83,38 @@ function bsc_cookie_preferences_render(): void {
 		return;
 	}
 	?>
-	<section class="bsc-analytics-consent" id="bsc-cookie-preferences" data-bsc-cookie-panel data-meta-private-view="<?php echo esc_attr( BSC_META_PRIVATE_VIEW ); ?>" role="dialog" aria-labelledby="bsc-cookie-title" aria-describedby="bsc-cookie-description" hidden>
-		<div>
-			<h2 id="bsc-cookie-title" tabindex="-1">Preferencias de cookies</h2>
-			<p id="bsc-cookie-description">Elige qué cookies opcionales quieres permitir. Las esenciales mantienen activa tu sesión y tu carrito. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Política de cookies</a></p>
-		</div>
-		<form class="bsc-analytics-consent__form">
-			<div class="bsc-analytics-consent__options">
-				<?php if ( $analytics ) : ?>
-					<label><input type="checkbox" name="bsc_analytics_consent" aria-describedby="bsc-cookie-analytics-description"> <strong>Analítica</strong></label>
-					<p id="bsc-cookie-analytics-description">Google Analytics nos ayuda a entender cómo se usa la tienda.</p>
-				<?php endif; ?>
-				<?php if ( $meta ) : ?>
-					<label><input type="checkbox" name="bsc_meta_consent" aria-describedby="bsc-cookie-meta-description"> <strong>Publicidad de Meta</strong></label>
-					<p id="bsc-cookie-meta-description">Compartimos actividad de la tienda con Meta, desde tu navegador y nuestro servidor, para medir y personalizar anuncios en Facebook e Instagram.</p>
-				<?php endif; ?>
-			</div>
+	<section class="bsc-analytics-consent" id="bsc-cookie-preferences" data-bsc-cookie-panel data-meta-private-view="<?php echo esc_attr( BSC_META_PRIVATE_VIEW ); ?>" role="dialog" aria-labelledby="bsc-cookie-summary-title" hidden>
+		<div data-bsc-cookie-summary>
+			<h2 id="bsc-cookie-summary-title">Cookies opcionales</h2>
+			<p>Elige si permites cookies de analítica o publicidad. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Política de cookies</a></p>
 			<div class="bsc-analytics-consent__actions">
-				<button type="button" class="bsc__button bsc__button--outline" data-bsc-cookie-reject>Rechazar opcionales</button>
-				<button type="submit" class="bsc__button">Guardar preferencias</button>
+				<button type="button" class="bsc__button bsc__button--outline" data-bsc-cookie-reject>Rechazar</button>
+				<button type="button" class="bsc__button bsc__button--outline" data-bsc-cookie-configure aria-controls="bsc-cookie-details">Configurar</button>
 			</div>
-		</form>
+		</div>
+		<div id="bsc-cookie-details" data-bsc-cookie-details hidden>
+			<div class="bsc-analytics-consent__heading">
+				<h2 id="bsc-cookie-title" tabindex="-1">Preferencias de cookies</h2>
+				<button type="button" class="bsc-analytics-consent__close" data-bsc-cookie-close aria-label="Cerrar preferencias">&times;</button>
+			</div>
+			<p>Las cookies esenciales mantienen activa tu sesión y tu carrito. <a href="<?php echo esc_url( bsc_get_static_page_url( 'cookies' ) ); ?>">Política de cookies</a></p>
+			<form class="bsc-analytics-consent__form">
+				<div class="bsc-analytics-consent__options">
+					<?php if ( $analytics ) : ?>
+						<label><input type="checkbox" name="bsc_analytics_consent" aria-describedby="bsc-cookie-analytics-description"> <strong>Analítica</strong></label>
+						<p id="bsc-cookie-analytics-description">Google Analytics nos ayuda a entender cómo se usa la tienda.</p>
+					<?php endif; ?>
+					<?php if ( $meta ) : ?>
+						<label><input type="checkbox" name="bsc_meta_consent" aria-describedby="bsc-cookie-meta-description"> <strong>Publicidad de Meta</strong></label>
+						<p id="bsc-cookie-meta-description">Compartimos actividad de la tienda con Meta, desde tu navegador y nuestro servidor, para medir y personalizar anuncios en Facebook e Instagram.</p>
+					<?php endif; ?>
+				</div>
+				<div class="bsc-analytics-consent__actions">
+					<button type="button" class="bsc__button bsc__button--outline" data-bsc-cookie-reject>Rechazar opcionales</button>
+					<button type="submit" class="bsc__button">Guardar preferencias</button>
+				</div>
+			</form>
+		</div>
 	</section>
 	<?php
 }

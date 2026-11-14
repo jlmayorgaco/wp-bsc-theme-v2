@@ -106,14 +106,32 @@
     var open = document.querySelector('[data-bsc-cookie-open]');
     var metaField = form.elements.namedItem(metaCookie);
     var privateView = panel.dataset.metaPrivateView;
+    var summary = panel.querySelector('[data-bsc-cookie-summary]');
+    var details = panel.querySelector('[data-bsc-cookie-details]');
+    var configure = panel.querySelector('[data-bsc-cookie-configure]');
+    var close = panel.querySelector('[data-bsc-cookie-close]');
+    var pending = false;
 
-    function showPanel(visible, moveFocus) {
+    function showPanel(view, moveFocus) {
+      var visible = view !== 'closed';
       panel.hidden = !visible;
+      // A cached page may still have the previous single-panel markup.
+      if (summary && details) {
+        summary.hidden = view !== 'summary';
+        details.hidden = view !== 'details';
+        panel.setAttribute('aria-labelledby', view === 'summary' ? 'bsc-cookie-summary-title' : 'bsc-cookie-title');
+      }
       if (open) {
         open.setAttribute('aria-expanded', String(visible));
-        if (!visible && moveFocus) open.focus({ preventScroll: true });
       }
-      if (visible && moveFocus) panel.querySelector('h2').focus({ preventScroll: true });
+      if (!moveFocus) return;
+      var focus = view === 'details' ? panel.querySelector('#bsc-cookie-title') : view === 'summary' ? configure : open;
+      if (focus) focus.focus({ preventScroll: true });
+    }
+
+    function dismissDetails() {
+      fields.forEach(function (field) { field.checked = consentState(field.name) === 'granted'; });
+      showPanel(pending && summary ? 'summary' : 'closed', true);
     }
 
     function syncPreferences() {
@@ -122,13 +140,13 @@
       if (metaField && refreshMetaView(metaAllowed, privateView)) return;
       updateTracking();
 
-      var pending = false;
+      pending = false;
       fields.forEach(function (field) {
         var state = consentState(field.name);
         field.checked = state === 'granted';
         pending = pending || state === 'unknown';
       });
-      showPanel(pending, false);
+      showPanel(pending ? (summary ? 'summary' : 'details') : 'closed', false);
     }
 
     function savePreferences(reject) {
@@ -139,7 +157,8 @@
       var metaAllowed = !!metaField && consentState(metaCookie) === 'granted';
       if (metaField && !metaAllowed) revokeMeta();
       updateTracking();
-      showPanel(false, true);
+      pending = false;
+      showPanel('closed', true);
 
       try { window.localStorage.setItem(preferenceChange, String(Date.now())); } catch (_error) { /* Cookies still apply. */ }
       if (metaField) refreshMetaView(metaAllowed, privateView);
@@ -147,18 +166,20 @@
 
     if (open) {
       open.hidden = false;
-      open.addEventListener('click', function () { showPanel(true, true); });
+      open.addEventListener('click', function () { showPanel('details', true); });
     }
+    if (configure) configure.addEventListener('click', function () { showPanel('details', true); });
+    if (close) close.addEventListener('click', dismissDetails);
 
     form.addEventListener('submit', function (event) {
       event.preventDefault();
       savePreferences(false);
     });
-    panel.querySelector('[data-bsc-cookie-reject]').addEventListener('click', function () { savePreferences(true); });
+    panel.querySelectorAll('[data-bsc-cookie-reject]').forEach(function (button) {
+      button.addEventListener('click', function () { savePreferences(true); });
+    });
     panel.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && !fields.some(function (field) { return consentState(field.name) === 'unknown'; })) {
-        showPanel(false, true);
-      }
+      if (event.key === 'Escape' && (details ? !details.hidden : !pending)) dismissDetails();
     });
     window.addEventListener('storage', function (event) {
       if (event.key === preferenceChange) syncPreferences();
