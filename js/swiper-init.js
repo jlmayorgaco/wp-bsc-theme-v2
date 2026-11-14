@@ -7,6 +7,8 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
+    console.info('[BSC DEMO] La portada recibió el cambio de MVP2.');
+
     var wrapper = document.querySelector('.bsc__home-swiper .swiper-wrapper');
     if (!wrapper) return;
 
