@@ -849,10 +849,13 @@ function bsc_render_settings_page(): void {
 		update_option( 'bsc_free_shipping_threshold', max( 0, intval( wp_unslash( $_POST['bsc_free_shipping_threshold'] ?? 300000 ) ) ) );
 		$bogota_shipping_price = max( 0, intval( wp_unslash( $_POST['bsc_bogota_shipping_price'] ?? bsc_get_bogota_shipping_price() ) ) );
 		$other_shipping_price  = max( 0, intval( wp_unslash( $_POST['bsc_other_shipping_price'] ?? bsc_get_other_shipping_price() ) ) );
+		$island_shipping_price = max( 0, intval( wp_unslash( $_POST['bsc_san_andres_shipping_price'] ?? bsc_get_san_andres_shipping_price() ) ) );
 		$shipping_price_changed = $bogota_shipping_price !== bsc_get_bogota_shipping_price()
-			|| $other_shipping_price !== bsc_get_other_shipping_price();
+			|| $other_shipping_price !== bsc_get_other_shipping_price()
+			|| $island_shipping_price !== bsc_get_san_andres_shipping_price();
 		update_option( 'bsc_bogota_shipping_price', $bogota_shipping_price );
 		update_option( 'bsc_other_shipping_price', $other_shipping_price );
+		update_option( 'bsc_san_andres_shipping_price', $island_shipping_price );
 		if ( $shipping_price_changed && class_exists( 'WC_Cache_Helper' ) ) {
 			WC_Cache_Helper::get_transient_version( 'shipping', true );
 		}
@@ -973,7 +976,15 @@ function bsc_render_settings_page(): void {
 						<input type="number" id="bsc_other_shipping_price" name="bsc_other_shipping_price"
 							value="<?php echo esc_attr( bsc_get_other_shipping_price() ); ?>"
 							class="regular-text" min="0" step="1000">
-						<p class="description">Valor aplicado en checkout para destinos fuera de Bogotá y Cundinamarca.</p>
+						<p class="description">Excluye Bogotá, Cundinamarca y San Andrés y Providencia.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="bsc_san_andres_shipping_price">Tarifa San Andrés y Providencia (COP)</label></th>
+					<td>
+						<input type="number" id="bsc_san_andres_shipping_price" name="bsc_san_andres_shipping_price"
+							value="<?php echo esc_attr( bsc_get_san_andres_shipping_price() ); ?>"
+							class="regular-text" min="0" step="1000">
 					</td>
 				</tr>
 				<tr>

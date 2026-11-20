@@ -45,7 +45,8 @@ bsc_render_static_page_template(
 				<p>Realizamos todos los env&iacute;os desde nuestra bodega en Bogot&aacute;, y manejamos las siguientes tarifas:</p>
 				<ul>
 					<li>Bogot&aacute; y Cundinamarca: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_bogota_shipping_price() ) ); ?></strong></li>
-					<li>Resto del pa&iacute;s: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_other_shipping_price() ) ); ?></strong></li>
+					<li>Resto del pa&iacute;s, excepto San Andr&eacute;s y Providencia: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_other_shipping_price() ) ); ?></strong></li>
+					<li>San Andr&eacute;s y Providencia: <strong><?php echo esc_html( bsc_format_cop_shipping_price( bsc_get_san_andres_shipping_price() ) ); ?></strong></li>
 					<?php $free_shipping_threshold = max( 0, (int) get_option( 'bsc_free_shipping_threshold', 300000 ) ); ?>
 					<?php if ( $free_shipping_threshold > 0 ) : ?>
 						<li>En compras desde <strong><?php echo esc_html( bsc_format_cop_shipping_price( $free_shipping_threshold ) ); ?></strong>, el env&iacute;o es <strong>GRATIS</strong>.</li>
