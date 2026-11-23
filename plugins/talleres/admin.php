@@ -12,10 +12,12 @@ add_action( 'admin_enqueue_scripts', static function ( string $hook ) {
 	bsc_enqueue_admin_ui_assets();
 	$base = get_template_directory_uri() . '/plugins/talleres/';
 	wp_enqueue_style( 'bsc-workshops-admin', $base . 'admin.css', array( 'bsc-admin-ui' ), bsc_get_asset_version( 'plugins/talleres/admin.css' ) );
-	wp_enqueue_script( 'bsc-workshops-admin', $base . 'admin.js', array(), bsc_get_asset_version( 'plugins/talleres/admin.js' ), true );
+	$dependencies = array();
 	if ( current_user_can( 'upload_files' ) ) {
 		wp_enqueue_media();
+		$dependencies[] = 'media-editor';
 	}
+	wp_enqueue_script( 'bsc-workshops-admin', $base . 'admin.js', $dependencies, bsc_get_asset_version( 'plugins/talleres/admin.js' ), true );
 } );
 
 function bsc_workshops_admin_guard(): void {
@@ -50,6 +52,7 @@ function bsc_workshops_render_admin(): void {
 	$list = bsc_workshops_posts( array( 'draft', 'publish' ) );
 	$notices = array(
 		'saved' => 'Taller guardado.',
+		'gallery_saved' => 'Videos del carrusel guardados.',
 		'updated' => 'Inscripción actualizada.',
 		'queued' => 'Correo añadido a la cola.',
 		'invalid' => 'Revisa el título, precio, horarios y cupos. Las fechas reales deben ser válidas.',
@@ -121,6 +124,29 @@ function bsc_workshops_render_admin(): void {
 				</form>
 			</section>
 		</div>
+		<?php if ( current_user_can( 'upload_files' ) ) : ?>
+			<section class="bsc-admin-panel bsc-workshops-admin__bookings" id="taller-videos">
+				<h2>Videos del carrusel</h2>
+				<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" data-workshop-gallery>
+					<input type="hidden" name="action" value="bsc_workshop_save_gallery">
+					<input type="hidden" name="workshop" value="<?php echo esc_attr( $id ); ?>">
+					<?php wp_nonce_field( 'bsc_workshop_save_gallery' ); ?>
+					<?php $videos = bsc_workshops_gallery_ids(); ?>
+					<input type="hidden" name="video_ids" value="<?php echo esc_attr( implode( ',', $videos ) ); ?>">
+					<p>El carrusel usa el título de cada video de la biblioteca y el orden en que los eliges.</p>
+					<ol data-workshop-videos>
+						<?php foreach ( $videos as $video ) : ?>
+							<li><?php echo esc_html( get_the_title( $video ) ); ?></li>
+						<?php endforeach; ?>
+					</ol>
+					<div class="bsc-workshops-admin__actions">
+						<button type="button" class="button" data-choose-workshop-videos>Elegir videos</button>
+						<button type="button" class="button-link-delete" data-clear-workshop-videos>Quitar todos</button>
+						<button class="button button-primary" type="submit">Guardar videos</button>
+					</div>
+				</form>
+			</section>
+		<?php endif; ?>
 		<?php if ( $post ) { bsc_workshops_render_bookings( $post, $settings ); } ?>
 	</div>
 	<?php
@@ -133,6 +159,18 @@ function bsc_workshops_revision( WP_Post $post, array $settings ): string {
 function bsc_workshops_admin_redirect( int $id, string $notice, string $section = 'taller-editor' ): void {
 	wp_safe_redirect( add_query_arg( 'notice', $notice, bsc_workshops_admin_url( $id ) ) . '#' . $section, 303 );
 	exit;
+}
+
+add_action( 'admin_post_bsc_workshop_save_gallery', 'bsc_workshops_admin_save_gallery' );
+function bsc_workshops_admin_save_gallery(): void {
+	bsc_workshops_admin_guard();
+	check_admin_referer( 'bsc_workshop_save_gallery' );
+	if ( ! current_user_can( 'upload_files' ) ) {
+		wp_die( 'No tienes permiso para administrar videos.', '', array( 'response' => 403 ) );
+	}
+	$videos = bsc_workshops_video_ids( explode( ',', bsc_workshops_input( 'video_ids' ) ) );
+	$saved  = update_option( 'bsc_workshops_gallery', $videos, false ) || $videos === get_option( 'bsc_workshops_gallery' );
+	bsc_workshops_admin_redirect( absint( bsc_workshops_input( 'workshop' ) ), $saved ? 'gallery_saved' : 'failed', 'taller-videos' );
 }
 
 add_action( 'admin_post_bsc_workshop_save', 'bsc_workshops_admin_save' );
