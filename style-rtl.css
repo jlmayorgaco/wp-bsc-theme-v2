@@ -11927,7 +11927,9 @@ body.admin-bar .bsc__header--mobile {
   color: #333;
   display: none;
 }
-.bsc-swiper__slide .slide__hero .hero__button {
+
+.bsc-swiper__slide .slide__hero .hero__button,
+.bsc-workshops__hero .hero__button {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11945,7 +11947,8 @@ body.admin-bar .bsc__header--mobile {
   background-color: #333;
   color: #fff;
 }
-.bsc-swiper__slide .slide__hero .hero__button:hover {
+.bsc-swiper__slide .slide__hero .hero__button:hover,
+.bsc-workshops__hero .hero__button:hover {
   background-color: #fff;
   color: #333;
 }
@@ -12140,6 +12143,11 @@ body.admin-bar .bsc__header--mobile {
     color: #333;
   }
   .bsc-swiper__slide .slide__hero .hero__button {
+    position: relative;
+    bottom: 2em;
+  }
+  .bsc-swiper__slide .slide__hero .hero__button,
+  .bsc-workshops__hero .hero__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -12151,16 +12159,18 @@ body.admin-bar .bsc__header--mobile {
     font-size: 16px;
     text-decoration: none;
     font-weight: 700;
-    position: relative;
-    bottom: 2em;
   }
 }
 @media (max-width: 800px) and (hover: none) and (pointer: coarse) {
-  .bsc-swiper__slide .slide__hero .hero__button {
+  .bsc-swiper__slide .slide__hero .hero__button,
+  .bsc-workshops__hero .hero__button {
     -webkit-tap-highlight-color: transparent;
     transition: none;
   }
-  .bsc-swiper__slide .slide__hero .hero__button:hover, .bsc-swiper__slide .slide__hero .hero__button:active, .bsc-swiper__slide .slide__hero .hero__button:focus-visible {
+  .bsc-swiper__slide .slide__hero .hero__button:hover, .bsc-swiper__slide .slide__hero .hero__button:active, .bsc-swiper__slide .slide__hero .hero__button:focus-visible,
+  .bsc-workshops__hero .hero__button:hover,
+  .bsc-workshops__hero .hero__button:active,
+  .bsc-workshops__hero .hero__button:focus-visible {
     background-color: #fff;
     color: #333;
   }

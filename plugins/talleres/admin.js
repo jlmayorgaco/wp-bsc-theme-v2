@@ -1,4 +1,29 @@
 (() => {
+  const gallery = document.querySelector('[data-workshop-gallery]');
+  if (gallery) {
+    const ids = gallery.elements.video_ids;
+    const list = gallery.querySelector('[data-workshop-videos]');
+    const frame = wp.media({ title: 'Elegir videos de talleres', library: { type: 'video' }, multiple: 'add' });
+    frame.on('open', () => {
+      const selected = ids.value ? ids.value.split(',').map((id) => wp.media.attachment(id)) : [];
+      frame.state().get('selection').reset(selected);
+    });
+    frame.on('select', () => {
+      const selected = frame.state().get('selection').toJSON();
+      ids.value = selected.map((video) => video.id).join(',');
+      list.replaceChildren(...selected.map((video) => {
+        const item = document.createElement('li');
+        item.textContent = video.title || video.filename;
+        return item;
+      }));
+    });
+    gallery.querySelector('[data-choose-workshop-videos]').addEventListener('click', () => frame.open());
+    gallery.querySelector('[data-clear-workshop-videos]').addEventListener('click', () => {
+      ids.value = '';
+      list.replaceChildren();
+    });
+  }
+
   const editor = document.querySelector('.bsc-workshops-admin__editor');
   if (!editor) return;
 
