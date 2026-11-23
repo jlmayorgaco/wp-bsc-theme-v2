@@ -38,6 +38,10 @@ class BSC_Checkout_Form_View {
 	}
 
 	protected function prepare_fields(): void {
+		if ( ! WC()->cart->needs_shipping() ) {
+			$this->placeholder_map['billing_address_1'] = 'Dirección de facturación';
+			$this->fields['billing']['billing_address_1']['label'] = $this->placeholder_map['billing_address_1'];
+		}
 		foreach (array( 'billing', 'shipping' ) as $group) {
 			if (!isset( $this->fields[ $group ] )) {
 				continue;

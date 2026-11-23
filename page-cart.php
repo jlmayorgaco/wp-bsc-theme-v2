@@ -17,6 +17,15 @@ require_once get_template_directory() . '/helpers/recommended_products.php';
 require_once get_template_directory() . '/components/products/card.php';
 require_once get_template_directory() . '/components/products/slider.php';
 
+if ( function_exists( 'bsc_workshops_cart_has_tickets' ) && bsc_workshops_cart_has_tickets() ) {
+	remove_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20 );
+	add_action( 'woocommerce_proceed_to_checkout', static function (): void {
+		?>
+		<a href="<?php echo esc_url( wc_get_checkout_url() ); ?>" class="bsc__button checkout-button">Ir a pagar</a>
+		<?php
+	}, 20 );
+}
+
 $render_cart_recommendations = static function ( int $products_limit = 5 ): void {
 	$skus = get_cart_recommendation_skus( $products_limit );
 
@@ -96,7 +105,12 @@ $render_cart_recommendations = static function ( int $products_limit = 5 ): void
 						<td class="bsc__cart-product">
 						<a href="<?php echo esc_url( get_permalink( $product_id ) ); ?>">
 							<?php echo wp_kses_post( $_product->get_image( 'woocommerce_thumbnail' ) ); ?>
-							<span class="bsc__cart-name"><?php echo esc_html( $_product->get_name() ); ?></span>
+								<div class="bsc__cart-product-copy">
+									<span class="bsc__cart-name"><?php echo esc_html( $_product->get_name() ); ?></span>
+									<?php if ( ! empty( $cart_item['bsc_workshop_slot'] ) ) : ?>
+										<div data-workshop-cart-details><?php echo wp_kses_post( wc_get_formatted_cart_item_data( $cart_item ) ); ?></div>
+									<?php endif; ?>
+								</div>
 						</a>
 						</td>
 
@@ -106,9 +120,9 @@ $render_cart_recommendations = static function ( int $products_limit = 5 ): void
 
 						<td class="bsc__cart-qty">
 						<div class="bsc__quantity-controls" data-min="0" data-product_id="<?php echo esc_attr( $product_id ); ?>" data-item-key="<?php echo esc_attr( $cart_item_key ); ?>">
-							<button class="bsc__qty-minus" type="button">&minus;</button>
+								<button class="bsc__qty-minus" type="button" aria-label="Disminuir cantidad">&minus;</button>
 							<span class="bsc__qty-value"><?php echo esc_html( $qty ); ?></span>
-							<button class="bsc__qty-plus" type="button">+</button>
+								<button class="bsc__qty-plus" type="button" aria-label="Aumentar cantidad">+</button>
 						</div>
 						</td>
 
@@ -133,7 +147,7 @@ $render_cart_recommendations = static function ( int $products_limit = 5 ): void
 			<div class="bsc__cart-summary">
 				<h2 class="bsc__subtitle">Resumen</h2>
 				<?php
-				$free_shipping_progress = function_exists( 'bsc_get_free_shipping_progress_payload' )
+				$free_shipping_progress = WC()->cart->needs_shipping() && function_exists( 'bsc_get_free_shipping_progress_payload' )
 					? bsc_get_free_shipping_progress_payload()
 					: array();
 				if (!empty( $free_shipping_progress ) && (float) ( $free_shipping_progress['threshold'] ?? 0 ) > 0) :

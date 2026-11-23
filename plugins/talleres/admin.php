@@ -56,6 +56,7 @@ function bsc_workshops_render_admin(): void {
 		'updated' => 'Inscripción actualizada.',
 		'queued' => 'Correo añadido a la cola.',
 		'invalid' => 'Revisa el título, precio, horarios y cupos. Las fechas reales deben ser válidas.',
+		'needs_price' => 'Ingresa un precio mayor a cero para publicar horarios con cupos.',
 		'capacity' => 'La capacidad no puede quedar por debajo de los cupos ocupados.',
 		'slot_history' => 'Este horario tiene inscripciones. Puedes cerrarlo para conservar su historial.',
 		'changed' => 'El taller cambió mientras lo editabas. Revisa la versión actual y vuelve a guardar.',
@@ -198,7 +199,11 @@ function bsc_workshops_admin_save(): void {
 			|| ( '' !== $when && ( ! $date || $date->format( 'Y-m-d\TH:i' ) !== $when || $date->getTimestamp() <= 0 ) ) ) {
 			bsc_workshops_admin_redirect( $id, 'invalid' );
 		}
-		$slots[ $key ] = array( 'label' => $label, 'capacity' => $capacity, 'start' => $date ? $date->getTimestamp() : 0, 'open' => '1' === ( $row['open'] ?? '' ) );
+		$open = '1' === ( $row['open'] ?? '' );
+		if ( 'publish' === $visibility && $open && $capacity > 0 && 0 === $price ) {
+			bsc_workshops_admin_redirect( $id, 'needs_price' );
+		}
+		$slots[ $key ] = array( 'label' => $label, 'capacity' => $capacity, 'start' => $date ? $date->getTimestamp() : 0, 'open' => $open );
 	}
 	$image = wp_attachment_is_image( $image ) ? $image : 0;
 	$result = BSC_DB_Lock::run( 'workshop:' . $id, static function () use ( $id, $title, $description, $visibility, $price, $venue, $image, $slots ) {
@@ -240,7 +245,7 @@ function bsc_workshops_admin_save(): void {
 					$previous = $before['slots'][ $key ] ?? null;
 					if ( $previous && ( $previous['start'] !== $slot['start'] || $previous['label'] !== $slot['label'] || $before['venue'] !== $venue || $old->post_status !== $visibility ) ) {
 						$confirmed = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET mail_due = %d, confirmation_sent = 0, reminder_for = 0 WHERE workshop_id = %d AND slot_key = %s AND status = 'confirmed'", time(), $saved, $key ) );
-						$pending = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET mail_due = %d, receipt_sent = 0 WHERE workshop_id = %d AND slot_key = %s AND status = 'pending'", time(), $saved, $key ) );
+						$pending = $wpdb->query( $wpdb->prepare( "UPDATE {$table} SET mail_due = %d, receipt_sent = 0 WHERE workshop_id = %d AND slot_key = %s AND status = 'pending' AND order_id = 0", time(), $saved, $key ) );
 						if ( false === $confirmed || false === $pending ) {
 							clean_post_cache( $saved );
 							return new WP_Error( 'workshop_write_failed' );
@@ -284,6 +289,7 @@ function bsc_workshops_render_bookings( WP_Post $post, array $settings ): void {
 					<thead><tr><th scope="col">Persona</th><th scope="col">Horario</th><th scope="col">Cupos y total</th><th scope="col">Estado y correo</th><th scope="col">Acciones</th></tr></thead>
 					<tbody>
 					<?php foreach ( $bookings as $row ) : ?>
+						<?php $order = $row->order_id && function_exists( 'wc_get_order' ) ? wc_get_order( (int) $row->order_id ) : false; ?>
 						<tr>
 							<td><strong><?php echo esc_html( $row->name ); ?></strong>
 								<?php if ( $row->email ) : ?><br><a href="mailto:<?php echo esc_attr( $row->email ); ?>"><?php echo esc_html( $row->email ); ?></a><?php endif; ?>
@@ -292,13 +298,14 @@ function bsc_workshops_render_bookings( WP_Post $post, array $settings ): void {
 							<td><?php echo $row->seats ? esc_html( $row->seats . ' · ' . bsc_workshops_price( (int) $row->amount ) ) : '—'; ?></td>
 							<td>
 								<strong><?php echo esc_html( $states[ $row->status ] ?? $row->status ); ?></strong>
+								<?php if ( $order ) : ?><br><a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>"><?php echo esc_html( 'Pedido #' . $order->get_order_number() ); ?></a><?php endif; ?>
 								<?php if ( $row->mail_due ) : ?><br><small><?php echo esc_html( 'Correo en cola · ' . wp_date( 'd/m/Y H:i', (int) $row->mail_due ) ); ?></small><?php endif; ?>
 								<?php if ( $row->receipt_sent || $row->confirmation_sent ) : ?><br><small><?php echo $row->confirmation_sent ? ( $demo ? 'Confirmación simulada' : 'Confirmación enviada' ) : ( $demo ? 'Solicitud simulada' : 'Solicitud enviada' ); ?></small><?php endif; ?>
 								<?php if ( $row->reminder_sent ) : ?><br><small><?php echo esc_html( ( $demo ? 'Recordatorio simulado · ' : 'Recordatorio enviado · ' ) . wp_date( 'd/m/Y H:i', (int) $row->reminder_sent ) ); ?></small><?php endif; ?>
 								<?php if ( $row->notice_sent ) : ?><br><small><?php echo $demo ? 'Aviso simulado' : 'Aviso enviado'; ?></small><?php endif; ?>
 							</td>
 							<td>
-								<?php if ( 'cancelled' !== $row->status ) : ?>
+								<?php if ( 'cancelled' !== $row->status && ( ! $row->order_id || ( 'confirmed' === $row->status && $row->email ) ) ) : ?>
 									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="bsc-workshops-admin__actions">
 										<input type="hidden" name="action" value="bsc_workshop_booking">
 										<input type="hidden" name="workshop" value="<?php echo esc_attr( $id ); ?>">
@@ -307,7 +314,7 @@ function bsc_workshops_render_bookings( WP_Post $post, array $settings ): void {
 										<?php if ( 'pending' === $row->status ) : ?><button class="button button-primary" name="change" value="confirm">Confirmar pago</button><?php endif; ?>
 										<?php if ( 'confirmed' === $row->status && $row->email ) : ?><button class="button" name="change" value="remind">Enviar recordatorio</button><?php endif; ?>
 										<?php if ( 'waiting' === $row->status && $row->email && ! $row->notice_sent ) : ?><button class="button" name="change" value="notify">Avisar disponibilidad</button><?php endif; ?>
-										<button class="button-link-delete" name="change" value="cancel" data-cancel-workshop-booking><?php echo 'waiting' === $row->status ? 'Quitar de la lista' : 'Cancelar reserva'; ?></button>
+										<?php if ( ! $row->order_id ) : ?><button class="button-link-delete" name="change" value="cancel" data-cancel-workshop-booking><?php echo 'waiting' === $row->status ? 'Quitar de la lista' : 'Cancelar reserva'; ?></button><?php endif; ?>
 									</form>
 								<?php endif; ?>
 							</td>
@@ -345,6 +352,9 @@ function bsc_workshops_admin_booking(): void {
 		$post = bsc_workshops_get( $id );
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d AND workshop_id = %d", $booking, $id ) );
 		if ( ! $row || ! $post || 'cancelled' === $row->status ) {
+			return 'closed';
+		}
+		if ( $row->order_id && 'remind' !== $action ) {
 			return 'closed';
 		}
 		$settings = bsc_workshops_settings( $id );

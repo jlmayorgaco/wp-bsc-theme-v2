@@ -58,29 +58,17 @@ $photo = $settings['image'] ? wp_get_attachment_image( $settings['image'], 'larg
 						<input type="number" name="seats" value="1" min="1" max="<?php echo esc_attr( $seats ); ?>" aria-label="Cupos" required>
 						<button type="button" data-step="1" aria-label="Añadir un cupo" <?php disabled( 1, $seats ); ?>>+</button>
 					</div>
-					<output class="bsc-workshops__price" data-price="<?php echo esc_attr( $settings['price'] ); ?>" aria-live="polite"><?php echo esc_html( $settings['price'] ? bsc_workshops_price_label( $settings['price'] ) : 'Gratis' ); ?></output>
+					<output class="bsc-workshops__price" data-price="<?php echo esc_attr( $settings['price'] ); ?>" data-group-price="<?php echo esc_attr( bsc_workshops_unit_price( $settings['price'], 2 ) ); ?>" aria-live="polite"><?php echo esc_html( bsc_workshops_price_label( $settings['price'] ) ); ?></output>
 				</div>
-				<details class="bsc-workshops__details">
-					<summary class="bsc-workshops__button">¡Reservar!</summary>
-					<div class="bsc-workshops__details-inner">
-			<?php endif; ?>
-			<div class="bsc-workshops__fields">
-				<label>Nombre completo: <input name="name" autocomplete="name" maxlength="120" required></label>
-				<label>Correo electrónico: <input name="email" type="email" autocomplete="email" maxlength="254" required></label>
-			</div>
-			<?php if ( $open ) : ?>
-				<?php if ( $is_demo ) : ?>
-					<p class="bsc-workshops__form-note">Taller de demostración local. Puedes usar un correo de prueba.</p>
-				<?php elseif ( $settings['price'] ) : ?>
-					<p class="bsc-workshops__form-note">Te contactaremos para coordinar el pago.</p>
-				<?php endif; ?>
-			<?php endif; ?>
-			<input type="hidden" name="consent" value="yes">
-			<p class="bsc-workshops__form-note">Al enviar, aceptas recibir correos sobre <?php echo $open ? 'tu reserva' : 'los cupos de este taller'; ?>.<?php if ( $args['privacy_url'] ) : ?> <a href="<?php echo esc_url( $args['privacy_url'] ); ?>">Privacidad</a><?php endif; ?></p>
-			<button type="submit" class="bsc-workshops__button<?php echo $open ? '' : ' bsc-workshops__button--outline'; ?>"><?php echo $open ? 'Enviar solicitud' : '¡Avísame!'; ?></button>
-			<?php if ( $open ) : ?>
-					</div>
-				</details>
+				<button type="submit" class="bsc-workshops__button">¡ Reservar !</button>
+			<?php else : ?>
+				<div class="bsc-workshops__fields">
+					<label>Nombre completo: <input name="name" autocomplete="name" maxlength="120" required></label>
+					<label>Correo electrónico: <input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+				</div>
+				<input type="hidden" name="consent" value="yes">
+				<p class="bsc-workshops__form-note">Al enviar, aceptas recibir correos sobre los cupos de este taller.<?php if ( $args['privacy_url'] ) : ?> <a href="<?php echo esc_url( $args['privacy_url'] ); ?>">Privacidad</a><?php endif; ?></p>
+				<button type="submit" class="bsc-workshops__button bsc-workshops__button--outline">¡ Avísame !</button>
 			<?php endif; ?>
 		</form>
 	</div>

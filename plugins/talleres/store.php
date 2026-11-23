@@ -8,7 +8,7 @@ function bsc_workshops_table(): string {
 
 add_action( 'init', 'bsc_workshops_install', 11 );
 function bsc_workshops_install(): void {
-	if ( '1' === get_option( 'bsc_workshops_db_version' ) ) {
+	if ( '2' === get_option( 'bsc_workshops_db_version' ) ) {
 		return;
 	}
 	BSC_DB_Lock::run( 'workshops-schema', static function () {
@@ -19,6 +19,8 @@ function bsc_workshops_install(): void {
 		dbDelta( "CREATE TABLE {$table} (
 			id bigint unsigned NOT NULL AUTO_INCREMENT,
 			workshop_id bigint unsigned NOT NULL,
+			order_id bigint unsigned NOT NULL DEFAULT 0,
+			hold_until bigint unsigned NOT NULL DEFAULT 0,
 			slot_key varchar(36) NOT NULL DEFAULT '',
 			email_hash char(64) NOT NULL,
 			name varchar(120) NOT NULL,
@@ -37,11 +39,13 @@ function bsc_workshops_install(): void {
 			PRIMARY KEY  (id),
 			UNIQUE KEY workshop_guest (workshop_id,slot_key,email_hash),
 			KEY workshop_slots (workshop_id,slot_key,status),
+			KEY order_id (order_id),
 			KEY email_hash (email_hash),
 			KEY mail_due (mail_due)
 		) {$charset};" );
-		if ( $table === $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) ) {
-			update_option( 'bsc_workshops_db_version', '1', false );
+		$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table}" );
+		if ( in_array( 'order_id', $columns, true ) && in_array( 'hold_until', $columns, true ) ) {
+			update_option( 'bsc_workshops_db_version', '2', false );
 		}
 	} );
 }
@@ -86,7 +90,11 @@ function bsc_workshops_settings( int $id ): array {
 function bsc_workshops_counts( int $id ): array {
 	global $wpdb;
 	$table = bsc_workshops_table();
-	$rows  = $wpdb->get_results( $wpdb->prepare( "SELECT slot_key, SUM(seats) AS used FROM {$table} WHERE workshop_id = %d AND status IN ('pending','confirmed') GROUP BY slot_key", $id ) );
+	$rows  = $wpdb->get_results( $wpdb->prepare(
+		"SELECT slot_key, SUM(seats) AS used FROM {$table} WHERE workshop_id = %d AND (status = 'confirmed' OR (status = 'pending' AND (hold_until = 0 OR hold_until > %d))) GROUP BY slot_key",
+		$id,
+		time()
+	) );
 	$counts = array();
 	foreach ( (array) $rows as $row ) {
 		$counts[ $row->slot_key ] = (int) $row->used;
@@ -102,6 +110,9 @@ function bsc_workshops_available( array $slot, int $used ): int {
 }
 
 function bsc_workshops_open_slots( array $settings, array $counts ): array {
+	if ( $settings['price'] <= 0 ) {
+		return array();
+	}
 	return array_filter( $settings['slots'], static function ( $slot, $key ) use ( $counts ) {
 		return bsc_workshops_available( $slot, $counts[ $key ] ?? 0 ) > 0;
 	}, ARRAY_FILTER_USE_BOTH );
@@ -115,6 +126,10 @@ function bsc_workshops_price_label( int $price ): string {
 	return '$' . number_format( $price, 0, ',', '.' );
 }
 
+function bsc_workshops_unit_price( int $price, int $seats ): int {
+	return $seats >= 2 ? (int) round( $price * 0.9 ) : $price;
+}
+
 function bsc_workshops_seat_label( int $seats ): string {
 	if ( 1 === $seats ) {
 		return '¡Queda el último cupo!';
@@ -122,8 +137,8 @@ function bsc_workshops_seat_label( int $seats ): string {
 	return sprintf( $seats <= 3 ? '¡Quedan los últimos %d cupos!' : 'Quedan %d cupos', $seats );
 }
 
-function bsc_workshops_register_guest( int $id, string $key, string $name, string $email, int $seats ) {
-	$result = BSC_DB_Lock::run( 'workshop:' . $id, static function () use ( $id, $key, $name, $email, $seats ) {
+function bsc_workshops_waitlist_guest( int $id, string $name, string $email ): string {
+	$result = BSC_DB_Lock::run( 'workshop:' . $id, static function () use ( $id, $name, $email ) {
 		global $wpdb;
 		wp_cache_delete( $id, 'posts' );
 		wp_cache_delete( $id, 'post_meta' );
@@ -133,48 +148,34 @@ function bsc_workshops_register_guest( int $id, string $key, string $name, strin
 		}
 		$table = bsc_workshops_table();
 		$hash  = hash( 'sha256', $email );
-		$prior = $wpdb->get_row( $wpdb->prepare( "SELECT id, status FROM {$table} WHERE workshop_id = %d AND slot_key = %s AND email_hash = %s", $id, $key, $hash ) );
+		$prior = $wpdb->get_row( $wpdb->prepare( "SELECT id, status FROM {$table} WHERE workshop_id = %d AND slot_key = '' AND email_hash = %s", $id, $hash ) );
 		if ( $prior && 'cancelled' !== $prior->status ) {
 			return 'existing';
 		}
 
-		$settings = bsc_workshops_settings( $id );
-		$counts   = bsc_workshops_counts( $id );
-		if ( '' === $key ) {
-			if ( bsc_workshops_open_slots( $settings, $counts ) ) {
-				return 'available';
-			}
-			$status = 'waiting';
-		} else {
-			$slot = $settings['slots'][ $key ] ?? null;
-			if ( ! $slot || ! $slot['open'] || ( $slot['start'] && $slot['start'] <= time() ) ) {
-				return 'closed';
-			}
-			if ( $seats < 1 || $seats > bsc_workshops_available( $slot, $counts[ $key ] ?? 0 ) ) {
-				return 'full';
-			}
-			$status = $settings['price'] > 0 ? 'pending' : 'confirmed';
+		if ( bsc_workshops_open_slots( bsc_workshops_settings( $id ), bsc_workshops_counts( $id ) ) ) {
+			return 'available';
 		}
 		$data = array(
 			'workshop_id'       => $id,
-			'slot_key'          => $key,
+			'slot_key'          => '',
 			'email_hash'        => $hash,
 			'name'              => $name,
 			'email'             => $email,
-			'seats'             => $seats,
-			'amount'            => $settings['price'] * $seats,
-			'status'            => $status,
+			'seats'             => 0,
+			'amount'            => 0,
+			'status'            => 'waiting',
 			'created_at'        => time(),
 			'receipt_sent'      => 0,
 			'confirmation_sent' => 0,
 			'reminder_for'      => 0,
 			'reminder_sent'     => 0,
 			'notice_sent'       => 0,
-			'mail_due'          => 'waiting' === $status ? 0 : time(),
+			'mail_due'          => 0,
 			'force_reminder'    => 0,
 		);
 		$saved = $prior ? $wpdb->update( $table, $data, array( 'id' => $prior->id ) ) : $wpdb->insert( $table, $data );
-		return false === $saved ? 'failed' : $status;
+		return false === $saved ? 'failed' : 'waiting';
 	} );
 	return is_wp_error( $result ) ? 'failed' : $result;
 }

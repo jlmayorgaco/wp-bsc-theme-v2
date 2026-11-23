@@ -56,7 +56,7 @@ class BSC_Checkout_Main_View {
 							alt="Bubble Skin Care Checkout"
 							width="300"  loading="eager">
 						<?php require get_template_directory() . '/components/checkout/checkout-form.php'; ?>
-						<?php $this->render_trust_signals(); ?>
+						<?php if ( WC()->cart->needs_shipping() ) { $this->render_trust_signals(); } ?>
 					</div>
 				</div>
 

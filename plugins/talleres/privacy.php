@@ -13,7 +13,7 @@ function bsc_workshops_privacy_export( string $email, int $page = 1 ): array {
 	global $wpdb;
 	$table = bsc_workshops_table();
 	$hash = hash( 'sha256', strtolower( $email ) );
-	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s ORDER BY id LIMIT 50 OFFSET %d", $hash, max( 0, $page - 1 ) * 50 ) );
+	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table} WHERE email_hash = %s OR (order_id > 0 AND email = %s) ORDER BY id LIMIT 50 OFFSET %d", $hash, strtolower( $email ), max( 0, $page - 1 ) * 50 ) );
 	$data = array();
 	foreach ( (array) $rows as $row ) {
 		$post = bsc_workshops_get( (int) $row->workshop_id );
@@ -48,18 +48,18 @@ function bsc_workshops_privacy_erase( string $email ): array {
 	global $wpdb;
 	$table = bsc_workshops_table();
 	$hash = hash( 'sha256', strtolower( $email ) );
-	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, workshop_id FROM {$table} WHERE email_hash = %s ORDER BY id LIMIT 50", $hash ) );
+	$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id, workshop_id, email FROM {$table} WHERE email_hash = %s OR (order_id > 0 AND email = %s) ORDER BY id LIMIT 50", $hash, strtolower( $email ) ) );
 	$removed = false;
 	$retained = false;
 	foreach ( (array) $rows as $row ) {
-		$result = BSC_DB_Lock::run( 'workshop:' . $row->workshop_id, static function () use ( $wpdb, $table, $hash, $row ) {
+		$result = BSC_DB_Lock::run( 'workshop:' . $row->workshop_id, static function () use ( $wpdb, $table, $row ) {
 			return $wpdb->update( $table, array(
 				'name' => 'Datos eliminados',
 				'email' => '',
 				'email_hash' => hash( 'sha256', wp_generate_uuid4() ),
 				'mail_due' => 0,
 				'force_reminder' => 0,
-			), array( 'id' => $row->id, 'email_hash' => $hash ) );
+			), array( 'id' => $row->id, 'email' => $row->email ) );
 		} );
 		$removed = $removed || 1 === $result;
 		$retained = $retained || false === $result || is_wp_error( $result );
