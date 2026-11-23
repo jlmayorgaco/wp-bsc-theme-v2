@@ -95,12 +95,13 @@ $color-title-accent: #333;
 
          display: none;
     }
-
-    .hero__button {
-      @include mixins.flex-center(center, center);
-      @include mixins.bsc-button();
-    }
   }
+}
+
+.bsc-swiper__slide .slide__hero .hero__button,
+.bsc-workshops__hero .hero__button {
+  @include mixins.flex-center(center, center);
+  @include mixins.bsc-button();
 }
 
 // -------------------------------------------
@@ -330,32 +331,35 @@ $color-title-accent: #333;
       }
 
       .hero__button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 180px;
-        min-height: 0;
-        height: auto;
-        padding: 0.45rem 1.5rem;
-        border-radius: 999px;
-        font-size: 16px;
-        text-decoration: none;
-        font-weight: 700;
-
         position: relative;
         bottom: 2em;
+      }
+    }
+  }
 
-        @media (hover: none) and (pointer: coarse) {
-          -webkit-tap-highlight-color: transparent;
-          transition: none;
+  .bsc-swiper__slide .slide__hero .hero__button,
+  .bsc-workshops__hero .hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    min-height: 0;
+    height: auto;
+    padding: 0.45rem 1.5rem;
+    border-radius: 999px;
+    font-size: 16px;
+    text-decoration: none;
+    font-weight: 700;
 
-          &:hover,
-          &:active,
-          &:focus-visible {
-            background-color: #fff;
-            color: #333;
-          }
-        }
+    @media (hover: none) and (pointer: coarse) {
+      -webkit-tap-highlight-color: transparent;
+      transition: none;
+
+      &:hover,
+      &:active,
+      &:focus-visible {
+        background-color: #fff;
+        color: #333;
       }
     }
   }

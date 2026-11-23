@@ -25,6 +25,18 @@ function bsc_get_other_shipping_price(): int {
 	return max( 0, (int) get_option( 'bsc_other_shipping_price', 18000 ) );
 }
 
+function bsc_get_san_andres_shipping_price(): int {
+	return max( 0, (int) get_option( 'bsc_san_andres_shipping_price', 38000 ) );
+}
+
+/** Invalidate rates already stored in checkout sessions when the island rate is introduced. */
+function bsc_upgrade_shipping_prices_2026_11(): void {
+	if ( class_exists( 'WC_Cache_Helper' ) && add_option( 'bsc_shipping_prices_2026_11', '1', '', false ) ) {
+		WC_Cache_Helper::get_transient_version( 'shipping', true );
+	}
+}
+add_action( 'init', 'bsc_upgrade_shipping_prices_2026_11' );
+
 /**
  * Format a shipping amount for informational pages.
  *

@@ -1658,14 +1658,23 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 			return $rates;
 		}
 
-		$is_local                    = bsc_is_bogota_or_cundinamarca_destination( $state, $city );
+		$is_island                   = bsc_is_san_andres_destination( $state, $city );
+		$is_local                    = ! $is_island && bsc_is_bogota_or_cundinamarca_destination( $state, $city );
 		$qualifies_for_free_shipping = bsc_cart_qualifies_for_free_shipping();
-		$bogota_cost                 = (float) bsc_get_bogota_shipping_price();
-		$other_cost                  = (float) bsc_get_other_shipping_price();
-		$target_cost                 = $qualifies_for_free_shipping ? 0 : ( $is_local ? $bogota_cost : $other_cost );
-		$target_label                = $qualifies_for_free_shipping
-		? 'Envio gratis'
-		: ( $is_local ? 'Envio Bogota/Cundinamarca' : 'Envio nacional' );
+		if ( $is_island ) {
+			$target_cost  = bsc_get_san_andres_shipping_price();
+			$target_label = 'Envío San Andrés y Providencia';
+		} elseif ( $is_local ) {
+			$target_cost  = bsc_get_bogota_shipping_price();
+			$target_label = 'Envío Bogotá/Cundinamarca';
+		} else {
+			$target_cost  = bsc_get_other_shipping_price();
+			$target_label = 'Envío nacional';
+		}
+		if ( $qualifies_for_free_shipping ) {
+			$target_cost  = 0;
+			$target_label = 'Envío gratis';
+		}
 		$first_flat_rate_id          = null;
 		$preferred_flat_rate_id      = null;
 
@@ -1853,6 +1862,16 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 		}
 
 		return false;
+	}
+
+	function bsc_is_san_andres_destination( string $state, string $city ): bool {
+		$location = bsc_lookup_colombia_city_location( $city );
+		if ( ! empty( $location['matched_by_code'] ) ) {
+			$state = (string) $location['state'];
+		}
+		$state = bsc_normalize_shipping_text( $state );
+		return in_array( $state, array( 'sap', 'co sap', 'san andres' ), true )
+			|| ( str_contains( $state, 'san andres' ) && str_contains( $state, 'providencia' ) );
 	}
 
 	function bsc_is_bogota_or_cundinamarca_destination( string $state, string $city ): bool {

@@ -66,6 +66,17 @@ function bsc_workshops_posts( array $statuses ): array {
 	return get_posts( $args );
 }
 
+function bsc_workshops_video_ids( array $ids ): array {
+	$ids = array_unique( array_map( 'absint', $ids ) );
+	return array_values( array_filter( $ids, static function ( int $id ): bool {
+		return $id > 0 && 'attachment' === get_post_type( $id ) && wp_attachment_is( 'video', $id ) && wp_get_attachment_url( $id );
+	} ) );
+}
+
+function bsc_workshops_gallery_ids(): array {
+	return bsc_workshops_video_ids( (array) get_option( 'bsc_workshops_gallery', array() ) );
+}
+
 function bsc_workshops_settings( int $id ): array {
 	$data = $id > 0 ? get_post_meta( $id, '_bsc_workshop_settings', true ) : null;
 	$defaults = array( 'price' => 0, 'venue' => '', 'image' => 0, 'slots' => array() );
