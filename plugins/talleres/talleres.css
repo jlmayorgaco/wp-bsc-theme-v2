@@ -95,11 +95,6 @@
 .bsc-workshops__fields input { box-sizing: border-box; width: calc(100% + 10px); min-height: 29px; margin-left: -10px; padding: 4px 11px; border: 1px solid #c9c9c9; border-radius: 999px; background: #fff; color: var(--workshop-ink); font: inherit; font-size: 12px; }
 .bsc-workshops__booking .bsc-workshops__form-note { margin: 8px auto 0; font-size: 10px; line-height: 1.2; max-width: 247px; }
 .bsc-workshops__booking > .bsc-workshops__button { margin-top: 10px; }
-.bsc-workshops__details summary { box-sizing: border-box; list-style: none; }
-.bsc-workshops__details summary::after { content: none; }
-.bsc-workshops__details summary::-webkit-details-marker { display: none; }
-.bsc-workshops__details-inner { margin-top: 15px; }
-.bsc-workshops__details-inner .bsc-workshops__button { margin-top: 12px; }
 .bsc-workshops__booking .bsc-workshops__button { min-height: 35px; padding: 4px 12px; font-size: 17px; letter-spacing: .035em; }
 .bsc-workshops__ribbon {
   overflow: hidden;

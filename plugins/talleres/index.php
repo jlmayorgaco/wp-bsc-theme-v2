@@ -3,6 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/store.php';
+require_once __DIR__ . '/checkout.php';
 require_once __DIR__ . '/mail.php';
 require_once __DIR__ . '/privacy.php';
 if ( is_admin() ) {
@@ -64,24 +65,27 @@ function bsc_workshops_submit(): void {
 	$slot   = bsc_workshops_input( 'slot' );
 	$name   = sanitize_text_field( bsc_workshops_input( 'name' ) );
 	$email  = strtolower( sanitize_email( bsc_workshops_input( 'email' ) ) );
-	$seats  = '' === $slot ? 0 : filter_var( bsc_workshops_input( 'seats' ), FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1, 'max_range' => 999 ) ) );
+	$seats  = filter_var( bsc_workshops_input( 'seats' ), FILTER_VALIDATE_INT, array( 'options' => array( 'min_range' => 1, 'max_range' => 999 ) ) );
 	$result = 'invalid';
 
 	if ( ! wp_verify_nonce( bsc_workshops_input( '_bsc_workshop_nonce' ), 'bsc_workshop_register_' . $id ) ) {
 		$result = 'expired';
 	} elseif ( '' !== bsc_workshops_input( 'website' ) ) {
 		$result = 'received';
-	} elseif ( $id && is_email( $email ) && strlen( $email ) <= 254 && strlen( $name ) >= 2 && mb_strlen( $name ) <= 120
-		&& ( '' === $slot || wp_is_uuid( $slot, 4 ) ) && false !== $seats && 'yes' === bsc_workshops_input( 'consent' ) ) {
+	} elseif ( $id && wp_is_uuid( $slot, 4 ) && false !== $seats ) {
+		$result = bsc_workshops_add_to_cart( $id, $slot, $seats );
+		if ( 'cart' === $result ) {
+			wp_safe_redirect( wc_get_cart_url(), 303 );
+			exit;
+		}
+	} elseif ( $id && '' === $slot && is_email( $email ) && strlen( $email ) <= 254 && strlen( $name ) >= 2
+		&& mb_strlen( $name ) <= 120 && 'yes' === bsc_workshops_input( 'consent' ) ) {
 		if ( function_exists( 'bsc_rate_limit_passed' ) && ! bsc_rate_limit_passed( 'workshops', 6, MINUTE_IN_SECONDS ) ) {
 			$result = 'rate';
 		} else {
-			$result = bsc_workshops_register_guest( $id, $slot, $name, $email, $seats );
-			if ( in_array( $result, array( 'pending', 'confirmed' ), true ) ) {
-				bsc_workshops_kick_mail();
-			}
-			if ( in_array( $result, array( 'pending', 'confirmed', 'waiting' ), true ) && bsc_workshops_is_demo( $id ) ) {
-				$result = 'demo_' . $result;
+			$result = bsc_workshops_waitlist_guest( $id, $name, $email );
+			if ( 'waiting' === $result && bsc_workshops_is_demo( $id ) ) {
+				$result = 'demo_waiting';
 			}
 		}
 	}
@@ -92,17 +96,13 @@ function bsc_workshops_submit(): void {
 
 function bsc_workshops_message( string $status ): string {
 	$messages = array(
-		'confirmed' => '¡Tu cupo está reservado! Te enviaremos los detalles por correo.',
-		'pending'   => 'Recibimos tu solicitud y apartamos tus cupos. Te contactaremos por correo para coordinar el pago.',
 		'waiting'   => 'Ya estás en la lista. Te avisaremos por correo cuando haya disponibilidad.',
-		'demo_pending'   => 'Solicitud de prueba guardada. Los cupos quedaron apartados y el correo se simula.',
-		'demo_confirmed' => 'Reserva de prueba confirmada. El correo se simula.',
 		'demo_waiting'   => 'Inscripción de prueba guardada en la lista de aviso.',
 		'received'  => 'Recibimos tu solicitud.',
 		'existing'  => 'Ya registramos una solicitud con ese correo. Revisa tu bandeja de entrada o escríbenos si necesitas ayuda.',
 		'full'      => 'Ya no quedan suficientes cupos en ese horario. Elige otro horario o pide un aviso cuando haya disponibilidad.',
 		'available' => 'Ya hay cupos disponibles. Elige un horario para reservar.',
-		'invalid'   => 'Revisa tu nombre, correo y los datos de la reserva.',
+		'invalid'   => 'Revisa los datos del formulario e inténtalo de nuevo.',
 		'expired'   => 'La página se actualizó. Vuelve a seleccionar el horario y envía el formulario.',
 		'rate'      => 'Espera un minuto antes de volver a intentarlo.',
 		'closed'    => 'Ese taller u horario ya no está disponible.',

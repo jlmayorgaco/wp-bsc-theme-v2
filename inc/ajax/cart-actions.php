@@ -21,6 +21,11 @@ function bsc_cart_item_stock_total( array $cart_item ): ?int {
 		return null;
 	}
 
+	$workshop_available = function_exists( 'bsc_workshops_cart_available' ) ? bsc_workshops_cart_available( $cart_item ) : null;
+	if ( null !== $workshop_available ) {
+		return $workshop_available;
+	}
+
 	if ( '' !== $variant_key && function_exists( 'bsc_find_product_variant_matrix_row' ) ) {
 		$variant = bsc_find_product_variant_matrix_row( $product_id, $variant_key, '', '', '', false );
 		if ( is_array( $variant ) ) {
@@ -51,6 +56,9 @@ function bsc_cart_item_stock_key( array $cart_item ): string {
 	$product_id   = (int) ( $cart_item['product_id'] ?? 0 );
 	$variation_id = (int) ( $cart_item['variation_id'] ?? 0 );
 	$variant_key  = sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) );
+	if ( ! empty( $cart_item['bsc_workshop_slot'] ) ) {
+		return 'workshop:' . $product_id . ':' . $cart_item['bsc_workshop_slot'];
+	}
 
 	if ( '' !== $variant_key ) {
 		return 'bsc-variant:' . $product_id . ':' . $variant_key;
@@ -291,18 +299,26 @@ function bsc_update_cart_quantity() {
 
 			bsc_recalculate_checkout_totals( true );
 			wc_clear_notices();
-			wp_send_json_success(
-				array(
-					'message'       => 'Quantity updated',
-					'new_qty'       => $new_qty,
-					'cart_count'    => WC()->cart->get_cart_contents_count(),
-					'item_total'    => wc_price( $new_qty * $cart_item['data']->get_price() ),
-					'cart_item_key' => $cart_item_key,
-					'product_id'    => (int) $cart_item['product_id'],
-					'variant_key'   => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
-					'stock_total'   => $stock_total,
-				)
+			$response = array(
+				'message'       => 'Quantity updated',
+				'new_qty'       => $new_qty,
+				'cart_count'    => WC()->cart->get_cart_contents_count(),
+				'item_total'    => wc_price( $new_qty * $cart_item['data']->get_price() ),
+				'cart_item_key' => $cart_item_key,
+				'product_id'    => (int) $cart_item['product_id'],
+				'variant_key'   => sanitize_key( (string) ( $cart_item['bsc_product_variant_key'] ?? '' ) ),
+				'stock_total'   => $stock_total,
 			);
+			if ( ! empty( $cart_item['bsc_workshop_slot'] ) ) {
+				$updated_item = WC()->cart->get_cart_item( $cart_item_key );
+				$response['workshop'] = array(
+					'item_price'    => wc_price( $updated_item['data']->get_price() ),
+					'item_details'  => wc_get_formatted_cart_item_data( $updated_item ),
+					'cart_subtotal' => WC()->cart->get_cart_subtotal(),
+					'cart_total'    => WC()->cart->get_total(),
+				);
+			}
+			wp_send_json_success( $response );
 		}
 	}
 

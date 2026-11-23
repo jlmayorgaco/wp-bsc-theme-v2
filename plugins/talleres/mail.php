@@ -11,7 +11,7 @@ function bsc_workshops_email_types(): array {
 		'confirmation' => array(
 			'title'   => 'Tu cupo está confirmado',
 			'label'   => 'Talleres · Reserva confirmada',
-			'trigger' => 'Al confirmar el pago o reservar un taller gratuito',
+			'trigger' => 'Al confirmar el pago',
 		),
 		'reminder'     => array(
 			'title'   => 'Recordatorio de tu taller',
@@ -99,7 +99,7 @@ function bsc_workshops_send_due_mail( WP_Post $post, object $row ): void {
 	$type     = '';
 	$stamp    = '';
 
-	if ( 'pending' === $row->status && $slot && ! $row->receipt_sent && ( ! $start || $start > $now ) ) {
+	if ( 'pending' === $row->status && ! $row->order_id && $slot && ! $row->receipt_sent && ( ! $start || $start > $now ) ) {
 		$type = 'receipt';
 		$stamp = 'receipt_sent';
 	} elseif ( 'confirmed' === $row->status && $slot && ( ! $start || $start > $now ) ) {

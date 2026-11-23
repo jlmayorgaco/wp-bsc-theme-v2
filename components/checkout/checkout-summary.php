@@ -27,7 +27,9 @@ class BSC_Checkout_Review_Summary {
 
 		echo '<div class="bsc bsc__review-summary" id="bsc-review-summary">';
 		echo '  <div class="review-summary__container">';
-		$this->render_free_shipping_progress();
+		if ( $this->cart->needs_shipping() ) {
+			$this->render_free_shipping_progress();
+		}
 
 		$this->render_row(
 			$count_label,
@@ -41,11 +43,13 @@ class BSC_Checkout_Review_Summary {
 			'review-summary__subtotal-discounted'
 		);
 
-		$this->render_row(
-			$shipping_label,
-			$summary['shipping_total_html'],
-			'review-summary__shipping'
-		);
+		if ( $this->cart->needs_shipping() ) {
+			$this->render_row(
+				$shipping_label,
+				$summary['shipping_total_html'],
+				'review-summary__shipping'
+			);
+		}
 
 		$this->render_row(
 			'Total',

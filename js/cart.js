@@ -1134,6 +1134,16 @@ jQuery(function ($) {
         $control.closest('tr').find('.bsc__cart-subtotal').html(itemTotal);
       }
 
+      const workshop = response?.data?.workshop;
+      if (workshop) {
+        const $row = $control.closest('.bsc__cart-row');
+        $row.find('.bsc__cart-price').html(workshop.item_price);
+        $row.find('[data-workshop-cart-details]').html(workshop.item_details);
+        $control.closest('.checkout-cart__item').find('.item__variants').html(workshop.item_details);
+        $('.bsc__cart-summary .cart-subtotal td').html(workshop.cart_subtotal);
+        $('.bsc__cart-summary .order-total td strong').html(workshop.cart_total);
+      }
+
       $control.closest('.checkout-cart__item').find('label span').text(serverQty || newQty);
 
       if (isPlus) triggerCartSwing();

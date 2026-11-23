@@ -201,8 +201,12 @@ function bsc_wompi_reconcile_transaction( object $transaction, string $order_key
 			$fulfilled  = in_array( $order->get_status(), array( 'preparing', 'shipped', 'completed', 'refunded' ), true );
 			$recognized = '' !== $accepted ? $accepted : ( ( $paid || $fulfilled ) ? $order->get_transaction_id() : '' );
 			$action     = bsc_wompi_payment_action( $order->get_status(), $paid, $recognized, $id, $status );
+			$verified   = $accepted === $id && $order->get_transaction_id() === $id && ( $paid || $fulfilled );
 			// Old versions could mark an APPROVED event handled without persisting its payment.
-			if ( in_array( $event_key, $seen, true ) && ( 'APPROVED' !== $status || ( $accepted === $id && $order->get_transaction_id() === $id && ( $paid || $fulfilled ) ) || ( 'review' === $action && 'multiple_approved_transactions' === $order->get_meta( '_bsc_payment_review_required', true ) ) ) ) {
+			if ( in_array( $event_key, $seen, true ) && ( 'APPROVED' !== $status || $verified || ( 'review' === $action && 'multiple_approved_transactions' === $order->get_meta( '_bsc_payment_review_required', true ) ) ) ) {
+				if ( 'APPROVED' === $status && $verified ) {
+					do_action( 'bsc_wompi_payment_verified', (int) $reference );
+				}
 				return true;
 			}
 			$note = '';
@@ -255,6 +259,9 @@ function bsc_wompi_reconcile_transaction( object $transaction, string $order_key
 			}
 			if ( '' !== $note ) {
 				$persisted->add_order_note( $note );
+			}
+			if ( in_array( $action, array( 'approve', 'record' ), true ) ) {
+				do_action( 'bsc_wompi_payment_verified', (int) $reference );
 			}
 			return true;
 		}

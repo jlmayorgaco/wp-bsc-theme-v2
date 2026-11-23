@@ -70,6 +70,7 @@
     const remaining = form.querySelector('[data-remaining]');
     const price = form.querySelector('[data-price]');
     const unitPrice = Number(price.dataset.price);
+    const groupPrice = Number(price.dataset.groupPrice);
     const less = form.querySelector('[data-step="-1"]');
     const more = form.querySelector('[data-step="1"]');
 
@@ -83,17 +84,13 @@
       more.disabled = quantity >= available;
       remaining.textContent = available === 1 ? '¡Queda el último cupo!' :
         (available <= 3 ? '¡Quedan los últimos ' + available + ' cupos!' : 'Quedan ' + available + ' cupos');
-      price.textContent = unitPrice ? '$' + numberFormat.format(unitPrice * quantity) : 'Gratis';
+      price.textContent = '$' + numberFormat.format((quantity > 1 ? groupPrice : unitPrice) * quantity);
     };
     form.querySelectorAll('input[name="slot"]').forEach((radio) => radio.addEventListener('change', () => refresh(true)));
     less.addEventListener('click', () => { seats.stepDown(); refresh(true); });
     more.addEventListener('click', () => { seats.stepUp(); refresh(true); });
     seats.addEventListener('input', () => refresh());
     seats.addEventListener('change', () => refresh(true));
-    form.addEventListener('invalid', (event) => {
-      const details = event.target.closest('details');
-      if (details) details.open = true;
-    }, true);
     refresh();
   });
 })();
