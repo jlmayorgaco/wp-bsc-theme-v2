@@ -27,6 +27,7 @@ function bsc_get_order_status_display( string $status, bool $is_archived = false
 	$map    = array(
 		'pending'    => array( 'Pendiente de pago', 'pending' ),
 		'on-hold'    => array( 'Pago por confirmar', 'on-hold' ),
+		'abono-pendiente' => array( 'ABONADA PENDIENTE', 'abono-pendiente' ),
 		'processing' => array( 'Recibido', 'processing' ),
 		'preparing'  => array( 'Recibido', 'processing' ),
 		'shipped'    => array( 'Enviado', 'shipped' ),
@@ -54,6 +55,13 @@ function bsc_get_order_status_display( string $status, bool $is_archived = false
 function bsc_get_order_confirmation_copy( string $status, string $order_number ): array {
 	$status       = preg_replace( '/^wc-/', '', $status );
 	$order_number = esc_html( $order_number );
+
+	if ( 'abono-pendiente' === $status ) {
+		return array(
+			'title'   => 'Abono recibido',
+			'message' => 'Tu pedido <strong>#' . $order_number . '</strong> tiene un saldo pendiente.',
+		);
+	}
 
 	if ( 'pending' === $status ) {
 		return array(
@@ -102,6 +110,7 @@ function bsc_map_order_status_to_bar( string $wc_status ): string {
 	$map = array(
 		'pending'      => BSC_Order_Progress_Bar::PENDING,
 		'on-hold'      => BSC_Order_Progress_Bar::ON_HOLD,
+		'abono-pendiente' => BSC_Order_Progress_Bar::ON_HOLD,
 		'processing'   => BSC_Order_Progress_Bar::RECEIVED,
 		'preparing'    => BSC_Order_Progress_Bar::RECEIVED,
 		'shipped'      => BSC_Order_Progress_Bar::SHIPPED,

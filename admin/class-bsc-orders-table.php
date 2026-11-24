@@ -177,13 +177,22 @@ class BSC_Admin_Orders_Table extends WP_List_Table {
 
 	public function column_total( $item ): string {
 		/** @var WC_Order $item */
-		return wp_kses_post( $item->get_formatted_order_total() );
+		$html = wp_kses_post( $item->get_formatted_order_total() );
+		if ( BSC_Showroom_Deposits::is_deposit_order( $item ) ) {
+			$balance = BSC_Showroom_Deposits::balance( $item );
+			$html .= '<br><small>Saldo ' . wp_kses_post( wc_price( $balance, array( 'currency' => $item->get_currency() ) ) ) . '</small>';
+			$html .= '<br><a href="' . esc_url( bsc_showroom_deposit_order_url( $item->get_id() ) ) . '">' . ( $item->has_status( BSC_Showroom_Deposits::STATUS ) ? 'Registrar pago final' : 'Ver pagos' ) . '</a>';
+		}
+		return $html;
 	}
 
 	public function column_status( $item ): string {
 		/** @var WC_Order $item */
 		$current = $this->normalize_status_select_value( $item );
 		$html    = $this->status_badge( $item );
+		if ( $item->has_status( BSC_Showroom_Deposits::STATUS ) ) {
+			return $html;
+		}
 
 		$html .= '<div class="bsc-status-control" data-order-id="' . esc_attr( $item->get_id() ) . '">';
 		$html .= '<select class="bsc-status-select bsc-status-select--inline" data-order-id="' . esc_attr( $item->get_id() ) . '" data-original-status="' . esc_attr( $current ) . '">';

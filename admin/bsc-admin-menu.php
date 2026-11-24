@@ -447,6 +447,7 @@ function bsc_restrict_admin_menus(): void {
 
 // Include page-specific implementations
 require_once get_template_directory() . '/admin/bsc-orders-page.php';
+require_once get_template_directory() . '/admin/bsc-showroom-deposits-page.php';
 require_once get_template_directory() . '/admin/bsc-reports-page.php';
 require_once get_template_directory() . '/admin/bsc-showroom-page.php';
 require_once get_template_directory() . '/admin/bsc-products-page.php';      // BSC-062

@@ -85,6 +85,7 @@ final class BSC_Order_Stock {
 					$order->update_meta_data( '_bsc_is_showroom_sale', '1' );
 					$order->update_meta_data( '_bsc_showroom_request_id', get_current_user_id() . ':' . $request_id );
 					$order->update_meta_data( '_bsc_showroom_origin', $customer['origin'] ?? '' );
+					$deposits = array();
 					foreach ( $items as $line ) {
 						$data = self::showroom_line( $line );
 						if ( is_wp_error( $data ) ) {
@@ -110,8 +111,15 @@ final class BSC_Order_Stock {
 						}
 
 						$item_id = $order->add_product( $product, $qty, array( 'subtotal' => $price * $qty, 'total' => $price * $qty ) );
-						$item = $order->get_item( $item_id );
+						$item = $order->get_item( $item_id, false );
 						if ( ! $item ) { return new WP_Error( 'item_failed', 'No se pudo crear la línea de pedido.' ); }
+						$deposits[ $item_id ] = array(
+							'amount' => $line['deposit_amount'] ?? 0,
+							'method' => $line['deposit_method'] ?? '',
+						);
+						if ( 'abono' !== $payment && ! empty( $line['deposit_amount'] ) ) {
+							return new WP_Error( 'invalid_showroom_payment', 'Selecciona Abono para registrar pagos por producto.' );
+						}
 						$item->update_meta_data( '_bsc_stock_product_id', $id );
 						$item->update_meta_data( '_bsc_stock_tienda_qty', 'tienda' === $source ? $qty : 0 );
 						$item->update_meta_data( '_bsc_stock_bodega_qty', 'bodega' === $source ? $qty : 0 );
@@ -143,7 +151,12 @@ final class BSC_Order_Stock {
 						$applied = $order->apply_coupon( $coupon_code );
 						if ( is_wp_error( $applied ) ) { return $applied; }
 					}
-					$order->calculate_totals(); $order->save();
+					$order->calculate_totals();
+					if ( 'abono' === $payment ) {
+						$initial = BSC_Showroom_Deposits::save_initial_payment( $order, $deposits, $customer['regular_payment'] ?? '' );
+						if ( is_wp_error( $initial ) ) { return $initial; }
+					}
+					$order->save();
 					return $order;
 				} );
 				if ( $result instanceof WC_Order ) { return self::finish_showroom( $result ); }
@@ -214,7 +227,11 @@ final class BSC_Order_Stock {
 			$pending_delivery = 'yes' === $order->get_meta( '_bsc_showroom_has_backorder' )
 				|| '' !== $order->get_shipping_address_1()
 				|| '' !== $order->get_shipping_city();
-			$order->update_status( $pending_delivery ? 'processing' : 'completed', 'Venta presencial registrada desde BSC Admin.' );
+			$status = $pending_delivery ? 'processing' : 'completed';
+			if ( BSC_Showroom_Deposits::balance( $order ) > 0 ) {
+				$status = BSC_Showroom_Deposits::STATUS;
+			}
+			$order->update_status( $status, 'Venta presencial registrada desde BSC Admin.' );
 		}
 		if ( $order->get_customer_id() && function_exists( 'bsc_bp_order_is_awardable' ) && bsc_bp_order_is_awardable( $order ) && bsc_bp_calculate_order_points( $order ) > 0 ) {
 			$result = BSC_DB_Lock::run( 'points-order:' . $order->get_id(), static function () use ( $order ) {
@@ -421,6 +438,12 @@ final class BSC_Order_Stock {
 			'code'     => $code,
 			'discount' => (float) $order->get_discount_total() + (float) $order->get_discount_tax(),
 			'total'    => (float) $order->get_total(),
+			'line_totals' => array_values( array_map(
+				static function ( WC_Order_Item_Product $item ): float {
+					return round( (float) $item->get_total() + (float) $item->get_total_tax(), wc_get_price_decimals() );
+				},
+				$order->get_items()
+			) ),
 		);
 	}
 

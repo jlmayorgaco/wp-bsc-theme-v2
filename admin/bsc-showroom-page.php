@@ -40,6 +40,7 @@ function bsc_enqueue_showroom_admin_assets(): void {
 		array(
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'bsc_admin_orders' ),
+			'paymentMethods' => bsc_showroom_payment_methods(),
 			'strings' => array(
 				'emptyResults'      => 'Sin resultados.',
 				'selectProduct'     => 'Selecciona un producto primero.',
@@ -56,11 +57,7 @@ function bsc_enqueue_showroom_admin_assets(): void {
 }
 
 function bsc_showroom_payment_methods(): array {
-	return array(
-		'efectivo'      => 'Efectivo',
-		'transferencia' => 'Transferencia',
-		'tarjeta'       => 'Tarjeta',
-	);
+	return BSC_Showroom_Deposits::methods();
 }
 
 function bsc_showroom_sale_origins(): array {
@@ -216,7 +213,23 @@ function bsc_render_showroom_page(): void {
 							<?php echo esc_html( $label ); ?>
 						</label>
 						<?php endforeach; ?>
+						<label class="bsc-showroom__payment-option">
+							<input type="radio" name="bsc-payment" value="abono" disabled>
+							Abono
+						</label>
 					</fieldset>
+					<div id="bsc-deposit-details" hidden>
+						<p>Ingresa el abono en COP en cada línea de Encargo que reciba un pago.</p>
+						<label id="bsc-regular-payment-field" hidden>
+							Medio de pago de productos de Bodega o Tienda
+							<select id="bsc-regular-payment">
+								<?php foreach ( bsc_showroom_payment_methods() as $value => $label ) : ?>
+									<option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $label ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<p id="bsc-deposit-summary" aria-live="polite"></p>
+					</div>
 
 					<div id="bsc-showroom-notice" role="status" class="bsc-showroom__notice bsc-showroom__notice--hidden"></div>
 
@@ -245,7 +258,7 @@ function bsc_render_showroom_page(): void {
 								?>
 							<tr>
 								<td class="bsc-showroom__recent-cell">
-									<a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>" target="_blank">
+									<a href="<?php echo esc_url( BSC_Showroom_Deposits::is_deposit_order( $order ) ? bsc_showroom_deposit_order_url( $order->get_id() ) : $order->get_edit_order_url() ); ?>" target="_blank">
 										#<?php echo esc_html( $order->get_order_number() ); ?>
 									</a>
 								</td>
@@ -348,7 +361,7 @@ function bsc_ajax_register_showroom_sale(): void {
 	$payment_methods = bsc_showroom_payment_methods();
 	$payment         = sanitize_key( wp_unslash( $_POST['payment_method'] ?? 'efectivo' ) );
 
-	if (!isset( $payment_methods[ $payment ] )) {
+	if ( 'abono' !== $payment && !isset( $payment_methods[ $payment ] )) {
 		wp_send_json_error( array( 'message' => 'Método de pago inválido' ) );
 	}
 	$customer_name  = sanitize_text_field( wp_unslash( $_POST['customer_name'] ?? '' ) );
@@ -376,14 +389,16 @@ function bsc_ajax_register_showroom_sale(): void {
 	$request_id = isset( $_POST['request_id'] ) && is_string( $_POST['request_id'] ) ? sanitize_key( wp_unslash( $_POST['request_id'] ) ) : '';
 	if ( ! preg_match( '/^[a-f0-9-]{36}$/D', $request_id ) ) { wp_send_json_error( array( 'message' => 'Recarga la página antes de registrar la venta.' ), 400 ); }
 	$customer = array( 'name' => $customer_name, 'phone' => $customer_phone, 'email' => $customer_email, 'address' => $address, 'city' => $city, 'origin' => $origin );
-	$order = BSC_Order_Stock::showroom( $items, $payment, $payment_methods[ $payment ], $customer, $request_id, $coupon_code );
+	$customer['regular_payment'] = sanitize_key( wp_unslash( $_POST['regular_payment'] ?? '' ) );
+	$order = BSC_Order_Stock::showroom( $items, $payment, $payment_methods[ $payment ] ?? 'Abono', $customer, $request_id, $coupon_code );
 	if ( is_wp_error( $order ) ) { wp_send_json_error( array( 'message' => $order->get_error_message() ), 409 ); }
 	$order_id = $order->get_id();
 
 	wp_send_json_success(
 		array(
 			'order_id' => $order_id,
-			'edit_url' => $order->get_edit_order_url(),
+			'edit_url' => BSC_Showroom_Deposits::is_deposit_order( $order ) ? bsc_showroom_deposit_order_url( $order_id ) : $order->get_edit_order_url(),
+			'balance'  => BSC_Showroom_Deposits::balance( $order ),
 		)
 	);
 }

@@ -55,6 +55,54 @@ if (!function_exists( 'bsc_update_product_price_values' )) {
 	}
 }
 
+function bsc_admin_products_stock_query(): array {
+	return array(
+		'relation' => 'OR',
+		array( 'key' => '_stock_bodega', 'value' => 0, 'compare' => '>', 'type' => 'NUMERIC' ),
+		array( 'key' => '_stock_tienda', 'value' => 0, 'compare' => '>', 'type' => 'NUMERIC' ),
+	);
+}
+
+function bsc_admin_products_counts(): array {
+	$counts = wp_count_posts( 'product' );
+	$publish = (int) ( $counts->publish ?? 0 );
+	$draft = (int) ( $counts->draft ?? 0 );
+	$query = new WP_Query(
+		array(
+			'post_type' => 'product',
+			'post_status' => array( 'publish', 'draft' ),
+			'posts_per_page' => 1,
+			'fields' => 'ids',
+			'meta_query' => bsc_admin_products_stock_query(),
+		)
+	);
+	$in_stock = (int) $query->found_posts;
+	return array_map( 'number_format_i18n', array(
+		'publish' => $publish,
+		'draft' => $draft,
+		'in_stock' => $in_stock,
+		'out_of_stock' => max( 0, $publish + $draft - $in_stock ),
+	) );
+}
+
+function bsc_admin_product_discount_label( WC_Product $product ): string {
+	if ( $product->is_on_sale() ) {
+		$regular = (float) $product->get_regular_price();
+		$sale = (float) $product->get_sale_price();
+		if ( $product->is_type( 'variable' ) || $regular <= 0 ) {
+			return 'Con descuento';
+		}
+		$percent = 100 * ( $regular - $sale ) / $regular;
+		return sprintf( '−%s%% · %s', number_format_i18n( $percent, $percent < 1 ? 1 : 0 ), wp_strip_all_tags( wc_price( $sale ) ) );
+	}
+	foreach ( bsc_get_product_saved_variant_matrix( $product->get_id() ) as $variant ) {
+		if ( '' !== $variant['sale_price'] && (float) $variant['sale_price'] < (float) $variant['regular_price'] ) {
+			return 'En variantes';
+		}
+	}
+	return '';
+}
+
 add_action( 'wp_ajax_bsc_update_product_status', 'bsc_ajax_update_product_status' );
 function bsc_ajax_update_product_status(): void {
 	check_ajax_referer( 'bsc_products_nonce', 'nonce' );
@@ -226,6 +274,8 @@ function bsc_ajax_update_product_stocks(): void {
 			'location_code' => $location_code,
 			'regular_price' => $product instanceof WC_Product ? $product->get_regular_price() : '',
 			'sale_price'    => $product instanceof WC_Product ? $product->get_sale_price() : '',
+			'discount_label' => $product instanceof WC_Product ? bsc_admin_product_discount_label( $product ) : '',
+			'counts'        => bsc_admin_products_counts(),
 		)
 	);
 }
@@ -305,7 +355,7 @@ function bsc_ajax_apply_product_discount(): void {
 		$updated++;
 		$prices[ $product_id ] = array(
 			'sale_price'       => $sale_price,
-			'sale_price_label' => $sale_price === '' ? '' : wp_strip_all_tags( wc_price( (float) $sale_price ) ),
+			'discount_label'   => bsc_admin_product_discount_label( $product ),
 		);
 	}
 
@@ -345,6 +395,7 @@ function bsc_ajax_trash_product(): void {
 		array(
 			'product_id' => $product_id,
 			'message'    => 'Producto enviado a la papelera.',
+			'counts'     => bsc_admin_products_counts(),
 		)
 	);
 }
@@ -494,6 +545,7 @@ function bsc_ajax_save_product_variant_matrix(): void {
 			'bodega' => 0,
 			'tienda' => 0,
 		);
+	$product = wc_get_product( $product_id );
 
 	wp_send_json_success(
 		array(
@@ -501,6 +553,8 @@ function bsc_ajax_save_product_variant_matrix(): void {
 			'revision' => BSC_Stock::revision( $product_id ),
 			'bodega'   => (int) ( $stock['bodega'] ?? 0 ),
 			'tienda'   => (int) ( $stock['tienda'] ?? 0 ),
+			'discount_label' => $product ? bsc_admin_product_discount_label( $product ) : '',
+			'counts' => bsc_admin_products_counts(),
 		)
 	);
 }
@@ -578,7 +632,7 @@ function bsc_render_products_page(): void {
     // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only product table filters.
 	$search     = sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) );
 	$status_raw = isset( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '';
-	$status     = in_array( $status_raw, array( 'publish', 'draft' ), true )
+	$status     = in_array( $status_raw, array( 'publish', 'draft', 'publish_in_stock' ), true )
 		? $status_raw
 		: '';
 	$paged      = max( 1, intval( wp_unslash( $_GET['paged'] ?? 1 ) ) );
@@ -587,7 +641,7 @@ function bsc_render_products_page(): void {
 
 	$args = array(
 		'post_type'              => 'product',
-		'post_status'            => $status ?: array( 'publish', 'draft' ),
+		'post_status'            => 'publish_in_stock' === $status ? 'publish' : ( $status ?: array( 'publish', 'draft' ) ),
 		'posts_per_page'         => $per_page,
 		'paged'                  => $paged,
 		'update_post_meta_cache' => true,
@@ -597,12 +651,15 @@ function bsc_render_products_page(): void {
 	if ($search) {
 		$args['s'] = $search;
 	}
+	if ( 'publish_in_stock' === $status ) {
+		$args['meta_query'] = bsc_admin_products_stock_query();
+	}
 
 	$query    = new WP_Query( $args );
 	$products = $query->posts;
 	$total    = (int) $query->found_posts;
 	$pages    = (int) ceil( $total / $per_page );
-	$counts   = wp_count_posts( 'product' );
+	$counts   = bsc_admin_products_counts();
 	$low_ids  = class_exists( 'BSC_Stock' ) ? BSC_Stock::get_low_stock_products( (int) get_option( 'bsc_low_stock_threshold', 3 ) ) : array();
 	?>
 	<div class="wrap bsc-admin-products">
@@ -626,13 +683,23 @@ function bsc_render_products_page(): void {
 			</div>
 			<div class="bsc-admin-stat-card">
 				<span class="bsc-admin-stat-card__label">Publicados</span>
-				<span class="bsc-admin-stat-card__value" data-bsc-product-count="publish"><?php echo esc_html( number_format_i18n( (int) ( $counts->publish ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="publish"><?php echo esc_html( $counts['publish'] ); ?></span>
 				<span class="bsc-admin-stat-card__help">Disponibles en tienda.</span>
 			</div>
 			<div class="bsc-admin-stat-card">
 				<span class="bsc-admin-stat-card__label">Borradores</span>
-				<span class="bsc-admin-stat-card__value" data-bsc-product-count="draft"><?php echo esc_html( number_format_i18n( (int) ( $counts->draft ?? 0 ) ) ); ?></span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="draft"><?php echo esc_html( $counts['draft'] ); ?></span>
 				<span class="bsc-admin-stat-card__help">Pendientes de publicar.</span>
+			</div>
+			<div class="bsc-admin-stat-card">
+				<span class="bsc-admin-stat-card__label">Con stock</span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="in_stock"><?php echo esc_html( $counts['in_stock'] ); ?></span>
+				<span class="bsc-admin-stat-card__help">Con unidades en Bodega o Tienda.</span>
+			</div>
+			<div class="bsc-admin-stat-card">
+				<span class="bsc-admin-stat-card__label">Sin stock</span>
+				<span class="bsc-admin-stat-card__value" data-bsc-product-count="out_of_stock"><?php echo esc_html( $counts['out_of_stock'] ); ?></span>
+				<span class="bsc-admin-stat-card__help">Sin unidades en Bodega ni Tienda.</span>
 			</div>
 			<div class="bsc-admin-stat-card<?php echo esc_attr( ! empty( $low_ids ) ? ' bsc-admin-stat-card--warning' : '' ); ?>">
 				<span class="bsc-admin-stat-card__label">Stock bajo</span>
@@ -652,6 +719,7 @@ function bsc_render_products_page(): void {
 				<select id="bsc-products-status" name="status">
 					<option value="">Todos</option>
 					<option value="publish" <?php selected( $status, 'publish' ); ?>>Publicados</option>
+					<option value="publish_in_stock" <?php selected( $status, 'publish_in_stock' ); ?>>Con stock &gt; 0 y publicado</option>
 					<option value="draft" <?php selected( $status, 'draft' ); ?>>Borradores</option>
 				</select>
 			</div>
@@ -702,6 +770,7 @@ function bsc_render_products_page(): void {
 					<th class="bsc-admin-products__col-image">Imagen</th>
 					<th>Nombre / SKU</th>
 					<th class="bsc-admin-products__col-location">Location code</th>
+					<th class="bsc-admin-products__col-offer">Descuento</th>
 					<th class="bsc-admin-products__col-price">Precio (COP)</th>
 					<th class="bsc-admin-products__col-stock">Stock Bodega</th>
 					<th class="bsc-admin-products__col-stock">Stock Tienda</th>
@@ -720,7 +789,7 @@ function bsc_render_products_page(): void {
 					$sku                  = $product->get_sku();
 					$location_code        = bsc_get_product_location_code( $post->ID );
 					$price                = $product->get_regular_price();
-					$sale_price           = $product->get_sale_price();
+					$discount_label       = bsc_admin_product_discount_label( $product );
 					$stock                = BSC_Stock::get_stock( $post->ID );
 					$saved_variant_matrix = function_exists( 'bsc_get_product_saved_variant_matrix' )
 						? bsc_get_product_saved_variant_matrix( $post->ID, true )
@@ -799,6 +868,9 @@ function bsc_render_products_page(): void {
 							<span class="bsc-admin-products__location-note">Mueble / espacio</span>
 						</td>
 						<td>
+							<span data-role="discount-label" class="<?php echo esc_attr( $discount_label ? 'bsc-admin-products__sale-price' : 'description' ); ?>"><?php echo esc_html( $discount_label ?: 'Sin descuento' ); ?></span>
+						</td>
+						<td>
 							<div class="bsc-admin-products__price-fields">
 								<label class="bsc-admin-products__price-field">
 									<span class="bsc-admin-products__price-label">Regular</span>
@@ -813,10 +885,6 @@ function bsc_render_products_page(): void {
 										value="<?php echo esc_attr( $price ); ?>"
 									>
 								</label>
-								<span
-									class="bsc-admin-products__sale-price<?php echo esc_attr( $sale_price === '' ? ' is-hidden' : '' ); ?>"
-									data-role="sale-price-note"
-								><?php echo esc_html( $sale_price === '' ? '' : 'Oferta: ' . wp_strip_all_tags( wc_price( (float) $sale_price ) ) ); ?></span>
 							</div>
 						</td>
 						<td>
@@ -909,7 +977,7 @@ function bsc_render_products_page(): void {
 				<?php endforeach; ?>
 
 				<?php if (empty( $products )) : ?>
-					<tr><td colspan="9" class="bsc-admin-products__empty">No hay productos.</td></tr>
+					<tr><td colspan="10" class="bsc-admin-products__empty">No hay productos.</td></tr>
 				<?php endif; ?>
 			</tbody>
 		</table>

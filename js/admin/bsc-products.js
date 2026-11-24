@@ -198,6 +198,25 @@
     return $row.find('[data-role="pending"]');
   }
 
+  function updateCatalogCounts(counts) {
+    Object.keys(counts || {}).forEach(function (key) {
+      $('[data-bsc-product-count="' + key + '"]').text(counts[key]);
+    });
+  }
+
+  function updateDiscountLabel($row, label) {
+    $row.find('[data-role="discount-label"]')
+      .text(label || 'Sin descuento')
+      .toggleClass('bsc-admin-products__sale-price', Boolean(label))
+      .toggleClass('description', !label);
+  }
+
+  function removeIfOutOfStock($row, data) {
+    if ($('#bsc-products-status').val() === 'publish_in_stock' && Number(data.bodega) <= 0 && Number(data.tienda) <= 0) {
+      removeProductRow($row);
+    }
+  }
+
   function getSaveButton($row) {
     return $row.find('[data-role="save"]');
   }
@@ -329,6 +348,9 @@
         });
 
         getPendingBadge($row).removeClass('is-visible');
+        updateCatalogCounts(response.data.counts);
+        updateDiscountLabel($row, response.data.discount_label);
+        removeIfOutOfStock($row, response.data);
         showToast(strings.saved || 'Cambios guardados.', 'success');
       })
       .fail(function (xhr) {
@@ -381,10 +403,9 @@
       if (response.data.permalink) {
         $row.find('[data-role="view-product"]').attr('href', response.data.permalink);
       }
-      if (response.data.counts) {
-        ['publish', 'draft'].forEach(function (status) {
-          $('[data-bsc-product-count="' + status + '"]').text(response.data.counts[status]);
-        });
+      updateCatalogCounts(response.data.counts);
+      if (!published && $('#bsc-products-status').val() === 'publish_in_stock') {
+        removeProductRow($row);
       }
       showToast(published
         ? strings.statusPublishedSaved || 'Producto publicado.'
@@ -471,17 +492,7 @@
       Object.keys(prices).forEach(function (productId) {
         var productPrice = prices[productId];
         var $row = $('.bsc-admin-products__row[data-product-id="' + productId + '"]');
-        var $note = $row.find('[data-role="sale-price-note"]');
-
-        if (productPrice.sale_price_label) {
-          $note
-            .text('Oferta: ' + productPrice.sale_price_label)
-            .removeClass('is-hidden');
-        } else {
-          $note
-            .text('')
-            .addClass('is-hidden');
-        }
+        updateDiscountLabel($row, productPrice.discount_label);
       });
 
       showToast(
@@ -523,7 +534,7 @@
       $row.remove();
 
       if (!$tbody.find('.bsc-admin-products__row').length) {
-        $tbody.append('<tr><td colspan="9" class="bsc-admin-products__empty">No hay productos.</td></tr>');
+        $tbody.append('<tr><td colspan="10" class="bsc-admin-products__empty">No hay productos.</td></tr>');
       }
 
       updateDiscountState();
@@ -562,6 +573,7 @@
       }
 
       removed = true;
+      updateCatalogCounts(response.data && response.data.counts);
       removeProductRow($row);
       showToast(
         (response.data && response.data.message) || strings.deleted || 'Producto enviado a la papelera.',
@@ -649,6 +661,9 @@
       $row.find('[data-type="bodega"]').val(response.data.bodega).data('original', response.data.bodega);
       $row.find('[data-type="tienda"]').val(response.data.tienda).data('original', response.data.tienda);
       syncRowState($row);
+      updateCatalogCounts(response.data.counts);
+      updateDiscountLabel($row, response.data.discount_label);
+      removeIfOutOfStock($row, response.data);
 
       modalBody().html(buildVariantMatrixForm(response.data.variants || [], productId));
       modalBody().find('[data-bsc-products-variant-editor]').data('revision', response.data.revision);

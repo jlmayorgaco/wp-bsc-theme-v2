@@ -85,6 +85,7 @@ require_once get_template_directory() . '/includes/class-bsc-roles.php';
 require_once get_template_directory() . '/includes/class-bsc-stock.php';
 if ( class_exists( 'WooCommerce' ) ) {
 	require_once get_template_directory() . '/includes/class-bsc-order-stock.php';
+	require_once get_template_directory() . '/includes/class-bsc-showroom-deposits.php';
 }
 
 foreach ( glob( get_template_directory() . '/plugins/*/index.php' ) as $bsc_module_bootstrap ) {

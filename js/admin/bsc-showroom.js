@@ -9,6 +9,7 @@
   var appliedCoupon = '';
   var couponRequest = null;
   var couponVersion = 0;
+  var quotedLines = null;
   var salePending = false;
 
   var $search = $('#bsc-product-search');
@@ -185,6 +186,7 @@
     if (!keys.length) {
       $cartTable.addClass('bsc-showroom__cart-table--hidden');
       $cartEmpty.show();
+      updateDepositControls();
       return;
     }
 
@@ -197,12 +199,28 @@
       total += subtotal;
 
       var $row = $('<tr>', { 'data-pid': productId });
-      $row.append(
-        $('<td>', {
-          class: 'bsc-showroom__cart-cell',
-          text: item.name,
-        })
-      );
+      var $name = $('<td>', { class: 'bsc-showroom__cart-cell', text: item.name });
+      if (item.source === 'encargo') {
+        var $method = $('<select>', {
+          class: 'bsc-deposit-method',
+          'aria-label': 'Medio de pago del abono de ' + item.name,
+        });
+        Object.keys(config.paymentMethods || {}).forEach(function (method) {
+          $method.append($('<option>', { value: method, text: config.paymentMethods[method] }));
+        });
+        $name.append($('<div>', { class: 'bsc-showroom__deposit-line', hidden: true }).append(
+          $('<label>', { text: 'Abono (COP)' }).append($('<input>', {
+            type: 'number',
+            class: 'bsc-deposit-amount small-text',
+            min: 0,
+            step: 1,
+            'aria-label': 'Abono en pesos de ' + item.name,
+            value: item.depositAmount || '',
+          })),
+          $method.val(item.depositMethod || 'efectivo')
+        ));
+      }
+      $row.append($name);
       $row.append(
         $('<td>', {
           class: 'bsc-showroom__cart-cell bsc-showroom__cart-cell--center',
@@ -250,12 +268,47 @@
     });
 
     $cartTotal.text(formatPrice(total));
+    updateDepositControls();
   }
 
-  function cartItems() {
+  function updateDepositControls() {
+    var keys = Object.keys(cart);
+    var hasEncargo = keys.some(function (key) { return cart[key].source === 'encargo'; });
+    var $option = $('input[name="bsc-payment"][value="abono"]');
+    $option.prop('disabled', !hasEncargo);
+    if (!hasEncargo && $option.prop('checked')) {
+      $('input[name="bsc-payment"][value="efectivo"]').prop('checked', true);
+    }
+    var active = $option.prop('checked');
+    var hasRegularItems = keys.some(function (key) { return cart[key].source !== 'encargo'; });
+    $('#bsc-deposit-details, .bsc-showroom__deposit-line').prop('hidden', !active);
+    $('#bsc-regular-payment-field').prop('hidden', !active || !hasRegularItems);
+    $('#bsc-regular-payment').prop('disabled', !active || !hasRegularItems);
+    $cartBody.find('.bsc-showroom__deposit-line :input').prop('disabled', !active);
+    var paid = 0;
+    var balance = 0;
+    $cartBody.find('tr').each(function (index) {
+      var item = cart[$(this).attr('data-pid')];
+      if (item.source !== 'encargo') { return; }
+      var total = quotedLines ? Number(quotedLines[index]) : Number(item.price) * item.qty;
+      var amount = Number(item.depositAmount) || 0;
+      $(this).find('.bsc-deposit-amount').attr('max', Math.floor(total));
+      paid += amount;
+      balance += Math.max(0, total - amount);
+    });
+    $('#bsc-deposit-summary').text('Abonos: ' + formatPrice(paid) + ' · Saldo pendiente: ' + formatPrice(balance));
+    return paid;
+  }
+
+  function cartItems(includeDeposits) {
     return Object.keys(cart).map(function (key) {
       var item = cart[key];
-      return { id: item.id, variant_key: item.variant_key, qty: item.qty, source: item.source };
+      var line = { id: item.id, variant_key: item.variant_key, qty: item.qty, source: item.source };
+      if (includeDeposits && item.source === 'encargo') {
+        line.deposit_amount = Number(item.depositAmount) || 0;
+        line.deposit_method = item.depositMethod || 'efectivo';
+      }
+      return line;
     });
   }
 
@@ -266,6 +319,7 @@
       couponRequest = null;
     }
     appliedCoupon = '';
+    quotedLines = null;
     $('#bsc-remove-coupon').prop('hidden', true);
     $('#bsc-apply-coupon').prop('disabled', false).text('Aplicar');
     $('#bsc-coupon-notice').text('');
@@ -295,9 +349,11 @@
       if (version !== couponVersion) { return; }
       if (response && response.success) {
         appliedCoupon = response.data.code;
+        quotedLines = response.data.line_totals || null;
         $('#bsc-coupon-notice').text('Cupón ' + appliedCoupon + ' aplicado. Descuento: ' + formatPrice(response.data.discount));
         $('#bsc-remove-coupon').prop('hidden', false);
         $cartTotal.text(formatPrice(response.data.total));
+        updateDepositControls();
       } else {
         $('#bsc-coupon-notice').text((response && response.data && response.data.message) || 'No se pudo aplicar el cupón.');
       }
@@ -325,8 +381,18 @@
     if (hadCoupon) { $('#bsc-coupon-notice').text('Los datos cambiaron. Aplica el cupón nuevamente.'); }
   });
 
-  $('#bsc-customer-name, #bsc-customer-phone, #bsc-sale-origin, input[name="bsc-payment"]').on('change', function () {
+  $('#bsc-customer-name, #bsc-customer-phone, #bsc-sale-origin, #bsc-regular-payment, input[name="bsc-payment"]').on('change', function () {
     requestId = null;
+    updateDepositControls();
+  });
+
+  $cartBody.on('input change', '.bsc-deposit-amount, .bsc-deposit-method', function () {
+    var $row = $(this).closest('tr');
+    var item = cart[$row.attr('data-pid')];
+    item.depositAmount = $row.find('.bsc-deposit-amount').val();
+    item.depositMethod = $row.find('.bsc-deposit-method').val();
+    requestId = null;
+    updateDepositControls();
   });
 
   $search.on('input', function () {
@@ -434,8 +500,8 @@
 
   $registerButton.on('click', function () {
     if (salePending || couponRequest) { return; }
-    var items = cartItems();
     var payment = $('input[name="bsc-payment"]:checked').val();
+    var items = cartItems(payment === 'abono');
 
     if (!items.length) {
       showNotice(strings.addProductFirst || 'Agrega al menos un producto.', 'error');
@@ -443,6 +509,18 @@
     }
     if (!$origin[0].reportValidity()) {
       return;
+    }
+    if (payment === 'abono') {
+      var paid = updateDepositControls();
+      var invalid = $cartBody.find('.bsc-deposit-amount:invalid').get(0);
+      if (invalid) {
+        invalid.reportValidity();
+        return;
+      }
+      if (paid <= 0) {
+        showNotice('Ingresa un abono mayor a cero en al menos un producto de Encargo.', 'error');
+        return;
+      }
     }
 
     var origin = $origin.val();
@@ -458,6 +536,7 @@
       items: JSON.stringify(items),
       request_id: requestId,
       payment_method: payment,
+      regular_payment: $('#bsc-regular-payment').val(),
       sale_origin: origin,
       customer_name: $('#bsc-customer-name').val().trim(),
       customer_phone: $('#bsc-customer-phone').val().trim(),
@@ -473,14 +552,14 @@
               escapeHtml(response.data.edit_url) +
               '" target="_blank">#' +
               escapeHtml(response.data.order_id) +
-              '</a>',
+              '</a>' + (response.data.balance > 0 ? ' · ABONADA PENDIENTE · Saldo: ' + formatPrice(response.data.balance) : ''),
             'success'
           );
           cart = {};
           renderCart();
           setTimeout(function () {
             window.location.reload();
-          }, 2000);
+          }, payment === 'abono' ? 7000 : 2000);
           return;
         }
 
@@ -496,6 +575,7 @@
         salePending = false;
         $saleControls.prop('disabled', false);
         updateProductControls();
+        updateDepositControls();
         $registerButton.text(strings.registerSale || 'Registrar venta');
       })
       .fail(function (xhr) {
@@ -504,6 +584,7 @@
         salePending = false;
         $saleControls.prop('disabled', false);
         updateProductControls();
+        updateDepositControls();
         $registerButton.text(strings.registerSale || 'Registrar venta');
       });
   });

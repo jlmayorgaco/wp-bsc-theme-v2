@@ -370,3 +370,17 @@
 }
 
 /*# sourceMappingURL=bsc-showroom.css.map */
+.bsc-showroom__deposit-line {
+  margin-top: 8px;
+}
+
+.bsc-showroom__deposit-line label,
+.bsc-showroom__deposit-line select {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.bsc-showroom__deposit-line input {
+  margin-left: 4px;
+  width: 105px;
+}

@@ -117,6 +117,9 @@ function bsc_handle_bulk_export(): void {
 			if ( ! $order ) {
 				continue;
 			}
+			if ( $order->has_status( BSC_Showroom_Deposits::STATUS ) && 'cancelled' !== $status_slug ) {
+				continue;
+			}
 
 			if ( bsc_orders_is_archive_status( $status_slug ) ) {
 				bsc_archive_order_from_admin( $order, 'Archivado manualmente en lote desde BSC Admin.' );
@@ -165,6 +168,10 @@ function bsc_orders_status_tabs(): array {
 		'wc-on-hold'    => array(
 			'label'    => 'Pago por confirmar',
 			'statuses' => array( 'on-hold' ),
+		),
+		'wc-abono-pendiente' => array(
+			'label'    => 'Abonadas pendientes',
+			'statuses' => array( BSC_Showroom_Deposits::STATUS ),
 		),
 		'wc-shipped'    => array(
 			'label'    => 'Enviado',
@@ -298,6 +305,11 @@ function bsc_render_orders_page(): void {
 		wp_die( esc_html__( 'No tienes permisos.', 'bsc-2-0' ) );
 	}
 
+	if ( isset( $_GET['bsc_abono_order'] ) ) {
+		bsc_render_showroom_deposit_order( absint( wp_unslash( $_GET['bsc_abono_order'] ) ) );
+		return;
+	}
+
 	// Sanitize filters
     // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only order filters.
 	$date_start    = isset( $_GET['date_start'] ) ? sanitize_text_field( wp_unslash( $_GET['date_start'] ) ) : '';
@@ -344,7 +356,11 @@ function bsc_render_orders_page(): void {
 		$query_args['date_before'] = $date_end . ' 23:59:59';
 	}
 	if ( $search ) {
-		$query_args['s'] = $search;
+		if ( preg_match( '/^#?([1-9][0-9]*)$/D', $search, $order_number ) ) {
+			$query_args['include'] = array( (int) $order_number[1] );
+		} else {
+			$query_args['s'] = $search;
+		}
 	}
 	$active_tab_config        = $status_tabs[ $active_status ] ?? $status_tabs[''];
 	$is_archived_view        = bsc_orders_tab_is_archived( $active_tab_config );
@@ -522,6 +538,9 @@ function bsc_ajax_update_order_status(): void {
 	if ( ! in_array( $status, $allowed_statuses, true ) ) {
 		wp_send_json_error( array( 'message' => 'Estado inválido' ) );
 	}
+	if ( $order->has_status( BSC_Showroom_Deposits::STATUS ) && 'cancelled' !== $status ) {
+		wp_send_json_error( array( 'message' => 'Registra el pago final desde el detalle del abono para cerrar el pedido.' ), 409 );
+	}
 
 	if ( bsc_orders_is_archive_status( $status ) ) {
 		bsc_archive_order_from_admin( $order );
@@ -588,7 +607,7 @@ function bsc_ajax_save_tracking(): void {
 
 	// BSC-033: auto-change status to "shipped" and send email
 	if ( $tracking_code ) {
-		if ( $order->get_status() !== 'shipped' ) {
+		if ( ! $order->has_status( array( 'shipped', BSC_Showroom_Deposits::STATUS ) ) ) {
 			$order->update_status( 'shipped', 'Guía ingresada desde BSC Admin.' );
 		}
 

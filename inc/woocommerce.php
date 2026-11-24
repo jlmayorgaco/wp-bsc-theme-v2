@@ -1993,6 +1993,17 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 	add_action( 'init', 'bsc_register_order_statuses' );
 	function bsc_register_order_statuses(): void {
 		register_post_status(
+			'wc-abono-pendiente',
+			array(
+				'label'                     => 'ABONADA PENDIENTE',
+				'public'                    => true,
+				'exclude_from_search'       => false,
+				'show_in_admin_all_list'    => true,
+				'show_in_admin_status_list' => true,
+				'label_count'               => _n_noop( 'ABONADA PENDIENTE <span class="count">(%s)</span>', 'ABONADAS PENDIENTES <span class="count">(%s)</span>' ),
+			)
+		);
+		register_post_status(
 			'wc-preparing',
 			array(
 				'label'                     => _x( 'En preparación', 'Order status', 'bsc-2-0' ),
@@ -2032,6 +2043,7 @@ if ( ! function_exists( 'bsc_2_0_woocommerce_header_cart' ) ) {
 			}
 		}
 		$new['wc-shipped'] = _x( 'Enviado', 'Order status', 'bsc-2-0' );
+		$new['wc-abono-pendiente'] = 'ABONADA PENDIENTE';
 		return $new;
 	}
 
